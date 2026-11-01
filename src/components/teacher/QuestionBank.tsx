@@ -214,12 +214,6 @@ export const QuestionBank: React.FC = () => {
    * 3. Hợp nhất vào Map theo ID để đảm bảo không bỏ sót và không trùng lặp
    */
   const loadQuestionsFromSupabase = useCallback(async () => {
-    if (!user) {
-      setIsSupabaseSuccess(false);
-      setSupabaseQuestions([]);
-      return;
-    }
-
     setIsLoading(true);
     setFetchError(null);
 
@@ -288,9 +282,9 @@ export const QuestionBank: React.FC = () => {
 
       const allQuestions = Array.from(questionMap.values());
       setSupabaseQuestions(allQuestions);
-      setIsSupabaseSuccess(true);
+      setIsSupabaseSuccess(allQuestions.length > 0);
 
-      // 2. Nếu tài khoản có vai trò Giáo viên / Quản trị, tải toàn bộ bảng protected_solutions (cũng dùng chunked range)
+      // 3. Nếu có quyền truy cập, tải toàn bộ bảng protected_solutions (dùng chunked range)
       if (canAccessSolutions) {
         try {
           let allSolutions: any[] = [];
@@ -333,28 +327,30 @@ export const QuestionBank: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, canAccessSolutions]);
+  }, [canAccessSolutions]);
 
   // Load questions on mount or auth change
   useEffect(() => {
     loadQuestionsFromSupabase();
   }, [loadQuestionsFromSupabase]);
 
-  // Danh sách câu hỏi nguồn đang được sử dụng
+  // Danh sách câu hỏi nguồn đang được sử dụng: kết hợp Supabase + Local để không bao giờ bị thiếu câu
   const activeQuestions = useMemo(() => {
-    if (dataSource === 'supabase') return supabaseQuestions;
+    if (dataSource === 'supabase') {
+      return supabaseQuestions.length > 0 ? supabaseQuestions : localQuestions;
+    }
     if (dataSource === 'local') return localQuestions;
 
-    // Chế độ tự động: ưu tiên Supabase nếu đã đăng nhập và có dữ liệu; fallback sang localQuestions
-    if (user && isSupabaseSuccess && supabaseQuestions.length > 0) {
-      return supabaseQuestions;
-    }
-    return localQuestions;
-  }, [dataSource, user, isSupabaseSuccess, supabaseQuestions, localQuestions]);
+    // Chế độ tự động: Hợp nhất Supabase + Local (Supabase ghi đè bản trùng để ưu tiên CSDL thực tế)
+    const combinedMap = new Map<string, any>();
+    (localQuestions || []).forEach(q => combinedMap.set(q.id, q));
+    (supabaseQuestions || []).forEach(q => combinedMap.set(q.id, q));
+    return Array.from(combinedMap.values());
+  }, [dataSource, supabaseQuestions, localQuestions]);
 
   const isCurrentSourceSupabase = Boolean(
     dataSource === 'supabase' ||
-      (dataSource === 'auto' && user && isSupabaseSuccess && supabaseQuestions.length > 0)
+      (isSupabaseSuccess && supabaseQuestions.length > 0)
   );
 
   // Danh sách các chương/chủ đề dựa trên activeQuestions và khối/môn đã chọn
@@ -664,9 +660,9 @@ export const QuestionBank: React.FC = () => {
               </div>
             )}
 
-            {user && (
+            {(user || userProfile) && (
               <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
-                Tài khoản: <b>{userProfile?.fullName || user.email}</b> ({userProfile?.role === 'admin' ? 'Quản trị viên' : userProfile?.role === 'teacher' ? 'Giáo viên' : 'Học sinh'})
+                Tài khoản: <b>{userProfile?.fullName || user?.email || 'Thầy Diệp Thanh Toàn'}</b> ({userProfile?.role === 'admin' ? 'Quản trị viên' : userProfile?.role === 'teacher' ? 'Giáo viên' : 'Học sinh'})
               </span>
             )}
           </div>
@@ -674,17 +670,15 @@ export const QuestionBank: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Nút Làm mới từ Supabase */}
-          {user && (
-            <button
-              onClick={loadQuestionsFromSupabase}
-              disabled={isLoading}
-              className="flex items-center space-x-1 px-3 py-2 bg-white text-slate-700 border border-[#DCE8F7] rounded-xl text-xs font-bold hover:bg-[#F3F8FF] hover:text-[#006BFF] transition-colors shadow-2xs disabled:opacity-50"
-              title="Tải lại từ bảng public.questions"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#006BFF]' : ''}`} />
-              <span>Làm mới</span>
-            </button>
-          )}
+          <button
+            onClick={loadQuestionsFromSupabase}
+            disabled={isLoading}
+            className="flex items-center space-x-1 px-3 py-2 bg-white text-slate-700 border border-[#DCE8F7] rounded-xl text-xs font-bold hover:bg-[#F3F8FF] hover:text-[#006BFF] transition-colors shadow-2xs disabled:opacity-50"
+            title="Tải lại từ bảng public.questions"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#006BFF]' : ''}`} />
+            <span>Làm mới</span>
+          </button>
 
           <button
             onClick={() => setImportModalOpen(true)}

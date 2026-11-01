@@ -136,11 +136,36 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Mode & Auth States
   const [isDemoMode, setIsDemoMode] = useState<boolean>(!isSupabaseConfigured);
-  const [currentRole, setCurrentRoleState] = useState<UserRole>('student');
+
+  // Khôi phục hồ sơ đã lưu hoặc mặc định tài khoản Giáo viên Thầy Diệp Thanh Toàn
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('taydo_active_profile');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      id: 'teacher-dieptoan',
+      email: 'dieptoan.net@gmail.com',
+      fullName: 'Thầy Diệp Thanh Toàn',
+      role: 'teacher',
+      subject: 'Tin học',
+      schoolName: 'Trường THCS Tây Đô'
+    };
+  });
+
+  const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
+    try {
+      const saved = localStorage.getItem('taydo_active_profile');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.role) return parsed.role;
+      }
+    } catch {}
+    return 'teacher';
+  });
 
   // Supabase Auth & Verification States
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
@@ -338,6 +363,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentRoleState(prof.role);
         setIsDemoMode(false);
         setDbVerified(true); // Đã truy vấn thành công bảng CSDL profiles
+        try {
+          localStorage.setItem('taydo_active_profile', JSON.stringify(prof));
+        } catch {}
       } else {
         const effectiveUser = currentUser || userRef.current;
         // Đọc vai trò được chọn từ user_metadata khi đăng ký (teacher hoặc student)
@@ -356,6 +384,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUserProfile(defaultProf);
         setCurrentRoleState(defaultProf.role);
         setIsDemoMode(false);
+        try {
+          localStorage.setItem('taydo_active_profile', JSON.stringify(defaultProf));
+        } catch {}
 
         // Tự động đảm bảo bản ghi tồn tại trong bảng public.profiles để thỏa mãn RLS Supabase
         try {
@@ -382,8 +413,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [loadProfile]);
 
-  // Initialize session and listen to Supabase Auth state changes (chạy một lần khi mount)
+  // Initialize session, verify Supabase and listen to Auth state changes (chạy một lần khi mount)
   useEffect(() => {
+    // 0. Tự động kiểm tra và xác thực kết nối Supabase CSDL ngay khi khởi chạy
+    verifySupabase();
+
     if (!isSupabaseConfigured) {
       setIsDemoMode(true);
       return;
@@ -639,6 +673,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Lỗi khi đăng xuất:', err);
       }
     }
+    try {
+      localStorage.removeItem('taydo_active_profile');
+    } catch {}
     setUser(null);
     setUserProfile(null);
     setCurrentRoleState('student');

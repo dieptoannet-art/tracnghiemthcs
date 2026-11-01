@@ -9,8 +9,10 @@ import {
   AuditLog,
   StudyDocument
 } from '../types';
+import { SEED_INFORMATICS_QUESTIONS } from './seedInformaticsQuestions';
 
 export const INITIAL_QUESTIONS: Question[] = [
+  ...SEED_INFORMATICS_QUESTIONS,
   // --- TOÁN 8 (KNTT / Cánh Diều) ---
   {
     id: 'q-t8-01',

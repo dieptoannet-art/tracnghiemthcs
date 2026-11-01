@@ -50,6 +50,14 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
           anonKey: anonKey.trim(),
           isConnected: true
         });
+        try {
+          localStorage.setItem(
+            'taydo_supabase_config',
+            JSON.stringify({ url: url.trim(), anonKey: anonKey.trim() })
+          );
+        } catch {
+          // ignore
+        }
         // Run verification in context
         verifySupabase();
       } else {

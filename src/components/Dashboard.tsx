@@ -141,8 +141,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-center space-x-2 mt-1">
             <span className="text-xs text-slate-500">Trường THCS Tây Đô • GDPT 2018</span>
             <span className="text-slate-300">•</span>
-            <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
-              Dữ liệu trên trình duyệt
+            <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-flex items-center space-x-1">
+              <Database className="w-3 h-3 text-emerald-600" />
+              <span>Đồng bộ CSDL Supabase</span>
             </span>
           </div>
         </div>
@@ -216,7 +217,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <p className="text-lg sm:text-xl text-blue-100 font-normal tracking-wide">
               Kiến thức hôm nay – Thành công ngày mai
             </p>
-            {!user && (
+            {(user || userProfile) ? (
+              <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+                <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-xs text-white px-3.5 py-2 rounded-xl text-xs font-semibold border border-white/20">
+                  <span>Xin chào, <strong>{userProfile?.fullName || 'Thầy Diệp Thanh Toàn'}</strong> ({userProfile?.role === 'teacher' ? 'Giáo viên' : userProfile?.role === 'admin' ? 'Quản trị' : 'Học sinh'})!</span>
+                </div>
+                <button
+                  onClick={() => setCurrentView(currentRole === 'teacher' ? 'teacher_question_bank' : 'student_practice')}
+                  className="px-4 py-2 bg-white text-[#0052cc] rounded-xl font-bold text-xs shadow-md hover:bg-blue-50 transition-colors flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <span>{currentRole === 'teacher' ? 'Xem ngân hàng câu hỏi' : 'Bắt đầu luyện tập ngay'}</span>
+                </button>
+              </div>
+            ) : (
               <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-2.5">
                 <button
                   onClick={() => openAuthModal('register')}

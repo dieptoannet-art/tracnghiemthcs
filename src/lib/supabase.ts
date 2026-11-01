@@ -1,36 +1,60 @@
 import { createClient } from '@supabase/supabase-js';
 import { UserProfile, UserRole } from '../types';
 
-// Read Supabase environment variables
-// Supports modern publishable key and standard anon key
-const envUrl = (
+// Default project credentials configured for THCS Tây Đô
+export const DEFAULT_SUPABASE_URL = 'https://hhtwbmzqjpbbhqoqpsse.supabase.co';
+export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_XkHTL_jwWOBKiEGDtJ4-1g_MEaxSdGb';
+
+// Read from localStorage (if user updated in guide modal), or Vite env, or fallback to default
+const getStoredConfig = () => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const saved = localStorage.getItem('taydo_supabase_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.url && parsed.anonKey) {
+          return { url: parsed.url.trim(), key: parsed.anonKey.trim() };
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+};
+
+const storedConfig = getStoredConfig();
+
+const rawUrl = (
+  storedConfig?.url ||
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
   (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL) ||
-  ''
+  DEFAULT_SUPABASE_URL
 ).trim();
 
-const envKey = (
+const rawKey = (
+  storedConfig?.key ||
   (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env?.VITE_SUPABASE_ANON_KEY)) ||
   (typeof process !== 'undefined' && (process.env?.VITE_SUPABASE_PUBLISHABLE_KEY || process.env?.VITE_SUPABASE_ANON_KEY)) ||
-  ''
+  DEFAULT_SUPABASE_ANON_KEY
 ).trim();
+
+export const SUPABASE_URL = rawUrl;
+export const SUPABASE_ANON_KEY = rawKey;
 
 // Check if valid URL and Key are provided
 export const isSupabaseConfigured = Boolean(
-  envUrl &&
-  envKey &&
-  envUrl.startsWith('http') &&
-  !envUrl.includes('your-project-id') &&
-  !envKey.includes('...')
+  SUPABASE_URL &&
+  SUPABASE_ANON_KEY &&
+  SUPABASE_URL.startsWith('http') &&
+  !SUPABASE_URL.includes('your-project-id') &&
+  !SUPABASE_ANON_KEY.includes('...')
 );
 
-export const SUPABASE_URL = envUrl;
-export const SUPABASE_ANON_KEY = envKey;
-
-// Create Supabase client instance (or a dummy client if unconfigured to avoid crash)
+// Create Supabase client instance
 export const supabase = createClient(
-  isSupabaseConfigured ? envUrl : 'https://placeholder.supabase.co',
-  isSupabaseConfigured ? envKey : 'placeholder-key',
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
   {
     auth: {
       persistSession: true,
@@ -43,11 +67,6 @@ export const supabase = createClient(
 /**
  * Test connectivity to the Supabase endpoint and distinguish Auth vs Database verification
  */
-/**
- * Test connectivity to the Supabase endpoint and distinguish Auth service reachability vs User Auth verification
- * CRITICAL: Only verifies Auth when there is genuine proof of authentication (active user session).
- * Never prints secret keys or tokens.
- */
 export async function testSupabaseConnection(customUrl?: string, customKey?: string): Promise<{
   success: boolean;
   message: string;
@@ -56,8 +75,8 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
   authVerified?: boolean;
   dbVerified?: boolean;
 }> {
-  const targetUrl = customUrl?.trim() || envUrl;
-  const targetKey = customKey?.trim() || envKey;
+  const targetUrl = customUrl?.trim() || SUPABASE_URL;
+  const targetKey = customKey?.trim() || SUPABASE_ANON_KEY;
 
   const isTargetValid = Boolean(
     targetUrl &&

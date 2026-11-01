@@ -6,6 +6,7 @@ import { Dashboard } from './components/Dashboard';
 
 // Student views
 import { PracticeMode } from './components/student/PracticeMode';
+import { SemesterReview } from './components/student/SemesterReview';
 import { ExamTaking } from './components/student/ExamTaking';
 import { WrongQuestionsBook } from './components/student/WrongQuestionsBook';
 import { StudentResults } from './components/student/StudentResults';
@@ -130,8 +131,9 @@ const AppContent: React.FC = () => {
 
       // Student views
       case 'student_practice':
-      case 'student_semester_review':
         return <PracticeMode />;
+      case 'student_semester_review':
+        return <SemesterReview />;
       case 'student_assignments':
       case 'student_exam_taking':
         return <ExamTaking onBackToDashboard={() => setCurrentView('dashboard')} />;
