@@ -1,0 +1,6 @@
+{
+  "name": "TRẮC NGHIỆM THCS TÂY ĐÔ",
+  "description": "Hệ thống học tập, luyện thi trắc nghiệm và quản lý kiểm tra trực tuyến dành cho học sinh và giáo viên Trường THCS Tây Đô.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
