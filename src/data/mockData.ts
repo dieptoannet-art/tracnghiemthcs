@@ -10,9 +10,11 @@ import {
   StudyDocument
 } from '../types';
 import { SEED_INFORMATICS_QUESTIONS } from './seedInformaticsQuestions';
+import { SEED_MATH_GRADE6_QUESTIONS } from './seedMathQuestions';
 
 export const INITIAL_QUESTIONS: Question[] = [
   ...SEED_INFORMATICS_QUESTIONS,
+  ...SEED_MATH_GRADE6_QUESTIONS,
   // --- TOÁN 8 (KNTT / Cánh Diều) ---
   {
     id: 'q-t8-01',

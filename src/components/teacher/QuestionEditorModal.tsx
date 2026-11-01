@@ -18,7 +18,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
 
   const [code, setCode] = useState(question?.code || `CH-${Date.now().toString().slice(-4)}`);
   const [grade, setGrade] = useState<Grade>(question?.grade || '8');
-  const [subject, setSubject] = useState<SubjectId>(question?.subject || 'math');
+  const [subject, setSubject] = useState<SubjectId>((question?.subject as SubjectId) || 'math');
   const [textbook, setTextbook] = useState<Textbook>(question?.textbook || 'Kết nối tri thức');
   const [chapter, setChapter] = useState(question?.chapter || 'Chương 1: Đa thức');
   const [lesson, setLesson] = useState(question?.lesson || 'Bài 1: Khái niệm đơn thức, đa thức');

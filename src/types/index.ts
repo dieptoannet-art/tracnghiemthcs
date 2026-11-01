@@ -82,11 +82,11 @@ export interface Question {
   id: string;
   code: string; // VD: TOAN8-CK1-01
   grade: Grade;
-  subject: SubjectId;
+  subject: SubjectId | string;
   textbook: Textbook;
   chapter: string;
   lesson: string;
-  yccd: string; // Yêu cầu cần đạt
+  yccd?: string; // Yêu cầu cần đạt
   competency?: string; // Thành phần năng lực
   level: CognitiveLevel;
   type: QuestionType;
@@ -106,6 +106,7 @@ export interface Question {
   numericTolerance?: number;
   rubric?: RubricCriterion[]; // Cho tự luận
   sampleAnswer?: string;
+  examSection?: 'part1' | 'part2' | 'part3';
 }
 
 export interface MatrixRow {
