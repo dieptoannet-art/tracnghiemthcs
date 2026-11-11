@@ -22,6 +22,7 @@ import { GradingAndReports } from './components/teacher/GradingAndReports';
 import { GeminiAssistantView } from './components/teacher/GeminiAssistantView';
 import { QuestionImportModal } from './components/teacher/QuestionImportModal';
 import { StudentCallGames } from './components/teacher/StudentCallGames';
+import { TeacherLectures } from './components/teacher/TeacherLectures';
 
 // Admin views
 import { AccountManagement } from './components/admin/AccountManagement';
@@ -149,6 +150,8 @@ const AppContent: React.FC = () => {
         return <StudyMaterials />;
 
       // Teacher views
+      case 'teacher_lectures':
+        return <TeacherLectures />;
       case 'teacher_classes':
         return <ClassManagement />;
       case 'teacher_student_call':

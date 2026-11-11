@@ -18,7 +18,8 @@ import {
   UserCheck,
   ShieldCheck,
   Settings,
-  Dices
+  Dices,
+  Presentation
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -144,6 +145,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
               GIÁO VIÊN
             </h3>
             <div className="space-y-1">
+              <button
+                onClick={() => handleNav('teacher_lectures')}
+                className={navItemClass('teacher_lectures')}
+              >
+                <Presentation className="w-4 h-4 shrink-0 text-cyan-300" />
+                <span>Bài giảng</span>
+              </button>
+
               <button
                 onClick={() => handleNav('teacher_classes')}
                 className={navItemClass('teacher_classes')}

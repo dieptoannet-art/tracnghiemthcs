@@ -1,0 +1,9 @@
+TÍCH HỢP BÀI GIẢNG TOÁN 6 TẬP MỘT VÀO MENU GIÁO VIÊN · TÂY ĐÔ SMART EDU
+
+Áp dụng cho dự án hiện có. Dùng teacher-lectures-math6.patch và thư mục public/lessons/giao-vien/toan-6-tap-1 trong gói. Đây là học liệu trình chiếu để giáo viên dạy trực tiếp.
+
+1. Chép đúng 38 tệp index.html vào cây public/lessons/giao-vien/toan-6-tap-1. Nếu phiên AI Studio chưa có cây HTML, yêu cầu tôi chép nguyên thư mục từ ZIP lên GitHub. Không tạo trang thay thế.
+2. Áp dụng bản vá hoặc ghép các phần tương ứng nếu mã nguồn hiện tại khác. Bổ sung teacherLectureCatalog.json, TeacherLectures.tsx, view teacher_lectures trong App.tsx và nút Bài giảng trong nhóm Giáo viên của Sidebar.tsx. Dùng route guard hiện có cho view teacher_. Giữ các mục Giáo viên hiện có, bao gồm Trò chơi gọi học sinh nếu đã tích hợp.
+3. Dùng chương hoặc hoạt động để lọc bài. Khi giáo viên bấm Mở bài giảng, dùng URL cùng origin từ danh mục cho iframe và nút Mở tab riêng. Bật hỗ trợ fullscreen. Kiểm tra data-lecture-id của HTML để phát hiện trường hợp máy chủ trả trang chủ hoặc 404. Dùng bài HTML thực tế làm nội dung giảng dạy.
+4. Kiểm tra đủ 22 bài, 8 mục luyện tập, 5 mục cuối chương, 3 hoạt động. Mở thử Bài 1, Bài 12, Bài 20 và GeoGebra. Thử chữ lớn, chuyển phần, đóng mở lời giải, toàn màn hình và tab riêng. Kiểm tra menu Giáo viên trên điện thoại. Xác nhận tài khoản Học sinh không thấy mục Bài giảng.
+5. Chạy kiểm tra TypeScript và build. Báo các tệp thực sự đã sửa và các URL đã kiểm tra. Giữ menu học sinh, catalog tự học, dữ liệu lịch sử và các phân hệ khác của dự án.
