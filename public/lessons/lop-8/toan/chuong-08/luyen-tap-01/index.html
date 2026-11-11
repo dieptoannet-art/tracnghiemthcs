@@ -1,0 +1,2250 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luyện tập chung · Tây Đô Smart EDU</title>
+<style>:root {
+  color-scheme: light;
+  --navy: #102b4d;
+  --blue: #005ac4;
+  --paper: #fff;
+  --bg: #eef4fb;
+  --muted: #435b75;
+  --border: #cfdced;
+  --teal: #006e68;
+  --good: #156047;
+  --bad: #8e390f;
+  font: 18px/1.6 "Times New Roman", Georgia, serif;
+  color: var(--navy);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+#lesson-root { max-width: 930px; padding: clamp(12px, 4vw, 36px); margin: auto; }
+h1, h2, h3, p { margin: 0 0 .65rem; overflow-wrap: anywhere; }
+h1 { font-size: clamp(1.8rem, 4.8vw, 2.85rem); line-height: 1.1; }
+h2 { font-size: 1.45rem; line-height: 1.24; }
+h3 { font-size: 1.13rem; line-height: 1.28; }
+ul { padding-left: 1.3rem; }
+.hero {
+  color: #fff;
+  padding: clamp(20px, 5vw, 38px);
+  border-radius: 18px;
+  background: linear-gradient(115deg,#102b4d,#005bc4 88%);
+  box-shadow: 0 9px 22px #123d6c25;
+}
+.hero p { max-width: 65ch; margin-bottom: 0; color: #eef6ff; }
+.eyebrow, .meta, button, select, input, .steps, .small, .badge {
+  font: 500 .84rem/1.4 system-ui, sans-serif;
+}
+.eyebrow { margin-bottom: .65rem !important; }
+.toolbar, .actions, .model-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.toolbar { justify-content: space-between; padding: 12px 0; gap: 6px 12px; }
+.meta, .small { color: var(--muted); }
+.panel, .model { background: var(--paper); border: 1px solid var(--border); border-radius: 15px; }
+.panel { padding: clamp(14px, 3.5vw, 28px); margin: 14px 0; box-shadow: 0 4px 10px #112d4c0a; }
+.model { margin: 14px 0; padding: 15px; background: #f7faff; }
+.model-output { display: block; color: var(--teal); font-weight: bold; margin: .5rem 0; }
+.model-controls { margin: .4rem 0; }
+.model-controls label { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+button, input:not([type=checkbox]):not([type=radio]), select {
+  border: 1px solid #9fb5cf; background: #fff; color: var(--navy); border-radius: 9px;
+  min-height: 44px; padding: 8px 12px;
+}
+button { cursor: pointer; font-weight: 650; }
+button:hover:not(:disabled) { background: #e5f1ff; }
+button.primary { color: #fff; background: var(--blue); border-color: var(--blue); }
+button.primary:hover:not(:disabled) { background: #004ca6; }
+button:disabled { opacity: .5; cursor: default; }
+button[aria-pressed=true] { background: #dcecff; border-color: var(--blue); }
+:focus-visible { outline: 3px solid #1b72d3; outline-offset: 3px; }
+input[type=radio], input[type=checkbox] { accent-color: var(--blue); width: 18px; height: 18px; }
+input.answer { width: min(100%, 280px); font-size: 1rem; }
+input[type=range] { padding: 0 !important; max-width: 170px; }
+.steps { display: flex; flex-wrap: wrap; gap: 7px; }
+.steps span { border: 1px solid var(--border); border-radius: 999px; padding: 4px 11px; }
+.steps [aria-current=step] { background: #d6eaff; border-color: #7eafe5; font-weight: 700; }
+.feedback { border-left: 4px solid var(--blue); background: #eaf3ff; padding: 12px; margin: 12px 0; }
+.feedback:empty { display: none; }
+.feedback[data-state=good] { border-color: var(--good); color: var(--good); background: #e7f6ef; }
+.feedback[data-state=bad] { border-color: var(--bad); color: #763112; background: #fff2e7; }
+.question { margin: 12px 0; }
+.options { display: grid; gap: 8px; margin: .65rem 0; }
+.option { display: flex; gap: 9px; align-items: center; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px; cursor: pointer; }
+.option:has(input:checked) { background: #e3efff; border-color: #8fb5df; }
+.option span { overflow-wrap: anywhere; min-width: 0; }
+.order-list { margin: 10px 0; padding-left: 1.5rem; }
+.order-list li { margin-bottom: 5px; }
+.option-group, .history-row { border: 0; padding: 0; margin: 0; min-width: 0; }
+.history-row { border-top: 1px solid var(--border); padding: 9px 0; }
+.history-row summary { cursor: pointer; }
+canvas { width: min(100%, 460px); height: auto; display: block; background: #fff; border: 1px solid var(--border); border-radius: 8px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin: .45rem 0; }
+.badge { padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.badge.mark { border-color: #83b9e6; color: #064c96; background: #e1f0ff; }
+.result { font: 750 clamp(1.8rem,6vw,2.8rem)/1.15 system-ui,sans-serif; color: var(--teal); }
+.source { padding: 8px 2px; }
+a { color: #0054b6; }
+[hidden] { display: none !important; }
+@media(max-width: 440px) {
+  .actions button { flex: 1 1 auto; }
+  .steps { gap: 4px; }
+  .steps span { padding: 3px 7px; }
+}
+</style>
+</head>
+<body>
+<div id="lesson-root"></div>
+<noscript>Bật JavaScript để sử dụng bài tự học.</noscript>
+<script id="lesson-data" type="application/json">{"id": "toan_8_c8_lt1", "model": "wheel72", "modelMission": "Quay 20 lượt với 4 ô xanh trên 8 ô. Tự tính tần suất không xanh từ số lượt ghi nhận.", "intro": "Luyện đếm trường hợp và đọc tần suất đúng mẫu số.", "skills": [{"id": "m1", "title": "Liệt kê kết quả có thể và thuận lợi", "rule": "Xác định phép thử rồi liệt kê các kết quả có thể. Một kết quả thuận lợi nếu nó làm biến cố xảy ra. Chú ý điều kiện “ít nhất”, “không quá” và “hoặc”.", "example": "Rút một thẻ từ 1 đến 19. Có mấy kết quả thuận lợi cho “không nhỏ hơn 6”? Đếm từ 6 đến 19, gồm cả hai đầu: 19−6+1.", "hint": "Đếm theo điều kiện trên từng kết quả, tránh đếm hai lần.", "probe": {"prompt": "Rút một thẻ ghi số từ 1 đến 14. Chọn mọi kết quả thuận lợi cho “chia hết cho 6”.", "mode": "multi", "answer": [0, 1], "options": ["6", "12", "1", "2", "3"], "explanation": "Các bội dương của 6 không vượt 14 là 6, 12.", "id": "m1-q2", "skill": "m1"}, "practice": {"prompt": "Rút một thẻ từ 1 đến 15. Có mấy kết quả thuận lợi cho “không nhỏ hơn 5”?", "mode": "number", "answer": 11, "options": [], "explanation": "Đếm từ 5 đến 15, gồm cả hai đầu: 15−5+1.", "id": "m1-q3", "skill": "m1"}, "transfer": {"prompt": "Rút một thẻ ghi số từ 1 đến 19. Chọn mọi kết quả thuận lợi cho “chia hết cho 4”.", "mode": "multi", "answer": [0, 1, 2, 3], "options": ["4", "8", "12", "16", "1", "2", "3"], "explanation": "Các bội dương của 4 không vượt 19 là 4, 8, 12, 16.", "id": "m1-q4", "skill": "m1"}}, {"id": "m2", "title": "Tính xác suất thực nghiệm", "rule": "Xác suất thực nghiệm là số lần biến cố xảy ra chia tổng số lần thử. Khi số lần thử lớn, tần suất thường ổn định hơn quanh xác suất lí thuyết.", "example": "Mô phỏng 120 lượt có 24 lượt xanh. Tần suất màu còn lại là gì? Có 120−24=96 lượt không xanh.", "hint": "Mẫu số là số lần đã thử, không phải số lần không thành công.", "probe": {"prompt": "Quay 120 lượt, trúng 36 lượt. Xác suất thực nghiệm ở dạng phần trăm là bao nhiêu?", "mode": "number", "answer": 30, "options": [], "explanation": "36/120×100 = 30%.", "id": "m2-q2", "skill": "m2"}, "practice": {"prompt": "Mô phỏng 120 lượt có 30 lượt xanh. Tần suất màu còn lại là gì?", "mode": "choice", "answer": 0, "options": ["3/4", "1/4", "90/121", "45/61"], "explanation": "Có 120−30=90 lượt không xanh.", "id": "m2-q3", "skill": "m2"}, "transfer": {"prompt": "Quay 60 lượt, trúng 15 lượt. Xác suất thực nghiệm ở dạng phần trăm là bao nhiêu?", "mode": "number", "answer": 25, "options": [], "explanation": "15/60×100 = 25%.", "id": "m2-q4", "skill": "m2"}}], "quiz": [{"prompt": "Rút một thẻ từ 1 đến 17. Có mấy kết quả thuận lợi cho “không nhỏ hơn 3”?", "mode": "number", "answer": 15, "options": [], "explanation": "Đếm từ 3 đến 17, gồm cả hai đầu: 17−3+1.", "id": "m1-q5", "skill": "m1"}, {"prompt": "Rút một thẻ ghi số từ 1 đến 15. Chọn mọi kết quả thuận lợi cho “chia hết cho 6”.", "mode": "multi", "answer": [0, 1], "options": ["6", "12", "1", "2", "3"], "explanation": "Các bội dương của 6 không vượt 15 là 6, 12.", "id": "m1-q6", "skill": "m1"}, {"prompt": "Mô phỏng 100 lượt có 15 lượt xanh. Tần suất màu còn lại là gì?", "mode": "choice", "answer": 0, "options": ["17/20", "3/20", "85/101", "5/6"], "explanation": "Có 100−15=85 lượt không xanh.", "id": "m2-q5", "skill": "m2"}, {"prompt": "Quay 100 lượt, trúng 30 lượt. Xác suất thực nghiệm ở dạng phần trăm là bao nhiêu?", "mode": "number", "answer": 30, "options": [], "explanation": "30/100×100 = 30%.", "id": "m2-q6", "skill": "m2"}], "title": "Luyện tập chung", "chapter": "Chương VIII. Mở đầu về tính xác suất của biến cố", "grade": 8, "subjectName": "Toán", "volume": 2, "bookSeries": "Kết nối tri thức với cuộc sống", "page": 74}</script>
+<script>
+"use strict";
+function element(tag, text, attrs = {}) {
+  const el = document.createElement(tag);
+  if (text != null) el.textContent = text;
+  for (const [key, val] of Object.entries(attrs)) el.setAttribute(key, val);
+  return el;
+}
+
+const range = (from, to) => Array.from({length: to-from+1}, (_,i) => i+from);
+const gcd = (a, b) => b ? gcd(b,a%b) : Math.abs(a);
+const lcm = (a,b) => a*b/gcd(a,b);
+
+function factor(n) {
+  const factors = [];
+  for (let d=2; d*d<=n; d++) {
+    while (n%d===0) {
+      factors.push(d);
+      n /= d;
+    }
+  }
+  if (n>1) factors.push(n);
+  return factors;
+}
+
+// Parse the four operations, parentheses and powers. No evaluation of code.
+function calculate(input) {
+  const source = input.replaceAll('×','*').replaceAll('÷','/').replaceAll('−','-').replace(/\s/g,'');
+  if (source.length>45 || !/^[\d()+*\/^.-]+$/.test(source)) throw Error('Kiểm tra biểu thức.');
+  const tokens = source.match(/\d+(?:\.\d+)?|[()+*\/^.-]/g) || [];
+  let i=0;
+  const peek=()=>tokens[i];
+  function atom() {
+    if (peek()==='(') {
+      i++;
+      const value=sum();
+      if (tokens[i++]!==')') throw Error('Thiếu dấu ngoặc đóng.');
+      return value;
+    }
+    const t=tokens[i++];
+    if (!t || !/^\d+(?:\.\d+)?$/.test(t)) throw Error('Kiểm tra số và phép tính.');
+    return Number(t);
+  }
+  function signed() {
+    if (peek()==='-') { i++; return -signed(); }
+    const base=atom();
+    if (peek()!=='^') return base;
+    i++;
+    return base ** signed();
+  }
+  function product() {
+    let a=signed();
+    while (peek()==='*' || peek()==='/') {
+      const op=tokens[i++];
+      const b=signed();
+      if (op==='/' && b===0) throw Error('Không chia được cho 0.');
+      a=op==='*' ? a*b : a/b;
+    }
+    return a;
+  }
+  function sum() {
+    let a=product();
+    while (peek()==='+' || peek()==='-') {
+      const op=tokens[i++];
+      const b=product();
+      a=op==='+' ? a+b : a-b;
+    }
+    return a;
+  }
+  const result=sum();
+  if (i!==tokens.length || !Number.isFinite(result)) throw Error('Biểu thức ngoài phạm vi máy mô phỏng.');
+  return new Intl.NumberFormat('vi-VN',{maximumFractionDigits:8}).format(result);
+}
+
+const rad7=degrees=>degrees*Math.PI/180;
+const fmt7=value=>value.toLocaleString('vi-VN',{maximumFractionDigits:3});
+
+function polyText72(coefficients) {
+  const terms=[];
+  for(let degree=coefficients.length-1;degree>=0;degree--){
+    const coefficient=coefficients[degree];
+    if(!coefficient)continue;
+    const magnitude=Math.abs(coefficient);
+    const power=degree===0?'':degree===1?'x':degree===2?'x²':'x³';
+    const body=(degree===0||magnitude!==1?String(magnitude):'')+power;
+    const sign=coefficient<0?(terms.length?' − ':'−'):(terms.length?' + ':'');
+    terms.push(sign+body);
+  }
+  return terms.join('')||'0';
+}
+
+function term8(coefficient,xDegree,yDegree){
+  if(coefficient===0)return '0';
+  const degree=(letter,n)=>n===0?'':n===1?letter:letter+String(n).replace(/[0-9]/g,v=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[v]);
+  const variable=degree('x',xDegree)+degree('y',yDegree);
+  const magnitude=Math.abs(coefficient);
+  return (coefficient<0?'−':'')+(magnitude===1&&variable?'':fmt7(magnitude))+variable;
+}
+function sum8(parts){
+  const terms=parts.filter(part=>part!=='0');
+  return terms.map((term,i)=>i?(term.startsWith('−')?' − '+term.slice(1):term.startsWith('-')?' − '+term.slice(1):' + '+term):term).join('')||'0';
+}
+const vec8=(p,q)=>[q[0]-p[0],q[1]-p[1]];
+const mix8=(p,q,t)=>[p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1])];
+function fit8(points){
+  const xs=points.map(p=>p[0]), ys=points.map(p=>p[1]);
+  const loX=Math.min(...xs),hiX=Math.max(...xs),loY=Math.min(...ys),hiY=Math.max(...ys);
+  const scale=Math.min(335/Math.max(hiX-loX,.01),148/Math.max(hiY-loY,.01));
+  return ([x,y])=>[230+(x-(loX+hiX)/2)*scale,105-(y-(loY+hiY)/2)*scale];
+}
+
+function makeModel(kind, onSave, mission) {
+  const box=element('section',null,{class:'model','aria-label':'Mô hình khám phá'});
+  const controls=element('div',null,{class:'model-controls'});
+  const visual=element('div');
+  const output=element('output',null,{class:'model-output','aria-live':'polite'});
+  const memo=element('p','',{class:'small','aria-live':'polite'});
+  const state={};
+  const titles={
+    mono8:'Thao tác trên hai đơn thức',poly8:'Tính trên đa thức nhiều biến',ident8:'So sánh các hằng đẳng thức',
+    factor8:'Tìm các nhân tử',shape8:'Tứ giác và hai đường chéo',thales8:'Dịch điểm để kiểm tra tỉ lệ',
+    bias8:'Cùng dữ liệu, đổi mốc trục',finance8:'Tính số dư qua từng kì',rational8:'Phép toán và miền xác định',
+    linear8:'Thay hệ số và đọc đồ thị',sim8:'Kiểm tra phép phóng to',right8:'Tam giác vuông và ba hình vuông',
+    pyramid8:'Hình chóp đều và bản khai triển',
+    cross72:'Kiểm tra hai tích chéo', shares72:'Chia thành các phần bằng nhau',
+    relation72:'Thương và tích không đổi', inverse72:'Thử quan hệ tỉ lệ nghịch',
+    polyEval72:'Thay số và tính theo bậc', polySum72:'Đặt hệ số cùng bậc', polyMul72:'Nhân phân phối', polyDiv72:'Chia đa thức theo từng bước',
+    wheel72:'Vòng quay đồng khả năng', triangle72:'Ghép ba cạnh và đọc góc đối diện', shortest72:'Tìm đoạn ngắn nhất',
+    centers72:'Các điểm đồng quy trong tam giác', outer72:'Tâm ngoại tiếp và trực tâm',
+    box72:'Hình hộp và hình lập phương', prism72:'Diện tích và thể tích lăng trụ', net72:'Thử bản khai triển trước khi cắt',
+    rationalAxis:'So sánh trên trục số hữu tỉ', rationalPower:'Lũy thừa của phân số có dấu',
+    equation:'Thử nghiệm và cân bằng hai vế', divisionCycle:'Theo dõi số dư và chu kì',
+    squareRoot:'Diện tích và cạnh hình vuông', realAxis:'Căn bậc hai trên trục số',
+    anglePair:'Góc kề bù, đối đỉnh và phân giác', parallelLab:'Hai đường thẳng và đường cắt',
+    triAngles:'Ba góc trong tam giác', triMatch:'Đổi dữ kiện của hai tam giác',
+    bisectorLine:'Điểm cách đều hai đầu đoạn thẳng', sampleLab:'Ảnh hưởng của cách lấy mẫu',
+    pie7:'Thay đổi cơ cấu hình quạt', series7:'Theo dõi biến động theo thời gian', population7:'Hai cách đọc số liệu minh họa',
+    signedFrac:'Thử phân số có dấu', fracOps:'Xưởng tính phân số', portion:'Sơ đồ phần và toàn bộ',
+    decimalLine:'Trục số thập phân', decimalOps:'Xưởng tính số thập phân', rounding:'Hai mốc làm tròn', percent:'Thanh phần trăm',
+    points:'Điểm và hai đường thẳng', segment:'Thước và vị trí điểm', survey:'Phiếu khảo sát mô phỏng',
+    pictogram:'Thử khóa biểu đồ tranh', bar:'Biểu đồ cột thay đổi theo dữ liệu', doubleBar:'So sánh bằng cột kép',
+    budget:'Thử điều chỉnh ngân sách', geoLab:'Dựng hình động trên lưới',
+    set:'Thử thay điều kiện của tập hợp', place:'Bảng giá trị theo hàng', line:'Di chuyển trên trục số',
+    sum:'Thử ghép hai số cho tròn trăm', groups:'Xếp thành nhóm đều', power:'Thử đổi cơ số và số mũ',
+    digits:'Kiểm tra dấu hiệu chia hết', factor:'Tách thừa số nguyên tố', gcd:'Thử chia thành các nhóm',
+    lcm:'Tìm mốc cùng lặp', sign:'Lật dấu các thẻ trong ngoặc', product:'Kiểm tra dấu của tích và thương',
+    regular:'Quan sát đa giác đều', quadrilateral:'Quan sát các đường chéo', area:'Đo đường bao và phần phủ',
+    axis:'Phản xạ qua trục', center:'Quay quanh tâm', symmetry:'So sánh phản xạ và quay',
+    fraction:'So sánh hai phân số trên thanh đơn vị', decimal:'Giá trị các chữ số thập phân',
+    angle:'Điều chỉnh góc', probability:'Thử gieo xúc xắc',
+    room:'Đo phòng và cửa lấy sáng', construct:'Dựng hình trên lưới mô phỏng', calc:'Máy tính mô phỏng'
+  };
+  box.append(element('h3',titles[kind]));
+  if(mission)box.append(element('p',mission));
+  box.append(controls,visual,output);
+  function slider(key,label,min,max,value) {
+    state[key]=value;
+    const input=element('input',null,{type:'range',min,max,value});
+    const live=element('span',String(value));
+    const wrapper=element('label',label+' ');
+    wrapper.append(input,live);
+    controls.append(wrapper);
+    input.addEventListener('input',()=>{
+      state[key]=Number(input.value);
+      live.textContent=input.value;
+      update();
+    });
+  }
+  function select(key,label,values) {
+    state[key]=values[0];
+    const input=element('select');
+    for (const value of values) input.append(element('option',value));
+    const wrapper=element('label',label+' ');
+    wrapper.append(input);
+    controls.append(wrapper);
+    input.addEventListener('change',()=>{ state[key]=input.value; update(); });
+  }
+  function integer(key,label,value,min,max) {
+    state[key]=value;
+    const input=element('input',null,{type:'number',min,max,value});
+    input.style.width='100px';
+    const wrapper=element('label',label+' ');
+    wrapper.append(input);
+    controls.append(wrapper);
+    input.addEventListener('input',()=>{
+      if (input.value && input.validity.valid) { state[key]=Number(input.value); update(); }
+    });
+  }
+  function pills(values,marked=()=>false) {
+    const line=element('div',null,{class:'pills'});
+    values.forEach(v=>line.append(element('span',v,{class:'badge'+(marked(v)?' mark':'')})));
+    visual.replaceChildren(line);
+  }
+  function drawing(label, draw) {
+    const canvas=element('canvas',label,{width:460,height:210,role:'img','aria-label':label});
+    visual.replaceChildren(canvas);
+    const c=canvas.getContext('2d');
+    if (!c) return;
+    c.scale(1,1);
+    for (let x=10; x<460; x+=20) {
+      c.beginPath(); c.strokeStyle='#dfeaf6'; c.moveTo(x,0); c.lineTo(x,210); c.stroke();
+    }
+    for (let y=5; y<210; y+=20) {
+      c.beginPath(); c.moveTo(0,y); c.lineTo(460,y); c.stroke();
+    }
+    const line=(a,b,color='#1364ab',dash=[])=>{
+      c.beginPath(); c.strokeStyle=color; c.lineWidth=2; c.setLineDash(dash); c.moveTo(...a); c.lineTo(...b); c.stroke(); c.setLineDash([]);
+    };
+    const polygon=(pts)=>{
+      c.beginPath(); c.moveTo(...pts[0]); pts.slice(1).forEach(p=>c.lineTo(...p)); c.closePath();
+      c.fillStyle='#a9d3ff80'; c.fill(); c.strokeStyle='#0057ac'; c.lineWidth=2; c.stroke();
+    };
+    const dot=(p,label,color='#075aa4')=>{
+      c.beginPath(); c.arc(...p,5,0,2*Math.PI); c.fillStyle=color; c.fill(); c.font='bold 15px system-ui'; c.fillText(label,p[0]+7,p[1]-7);
+    };
+    draw({c,line,polygon,dot});
+  }
+  function regular(n,r=75,ox=230,oy=105,angle=-Math.PI/2) {
+    return range(0,n-1).map(i=>[ox+r*Math.cos(angle+2*Math.PI*i/n),oy+r*Math.sin(angle+2*Math.PI*i/n)]);
+  }
+  switch(kind) {
+    case 'mono8':
+      slider('a','Hệ số đơn thức thứ nhất',-6,6,4);slider('b','Hệ số đơn thức thứ hai',1,6,2);
+      slider('u','Mũ x của đơn thức thứ nhất',0,6,3);slider('v','Mũ x của đơn thức thứ hai',0,6,2);
+      select('mode','Phép toán',['Nhân','Chia','Cộng nếu đồng dạng']);
+      break;
+    case 'poly8':
+      slider('a','Hệ số a',-6,6,3);slider('b','Hệ số b',-6,6,2);
+      slider('u','Giá trị x',-4,4,1);slider('v','Giá trị y',-4,4,2);
+      select('mode','Phép toán',['Cộng','Trừ','Nhân hai nhị thức']);
+      break;
+    case 'ident8':
+      slider('a','A',0,15,5);slider('b','B',0,15,3);
+      select('mode','Công thức',['Bình phương tổng','Bình phương hiệu','Hiệu hai bình phương','Lập phương tổng','Lập phương hiệu','Tổng hai lập phương','Hiệu hai lập phương']);
+      break;
+    case 'factor8':
+      slider('a','Hệ số a',1,8,3);slider('b','Hệ số b',1,8,2);
+      select('mode','Cách phân tích',['Nhóm hạng tử','Đặt chung','Hiệu hai bình phương']);
+      break;
+    case 'shape8':
+      slider('a','Kích thước ngang',3,12,8);slider('b','Kích thước dọc',2,8,5);
+      slider('u','Độ nghiêng của bình hành',-4,4,2);
+      select('mode','Dạng hình',['Bình hành','Chữ nhật','Thang cân','Thang lệch','Thoi','Vuông']);
+      select('diag','Đường chéo',['Hiện','Ẩn']);
+      break;
+    case 'thales8':
+      slider('a','Vị trí ngang của đỉnh A',1,9,4);
+      slider('u','AD/AB theo phần trăm',10,90,40);slider('v','AE/AC theo phần trăm',10,90,40);
+      select('mode','Đường cần xem',['Đoạn DE','Phân giác']);
+      break;
+    case 'bias8':
+      slider('a','Giá trị A (%)',80,90,81);slider('b','Giá trị B (%)',80,90,83);
+      select('mode','Mốc trục',['Từ 0%','Từ 79%']);
+      break;
+    case 'finance8':
+      slider('a','Vốn ban đầu (đơn vị tiền)',20,300,100);
+      slider('b','Lãi suất mỗi kì (%)',0,12,5);slider('u','Số kì',1,8,3);
+      break;
+    case 'rational8':
+      slider('a','Tham số a',1,6,3);slider('u','Giá trị x thử',-8,8,3);
+      select('mode','Phép toán',['Rút gọn','Cộng hai phân thức','Trừ hai phân thức','Nhân','Chia']);
+      break;
+    case 'linear8':
+      slider('a','Hệ số góc a',-5,5,2);slider('b','Tung độ gốc b',-8,8,-1);
+      slider('u','Giá trị x',-6,6,3);
+      select('mode','So với đường tham chiếu',['Một đường','Hai đường cùng hệ số góc','Hai đường khác hệ số góc']);
+      break;
+    case 'sim8':
+      slider('a','Tỉ số k',1,4,2);slider('u','Góc quay ảnh (°)',0,360,30);
+      select('mode','Cách biến đổi',['Phóng to đều','Kéo dãn ngang']);
+      break;
+    case 'right8':
+      slider('a','Cạnh góc vuông thứ nhất',1,26,6);slider('b','Cạnh góc vuông thứ hai',1,26,8);
+      select('mode','Các hình vuông dựng trên cạnh',['Hiện','Ẩn']);
+      break;
+    case 'pyramid8':
+      slider('a','Cạnh đáy',2,12,6);slider('b','Chiều cao khối',1,12,4);
+      slider('u','Góc xoay (°)',0,180,25);
+      select('mode','Loại hình chóp',['Chóp tứ giác đều','Chóp tam giác đều']);
+      select('view','Cách xem',['Hình khối','Khai triển']);
+      break;
+    case 'cross72':
+      slider('a','Tử thứ nhất',-12,12,3); slider('b','Mẫu thứ nhất',1,16,5);
+      slider('c','Tử thứ hai',-20,20,9); slider('d','Mẫu thứ hai',1,24,15);
+      break;
+    case 'shares72':
+      slider('a','Số phần nhóm A',1,9,2); slider('b','Số phần nhóm B',1,9,3);
+      slider('c','Số phần nhóm C',0,9,4); slider('d','Giá trị một phần',1,20,5);
+      break;
+    case 'relation72': case 'inverse72':
+      slider('a','Hệ số k',1,60,24); slider('b','Giá trị x thứ nhất',1,20,3); slider('c','Giá trị x thứ hai',1,20,6);
+      select('op','Quan hệ',kind==='inverse72'?['Tỉ lệ nghịch','Tỉ lệ thuận']:['Tỉ lệ thuận','Tỉ lệ nghịch']);
+      break;
+    case 'polyEval72': case 'polySum72': case 'polyMul72': case 'polyDiv72':
+      slider('a','Hệ số x² của P',-5,5,1); slider('b','Hệ số x của P',-12,12,5);
+      slider('c','Hệ số tự do của P',-20,20,6); slider('d','Số d trong Q(x) = x + d',-9,9,2);
+      slider('e','Giá trị x để thử',-6,6,0);
+      select('op','Phép toán',({
+        polyEval72:['Tính P(x)','Cộng','Trừ','Nhân','Chia'],
+        polySum72:['Cộng','Trừ','Tính P(x)','Nhân','Chia'],
+        polyMul72:['Nhân','Tính P(x)','Cộng','Trừ','Chia'],
+        polyDiv72:['Chia','Nhân','Tính P(x)','Cộng','Trừ']
+      })[kind]);
+      break;
+    case 'wheel72': {
+      slider('a','Tổng số ô bằng nhau',2,12,8);
+      slider('b','Số ô xanh mong muốn',0,12,4);
+      let signature='';
+      state.turns=0; state.hits=0; state.last=null;
+      const clear=()=>{state.turns=0;state.hits=0;state.last=null;};
+      state.refresh=()=>{
+        const next=state.a+':'+Math.min(state.a,state.b);
+        if(signature!==next){signature=next;clear();}
+      };
+      function spin(count){
+        state.refresh();
+        if(state.turns+count>10000)return;
+        for(let i=0;i<count;i++){
+          state.last=Math.floor(Math.random()*state.a);
+          state.turns++;
+          if(state.last<Math.min(state.a,state.b))state.hits++;
+        }
+        update();
+      }
+      for(const [label,handler] of [['Quay 1 lượt',()=>spin(1)],['Quay 20 lượt',()=>spin(20)],['Quay 100 lượt',()=>spin(100)],['Đặt lại',()=>{clear();update();}]]){
+        const button=element('button',label,{type:'button'});
+        button.onclick=handler; controls.append(button);
+      }
+      break;
+    }
+    case 'triangle72':
+      slider('a','Cạnh BC',1,15,7);slider('b','Cạnh CA',1,15,5);slider('c','Cạnh AB',1,15,6);
+      break;
+    case 'shortest72':
+      slider('a','Khoảng cách PH',1,10,4);slider('b','Vị trí X so với H',-12,12,5);
+      break;
+    case 'centers72': case 'outer72':
+      slider('a','Vị trí ngang của A (so với B)',-4,14,4);
+      slider('b','Độ cao của A so với BC',2,12,6);
+      select('op','Đường cần quan sát',kind==='outer72'?['Trung trực','Đường cao','Trung tuyến','Phân giác']:['Trung tuyến','Phân giác','Trung trực','Đường cao']);
+      break;
+    case 'box72': case 'prism72': case 'net72':
+      slider('a','Chiều thứ nhất của đáy',1,12,6);
+      slider('b','Chiều thứ hai của đáy',1,12,4);
+      slider('c','Chiều cao khối',1,12,5);
+      slider('d','Góc quan sát (°)',10,80,32);
+      select('op','Dạng khối',kind==='prism72'?['Lăng trụ đáy tam giác vuông','Lăng trụ đáy chữ nhật','Lập phương']:['Lập phương','Lăng trụ đáy tam giác vuông','Lăng trụ đáy chữ nhật']);
+      select('view','Cách xem',kind==='net72'?['Khai triển','Hình khối']:['Hình khối','Khai triển']);
+      break;
+    case 'rationalAxis':
+      slider('a','Tử A',-8,8,-3); slider('b','Mẫu A',1,8,4);
+      slider('c','Tử B',-8,8,2); slider('d','Mẫu B',1,8,3);
+      break;
+    case 'rationalPower':
+      slider('a','Tử của cơ số',-5,5,-2); slider('b','Mẫu của cơ số',1,5,3);
+      slider('c','Số mũ thứ nhất',0,4,2); slider('d','Số mũ thứ hai',0,4,3);
+      break;
+    case 'equation':
+      slider('a','Hệ số của x',1,8,2); slider('b','Số hạng ở vế trái',-15,15,-4);
+      slider('c','Vế phải',-20,20,8); slider('d','Giá trị x thử',-20,20,0);
+      break;
+    case 'divisionCycle':
+      slider('a','Tử số',1,40,5); slider('b','Mẫu số',2,40,18);
+      break;
+    case 'squareRoot':
+      slider('a','Diện tích hình vuông',0,100,20); slider('b','Cạnh dự đoán (phần mười)',0,100,45);
+      break;
+    case 'realAxis':
+      slider('a','Số dưới dấu căn',0,49,5); slider('b','Điểm B (phần mười)',-70,70,-21);
+      select('op','Chọn điểm A',['−√a','√a']);
+      break;
+    case 'anglePair':
+      slider('a','Góc thứ nhất (°)',15,165,64); slider('b','Hướng tia thử (°)',0,180,30);
+      select('op','Cặp góc cần xem',['Kề bù và đối đỉnh','Hai tia phân giác']);
+      break;
+    case 'parallelLab':
+      slider('a','Góc đường cắt (°)',45,135,60); slider('b','Góc nghiêng đường trên (°)',-20,20,0);
+      select('op','Cặp góc cần xem',['Đồng vị','So le trong','Trong cùng phía']);
+      break;
+    case 'triAngles':
+      slider('a','Góc A (°)',20,120,52); slider('b','Góc B (°)',20,120,58);
+      select('op','Góc ở C',['Góc trong','Góc ngoài']);
+      break;
+    case 'triMatch':
+      slider('a','Dữ kiện thứ nhất',4,8,5); slider('b','Dữ kiện thứ hai',4,8,6);
+      select('op','Cách dựng',['c.c.c.','c.g.c.','g.c.g.','Tam giác vuông','Cùng cạnh huyền']);
+      select('variant','Thử trên tam giác bên phải',['Giữ cả dữ kiện','Đổi một dữ kiện']);
+      break;
+    case 'bisectorLine':
+      slider('a','Nửa độ dài AB',2,7,4); slider('b','Độ lệch ngang P',-7,7,2);
+      slider('c','Độ cao P',1,8,4);
+      break;
+    case 'sampleLab':
+      slider('a','Số người từ nhóm A',0,40,20); slider('b','Số người từ nhóm B',0,40,0);
+      break;
+    case 'pie7': case 'series7': case 'population7':
+      slider('a','Giá trị thứ nhất',0,40,12); slider('b','Giá trị thứ hai',0,40,18);
+      slider('c','Giá trị thứ ba',0,40,10); slider('d','Giá trị thứ tư',0,40,20);
+      if(kind==='population7') select('op','Chọn cách đọc',['Xu thế theo thời gian','Cơ cấu tại một mốc']);
+      break;
+    case 'signedFrac': case 'fracOps':
+      slider('a','Tử A',-12,12,2); slider('b','Mẫu A',1,8,4);
+      slider('c','Tử B',-12,12,1); slider('d','Mẫu B',1,8,2);
+      if(kind==='fracOps') select('op','Phép tính',['Cộng','Trừ','Nhân','Chia']);
+      break;
+    case 'portion':
+      slider('a','Số đơn vị trong một phần',1,25,8);
+      slider('b','Số phần bằng nhau',5,10,5);
+      slider('c','Số phần được chọn',1,5,3);
+      select('op','Dữ kiện',['Biết toàn bộ','Biết phần đã chọn']);
+      break;
+    case 'decimalLine':
+      slider('a','A (số phần trăm đơn vị)',-300,300,-120);
+      slider('b','B (số phần trăm đơn vị)',-300,300,-105);
+      break;
+    case 'decimalOps':
+      slider('a','A (số phần mười đơn vị)',-80,80,24);
+      slider('b','B (số phần mười đơn vị)',-80,80,6);
+      select('op','Phép tính',['Cộng','Trừ','Nhân','Chia']);
+      break;
+    case 'rounding':
+      integer('a','Số phần nghìn đơn vị',6285,0,99999);
+      select('op','Làm tròn đến',['Phần trăm','Phần mười','Đơn vị','Hàng chục']);
+      break;
+    case 'percent':
+      slider('a','Lượng gốc',10,500,240);
+      slider('b','Tỉ lệ phần trăm',0,100,25);
+      select('op','Tình huống',['Tìm phần','Giảm theo tỉ lệ','Tăng theo tỉ lệ']);
+      break;
+    case 'points':
+      slider('a','Độ cao của M so với đường d',-4,4,2);
+      select('op','Đường e',['Cắt d','Song song với d','Trùng d']);
+      break;
+    case 'segment':
+      slider('a','Vạch đặt A',0,8,2); slider('b','Vạch đặt B',12,20,14);
+      slider('c','Vạch đặt M',0,20,8);
+      select('op','Hiện trên hình',['Đoạn thẳng AB','Tia AB và BA','Đường thẳng AB']);
+      break;
+    case 'survey': {
+      state.records=[];
+      for(const label of ['Bơi','Chạy','Cầu lông','Khác','Bỏ phiếu cuối','Làm mới']) {
+        const btn=element('button',label,{type:'button'});
+        btn.onclick=()=>{
+          if(label==='Làm mới')state.records=[];
+          else if(label==='Bỏ phiếu cuối')state.records.pop();
+          else if(state.records.length<60)state.records.push(label);
+          update();
+        };
+        controls.append(btn);
+      }
+      break;
+    }
+    case 'pictogram':
+      slider('a','Sách tổ 1 (quyển)',0,24,8);
+      slider('b','Sách tổ 2 (quyển)',0,24,12);
+      slider('c','Sách tổ 3 (quyển)',0,24,6);
+      select('op','Một hình ứng với',['2','4','6']);
+      break;
+    case 'bar': case 'doubleBar':
+      slider('a','Tổ 1 · Lớp A',0,20,12); slider('b','Tổ 2 · Lớp A',0,20,8);
+      slider('c','Tổ 3 · Lớp A',0,20,15);
+      if(kind==='doubleBar') {
+        slider('d','Tổ 1 · Lớp B',0,20,8); slider('e','Tổ 2 · Lớp B',0,20,11);
+        slider('f','Tổ 3 · Lớp B',0,20,10);
+      }
+      break;
+    case 'budget':
+      slider('a','Ngân sách (nghìn đồng)',100,700,350);
+      slider('b','Chi thiết yếu (nghìn đồng)',0,500,220);
+      slider('c','Chi có thể điều chỉnh (nghìn đồng)',0,300,100);
+      slider('d','Mục tiêu tiết kiệm (nghìn đồng)',0,200,60);
+      break;
+    case 'geoLab':
+      select('op','Hình cần dựng',['Hình thoi','Lục giác đều']);
+      slider('a','OA hoặc cạnh lục giác (đv)',1,7,4);
+      slider('b','OB của hình thoi (đv)',1,6,2);
+      break;
+    case 'set': slider('n','Giới hạn n',1,9,5); select('sign','Điều kiện',['x < n','x ≤ n']); break;
+    case 'place': integer('n','Số tự nhiên',4072,0,99999); break;
+    case 'line': slider('a','Điểm đầu',-8,8,-4); slider('b','Số bước',-4,4,3); break;
+    case 'sum': slider('a','Số hạng thứ nhất',20,80,36); slider('b','Số hạng thứ hai',20,80,54); break;
+    case 'groups': slider('n','Số vật',8,48,26); slider('b','Mỗi nhóm',2,10,4); break;
+    case 'power': slider('a','Cơ số',2,6,3); slider('b','Số mũ',0,5,3); break;
+    case 'digits': integer('n','Số cần kiểm tra',315,0,99999); break;
+    case 'factor': slider('n','Số cần phân tích',2,120,45); break;
+    case 'gcd': slider('a','Số thứ nhất',2,40,18); slider('b','Số thứ hai',2,40,24); break;
+    case 'lcm': slider('a','Chu kì thứ nhất',2,12,4); slider('b','Chu kì thứ hai',2,12,6); break;
+    case 'sign': select('sign','Dấu trước ngoặc',['+','−']); slider('a','Độ lớn số hạng đầu',1,9,5); slider('b','Độ lớn số hạng sau',1,9,3); break;
+    case 'product': slider('a','Số thứ nhất',-9,9,-4); slider('b','Số thứ hai',-9,9,3); break;
+    case 'regular': select('shape','Đa giác đều',['Tam giác','Hình vuông','Lục giác']); break;
+    case 'quadrilateral': select('shape','Hình',['Chữ nhật','Thoi','Bình hành','Thang cân']); select('diag','Đường chéo',['Hiện','Ẩn']); break;
+    case 'area': slider('a','Chiều dài',2,12,6); slider('b','Chiều rộng',2,8,4); break;
+    case 'room': slider('a','Chiều dài phòng (m)',3,9,6); slider('b','Chiều rộng phòng (m)',3,8,5); slider('c','Diện tích lấy sáng (m²)',1,12,6); break;
+    case 'axis': case 'center': case 'symmetry':
+      select('transform','Phép thử',kind==='axis'?['Gập qua trục dọc','Gập qua trục ngang']:kind==='center'?['Quay 180°']:['Gập qua trục dọc','Gập qua trục ngang','Quay 180°']);
+      slider('a','Vị trí ngang của P',-4,4,3); slider('b','Vị trí dọc của P',-3,3,2); break;
+    case 'construct':
+      select('shape','Công cụ',['Đoạn thẳng','Đường thẳng','Đường tròn tâm A qua B','Tam giác đều','Hình vuông','Lục giác đều']);
+      slider('a','Vị trí ngang của B',2,6,3); slider('b','Vị trí dọc của B',-2,2,0); break;
+    case 'fraction': slider('a','Tử số A',0,8,2); slider('b','Mẫu số A',1,8,4);
+      slider('c','Tử số B',0,8,1); slider('d','Mẫu số B',1,8,2); break;
+    case 'decimal': slider('a','Số phần trăm đơn vị',0,999,305); break;
+    case 'angle': slider('a','Hướng tia OB (°)',0,180,65); slider('b','Hướng OM (°)',0,180,35); break;
+    case 'probability': {
+      state.counts=[0,0,0,0,0,0];
+      select('event','Sự kiện theo dõi',['Ra mặt 6','Ra số chẵn','Ra số lớn hơn 4','Ra số nhỏ hơn 3']);
+      const roll=count=>{
+        if(state.counts.reduce((x,y)=>x+y,0)+count>10000){memo.textContent='Đã đủ 10.000 lượt; bấm Làm mới để thử loạt khác.';return;}
+        for(let i=0;i<count;i++){state.last=1+Math.floor(Math.random()*6);state.counts[state.last-1]++;}
+        update();
+      };
+      for(const [label,handler] of [['Gieo 1 lần',()=>roll(1)],['Gieo 10 lần',()=>roll(10)],['Gieo 100 lần',()=>roll(100)],
+        ['Làm mới',()=>{state.counts.fill(0);state.last=null;memo.textContent='';update();}]]){
+        const btn=element('button',label,{type:'button'});btn.onclick=handler;controls.append(btn);
+      }
+      break;
+    }
+    case 'calc': {
+      const input=element('input',null,{type:'text',maxlength:'45','aria-label':'Biểu thức trên máy tính',value:'6 × (7 + 2)'});
+      const keys=element('div',null,{class:'actions'});
+      controls.append(input,keys);
+      for (const key of ['7','8','9','÷','4','5','6','×','1','2','3','−','0','(',')','+','^','Xóa','=']) {
+        const button=element('button',key,{type:'button'});
+        keys.append(button);
+        button.onclick=()=>{
+          if (key==='Xóa') { input.value=''; output.textContent=''; }
+          else if (key==='=') {
+            try { output.textContent=calculate(input.value); }
+            catch(e) { output.textContent=e.message; }
+            state.expression=input.value;
+          } else if (input.value.length<45) input.value+=key;
+        };
+        if (key==='=') input.addEventListener('keydown',e=>{ if(e.key==='Enter') {e.preventDefault();button.click();} });
+      }
+      break;
+    }
+  }
+
+  function update() {
+    const {n,a,b,c,shape,transform,sign}=state;
+    switch(kind) {
+      case 'mono8': {
+        const {u,v,mode}=state;
+        const term=(k,e)=>term8(k,e,1);
+        const prefix='M = '+term(a,u)+', N = '+term(b,v)+'. ';
+        let text;
+        if(mode==='Chia'){
+          text=u<v&&a!==0?'Không chia hết: số mũ x sẽ âm.':
+            'M : N = '+(a===0?'0':term8(a/b,u-v,0))+'. Chia hệ số và trừ mũ từng biến.';
+        } else if(mode==='Cộng nếu đồng dạng'){
+          text=a===0?'M bằng 0 nên M + N = '+term(b,v)+'.':
+            u===v?'M + N = '+term(a+b,u)+'. Giữ nguyên phần biến.':'Hai đơn thức khác phần biến, giữ nguyên tổng.';
+        } else {
+          text='M · N = '+term8(a*b,u+v,2)+'. '+(a===0?'Tích bằng 0.':'Bậc của tích: '+(u+v+2)+'.');
+        }
+        pills(['Mũ x của M: '+u,'Mũ x của N: '+v,'Mỗi đơn thức có một thừa số y khi hệ số khác 0']);
+        output.textContent=prefix+text;
+        break;
+      }
+      case 'poly8': {
+        const {u,v,mode}=state;
+        const t=(k,i,j)=>term8(k,i,j);
+        let p,q,result,pv,qv,total;
+        if(mode==='Nhân hai nhị thức'){
+          p=sum8([t(a,1,0),'y']);q=sum8(['x',t(-b,0,1)]);
+          result=sum8([t(a,2,0),t(1-a*b,1,1),t(-b,0,2)]);
+          pv=a*u+v;qv=u-b*v;total=pv*qv;
+          pills([t(a,2,0),t(-a*b,1,1),'xy',t(-b,0,2)]);
+        }else{
+          const sign=mode==='Cộng'?1:-1;
+          p=sum8([t(a,2,1),t(b,1,1),'1']);
+          q=sum8([t(-a,2,1),t(2,1,1),'y²']);
+          result=sum8([t(a-sign*a,2,1),t(b+2*sign,1,1),t(sign,0,2),'1']);
+          pv=a*u*u*v+b*u*v+1;qv=-a*u*u*v+2*u*v+v*v;total=pv+sign*qv;
+          pills(['Hệ số x²y: '+(a-sign*a),'Hệ số xy: '+(b+2*sign),'Hệ số y²: '+sign,'Hằng số: 1']);
+        }
+        output.textContent='P = '+p+'; Q = '+q+'. Kết quả: '+result+'. Tại (x; y) = ('+u+'; '+v+'), P = '+pv+', Q = '+qv+', kết quả = '+total+'.';
+        break;
+      }
+      case 'ident8': {
+        const mode=state.mode;
+        const cases={
+          'Bình phương tổng':['A² + 2AB + B²',[a*a,2*a*b,b*b],(a+b)**2],
+          'Bình phương hiệu':['A² − 2AB + B²',[a*a,-2*a*b,b*b],(a-b)**2],
+          'Hiệu hai bình phương':['(A−B)(A+B)',[a-b,a+b],a*a-b*b],
+          'Lập phương tổng':['A³ + 3A²B + 3AB² + B³',[a**3,3*a*a*b,3*a*b*b,b**3],(a+b)**3],
+          'Lập phương hiệu':['A³ − 3A²B + 3AB² − B³',[a**3,-3*a*a*b,3*a*b*b,-(b**3)],(a-b)**3],
+          'Tổng hai lập phương':['(A+B)(A²−AB+B²)',[a+b,a*a-a*b+b*b],a**3+b**3],
+          'Hiệu hai lập phương':['(A−B)(A²+AB+B²)',[a-b,a*a+a*b+b*b],a**3-b**3]
+        };
+        const [formula,parts,result]=cases[mode];
+        pills(parts.map((value,index)=>(index+1)+'. '+value));
+        output.textContent=mode+': '+formula+' = '+result+'. Các thẻ là '+(formula.startsWith('(')?'giá trị từng nhân tử.':'giá trị từng hạng tử.');
+        break;
+      }
+      case 'factor8': {
+        const mode=state.mode;
+        if(mode==='Nhóm hạng tử'){
+          pills(['xy − '+b+'x = x(y−'+b+')',a+'y − '+a*b+' = '+a+'(y−'+b+')']);
+          output.textContent='Hai nhóm đều chứa y−'+b+'. Kết quả: (x+'+a+')(y−'+b+').';
+        }else if(mode==='Đặt chung'){
+          pills([a+'x²y chia '+a+'xy được x',a*b+'xy chia '+a+'xy được '+b]);
+          output.textContent=a+'x²y + '+a*b+'xy = '+a+'xy(x+'+b+').';
+        }else{
+          pills(['A = x','B = '+b]);
+          output.textContent='x² − '+b*b+' = (x−'+b+')(x+'+b+').';
+        }
+        break;
+      }
+      case 'shape8': {
+        const mode=state.mode, u=state.u;
+        const shapes={
+          'Bình hành':[[0,0],[a,0],[a+u,b],[u,b]],
+          'Chữ nhật':[[0,0],[a,0],[a,b],[0,b]],
+          'Thang cân':[[0,0],[a+4,0],[a+2,b],[2,b]],
+          'Thang lệch':[[0,0],[a+4,0],[a,b],[0,b]],
+          'Thoi':[[a/2,0],[a,b/2],[a/2,b],[0,b/2]],
+          'Vuông':[[0,0],[a,0],[a,a],[0,a]]
+        };
+        const pts=shapes[mode], [A,B,C,D]=pts;
+        const ac=vec8(A,C), bd=vec8(B,D);
+        const equal=Math.abs(Math.hypot(...ac)-Math.hypot(...bd))<1e-7;
+        const perp=Math.abs(ac[0]*bd[0]+ac[1]*bd[1])<1e-7;
+        const mid=A[0]+C[0]===B[0]+D[0]&&A[1]+C[1]===B[1]+D[1];
+        drawing(mode,({polygon,line,dot})=>{
+          const project=fit8(pts);
+          polygon(pts.map(project));
+          if(state.diag==='Hiện'){
+            line(project(A),project(C),'#007765',[4,3]);line(project(B),project(D),'#b96016',[4,3]);
+          }
+          pts.forEach((p,i)=>dot(project(p),'ABCD'[i]));
+        });
+        output.textContent=mode+'. AC ≈ '+fmt7(Math.hypot(...ac))+', BD ≈ '+fmt7(Math.hypot(...bd))+'. '+(equal?'Hai đường chéo bằng nhau. ':'Hai đường chéo khác độ dài. ')+(perp?'Vuông góc. ':'Không vuông góc. ')+(mid?'Cắt nhau tại trung điểm mỗi đường.':'Không cùng trung điểm.');
+        break;
+      }
+      case 'thales8': {
+        const {u,v,mode}=state;
+        const A=[a,6],B=[0,0],C=[10,0];
+        const ab=Math.hypot(...vec8(A,B)), ac=Math.hypot(...vec8(A,C));
+        const foot=mix8(B,C,ab/(ab+ac)), D=mix8(A,B,u/100), E=mix8(A,C,v/100);
+        const bis=mode==='Phân giác';
+        drawing(bis?'Tam giác và phân giác trong AD':'Tam giác với hai điểm D và E di động',({polygon,line,dot})=>{
+          const project=fit8([A,B,C]);
+          polygon([A,B,C].map(project));
+          line(project(bis?A:D),project(bis?foot:E),'#007765');
+          [A,B,C,bis?foot:D].forEach((p,i)=>dot(project(p),'ABCD'[i]));
+          if(!bis)dot(project(E),'E');
+        });
+        output.textContent=bis?'AB ≈ '+fmt7(ab)+', AC ≈ '+fmt7(ac)+'. DB/DC = AB/AC ≈ '+fmt7(ab/ac)+'.':
+          'AD/AB = '+u+'%; AE/AC = '+v+'%. '+(u===v?'DE song song BC, DE ≈ '+fmt7(u/10)+(u===50?'. Đây là đường trung bình.':'.'):'Hai tỉ số khác nhau nên DE không song song BC.');
+        break;
+      }
+      case 'bias8': {
+        const minimum=state.mode==='Từ 0%'?0:79, maximum=100;
+        drawing('Biểu đồ hai cột dùng trục từ '+minimum+' đến 100',({line,c:ctx})=>{
+          const y=value=>169-(value-minimum)*124/(maximum-minimum);
+          line([85,35],[85,169]);line([85,169],[410,169]);
+          ctx.font='14px system-ui';ctx.fillStyle='#153452';
+          ctx.fillText(minimum+'%',42,174);ctx.fillText('100%',39,49);
+          [a,b].forEach((value,i)=>{
+            const x=140+i*148, top=y(value);
+            ctx.fillStyle=i?'#008377':'#176bc4';ctx.fillRect(x,top,62,169-top);
+            ctx.fillStyle='#153452';ctx.fillText(value+'%',x+9,top-7);ctx.fillText(i?'B':'A',x+25,192);
+          });
+        });
+        output.textContent='Giá trị A = '+a+'%, B = '+b+'%. Chênh B − A = '+(b-a)+' điểm phần trăm ở cả hai cách vẽ.';
+        break;
+      }
+      case 'finance8': {
+        const n=state.u, r=b/100;
+        pills(Array.from({length:n+1},(_,i)=>'Kì '+i+': '+fmt7(a*(1+r)**i)));
+        output.textContent='Lãi kép: '+a+' × (1 + '+fmt7(r)+') mũ '+n+' ≈ '+fmt7(a*(1+r)**n)+'. Với lãi đơn trong cùng mô hình: '+fmt7(a*(1+r*n))+'.';
+        break;
+      }
+      case 'rational8': {
+        const x=state.u, mode=state.mode;
+        let work, valid, result;
+        if(mode==='Rút gọn'){
+          work='(x²−'+a*a+')/(x−'+a+') = x+'+a;valid=x!==a;result=x+a;
+          pills(['Tử: (x−'+a+')(x+'+a+')','Điều kiện: x khác '+a]);
+        }else if(mode==='Cộng hai phân thức'||mode==='Trừ hai phân thức'){
+          const add=mode==='Cộng hai phân thức';
+          work='1/x '+(add?'+':'−')+' 1/(x+'+a+') = '+(add?'(2x+'+a+')':a)+'/['+'x(x+'+a+')]';
+          valid=x!==0&&x!==-a;result=1/x+(add?1:-1)/(x+a);
+          pills(['Mẫu chung: x(x+'+a+')','Loại x = 0 hoặc x = −'+a]);
+        }else{
+          const divide=mode==='Chia';
+          work=divide?'[1/(x−'+a+')] : [(x+'+a+')/(x−'+a+')] = 1/(x+'+a+')':
+            '[1/(x−'+a+')] · [(x−'+a+')/(x+'+a+')] = 1/(x+'+a+')';
+          valid=x!==a&&x!==-a;result=1/(x+a);
+          pills(['Loại x = '+a+' hoặc x = −'+a,divide?'Đảo phân thức thứ hai':'Khử nhân tử chung x−'+a]);
+        }
+        output.textContent=work+'. Tại x = '+x+': '+(valid?'giá trị ≈ '+fmt7(result)+'.':'biểu thức gốc không xác định.');
+        break;
+      }
+      case 'linear8': {
+        const x=state.u, y=a*x+b, mode=state.mode;
+        const second=mode==='Hai đường cùng hệ số góc'?[a,b+2]:[a+1,b];
+        const bound=Math.max(10,Math.abs(y)+2);
+        const px=x=>230+x*25, py=y=>105-y*79/bound;
+        drawing('Đồ thị y = '+sum8([term8(a,1,0),String(b)]),({line,dot,c:ctx})=>{
+          line([30,py(0)],[430,py(0)]);line([px(0),22],[px(0),189]);
+          ctx.font='12px system-ui';ctx.fillStyle='#153452';
+          for(let i=-6;i<=6;i+=2){
+            line([px(i),py(0)-4],[px(i),py(0)+4]);ctx.fillText(i,px(i)-7,py(0)+16);
+          }
+          for(let i=-2;i<=2;i++)if(i){
+            const v=i*Math.floor(bound/2);
+            line([px(0)-5,py(v)],[px(0)+5,py(v)]);ctx.fillText(v,px(0)+7,py(v)+4);
+          }
+          function plot(m,n,color){
+            const edge=[[-7,-7*m+n],[7,7*m+n]];
+            if(m){
+              const lo=Math.max(-7,Math.min((-bound-n)/m,(bound-n)/m));
+              const hi=Math.min(7,Math.max((-bound-n)/m,(bound-n)/m));
+              if(hi<lo)return;
+              edge[0]=[lo,lo*m+n];edge[1]=[hi,hi*m+n];
+            }
+            line(edge.map(p=>[px(p[0]),py(p[1])])[0],edge.map(p=>[px(p[0]),py(p[1])])[1],color);
+          }
+          if(mode!=='Một đường')plot(...second,'#ad5514');
+          plot(a,b,'#008377');dot([px(x),py(y)],'P');
+          ctx.fillText('x',432,py(0)+6);ctx.fillText('y',px(0)+7,20);
+        });
+        const comparison=mode==='Một đường'?'':mode==='Hai đường cùng hệ số góc'?' Đường thứ hai có b = '+second[1]+', song song đường đầu.':' Đường thứ hai có a = '+second[0]+', cắt đường đầu tại (0; '+b+').';
+        output.textContent='P = ('+x+'; '+y+'). Giao Oy tại (0; '+b+'). '+(a?'Giao Ox tại x ≈ '+fmt7(-b/a)+'.':'a = 0 nên đây là hàm hằng.')+comparison;
+        break;
+      }
+      case 'sim8': {
+        const shear=state.mode==='Kéo dãn ngang', angle=rad7(state.u), k=a;
+        const source=[[0,0],[3,0],[0,4]];
+        const transform=([x,y])=>{
+          const sx=x*k, sy=y*(shear?1:k);
+          return [sx*Math.cos(angle)-sy*Math.sin(angle),sx*Math.sin(angle)+sy*Math.cos(angle)];
+        };
+        const target=source.map(transform);
+        const base=Math.max(5,...target.map(p=>Math.hypot(...p))), scale=67/base;
+        drawing('Hai tam giác gốc và ảnh',({polygon,dot})=>{
+          [source,target].forEach((pts,i)=>{
+            const cx=i?342:112, cy=105;
+            const left=(Math.min(...pts.map(p=>p[0]))+Math.max(...pts.map(p=>p[0])))/2;
+            const low=(Math.min(...pts.map(p=>p[1]))+Math.max(...pts.map(p=>p[1])))/2;
+            const draw=pts.map(([x,y])=>[cx+(x-left)*scale,cy-(y-low)*scale]);
+            polygon(draw);draw.forEach((p,j)=>dot(p,(i?'DEF':'ABC')[j]));
+          });
+        });
+        const h=shear?4:4*k, hyp=Math.hypot(3*k,h);
+        output.textContent='ABC có cạnh 3, 4, 5 và diện tích 6. Ảnh có cạnh '+(3*k)+', '+h+', ≈ '+fmt7(hyp)+', diện tích '+(3*k*h/2)+'. '+(shear&&k!==1?'Hai chiều có tỉ số khác nhau. Hai tam giác này không đồng dạng.':'Tỉ số cạnh '+k+', tỉ số diện tích '+k*k+'.');
+        break;
+      }
+      case 'right8': {
+        const pts=[[0,0],[a,0],[0,b]], square=(u,v)=>{
+          const dx=v[0]-u[0],dy=v[1]-u[1];
+          return [u,v,[v[0]+dy,v[1]-dx],[u[0]+dy,u[1]-dx]];
+        };
+        const boxes=pts.map((p,i)=>square(p,pts[(i+1)%3]));
+        const hyp=Math.hypot(a,b), show=state.mode==='Hiện';
+        drawing('Tam giác vuông và các hình vuông trên ba cạnh',({polygon,dot})=>{
+          const project=fit8(show?[...pts,...boxes.flat()]:pts);
+          if(show)boxes.forEach(box=>polygon(box.map(project)));
+          polygon(pts.map(project));pts.forEach((p,i)=>dot(project(p),'ABC'[i]));
+        });
+        output.textContent='Hai cạnh góc vuông: '+a+' và '+b+'. '+a*a+' + '+b*b+' = '+(a*a+b*b)+'. Cạnh huyền ≈ '+fmt7(hyp)+'.';
+        break;
+      }
+      case 'pyramid8': {
+        const tri=state.mode==='Chóp tam giác đều', n=tri?3:4;
+        const inner=a/(2*Math.tan(Math.PI/n)), outer=a/(2*Math.sin(Math.PI/n));
+        const slant=Math.hypot(b,inner), area=n*a*inner/2, sides=n*a*slant/2;
+        drawing(state.mode+' cạnh đáy '+a+', cao '+b,({polygon,line,dot})=>{
+          const base=Array.from({length:n},(_,i)=>{
+            const angle=2*Math.PI*i/n;
+            return [outer*Math.cos(angle),outer*Math.sin(angle)];
+          });
+          if(state.view==='Khai triển'){
+            const sides=base.map((p,i)=>{
+              const next=base[(i+1)%n], m=mix8(p,next,.5), length=Math.hypot(...m);
+              return [p,next,[m[0]*(1+slant/length),m[1]*(1+slant/length)]];
+            });
+            const project=fit8([...base,...sides.flat()]);
+            polygon(base.map(project));sides.forEach(face=>polygon(face.map(project)));
+          }else{
+            const theta=rad7(state.u);
+            const turned=base.map(([x,y])=>[x*Math.cos(theta)-y*Math.sin(theta),.42*(x*Math.sin(theta)+y*Math.cos(theta))]);
+            const tip=[0,b], center=[0,0], mid=mix8(turned[0],turned[1],.5);
+            const project=fit8([...turned,tip]);
+            polygon(turned.map(project));turned.forEach(p=>line(project(p),project(tip)));
+            line(project(tip),project(center),'#008377',[5,3]);line(project(tip),project(mid),'#ad5514',[4,3]);
+            dot(project(tip),'S');dot(project(center),'H');dot(project(mid),'M');
+          }
+        });
+        output.textContent='Chiều cao SH = '+b+', trung đoạn SM ≈ '+fmt7(slant)+'. '+n+' mặt bên. Đáy ≈ '+fmt7(area)+' đv², xung quanh ≈ '+fmt7(sides)+' đv², toàn phần ≈ '+fmt7(area+sides)+' đv², thể tích ≈ '+fmt7(area*b/3)+' đv³.';
+        break;
+      }
+      case 'cross72': {
+        const d=state.d, left=a*d, right=b*c;
+        pills([a+'/'+b+' và '+c+'/'+d,'Tích chéo thứ nhất: '+a+' × '+d+' = '+left,'Tích chéo thứ hai: '+b+' × '+c+' = '+right]);
+        output.textContent=left===right?'Hai tỉ số bằng nhau, tạo tỉ lệ thức.':'Hai tích chéo khác nhau, không tạo tỉ lệ thức.';
+        break;
+      }
+      case 'shares72': {
+        const k=state.d, counts=[a,b,c], colors=['#176bc4','#008377','#ad550c'];
+        drawing('Sơ đồ các nhóm có '+counts.join(', ')+' phần',({c:ctx})=>{
+          counts.forEach((count,i)=>{
+            const y=40+i*52;
+            ctx.fillStyle='#123452';ctx.font='14px system-ui';ctx.fillText('ABC'[i],38,y+21);
+            for(let j=0;j<count;j++){ctx.fillStyle=colors[i];ctx.fillRect(66+j*38,y,35,30);}
+          });
+        });
+        output.textContent='Mỗi phần bằng '+k+'. A = '+(a*k)+', B = '+(b*k)+(c?', C = '+(c*k):' (bỏ nhóm C)')+'. Tổng = '+((a+b+c)*k)+'. A − B = '+((a-b)*k)+'.';
+        break;
+      }
+      case 'relation72': case 'inverse72': {
+        const inverse=state.op==='Tỉ lệ nghịch';
+        const value=x=>inverse?a/x:a*x;
+        const limit=Math.max(1,value(b),value(c));
+        drawing(state.op+' tại x = '+b+' và '+c,({c:ctx,line})=>{
+          line([65,162],[420,162]);ctx.font='14px system-ui';
+          [b,c].forEach((x,i)=>{
+            const y=value(x), height=109*y/limit, px=127+i*158;
+            ctx.fillStyle=i?'#008377':'#176bc4';ctx.fillRect(px,162-height,57,height);
+            ctx.fillStyle='#123452';ctx.fillText('y ≈ '+fmt7(y),px-7,150-height);ctx.fillText('x = '+x,px,187);
+          });
+        });
+        output.textContent=(inverse?'y = '+a+'/x. Tích xy = ':'y = '+a+'x. Thương y/x = ')+a+'. Hai cặp (x; y): ('+b+'; '+fmt7(value(b))+'), ('+c+'; '+fmt7(value(c))+'). Giá trị thập phân được làm tròn đến 3 chữ số sau dấu phẩy khi cần.';
+        break;
+      }
+      case 'polyEval72': case 'polySum72': case 'polyMul72': case 'polyDiv72': {
+        const d=state.d, x=state.e, op=state.op;
+        const p=polyText72([c,b,a]), q=polyText72([d,1]);
+        const evaluate=coeffs=>coeffs.reduce((total,coef,i)=>total+coef*x**i,0);
+        let formula, details;
+        if(op==='Tính P(x)'){
+          formula='P('+x+') = '+evaluate([c,b,a])+'.';
+          details=['Bậc 2: '+a*x*x,'Bậc 1: '+b*x,'Bậc 0: '+c,'Cộng ba giá trị'];
+        } else if(op==='Cộng'||op==='Trừ'){
+          const s=op==='Cộng'?1:-1;
+          formula='Kết quả: '+polyText72([c+s*d,b+s,a])+'.';
+          details=['x²: '+a,'x: '+b+' '+(s===1?'+':'−')+' 1','Hệ số tự do: '+c+' '+(s===1?'+':'−')+' ('+d+')'];
+        } else if(op==='Nhân'){
+          const byX=[0,c,b,a], byD=[c*d,b*d,a*d];
+          formula='Tích: '+polyText72([c*d,c+b*d,b+a*d,a])+'.';
+          details=['P nhân x: '+polyText72(byX),'P nhân '+d+': '+polyText72(byD),'Cộng hai đa thức theo bậc'];
+        } else {
+          const second=b-a*d, remainder=c-second*d;
+          formula='Thương: '+polyText72([second,a])+'. Dư: '+remainder+'.';
+          details=[];
+          if(a)details.push('Lấy '+polyText72([0,a])+' vào thương. Trừ tích thứ nhất, còn '+polyText72([c,second])+'.');
+          if(second)details.push('Lấy '+second+' vào thương và trừ '+polyText72([second*d,second])+'.');
+          details.push('Kiểm tra: P = Q × ('+polyText72([second,a])+') + ('+remainder+').');
+        }
+        pills(details);
+        output.textContent='P = '+p+'; Q = '+q+'. '+formula;
+        break;
+      }
+      case 'wheel72': {
+        state.refresh();
+        const green=Math.min(a,b), theta=2*Math.PI/a, offset=-Math.PI/2;
+        drawing('Vòng quay '+a+' ô, '+green+' ô xanh',({c:ctx,line})=>{
+          const center=[224,108], r=83;
+          for(let i=0;i<a;i++){
+            const lo=offset+i*theta, hi=lo+theta;
+            ctx.beginPath();ctx.moveTo(...center);ctx.arc(...center,r,lo,hi);ctx.closePath();
+            ctx.fillStyle=i<green?'#008377':'#ad451e';ctx.fill();ctx.strokeStyle='white';ctx.stroke();
+            const mid=(lo+hi)/2;ctx.fillStyle='white';ctx.font='bold 13px system-ui';
+            ctx.fillText(i+1,center[0]+60*Math.cos(mid)-5,center[1]+60*Math.sin(mid)+5);
+          }
+          if(state.last!==null){
+            const t=offset+(state.last+.5)*theta;
+            const p=[center[0]+53*Math.cos(t),center[1]+53*Math.sin(t)];
+            line(center,p,'#111a2a');
+            line(p,[p[0]-12*Math.cos(t-.35),p[1]-12*Math.sin(t-.35)],'#111a2a');
+            line(p,[p[0]-12*Math.cos(t+.35),p[1]-12*Math.sin(t+.35)],'#111a2a');
+          }
+        });
+        const type=green===0?'không thể':green===a?'chắc chắn':'ngẫu nhiên';
+        output.textContent='Vào xanh là biến cố '+type+'. P(xanh) = '+green+'/'+a+'. '+(state.turns?
+          'Lượt cuối: ô '+(state.last+1)+'. Tần suất xanh: '+state.hits+'/'+state.turns+' (≈ '+fmt7(100*state.hits/state.turns)+'%).':'Chưa có lượt quay. Đổi cấu hình vòng quay sẽ đặt lại bộ đếm.');
+        break;
+      }
+      case 'triangle72': {
+        const sides=[a,b,c], sorted=[...sides].sort((v,w)=>v-w);
+        if(sorted[0]+sorted[1]<=sorted[2]){
+          pills(['Tổng hai cạnh nhỏ: '+(sorted[0]+sorted[1]),'Cạnh lớn nhất: '+sorted[2]]);
+          output.textContent='Không ghép được tam giác. Cạnh AB phải lớn hơn '+Math.abs(a-b)+' và nhỏ hơn '+(a+b)+'.';
+          break;
+        }
+        const along=(c*c+a*a-b*b)/(2*a), height=Math.sqrt(Math.max(0,c*c-along*along));
+        const angles=sides.map((side,i)=>{
+          const next=sides[(i+1)%3], last=sides[(i+2)%3];
+          const cosine=(next*next+last*last-side*side)/(2*next*last);
+          return Math.acos(Math.max(-1,Math.min(1,cosine)))*180/Math.PI;
+        });
+        drawing('Tam giác theo ba cạnh '+sides.join(', '),({polygon,dot})=>{
+          const min=Math.min(0,along),max=Math.max(a,along);
+          const scale=Math.min(300/(max-min),129/height);
+          const point=(x,y)=>[72+(x-min)*scale,174-y*scale];
+          const points=[point(along,height),point(0,0),point(a,0)];
+          polygon(points);points.forEach((p,i)=>dot(p,'ABC'[i]));
+        });
+        output.textContent='Ghép được. '+angles.map((angle,i)=>'Góc '+'ABC'[i]+' ≈ '+fmt7(angle)+'° (đối diện cạnh '+sides[i]+')').join(' · ')+'.';
+        break;
+      }
+      case 'shortest72': {
+        drawing('Từ P đến đường thẳng d qua H và X',({line,dot})=>{
+          const p=[228,171-a*13], h=[228,171], x=[228+b*13,171];
+          line([30,171],[428,171]);line(p,h,'#008377');line(p,x,'#a54c13',[4,3]);
+          line([228,157],[242,157]);line([242,157],[242,171]);
+          dot(p,'P');dot(h,'H');if(b)dot(x,'X');
+        });
+        output.textContent='PH = '+a+'; PX '+(Number.isInteger(Math.hypot(a,b))?'= ':'≈ ')+fmt7(Math.hypot(a,b))+'. '+(b?'PH < PX.':'X trùng H, hai đoạn trùng nhau.');
+        break;
+      }
+      case 'centers72': case 'outer72': {
+        const points=[[a,b],[0,0],[10,0]], [A,B,C]=points;
+        const distance=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1]);
+        const lengths=[distance(B,C),distance(C,A),distance(A,B)];
+        const sum=lengths.reduce((v,w)=>v+w,0);
+        const middle=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];
+        function project(p,q,r){
+          const dx=r[0]-q[0],dy=r[1]-q[1];
+          const t=((p[0]-q[0])*dx+(p[1]-q[1])*dy)/(dx*dx+dy*dy);
+          return [q[0]+t*dx,q[1]+t*dy];
+        }
+        const centroid=[(a+10)/3,b/3];
+        const incenter=[(lengths[0]*a+lengths[2]*10)/sum,lengths[0]*b/sum];
+        const circumcenter=[5,(a*a+b*b-10*a)/(2*b)];
+        const orthocenter=[a,a*(10-a)/b];
+        const mode=state.op;
+        const [center,name]=({'Trung tuyến':[centroid,'G'],'Phân giác':[incenter,'I'],'Trung trực':[circumcenter,'O'],'Đường cao':[orthocenter,'H']})[mode];
+        const segments=points.map((p,i)=>{
+          const q=points[(i+1)%3],r=points[(i+2)%3];
+          if(mode==='Trung tuyến')return [p,middle(q,r)];
+          if(mode==='Phân giác'){
+            const ratio=distance(p,q)/(distance(p,q)+distance(p,r));
+            return [p,[q[0]+ratio*(r[0]-q[0]),q[1]+ratio*(r[1]-q[1])]];
+          }
+          if(mode==='Trung trực')return [middle(q,r),center];
+          return [p,project(p,q,r)];
+        });
+        const radius=mode==='Phân giác'?incenter[1]:mode==='Trung trực'?distance(circumcenter,B):0;
+        const extent=[...points,center,...segments.flat(),[center[0]-radius,center[1]-radius],[center[0]+radius,center[1]+radius]];
+        const xMin=Math.min(...extent.map(p=>p[0])),xMax=Math.max(...extent.map(p=>p[0]));
+        const yMin=Math.min(...extent.map(p=>p[1])),yMax=Math.max(...extent.map(p=>p[1]));
+        const scale=Math.min(334/(xMax-xMin),137/(yMax-yMin));
+        const map=p=>[230+(p[0]-(xMin+xMax)/2)*scale,103-(p[1]-(yMin+yMax)/2)*scale];
+        drawing('Tam giác và điểm '+name+' của các đường '+mode.toLowerCase(),({line,polygon,dot,c:ctx})=>{
+          polygon(points.map(map));
+          segments.forEach(([p,q],i)=>{
+            if(mode==='Trung trực'){
+              const u=points[(i+1)%3],v=points[(i+2)%3], len=distance(u,v);
+              const dx=-(v[1]-u[1])/len,dy=(v[0]-u[0])/len;
+              const length=Math.max(1.2,distance(p,center));
+              line(map([p[0]-dx*1.1,p[1]-dy*1.1]),map(p),'#008377',[3,3]);
+              line(map(p),map(q),'#008377',[4,3]);
+              if(distance(p,q)<1e-8)line(map(p),map([p[0]+dx*length,p[1]+dy*length]),'#008377',[4,3]);
+            } else {
+              line(map(p),map(q),'#008377',[5,3]);
+              if(mode==='Đường cao')line(map(p),map(center),'#008377',[5,3]);
+            }
+          });
+          if(radius){
+            ctx.beginPath();ctx.arc(...map(center),radius*scale,0,2*Math.PI);
+            ctx.strokeStyle='#b45b16';ctx.stroke();
+          }
+          points.forEach((point,i)=>dot(map(point),'ABC'[i]));
+          dot(map(center),name,'#007466');
+        });
+        const am=distance(A,middle(B,C));
+        output.textContent=({
+          'Trung tuyến':'G là trọng tâm. AG ≈ '+fmt7(am*2/3)+', GM ≈ '+fmt7(am/3)+' với M là trung điểm BC.',
+          'Phân giác':'I là tâm nội tiếp. Khoảng cách từ I đến mỗi cạnh ≈ '+fmt7(incenter[1])+'.',
+          'Trung trực':'O là tâm ngoại tiếp. OA = OB = OC ≈ '+fmt7(distance(circumcenter,B))+'.',
+          'Đường cao':'H là trực tâm'+(Math.abs(a)<1e-9?' và trùng B.':a===10?' và trùng C.':a*(10-a)===b*b?' và trùng A.':'.')
+        })[mode];
+        break;
+      }
+      case 'box72': case 'prism72': case 'net72': {
+        const cube=state.op==='Lập phương', tri=state.op==='Lăng trụ đáy tam giác vuông';
+        const w=a,h=cube?a:c, depth=cube?a:b, hyp=Math.hypot(w,depth);
+        const base=tri?w*depth/2:w*depth;
+        const edges=tri?[w,hyp,depth]:[w,depth,w,depth];
+        const perimeter=edges.reduce((v,k)=>v+k,0), sides=perimeter*h;
+        drawing(state.op+', diện tích đáy '+fmt7(base),({polygon,line,c:ctx})=>{
+          const shape=tri?[[0,0],[w,0],[0,depth]]:[[0,0],[w,0],[w,depth],[0,depth]];
+          if(state.view==='Khai triển'){
+            const scale=Math.min(344/perimeter,157/(h+2*depth));
+            const left=(460-perimeter*scale)/2, y=(210-h*scale)/2;
+            let x=left;
+            edges.forEach((width,i)=>{
+              const right=x+width*scale, bottom=y+h*scale;
+              polygon([[x,y],[right,y],[right,bottom],[x,bottom]]);
+              if(i===0){
+                polygon(tri?[[x,y],[right,y],[x,y-depth*scale]]:[[x,y],[right,y],[right,y-depth*scale],[x,y-depth*scale]]);
+                polygon(tri?[[x,bottom],[right,bottom],[x,bottom+depth*scale]]:[[x,bottom],[right,bottom],[right,bottom+depth*scale],[x,bottom+depth*scale]]);
+              }
+              ctx.fillStyle='#153b60';ctx.font='12px system-ui';
+              if(width*scale>=19)ctx.fillText(i+1,x+6,y+h*scale/2+4);
+              x=right;
+            });
+          } else {
+            const angle=rad7(state.d);
+            const raw=(x,z,y)=>[x*Math.cos(angle)-z*Math.sin(angle),-y+.38*(x*Math.sin(angle)+z*Math.cos(angle))];
+            const lower=shape.map(([x,z])=>raw(x,z,0)),upper=shape.map(([x,z])=>raw(x,z,h));
+            const pts=[...lower,...upper];
+            const [xs,ys]=[pts.map(p=>p[0]),pts.map(p=>p[1])];
+            const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+            const scale=Math.min(300/(maxX-minX),157/(maxY-minY));
+            const map=p=>[230+(p[0]-(minX+maxX)/2)*scale,105+(p[1]-(minY+maxY)/2)*scale];
+            polygon(lower.map(map));polygon(upper.map(map));
+            lower.forEach((p,i)=>line(map(p),map(upper[i]),'#087765'));
+          }
+        });
+        const equal=Number.isInteger(perimeter)?' = ':' ≈ ';
+        output.textContent=(cube?'Cạnh lập phương: '+w+'. ': 'Hai kích thước đáy: '+w+' và '+depth+', chiều cao khối: '+h+'. ')+
+          'Mỗi đáy: '+fmt7(base)+' đv². '+edges.length+' mặt bên. Xung quanh'+equal+fmt7(sides)+' đv²; toàn phần'+equal+
+          fmt7(sides+2*base)+' đv²; thể tích = '+fmt7(base*h)+' đv³.'+(state.view==='Khai triển'?' Bản khai triển chưa có mép dán.':'');
+        break;
+      }
+      case 'rationalAxis': {
+        const d=state.d, av=a/b, bv=c/d;
+        const bound=Math.max(2,Math.ceil(Math.abs(av)),Math.ceil(Math.abs(bv)));
+        const x=value=>230+value*184/bound;
+        drawing('Trục số, A = '+a+'/'+b+', B = '+c+'/'+d,({line,dot,c:ctx})=>{
+          line([30,110],[430,110]); ctx.fillStyle='#193951'; ctx.font='13px system-ui';
+          for(let tick=-bound;tick<=bound;tick++){
+            line([x(tick),104],[x(tick),116]); ctx.fillText(tick,x(tick)-7,137);
+          }
+          line([x(av),63],[x(av),110],'#1364ab',[4,4]); dot([x(av),63],'A');
+          line([x(bv),110],[x(bv),162],'#008377',[4,4]); dot([x(bv),162],'B','#008377');
+        });
+        output.textContent='A = '+a+'/'+b+'; B = '+c+'/'+d+'. A '+(a*d===c*b?'=':a*d<c*b?'<':'>')+' B. Số đối của A là '+(-a)+'/'+b+'.';
+        break;
+      }
+      case 'rationalPower': {
+        const d=state.d;
+        const power=k=>{
+          if(a===0&&k===0)return 'không xét';
+          const top=a**k, bottom=b**k, factor=gcd(top,bottom);
+          return bottom===factor?String(top/factor):top/factor+'/'+bottom/factor;
+        };
+        pills(['x = '+a+'/'+b,'x mũ '+c+' = '+power(c),'x mũ '+d+' = '+power(d)]);
+        output.textContent=a===0&&(c===0||d===0)?'Trong bài này không xét 0 mũ 0.':
+          'Tích bằng x mũ '+(c+d)+' = '+power(c+d)+'. '+(a!==0&&c>=d?'Thương bằng x mũ '+(c-d)+' = '+power(c-d)+'.':'Để dùng quy tắc thương ở đây, cần x ≠ 0 và mũ thứ nhất không nhỏ hơn mũ thứ hai.');
+        break;
+      }
+      case 'equation': {
+        const x=state.d, left=a*x+b, delta=c-b, g=gcd(delta,a);
+        pills(['Vế trái với x thử: '+left,'Vế phải: '+c,left===c?'Hai vế bằng nhau':'Hai vế chưa bằng nhau']);
+        output.textContent=a+'x + ('+b+') = '+c+' ⇔ '+a+'x = '+delta+' ⇔ x = '+(a===g?delta/g:delta/g+'/'+a/g)+'.';
+        break;
+      }
+      case 'divisionCycle': {
+        const seen=new Map(), digits=[];
+        let remainder=a%b;
+        while(remainder&&!seen.has(remainder)){
+          seen.set(remainder,digits.length);
+          remainder*=10;
+          digits.push(Math.floor(remainder/b));
+          remainder%=b;
+        }
+        const start=seen.get(remainder), whole=Math.floor(a/b);
+        const value=remainder?whole+','+digits.slice(0,start).join('')+'('+digits.slice(start).join('')+')':
+          whole+(digits.length?','+digits.join(''):'');
+        pills([...seen.keys()].map(r=>'Dư '+r).concat('Dư '+remainder));
+        output.textContent=a+'/'+b+' = '+value+'. '+(remainder?'Số dư '+remainder+' xuất hiện lại, nên nhóm chữ số tương ứng lặp.':'Dư 0 nên phép chia dừng.');
+        break;
+      }
+      case 'squareRoot': {
+        const root=Math.sqrt(a), approx=b/10, side=root*13, trial=approx*13;
+        drawing('Hình vuông diện tích '+a+' và cạnh thử '+fmt7(approx),({line,polygon})=>{
+          if(side) polygon([[44,173],[44+side,173],[44+side,173-side],[44,173-side]]);
+          if(trial) {
+            const points=[[241,173],[241+trial,173],[241+trial,173-trial],[241,173-trial]];
+            points.forEach((p,i)=>line(p,points[(i+1)%4],'#008377',[4,4]));
+          }
+        });
+        output.textContent='Hình xanh dương có diện tích '+a+'. Hình nét đứt cạnh '+fmt7(approx)+' có diện tích '+fmt7(approx**2)+'. √'+a+(Number.isInteger(root)?' = ':' ≈ ')+fmt7(root)+'.';
+        break;
+      }
+      case 'realAxis': {
+        const av=Math.sqrt(a)*(state.op==='−√a'?-1:1), bv=b/10, x=v=>230+v*25;
+        drawing('Điểm A và B trên trục số thực',({line,dot,c:ctx})=>{
+          line([42,110],[418,110]); ctx.font='14px system-ui'; ctx.fillStyle='#193951';
+          for(let t=-7;t<=7;t++){line([x(t),105],[x(t),115]); if(t%2===0)ctx.fillText(t,x(t)-7,135);}
+          line([x(av),67],[x(av),110],'#1364ab',[4,4]);dot([x(av),67],'A');
+          line([x(bv),110],[x(bv),159],'#008377',[4,4]);dot([x(bv),159],'B','#008377');
+        });
+        output.textContent='A '+(Number.isInteger(av)?'= ':'≈ ')+fmt7(av)+', B = '+fmt7(bv)+'. A '+(av===bv?'=':av<bv?'<':'>')+' B. Khoảng cách đến 0: A '+(Number.isInteger(av)?'= ':'≈ ')+fmt7(Math.abs(av))+', B = '+fmt7(Math.abs(bv))+'.';
+        break;
+      }
+      case 'anglePair': {
+        const bisectors=state.op==='Hai tia phân giác';
+        drawing('Hai đường cắt nhau tạo góc '+a+'°',({line,dot})=>{
+          const center=[225,106], ray=(deg,len)=>[225+len*Math.cos(rad7(deg)),106-len*Math.sin(rad7(deg))];
+          line(ray(0,145),ray(180,145)); line(ray(a,92),ray(a+180,92));
+          if(bisectors){
+            line(center,ray(a/2,88),'#008377',[5,4]); line(center,ray((180+a)/2,88),'#008377',[5,4]);
+          } else line(center,ray(b,82),'#a74e05',[4,4]);
+          dot(center,'O');
+        });
+        output.textContent='Góc đối đỉnh: '+a+'°. Góc kề bù: '+(180-a)+'°. '+(bisectors?
+          'Hai nửa kề cạnh chung: '+fmt7(a/2)+'° và '+fmt7((180-a)/2)+'°, tổng 90°.' :
+          'Tia thử '+b+'° '+(2*b===a?'là phân giác của góc đầu.':'chưa là phân giác của góc đầu.'));
+        break;
+      }
+      case 'parallelLab': {
+        const top=a-b;
+        const pair=state.op;
+        drawing('Đường cắt tạo góc '+a+'° ở đường dưới và '+top+'° ở đường trên',({line,dot,c:ctx})=>{
+          const x=deg=>Math.cos(rad7(deg)), y=deg=>Math.sin(rad7(deg));
+          const t=[228+47*x(a)/y(a),56], u=[228-47*x(a)/y(a),150];
+          line([52,150],[403,150]); line([t[0]-155*x(b),56+155*y(b)],[t[0]+155*x(b),56-155*y(b)]);
+          line([228-98*x(a)/y(a),201],[228+98*x(a)/y(a),5],'#008377');
+          function mark(point,from,to,color){
+            ctx.beginPath();
+            ctx.moveTo(...point);
+            ctx.arc(...point,25,-rad7(to),-rad7(from));
+            ctx.closePath();
+            ctx.fillStyle=color;
+            ctx.fill();
+          }
+          if(pair==='Đồng vị')mark(t,b,a,'#a74e0570');
+          if(pair==='So le trong')mark(t,b+180,a+180,'#a74e0570');
+          if(pair==='Trong cùng phía')mark(t,a+180,b+360,'#a74e0570');
+          mark(u,0,a,'#176bc480');
+          dot(t,'A'); dot(u,'B'); ctx.fillStyle='#183653'; ctx.fillText('Đường trên',15,30); ctx.fillText('Đường dưới',12,180);
+        });
+        const angles=state.op==='Trong cùng phía'?[180-top,a]:[top,a];
+        output.textContent=state.op+': '+angles[0]+'° và '+angles[1]+'°. '+(b===0?'Hai đường song song.':'Hai đường không song song.');
+        break;
+      }
+      case 'triAngles': {
+        const third=180-a-b;
+        if(third<=0){pills(['A + B = '+(a+b)+'°']); output.textContent='Không dựng được tam giác vì A + B phải nhỏ hơn 180°.';break;}
+        const ac=6*Math.sin(rad7(b))/Math.sin(rad7(third));
+        const cx=ac*Math.cos(rad7(a)), cy=ac*Math.sin(rad7(a));
+        const scale=Math.min(125/Math.max(cy,1),300/(Math.max(6,cx)-Math.min(0,cx)));
+        const x=71-Math.min(0,cx)*scale;
+        const pts=[[x,173],[x+6*scale,173],[x+cx*scale,173-cy*scale]];
+        drawing('Tam giác có góc A '+a+'°, B '+b+'°, C '+third+'°',({line,polygon,dot})=>{
+          polygon(pts);
+          if(state.op==='Góc ngoài'){
+            const [px,py]=pts[2], [bx,by]=pts[1], len=Math.hypot(px-bx,py-by);
+            const dx=(px-bx)/len, dy=(py-by)/len;
+            const extension=Math.min(38,dx>0?(437-px)/dx:dx<0?(px-18)/(-dx):38,dy<0?(py-12)/(-dy):38);
+            line(pts[2],[px+dx*extension,py+dy*extension],'#008377',[4,4]);
+          }
+          pts.forEach((p,i)=>dot(p,'ABC'[i]));
+        });
+        const max=Math.max(a,b,third);
+        output.textContent='A = '+a+'°, B = '+b+'°, C = '+third+'°. Tam giác '+(max===90?'vuông':max>90?'tù':'nhọn')+'. '+(state.op==='Góc ngoài'?'Góc ngoài tại C: '+(180-third)+'°.':'Tổng ba góc: 180°.');
+        break;
+      }
+      case 'triMatch': {
+        const mode=state.op, changed=state.variant==='Đổi một dữ kiện';
+        function triangle(second){
+          const v=b+(second&&changed?1:0);
+          if(mode==='c.c.c.'){
+            const x=(36+a*a-v*v)/12;
+            return [6,x,Math.sqrt(a*a-x*x),'AB = 6, AC = '+a+', BC = '+v];
+          }
+          if(mode==='c.g.c.')return [a,v*Math.cos(rad7(60)),v*Math.sin(rad7(60)),'AB = '+a+', AC = '+v+', A = 60°'];
+          if(mode==='g.c.g.'){
+            const angleA=5*a+20, angleB=5*v+15;
+            const ac=6*Math.sin(rad7(angleB))/Math.sin(rad7(180-angleA-angleB));
+            return [6,ac*Math.cos(rad7(angleA)),ac*Math.sin(rad7(angleA)),'AB = 6, A = '+angleA+'°, B = '+angleB+'°'];
+          }
+          if(mode==='Cùng cạnh huyền'){
+            const hyp=10, height=Math.sqrt(hyp*hyp-v*v);
+            return [v,0,height,'AB = '+v+', A = 90°, BC = '+hyp];
+          }
+          return [a,0,v,'AB = '+a+', AC = '+v+', A = 90°, BC '+(Number.isInteger(Math.hypot(a,v))?'= ':'≈ ')+fmt7(Math.hypot(a,v))];
+        }
+        const left=triangle(false), right=triangle(true);
+        const minX=Math.min(0,left[1],right[1]), maxX=Math.max(left[0],left[1],right[0],right[1]);
+        const scale=Math.min(155/(maxX-minX),125/Math.max(left[2],right[2]));
+        drawing('Hai tam giác theo bộ dữ kiện '+mode,({line,polygon,dot})=>{
+          [left,right].forEach(([base,x,y],i)=>{
+            const o=35+i*227-minX*scale, p=[[o,174],[o+base*scale,174],[o+x*scale,174-y*scale]];
+            polygon(p);
+            if(mode==='Tam giác vuông'||mode==='Cùng cạnh huyền'){line([o,160],[o+14,160]);line([o+14,160],[o+14,174]);}
+            p.forEach((point,j)=>dot(point,(i?'DEF':'ABC')[j]));
+          });
+        });
+        const rightLabel=right[3].replaceAll('AB','DE').replaceAll('AC','DF').replaceAll('BC','EF').replaceAll('A =','D =').replaceAll('B =','E =');
+        output.textContent='ABC: '+left[3]+'. DEF: '+rightLabel+'. '+(changed?'Một dữ kiện đã đổi; hai tam giác này không bằng nhau.':'Hai tam giác bằng nhau.');
+        break;
+      }
+      case 'bisectorLine': {
+        const left=Math.hypot(a+b,c), right=Math.hypot(a-b,c);
+        drawing('Điểm P và trung trực của AB',({line,polygon,dot})=>{
+          const A=[230-a*19,164], B=[230+a*19,164], P=[230+b*19,164-c*19];
+          polygon([A,B,P]); line([230,14],[230,195],'#008377',[4,4]);
+          dot(A,'A');dot(B,'B');dot(P,'P');dot([230,164],'M','#008377');
+        });
+        output.textContent='PA ≈ '+fmt7(left)+', PB ≈ '+fmt7(right)+'. '+(b===0?'P thuộc trung trực AB; tam giác PAB cân tại P.':'P lệch khỏi trung trực AB; PA và PB khác nhau.');
+        break;
+      }
+      case 'sampleLab': {
+        const total=a+b;
+        const rate=total?100*(0.8*a+0.2*b)/total:null;
+        pills(['Nhóm A: 80% chọn môn X','Nhóm B: 20% chọn môn X','Tổng thể hai nhóm cùng quy mô: 50%']);
+        output.textContent=total?'Mẫu giả lập gồm '+a+' người nhóm A và '+b+' người nhóm B. Tỉ lệ kì vọng trong mẫu ≈ '+fmt7(rate)+'%.':'Hãy chọn ít nhất một người để so sánh.';
+        break;
+      }
+      case 'pie7': case 'series7': case 'population7': {
+        const values=[a,b,c,state.d];
+        const names=['A','B','C','D'];
+        const colors=['#176bc4','#008377','#bb640e','#773e91'];
+        const pie=kind==='pie7'||state.op==='Cơ cấu tại một mốc';
+        const total=values.reduce((sum,value)=>sum+value,0);
+        if(pie&&!total){pills(['Tổng = 0']);output.textContent='Cần tổng lớn hơn 0 để tính tỉ lệ.';break;}
+        drawing((pie?'Hình quạt':'Biểu đồ đoạn thẳng')+' với số liệu '+values.join(', '),({line,dot,c:ctx})=>{
+          if(pie){
+            let angle=-Math.PI/2;
+            values.forEach((value,index)=>{
+              const next=angle+2*Math.PI*value/total;
+              if(value){ctx.beginPath();ctx.moveTo(148,107);ctx.arc(148,107,81,angle,next);ctx.closePath();ctx.fillStyle=colors[index];ctx.fill();}
+              ctx.fillStyle=colors[index];ctx.fillRect(263,42+index*37,15,15);
+              ctx.fillStyle='#193951';ctx.font='14px system-ui';ctx.fillText(names[index]+': '+fmt7(100*value/total)+'%',287,55+index*37);
+              angle=next;
+            });
+          } else {
+            const points=values.map((value,i)=>[95+i*98,166-3.15*value]);
+            line([54,25],[54,166]);line([54,166],[426,166]);ctx.font='13px system-ui';ctx.fillText('Giá trị',10,18);
+            for(let tick=0;tick<=40;tick+=10){
+              const y=166-3.15*tick;line([54,y],[426,y],'#bacddd',[4,4]);ctx.fillStyle='#193951';ctx.fillText(tick,29,y+4);
+            }
+            points.forEach((point,i)=>{if(i)line(points[i-1],point);});
+            points.forEach((point,i)=>{dot(point,String(values[i]));ctx.fillText('Mốc '+(i+1),point[0]-17,190);});
+          }
+        });
+        output.textContent=pie?names.map((name,i)=>name+': '+values[i]+' trên '+total+' ≈ '+fmt7(100*values[i]/total)+'%, góc ≈ '+fmt7(360*values[i]/total)+'°').join(' · ')+'.':
+          'Mốc 1–4: '+values.join(' → ')+'. Chênh lệch từng đoạn: '+values.slice(1).map((v,i)=>(v-values[i]>0?'+':'')+(v-values[i])).join(', ')+'.';
+        break;
+      }
+      case 'signedFrac': case 'fracOps': {
+        const d=state.d, m=lcm(b,d), A=a*(m/b), B=c*(m/d);
+        drawing('Thanh phân số A '+a+'/'+b+' và B '+c+'/'+d,({c:ctx,line})=>{
+          const u=172/Math.max(1,Math.ceil(Math.abs(a/b)),Math.ceil(Math.abs(c/d)));
+          line([230,28],[230,179],'#3d5672');
+          ctx.font='14px system-ui';ctx.fillStyle='#153452';ctx.fillText('0',225,199);
+          for(const [num,den,y,color,label] of [[a,b,65,'#1474d0','A'],[c,d,130,'#008377','B']]) {
+            ctx.fillStyle='#153452';ctx.fillText(label+' = '+num+'/'+den,18,y-10);
+            for(let i=0;i<Math.abs(num);i++) {
+              const j=num<0?-i-1:i;
+              ctx.fillStyle=color;ctx.fillRect(230+j*u/den,y,u/den-1,25);
+            }
+          }
+        });
+        let out='Mẫu chung '+m+': A = '+A+'/'+m+', B = '+B+'/'+m+'. ';
+        if(kind==='signedFrac') {
+          const g=gcd(a,b);
+          out+='A '+(A===B?'=':A<B?'<':'>')+' B. A tối giản: '+a/g+'/'+b/g+'.';
+        } else {
+          const op=state.op;
+          if(op==='Chia'&&c===0){output.textContent=out+'Không chia được cho 0.';break;}
+          let [t,v]=op==='Cộng'?[A+B,m]:op==='Trừ'?[A-B,m]:op==='Nhân'?[a*c,b*d]:[a*d,b*c];
+          if(v<0){t=-t;v=-v;}
+          const g=gcd(t,v);
+          out+=op+': '+t+'/'+v+' = '+t/g+'/'+v/g+'.';
+        }
+        output.textContent=out;
+        break;
+      }
+      case 'portion': {
+        drawing('Chọn '+c+' trong '+b+' phần bằng nhau',({c:ctx,line})=>{
+          const w=360/b;
+          ctx.font='15px system-ui';ctx.fillStyle='#143651';ctx.fillText('Toàn bộ gồm '+b+' phần bằng nhau',50,57);
+          for(let i=0;i<b;i++) {
+            ctx.fillStyle=i<c?'#1474d0':'#e0edf8';ctx.fillRect(50+i*w,82,w-2,49);
+          }
+          ctx.fillStyle='#143651';ctx.fillText('Mỗi phần: '+a+' đơn vị',50,159);
+        });
+        output.textContent=state.op==='Biết toàn bộ'?
+          'Toàn bộ '+(a*b)+'; phần đã chọn = '+(a*b)+' × '+c+'/'+b+' = '+(a*c)+'.':
+          'Phần đã chọn '+(a*c)+'; toàn bộ = '+(a*c)+' : ('+c+'/'+b+') = '+(a*b)+'.';
+        break;
+      }
+      case 'decimalLine': {
+        const fmt=n=>(n/100).toLocaleString('vi-VN',{minimumFractionDigits:2});
+        drawing('Trục số từ −3 đến 3. A = '+fmt(a)+', B = '+fmt(b),({c:ctx,line,dot})=>{
+          const x=n=>230+n*0.61;
+          line([39,110],[421,110]);ctx.font='13px system-ui';ctx.fillStyle='#334f6d';
+          for(let i=-3;i<=3;i++){line([x(i*100),105],[x(i*100),115]);ctx.fillText(i,x(i*100)-6,138);}
+          line([x(a),74],[x(a),110],'#0057ac',[4,4]);line([x(b),110],[x(b),163],'#007a69',[4,4]);
+          dot([x(a),74],'A');dot([x(b),163],'B','#007a69');
+        });
+        output.textContent=fmt(a)+' '+(a===b?'=':a<b?'<':'>')+' '+fmt(b)+'. A = '+a+'/100; B = '+b+'/100.';
+        break;
+      }
+      case 'decimalOps': {
+        const op=state.op, f=n=>n.toLocaleString('vi-VN',{maximumFractionDigits:6});
+        const symbol={Cộng:'+',Trừ:'−',Nhân:'×',Chia:':'}[op];
+        if(op==='Chia'&&b===0){pills(['Số chia = 0']);output.textContent='Không chia được cho 0.';break;}
+        const val=op==='Cộng'?(a+b)/10:op==='Trừ'?(a-b)/10:op==='Nhân'?a*b/100:a/b;
+        const exact=op!=='Chia'||Number(f(val).replace(',','.'))===val;
+        const working=op==='Cộng'||op==='Trừ'?'('+a+' '+symbol+' '+b+')/10':op==='Nhân'?'('+a+' × '+b+')/100':a+' : ('+b+')';
+        pills(['A = '+a+'/10','B = '+b+'/10','Biến đổi: '+working]);
+        output.textContent='('+f(a/10)+') '+symbol+' ('+f(b/10)+') '+(exact?'=':'≈')+' '+f(val)+'.';
+        break;
+      }
+      case 'rounding': {
+        const [size,dp]={'Phần trăm':[10,2],'Phần mười':[100,1],'Đơn vị':[1000,0],'Hàng chục':[10000,0]}[state.op];
+        const low=Math.floor(a/size)*size, high=low+size;
+        const fmt=(n,d=0)=>(n/1000).toLocaleString('vi-VN',{minimumFractionDigits:d,maximumFractionDigits:3});
+        drawing('Hai mốc '+fmt(low)+' và '+fmt(high),({c:ctx,line,dot})=>{
+          line([55,113],[399,113]);line([55,104],[55,122]);line([399,104],[399,122]);
+          line([227,97],[227,130],'#5c7288',[4,4]);
+          dot([55+344*(a-low)/size,86],'x');
+          ctx.fillStyle='#153452';ctx.font='14px system-ui';ctx.fillText(fmt(low),35,146);
+          ctx.fillText(fmt(low+size/2),205,146);ctx.fillText(fmt(high),370,146);
+        });
+        output.textContent=fmt(a)+' làm tròn đến '+state.op.toLowerCase()+': '+fmt(a-low>=size/2?high:low,dp)+'.';
+        break;
+      }
+      case 'percent': {
+        const part=a*b/100, fmt=n=>n.toLocaleString('vi-VN',{maximumFractionDigits:2});
+        drawing('Tỉ lệ '+b+' trên 100',({c:ctx})=>{
+          ctx.fillStyle='#dfeafa';ctx.fillRect(54,82,350,41);
+          ctx.fillStyle='#008275';ctx.fillRect(54,82,3.5*b,41);
+          ctx.fillStyle='#17395b';ctx.font='16px system-ui';ctx.fillText('0%',54,150);ctx.fillText('100%',363,150);
+          ctx.fillText(b+'% của '+a,54,66);
+        });
+        output.textContent=b+'% của '+a+' = '+fmt(part)+'. '+(state.op==='Giảm theo tỉ lệ'?'Sau giảm: '+fmt(a-part)+'.':state.op==='Tăng theo tỉ lệ'?'Sau tăng: '+fmt(a+part)+'.':'Phần còn lại: '+fmt(a-part)+'.');
+        break;
+      }
+      case 'points': {
+        drawing('Điểm M '+(a?'không thuộc':'thuộc')+' d; e '+state.op.toLowerCase(),({line,dot,c:ctx})=>{
+          line([35,111],[425,111]);
+          const ends=state.op==='Cắt d'?[[130,191],[330,31]]:state.op==='Song song với d'?[[35,54],[425,54]]:[[35,111],[425,111]];
+          line(...ends,'#008377',[7,5]);
+          ctx.fillStyle='#174e80';ctx.font='bold 14px system-ui';ctx.fillText('d',414,104);ctx.fillText('e',ends[1][0]-12,ends[1][1]+21);
+          dot([100,111],'A');dot([315,111],'B');dot([230,111-a*18],'M','#b54708');
+          if(state.op==='Cắt d'&&a!==0)dot([230,111],'I','#008377');
+        });
+        output.textContent='A, B thuộc d; M '+(a?'không thuộc d.':'thuộc d.')+' Hai đường d và e '+state.op.toLowerCase()+'.';
+        break;
+      }
+      case 'segment': {
+        const x=v=>32+19.6*v, ab=b-a, am=Math.abs(c-a), mb=Math.abs(b-c);
+        const position=c===a?'M trùng A':c===b?'M trùng B':c>a&&c<b?(am===mb?'M là trung điểm':'M nằm giữa A và B'):'M nằm ngoài đoạn AB';
+        drawing('Thước 0–20. A ở '+a+', B ở '+b+', M ở '+c,({line,dot,c:ctx})=>{
+          line([29,130],[430,130]);ctx.font='11px system-ui';ctx.fillStyle='#304d6c';
+          for(let i=0;i<=20;i++){line([x(i),130],[x(i),i%2?137:143]);if(i%2===0)ctx.fillText(i,x(i)-5,159);}
+          if(state.op==='Đường thẳng AB')line([16,75],[444,75],'#0057ac',[6,4]);
+          else if(state.op==='Tia AB và BA'){
+            line([x(a),75],[445,75]);line([437,70],[445,75]);line([437,80],[445,75]);
+            line([x(b),98],[15,98],'#008377');line([23,93],[15,98],'#008377');line([23,103],[15,98],'#008377');
+          } else line([x(a),75],[x(b),75]);
+          dot([x(a),75],'A');dot([x(b),state.op==='Tia AB và BA'?98:75],'B');
+          line([x(c),50],[x(c),125],'#b54708',[4,4]);dot([x(c),50],'M','#b54708');
+        });
+        output.textContent='AB = '+ab+'; AM = '+am+'; MB = '+mb+' đơn vị. '+position+'.';
+        break;
+      }
+      case 'survey': {
+        const labels=['Bơi','Chạy','Cầu lông','Khác'];
+        const counts=labels.map(label=>state.records.filter(v=>v===label).length);
+        pills(labels.map((label,i)=>label+': '+counts[i]));
+        output.textContent=state.records.length?'Tổng '+state.records.length+' phiếu. Thứ tự ghi: '+state.records.join(', ')+'.':'Chọn một hoạt động để thêm một phiếu mô phỏng.';
+        break;
+      }
+      case 'pictogram': {
+        const unit=Number(state.op), values=[a,b,c];
+        drawing('Biểu đồ tranh. Mỗi hình = '+unit+' quyển; số liệu '+values.join(', '),({c:ctx})=>{
+          values.forEach((n,i)=>{
+            const y=52+i*55;
+            ctx.font='13px system-ui';ctx.fillStyle='#183853';ctx.fillText('Tổ '+(i+1)+' · '+n,15,y+17);
+            for(let j=0;j<Math.ceil(n/unit);j++){
+              const x=107+j*25, f=Math.min(1,n/unit-j);
+              ctx.fillStyle='#dbeafa';ctx.fillRect(x,y,19,21);
+              ctx.fillStyle='#116fca';ctx.fillRect(x,y,19*f,21);
+              ctx.strokeStyle='#25577e';ctx.strokeRect(x,y,19,21);
+            }
+          });
+        });
+        output.textContent='Mỗi hình = '+unit+' quyển. Tổ 1: '+a+'; tổ 2: '+b+'; tổ 3: '+c+'. '+(values.some(v=>v%(unit/2)!==0)?'Có hàng cần phần hình khác ½; thử chọn chú giải phù hợp hơn.':'Có thể biểu diễn bằng hình nguyên hoặc nửa hình.');
+        break;
+      }
+      case 'bar': case 'doubleBar': {
+        const vals=[a,b,c], other=[state.d,state.e,state.f], dual=kind==='doubleBar';
+        drawing('Biểu đồ cột số sách, lớp A '+vals.join(', ')+(dual?', lớp B '+other.join(', '):''),({c:ctx,line})=>{
+          const y=n=>171-6.4*n;
+          line([65,32],[65,171]);line([65,171],[427,171]);ctx.font='13px system-ui';ctx.fillStyle='#173853';ctx.fillText('Quyển',12,22);
+          for(let j=0;j<=20;j+=5){line([60,y(j)],[424,y(j)],j?'#ccddef':'#37618b');ctx.fillText(j,40,y(j)+4);}
+          vals.forEach((n,i)=>{
+            const x=110+112*i;
+            ctx.fillStyle='#116fc5';ctx.fillRect(x,y(n),dual?26:48,6.4*n);
+            if(dual){ctx.fillStyle='#a74e05';ctx.fillRect(x+29,y(other[i]),26,6.4*other[i]);}
+            ctx.fillStyle='#173853';ctx.fillText('Tổ '+(i+1),x+2,193);
+          });
+        });
+        output.textContent='Lớp A'+(dual?' (xanh)':'')+': '+vals.join(' · ')+' quyển'+(dual?'; lớp B (cam): '+other.join(' · ')+' quyển':'')+'.';
+        break;
+      }
+      case 'budget': {
+        const d=state.d, rest=a-b-c, fmt=n=>n.toLocaleString('vi-VN',{maximumFractionDigits:1});
+        pills(['Thiết yếu: '+fmt(100*b/a)+'%','Có thể chỉnh: '+fmt(100*c/a)+'%','Còn lại: '+rest+' nghìn']);
+        output.textContent='Dự chi '+(b+c)+' nghìn đồng. '+(rest>=d?'Đạt mục tiêu dành '+d+' nghìn.':'Còn thiếu '+(d-rest)+' nghìn để đạt mục tiêu; hãy chỉnh khoản chi hoặc mục tiêu.');
+        break;
+      }
+      case 'geoLab': {
+        const rhombus=state.op==='Hình thoi';
+        drawing('Mô phỏng dựng '+state.op.toLowerCase(),({line,polygon,dot})=>{
+          const x=230,y=105;
+          if(rhombus){
+            const pts=[[x+a*14,y],[x,y-b*14],[x-a*14,y],[x,y+b*14]];
+            polygon(pts);line(pts[0],pts[2],'#008377',[4,4]);line(pts[1],pts[3],'#008377',[4,4]);
+            pts.forEach((p,i)=>dot(p,['A','B','A′','B′'][i]));dot([x,y],'O');
+          } else {
+            const pts=regular(6,a*12,x,y,0);polygon(pts);pts.forEach((p,i)=>dot(p,'ABCDEF'[i]));
+          }
+        });
+        output.textContent=rhombus?'AA′ = '+2*a+'; BB′ = '+2*b+'. Hai đường chéo vuông góc và cùng có trung điểm O.':'Mỗi cạnh '+a+' đơn vị; chu vi '+6*a+' đơn vị. Hình vẫn đều khi đổi cạnh.';
+        break;
+      }
+      case 'fraction': {
+        const d=state.d;
+        drawing('Thanh A '+a+'/'+b+', thanh B '+c+'/'+d,({polygon,line})=>{
+          const units=Math.max(1,Math.ceil(a/b),Math.ceil(c/d));
+          const width=380/units;
+          for (const [numerator,denominator,y] of [[a,b,55],[c,d,126]]) {
+            for(let i=0;i<units*denominator;i++) {
+              const x=40+i*width/denominator, end=x+width/denominator;
+              if(i<numerator) polygon([[x,y],[end,y],[end,y+30],[x,y+30]]);
+              else {line([x,y],[end,y]);line([x,y+30],[end,y+30]);line([x,y],[x,y+30]);line([end,y],[end,y+30]);}
+            }
+          }
+        });
+        output.textContent=a+'/'+b+' '+(a*d===b*c?'=':a*d>b*c?'>':'<')+' '+c+'/'+d+' · Tích chéo: '+(a*d)+' và '+(b*c)+'.';
+        break;
+      }
+      case 'decimal': {
+        const units=Math.floor(a/100), tenths=Math.floor(a/10)%10, hundredths=a%10;
+        pills(['Đơn vị: '+units,'Phần mười: '+tenths,'Phần trăm: '+hundredths]);
+        output.textContent=a+'/100 = '+(a/100).toLocaleString('vi-VN',{minimumFractionDigits:2})+'.';
+        break;
+      }
+      case 'angle': {
+        const theta=a*Math.PI/180;
+        drawing('Góc '+a+' độ',({c,line,dot})=>{
+          const origin=[230,171], at=(t,r)=>[230+r*Math.cos(t*Math.PI/180),171-r*Math.sin(t*Math.PI/180)];
+          c.beginPath();c.strokeStyle='#91a9bf';c.arc(...origin,134,Math.PI,2*Math.PI);c.stroke();
+          c.font='11px system-ui';c.fillStyle='#36516d';
+          for(let i=0;i<=180;i+=5){line(at(i,i%15?128:123),at(i,134),'#819ab4');if(i%30===0){const [x,y]=at(i,148);c.fillText(i,x-8,y+(i===0||i===180?19:0));}}
+          line(origin,at(0,134));line(origin,at(a,134));line(origin,at(b,94),'#008377',[4,4]);
+          c.beginPath();c.strokeStyle='#007764';c.arc(...origin,35,-theta,0);c.stroke();
+          dot(at(0,107),'A');dot(at(a,110),'B');dot(at(b,93),'M','#008377');dot(origin,'O');
+        });
+        output.textContent=a+'° · '+(a===0?'Hai tia trùng nhau':a===90?'Góc vuông':a===180?'Góc bẹt':a<90?'Góc nhọn':'Góc tù')+'. '+(a===0||a===180?'Xét góc có hai cạnh phân biệt, không bẹt để thử điểm trong.':b>0&&b<a?'M ở trong góc AOB.':b===0||b===a?'M ở trên cạnh góc.':'M ở ngoài góc AOB.');
+        break;
+      }
+      case 'probability': {
+        const n=state.counts.reduce((x,y)=>x+y,0);
+        const faces={'Ra mặt 6':[6],'Ra số chẵn':[2,4,6],'Ra số lớn hơn 4':[5,6],'Ra số nhỏ hơn 3':[1,2]}[state.event];
+        const k=faces.reduce((sum,v)=>sum+state.counts[v-1],0);
+        pills(state.counts.map((v,i)=>(i+1)+' chấm: '+v),s=>faces.includes(Number(s[0])));
+        output.textContent=n?'Mặt vừa ra: '+state.last+'. '+state.event+': '+k+'/'+n+(k*10000%n===0?' = ':' ≈ ')+(100*k/n).toLocaleString('vi-VN',{maximumFractionDigits:2})+'% (thực nghiệm).':'Kết quả có thể: 1, 2, 3, 4, 5, 6. '+state.event+' ứng với mặt '+faces.join(', ')+'.';
+        break;
+      }
+      case 'set': {
+        const bound=sign==='x < n' ? n-1 : n;
+        pills(range(0,10),x=>x<=bound);
+        output.textContent='A = {'+range(0,bound).join(', ')+'}';
+        break;
+      }
+      case 'place': {
+        const digits=String(n).split('').map(Number);
+        pills(digits.map((d,i)=>d+' × '+10**(digits.length-i-1)));
+        output.textContent='Giá trị các chữ số: '+digits.map((d,i)=>d*10**(digits.length-i-1)).join(' + ');
+        break;
+      }
+      case 'line':
+        drawing('Trục số. Điểm đầu '+a+', điểm cuối '+(a+b),({line,dot,c})=>{
+          const x=n=>230+n*16;
+          line([18,110],[442,110]);
+          range(-12,12).forEach(n=>{
+            line([x(n),104],[x(n),116]);
+            if(n%2===0){ c.fillStyle='#375678'; c.font='12px system-ui'; c.fillText(n,x(n)-7,137); }
+          });
+          dot([x(a),110],'Đầu'); dot([x(a+b),82],'Cuối','#006d58');
+          line([x(a),82],[x(a+b),82],'#006d58');
+        });
+        output.textContent=a+' + ('+b+') = '+(a+b);
+        break;
+      case 'sum':
+        pills([a,b,a+b],n=>n===100);
+        output.textContent=a+' + '+b+' = '+(a+b)+'. Để được 100, số đi cùng '+a+' là '+(100-a)+'.';
+        break;
+      case 'groups': {
+        const full=Math.floor(n/b),rest=n%b;
+        pills([...range(1,full).map(()=>String(b)),...(rest?['Dư '+rest]:[])],x=>x===String(b));
+        output.textContent=n+' = '+b+' × '+full+' + '+rest;
+        break;
+      }
+      case 'power':
+        pills(b ? Array(b).fill(String(a)) : ['Số mũ 0']);
+        output.textContent=a+' mũ '+b+' = '+a**b;
+        break;
+      case 'digits': {
+        const ds=String(n).split('').map(Number);
+        const total=ds.reduce((u,v)=>u+v,0);
+        pills(ds.map(String));
+        output.textContent='Tổng chữ số '+total+'. '+n+' chia hết cho: '+([2,3,5,9].filter(k=>n%k===0).join(', ')||'không số nào trong 2, 3, 5, 9')+'.';
+        break;
+      }
+      case 'factor': {
+        const parts=factor(n);
+        pills(parts.map(String));
+        output.textContent=n+' = '+parts.join(' × ')+(parts.length===1?' (số nguyên tố)':' (hợp số)');
+        break;
+      }
+      case 'gcd': {
+        const common=range(1,Math.min(a,b)).filter(x=>a%x===0 && b%x===0);
+        pills(common,x=>x===gcd(a,b));
+        output.textContent='ƯCLN('+a+', '+b+') = '+gcd(a,b);
+        break;
+      }
+      case 'lcm': {
+        const both=lcm(a,b);
+        const times=range(1,Math.min(both,24)).filter(x=>x%a===0||x%b===0);
+        pills(times.map(x=>x+' s'),x=>x===both+' s');
+        output.textContent='Hai chu kì '+a+' s và '+b+' s trùng lần đầu sau '+both+' s.';
+        break;
+      }
+      case 'sign':
+        pills(sign==='+'?['+'+a,'−'+b]:['−'+a,'+'+b]);
+        output.textContent='0 '+sign+' ('+a+' − '+b+') = '+(sign==='+'?a-b:b-a);
+        break;
+      case 'product':
+        output.textContent=a+' × ('+b+') = '+a*b+(b?' · Thử phép chia ngược: '+(a*b)+' : ('+b+') = '+a:'. Phép chia cho 0 không xác định.');
+        break;
+      case 'regular': {
+        const count={'Tam giác':3,'Hình vuông':4,'Lục giác':6}[shape];
+        drawing(shape+' đều',({polygon,line})=>{
+          const pts=regular(count,75,230,105,count===4?-Math.PI/4:-Math.PI/2);
+          polygon(pts);
+          pts.forEach(p=>line([230,105],p,'#00806a',[4,4]));
+        });
+        output.textContent=count+' cạnh bằng nhau · Góc ở đỉnh '+((count-2)*180/count)+'°.';
+        break;
+      }
+      case 'quadrilateral': {
+        const pts={
+          'Chữ nhật':[[140,50],[320,50],[320,160],[140,160]],
+          'Thoi':[[230,35],[320,105],[230,175],[140,105]],
+          'Bình hành':[[170,50],[340,50],[290,160],[120,160]],
+          'Thang cân':[[165,55],[295,55],[340,155],[120,155]]
+        }[shape];
+        drawing('Hình '+shape.toLowerCase(),({polygon,line,dot})=>{
+          polygon(pts);
+          if(state.diag==='Hiện'){ line(pts[0],pts[2],'#007764',[5,4]); line(pts[1],pts[3],'#007764',[5,4]); }
+          pts.forEach((p,i)=>dot(p,'ABCD'[i]));
+        });
+        output.textContent='So sánh độ dài và góc tạo bởi AC, BD khi chuyển hình.';
+        break;
+      }
+      case 'area': case 'room': {
+        drawing('Hình chữ nhật '+a+' nhân '+b,({polygon,line})=>{
+          const x=130,y=28,u=19;
+          polygon([[x,y],[x+a*u,y],[x+a*u,y+b*u],[x,y+b*u]]);
+          for(let i=1;i<a;i++)line([x+i*u,y],[x+i*u,y+b*u],'#74a8d7');
+          for(let j=1;j<b;j++)line([x,y+j*u],[x+a*u,y+j*u],'#74a8d7');
+        });
+        output.textContent=kind==='area'?'Chu vi '+2*(a+b)+' đơn vị · Diện tích '+a*b+' đơn vị vuông.':
+          'Sàn '+a*b+' m² · Tỉ số cửa/sàn '+(100*c/(a*b)).toLocaleString('vi-VN',{maximumFractionDigits:2})+'%.';
+        break;
+      }
+      case 'axis': case 'center': case 'symmetry': {
+        const x=transform==='Gập qua trục ngang'?a:-a;
+        const y=transform==='Gập qua trục dọc'?b:-b;
+        drawing('P ('+a+', '+b+'); ảnh P phẩy ('+x+', '+y+')',({line,dot})=>{
+          if(transform==='Gập qua trục dọc')line([230,10],[230,200],'#006a5d',[5,4]);
+          if(transform==='Gập qua trục ngang')line([60,105],[400,105],'#006a5d',[5,4]);
+          if(transform==='Quay 180°')dot([230,105],'O');
+          dot([230+a*20,105-b*20],'P'); dot([230+x*20,105-y*20],'P′','#006a5d');
+        });
+        output.textContent='P ('+a+'; '+b+') → P′ ('+x+'; '+y+'). Dấu dương theo hướng sang phải và lên trên.';
+        break;
+      }
+      case 'construct': {
+        const p=[182,112],q=[182+a*22,112-b*22];
+        drawing('A và B trên lưới, hình dựng bằng công cụ '+shape,({c,line,dot,polygon})=>{
+          const dx=q[0]-p[0],dy=q[1]-p[1],len=Math.hypot(dx,dy);
+          if(shape==='Đường tròn tâm A qua B'){
+            c.beginPath(); c.strokeStyle='#0057ac'; c.lineWidth=2; c.arc(...p,len,0,2*Math.PI);c.stroke();
+          } else if(shape==='Đường thẳng') {
+            line([p[0]-4*dx,p[1]-4*dy],[p[0]+5*dx,p[1]+5*dy]);
+          } else if(shape==='Đoạn thẳng') line(p,q);
+          else {
+            const count={'Tam giác đều':3,'Hình vuông':4,'Lục giác đều':6}[shape];
+            const pts=[p,q];
+            const turn=2*Math.PI/count;
+            const dir=Math.atan2(dy,dx);
+            for(let i=1;i<count-1;i++){
+              const prev=pts.at(-1);
+              pts.push([prev[0]+len*Math.cos(dir-turn*i),prev[1]+len*Math.sin(dir-turn*i)]);
+            }
+            const extent=Math.max(...pts.map(([x,y])=>Math.max(Math.abs(x-230)/208,Math.abs(y-105)/91)));
+            const scale=Math.min(1,1/extent);
+            polygon(pts.map(([x,y])=>[230+(x-230)*scale,105+(y-105)*scale]));
+            dot([230+(p[0]-230)*scale,105+(p[1]-105)*scale],'A');
+            dot([230+(q[0]-230)*scale,105+(q[1]-105)*scale],'B');
+            return;
+          }
+          dot(p,'A'); dot(q,'B');
+        });
+        output.textContent='Công cụ: '+shape+'. Độ dài AB = '+Math.hypot(a,b).toLocaleString('vi-VN',{maximumFractionDigits:2})+' đơn vị lưới.';
+        break;
+      }
+    }
+  }
+  update();
+  const save=element('button','Lưu quan sát',{type:'button'});
+  save.onclick=()=>{
+    if(!output.textContent) {memo.textContent='Hãy thực hiện một phép tính trước.';return;}
+    onSave(output.textContent);
+    memo.textContent='Đã thêm quan sát vào lịch sử lượt này.';
+  };
+  box.append(save,memo);
+  return box;
+}
+
+const lesson = JSON.parse(document.querySelector('#lesson-data').textContent);
+const root = document.querySelector('#lesson-root');
+const CHANNEL = 'taydo.edu.lesson.v1';
+const VERSION = lesson.version || '1.0';
+const questionById = new Map([
+  ...lesson.skills.flatMap(s => [s.probe,s.practice,s.transfer]),
+  ...lesson.quiz
+].map(q => [q.id,q]));
+
+let profile = null;
+let embeddedAccount = false;
+let syncLabel = '';
+let current = null;
+let historyVisible = false;
+let memory = [];
+let storageError = false;
+const standaloneKey = 'taydo-edu-profile-v1';
+const pending = new Map();
+
+function storageKey() {
+  return 'taydo-edu-history-v1:'+lesson.id+':'+profile;
+}
+function readHistory() {
+  if (!profile) return [];
+  try {
+    const stored = localStorage.getItem(storageKey());
+    return stored ? JSON.parse(stored) : memory;
+  } catch (_) {
+    storageError = true;
+    return memory;
+  }
+}
+function writeHistory(records) {
+  memory = records;
+  try { localStorage.setItem(storageKey(),JSON.stringify(records)); }
+  catch (_) { storageError = true; }
+}
+function mergeHistory(records) {
+  const byId = new Map(readHistory().map(r=>[r.id,r]));
+  for (const record of records) {
+    const known = byId.get(record.id);
+    if (!known || record.revision>known.revision || (
+      record.revision===known.revision && record.updatedAt>known.updatedAt
+    )) byId.set(record.id,record);
+  }
+  writeHistory([...byId.values()].sort((a,b)=>b.startedAt.localeCompare(a.startedAt)));
+}
+function updateSyncLabel() {
+  const label = document.querySelector('#storage-label');
+  if (!label) return;
+  label.textContent = embeddedAccount
+    ? syncLabel
+    : storageError ? 'Trình duyệt đang chặn lưu trên thiết bị. Hãy tải lịch sử trước khi đóng trang.'
+    : 'Lịch sử lưu trên trình duyệt này';
+}
+function send(type, payload={}) {
+  if (window.parent!==window && location.origin!=='null') {
+    window.parent.postMessage({channel:CHANNEL,type,lessonId:lesson.id,...payload},location.origin);
+  }
+}
+function syncRecord(record) {
+  if (!embeddedAccount) return;
+  pending.set(record.id,record.revision);
+  syncLabel = 'Đang đồng bộ lịch sử…';
+  send('save',{record,userId:profile.slice('account:'.length)});
+  updateSyncLabel();
+}
+function save() {
+  current.revision++;
+  current.updatedAt = new Date().toISOString();
+  mergeHistory([current]);
+  syncRecord(current);
+  updateSyncLabel();
+}
+function log(kind, values) {
+  current.events.push({kind,at:new Date().toISOString(),...values});
+}
+function validRecord(r) {
+  return r && r.lessonId===lesson.id && typeof r.id==='string'
+    && Number.isInteger(r.revision) && typeof r.startedAt==='string'
+    && typeof r.updatedAt==='string' && Array.isArray(r.events);
+}
+
+window.addEventListener('message',event=>{
+  if (event.source!==window.parent || event.origin!==location.origin || window.parent===window) return;
+  const data=event.data;
+  if (!data || data.channel!==CHANNEL || data.lessonId!==lesson.id) return;
+  if (data.type==='account' && typeof data.userId==='string') {
+    const key='account:'+data.userId;
+    const changed=profile!==key || !embeddedAccount;
+    if (changed) { current=null; memory=[]; pending.clear(); profile=key; historyVisible=false; }
+    embeddedAccount=true;
+    syncLabel='Đang tải lịch sử tài khoản…';
+    if(changed) render();
+    updateSyncLabel();
+    return;
+  }
+  if (data.type==='signed-out' && embeddedAccount) {
+    embeddedAccount=false;
+    profile=null;
+    current=null;
+    memory=[];
+    pending.clear();
+    render();
+    return;
+  }
+  if (!embeddedAccount || profile!=='account:'+data.userId) return;
+  if (data.type==='history') {
+    const remote=(Array.isArray(data.records)?data.records:[]).filter(validRecord);
+    const remoteById=new Map(remote.map(r=>[r.id,r.revision]));
+    mergeHistory(remote);
+    for(const local of readHistory()) {
+      if(local.revision>(remoteById.get(local.id)||0)) syncRecord(local);
+    }
+    syncLabel = pending.size ? 'Đang đồng bộ lịch sử…' : 'Lịch sử tài khoản đã đồng bộ';
+    if (!current || historyVisible) render();
+    updateSyncLabel();
+  }
+  if (data.type==='saved') {
+    if ((pending.get(data.id)||0)<=data.revision) pending.delete(data.id);
+    syncLabel = pending.size ? 'Đang đồng bộ lịch sử…' : 'Lịch sử tài khoản đã đồng bộ';
+    updateSyncLabel();
+  }
+  if (data.type==='sync-error') {
+    syncLabel = storageError ? 'Chưa đồng bộ. Hãy tải lịch sử trước khi đóng trang.'
+      : 'Chưa đồng bộ. Đã giữ bản trên thiết bị này.';
+    updateSyncLabel();
+  }
+});
+window.addEventListener('online',()=>send('hello'));
+window.addEventListener('storage',e=>{
+  if(profile && e.key===storageKey() && (!current || historyVisible)) render();
+});
+
+function dateLabel(value) {
+  return new Intl.DateTimeFormat('vi-VN',{dateStyle:'short',timeStyle:'short'}).format(new Date(value));
+}
+function action(text, handler, primary=false) {
+  const btn=element('button',text,{type:'button',class:primary?'primary':''});
+  btn.onclick=handler;
+  return btn;
+}
+function focusMain() {
+  const title=root.querySelector('main h2');
+  if(title) { title.tabIndex=-1; title.focus({preventScroll:true}); title.scrollIntoView({block:'nearest'}); }
+}
+function renderThenFocus() { render(); focusMain(); }
+
+function newAttempt(skillIndex) {
+  const isReview=Number.isInteger(skillIndex);
+  const now=new Date().toISOString();
+  const id=typeof crypto.randomUUID==='function'?crypto.randomUUID():[
+    ...crypto.getRandomValues(new Uint8Array(16))
+  ].map(n=>n.toString(16).padStart(2,'0')).join('').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');
+  current={
+    id,lessonId:lesson.id,version:VERSION,startedAt:now,updatedAt:now,
+    revision:0,status:'in_progress',score:null,total:isReview?0:lesson.quiz.length,
+    mode:isReview?'review':'lesson',reviewSkill:isReview?lesson.skills[skillIndex].id:null,
+    step:{phase:isReview?'lab':'probe',index:isReview?skillIndex:0,part:isReview?'study':'question',feedback:null},
+    events:[]
+  };
+  save();
+  historyVisible=false;
+  renderThenFocus();
+}
+function reopen(record) {
+  current=structuredClone(record);
+  historyVisible=false;
+  renderThenFocus();
+}
+function backToLesson() {
+  current=null;
+  historyVisible=false;
+  renderThenFocus();
+}
+function shuffleOptions(q) {
+  const salt=current.id+q.id;
+  let seed=2166136261;
+  for (const char of salt) seed=Math.imul(seed^char.charCodeAt(0),16777619)>>>0;
+  const list=q.options.map((_,i)=>i);
+  for(let i=list.length-1;i>0;i--) {
+    seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+    const j=seed%(i+1);
+    [list[i],list[j]]=[list[j],list[i]];
+  }
+  if(q.mode==='order' && list.every((n,i)=>n===i)) list.push(list.shift());
+  return list;
+}
+function matches(q,value) {
+  if(q.mode==='multi') return value.length===q.answer.length && q.answer.every(x=>value.includes(x));
+  if(q.mode==='order') return q.answer.every((x,i)=>value[i]===x) && value.length===q.answer.length;
+  return value===q.answer;
+}
+function answerText(q,value) {
+  if(q.mode==='number') return String(value);
+  return (Array.isArray(value)?value:[value]).map(i=>q.options[i]).join(q.mode==='order'?' → ':', ');
+}
+function mistake(q,value) {
+  const goal=lesson.skills.find(s=>s.id===q.skill);
+  if(lesson.id==='toan_6_c1_b1' && q.id==='m1-practice') {
+    if(value.includes(4)) return {code:'boundary',hint:'Em đã chọn 4. Hãy thử thay x = 4 vào x < 4. Mệnh đề 4 < 4 đúng hay sai?'};
+    if(!value.includes(0)) return {code:'omitted_zero',hint:'Tập số tự nhiên có chứa 0. Hãy kiểm tra 0 có nhỏ hơn 4 không.'};
+  }
+  return {code:q.skill||'application',hint:goal?.hint||''};
+}
+function submitQuestion(q,value) {
+  const step=current.step;
+  if(step.feedback) return;
+  const right=matches(q,value);
+  const phase=step.phase==='lab' ? step.part : step.phase;
+  const seen=current.events.filter(e=>e.kind==='answer' && e.qid===q.id).length;
+  const hint = phase==='practice' && !right && seen===0;
+  const issue=right?null:mistake(q,value);
+  log('answer',{qid:q.id,skill:q.skill,phase,response:value,correct:right,number:seen+1,
+    errorCode:issue?.code||null,prompt:q.prompt,responseText:answerText(q,value)});
+  if(hint) log('hint',{qid:q.id,skill:q.skill,phase,errorCode:issue.code,text:issue.hint});
+  step.feedback={right,hint,response:value,hintText:hint?issue.hint:null};
+  save();
+  render();
+  document.querySelector('#question-feedback')?.focus({preventScroll:true});
+}
+function nextAfter(q) {
+  const step=current.step;
+  if (step.phase==='probe') {
+    if (++step.index===lesson.skills.length) {step.phase='lab';step.index=0;step.part='study';}
+  } else if(step.phase==='lab') {
+    if(step.part==='study') step.part='practice';
+    else if(step.part==='practice' && step.feedback?.hint) step.part='practice';
+    else if(step.part==='practice') step.part='transfer';
+    else if(current.mode==='review') {
+      current.status='completed';
+      current.completedAt=new Date().toISOString();
+      step.phase='result';
+    }
+    else if (++step.index===lesson.skills.length) {step.phase='quiz';step.index=0;step.part='question';}
+    else step.part='study';
+  } else if(step.phase==='quiz') {
+    if (++step.index===lesson.quiz.length) {
+      const answers=current.events.filter(e=>e.kind==='answer' && e.phase==='quiz');
+      current.score=answers.filter(a=>a.correct).length;
+      current.status='completed';
+      current.completedAt=new Date().toISOString();
+      step.phase='result';
+    }
+  }
+  step.feedback=null;
+  save();
+  renderThenFocus();
+}
+function drawQuestion(parent,q,graded) {
+  const panel=element('section',null,{class:'question'});
+  const form=element('form');
+  const group=element('fieldset',null,{class:'option-group'});
+  group.append(element('legend',q.prompt,{class:'question-title'}));
+  panel.append(form);
+  form.append(group);
+  parent.append(panel);
+  const snapshot=current.step.feedback;
+  if(snapshot) {
+    const chosen=element('p','Em đã chọn: '+answerText(q,snapshot.response),{class:'small'});
+    const skill=lesson.skills.find(s=>s.id===q.skill);
+    let feedback='Đã ghi nhận câu trả lời.';
+    if(!graded && current.step.phase==='probe') feedback='Đã ghi nhận câu trả lời. Em sẽ khám phá cách làm ở phần tiếp theo.';
+    else if(!graded && snapshot.hint) feedback='Gợi ý: '+(snapshot.hintText||skill.hint);
+    else if(!graded) feedback=(snapshot.right?'Chính xác. ':'Cùng xem cách làm. ')+q.explanation;
+    const banner=element('p',feedback,{class:'feedback',id:'question-feedback',tabindex:'-1',role:'status'});
+    if(!graded && current.step.phase!=='probe') banner.dataset.state=snapshot.right?'good':'bad';
+    group.append(chosen,banner);
+    const text = snapshot.hint ? 'Thử lại nhiệm vụ'
+      : graded && current.step.index===lesson.quiz.length-1 ? 'Xem kết quả'
+      : current.step.phase==='lab' && current.step.part==='practice' ? 'Làm câu mới' : 'Tiếp tục';
+    form.append(action(text,()=>nextAfter(q),true));
+    return;
+  }
+  let read;
+  const error=element('p','',{class:'feedback',role:'status','data-state':'bad'});
+  if(q.mode==='number') {
+    const field=element('input',null,{class:'answer',type:'text',inputmode:'text',
+      autocomplete:'off',maxlength:'18','aria-label':'Nhập đáp án dạng số nguyên',placeholder:'Nhập đáp án'});
+    group.append(element('p','Chỉ nhập số nguyên, có thể dùng dấu âm.',{class:'small'}),field);
+    read=()=>{
+      const val=field.value.trim().replace(/^−/,'-');
+      return /^[+-]?\d+$/.test(val) && Number.isSafeInteger(Number(val)) ? Number(val) : null;
+    };
+  } else if(q.mode==='order') {
+    let order=[];
+    const ordered=element('ol',null,{class:'order-list','aria-label':'Thứ tự đã chọn'});
+    const buttons=element('div',null,{class:'actions'});
+    const source=shuffleOptions(q);
+    const controls=source.map(i=>{
+      const btn=action(q.options[i],()=>{
+        order.push(i);drawOrder();
+        const next=controls.find(b=>!b.disabled);
+        (next||submit).focus();
+      });
+      btn.dataset.option=String(i);
+      return btn;
+    });
+    function drawOrder() {
+      ordered.replaceChildren(...order.map(i=>element('li',q.options[i])));
+      controls.forEach(btn=>btn.disabled=order.includes(Number(btn.dataset.option)));
+    }
+    buttons.append(...controls);
+    const clear=action('Xóa thứ tự',()=>{order=[];drawOrder();controls[0].focus();});
+    group.append(element('p','Bấm các thẻ theo thứ tự. Dùng “Xóa thứ tự” nếu muốn làm lại.',{class:'small'}),buttons,ordered,clear);
+    read=()=>order.length===source.length?order.slice():null;
+  } else {
+    const options=element('div',null,{class:'options'});
+    if(q.mode==='multi')group.append(element('p','Chọn tất cả đáp án đúng.',{class:'small'}));
+    for(const i of shuffleOptions(q)) {
+      const label=element('label',null,{class:'option'});
+      label.append(element('input',null,{type:q.mode==='multi'?'checkbox':'radio',name:'answer',value:i}),
+                   element('span',q.options[i]));
+      options.append(label);
+    }
+    group.append(options);
+    read=()=>{
+      const selected=[...group.querySelectorAll('input:checked')].map(el=>Number(el.value));
+      if(!selected.length) return null;
+      return q.mode==='multi'?selected:selected[0];
+    };
+  }
+  const submit=element('button',graded?'Ghi đáp án':'Gửi câu trả lời',{type:'submit',class:'primary'});
+  form.append(error,submit);
+  form.onsubmit=event=>{
+    event.preventDefault();
+    const value=read();
+    if(value===null) {error.textContent='Hãy hoàn thành câu trả lời trước khi gửi.';return;}
+    submitQuestion(q,value);
+  };
+}
+
+function downloadHistory() {
+  const rows=readHistory();
+  const file=new Blob([JSON.stringify({schema:CHANNEL,lessonId:lesson.id,exportedAt:new Date().toISOString(),attempts:rows},null,2)],
+    {type:'application/json'});
+  const href=URL.createObjectURL(file);
+  const link=element('a',null,{href,download:lesson.id+'-lich-su.json'});
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(href),1000);
+}
+function renderHistory(panel) {
+  panel.append(element('h2','Lịch sử từng lượt làm'));
+  const records=readHistory();
+  if(!records.length) {panel.append(element('p','Em chưa có lượt làm nào trong bài này.'));return;}
+  panel.append(action('Tải lịch sử JSON',downloadHistory));
+  for(const r of records) {
+    const details=element('details',null,{class:'history-row'});
+    const info=r.mode==='review' ? (r.status==='completed'?'Đã ôn theo mục tiêu':'Đang ôn theo mục tiêu')
+      : r.status==='completed'?r.score+'/'+r.total+' câu đúng':'Đang làm';
+    details.append(element('summary',dateLabel(r.startedAt)+' · '+info+' · '+r.events.filter(e=>e.kind==='answer').length+' câu trả lời đã ghi'));
+    if(r.status==='in_progress' && r.version===VERSION)details.append(action('Tiếp tục lượt này',()=>reopen(r),true));
+    for(const e of r.events) {
+      if(e.kind==='answer') {
+        const q=questionById.get(e.qid);
+        if(!q && !e.prompt)continue;
+        const phase={probe:'Khởi động',practice:'Khám phá',transfer:'Câu mới',quiz:'Tự kiểm tra'}[e.phase]||e.phase;
+        const result=e.phase==='quiz' && r.status!=='completed'?'Đã ghi':e.correct?'Đúng':'Sai';
+        details.append(element('p',dateLabel(e.at)+' · '+phase+' · '+(e.prompt||q.prompt)+' → '+(e.responseText||answerText(q,e.response))+' ('+result+')',{class:'small'}));
+      }
+      if(e.kind==='hint')details.append(element('p',e.text?'Gợi ý đã hiện: '+e.text:'Đã hiện gợi ý cho câu vừa trả lời.',{class:'small'}));
+      if(e.kind==='observation')details.append(element('p','Quan sát đã lưu: '+e.text,{class:'small'}));
+    }
+    panel.append(details);
+  }
+}
+function renderResult(panel) {
+  if(current.mode==='review') {
+    const skill=lesson.skills.find(s=>s.id===current.reviewSkill);
+    const check=current.events.find(e=>e.phase==='transfer' && e.kind==='answer');
+    panel.append(element('h2','Kết quả ôn theo mục tiêu'),element('h3',skill.title),
+      element('p',check?.correct?'Em đã trả lời đúng câu mới.':'Câu mới cần luyện thêm. Xem cách giải rồi thử lại.'),
+      element('p',skill.transfer.explanation));
+    const controls=element('div',null,{class:'actions'});
+    controls.append(action('Ôn lại mục tiêu này',()=>newAttempt(lesson.skills.indexOf(skill)),true),
+      action('Xem lịch sử',()=>{historyVisible=true;renderThenFocus();}));
+    panel.append(controls);
+    return;
+  }
+  panel.append(element('h2','Kết quả tự kiểm tra'),element('p',current.score+' / '+current.total,{class:'result'}),
+    element('p','Số câu đúng ở lượt làm này. Em có thể xem cách giải rồi quay lại luyện.'));
+  const checked=current.events.filter(e=>e.kind==='answer' && e.phase==='quiz');
+  const list=element('ul');
+  for(const skill of lesson.skills) {
+    const transfer=current.events.find(e=>e.kind==='answer' && e.qid===skill.transfer.id);
+    const test=checked.find(e=>e.skill===skill.id);
+    const status = test?.correct ? 'Câu cuối bài đúng' : 'Nên luyện thêm';
+    const item=element('li',skill.title+' — '+status+(transfer?' · Câu mới '+(transfer.correct?'đúng':'chưa đúng'):''));
+    if(!test?.correct) {
+      const more=element('details');
+      more.append(element('summary','Xem lại quy tắc và ví dụ'),element('p',skill.rule),element('p',skill.example));
+      item.append(more,action('Ôn mục tiêu này',()=>newAttempt(lesson.skills.indexOf(skill))));
+    }
+    list.append(item);
+  }
+  panel.append(list);
+  for(const a of checked) {
+    const q=questionById.get(a.qid);
+    const d=element('details',null,{class:'history-row'});
+    d.append(element('summary',(a.correct?'Đúng · ':'Xem lại · ')+q.prompt),
+      element('p','Em trả lời: '+answerText(q,a.response)),element('p','Đáp án: '+answerText(q,q.answer)),
+      element('p',q.explanation));
+    panel.append(d);
+  }
+  const controls=element('div',null,{class:'actions'});
+  controls.append(action('Bắt đầu lượt mới',newAttempt,true),action('Xem lịch sử',()=>{historyVisible=true;renderThenFocus();}));
+  panel.append(controls);
+}
+function renderStudy(panel) {
+  const step=current.step;
+  const skill=lesson.skills[step.index];
+  if(step.phase==='probe') {
+    panel.append(element('h2','Khởi động '+(step.index+1)+' / '+lesson.skills.length));
+    drawQuestion(panel,skill.probe,false);
+    return;
+  }
+  if(step.phase==='quiz') {
+    panel.append(element('h2','Tự kiểm tra '+(step.index+1)+' / '+lesson.quiz.length));
+    drawQuestion(panel,lesson.quiz[step.index],true);
+    return;
+  }
+  if(step.phase==='result') {renderResult(panel);return;}
+  panel.append(element('h2',skill.title));
+  if(step.part==='study') {
+    const first=current.events.find(e=>e.qid===skill.probe.id && e.kind==='answer');
+    if(first && !first.correct) panel.append(element('p','Từ câu khởi động: '+skill.hint,{class:'feedback'}));
+    panel.append(element('p',skill.rule),element('h3','Ví dụ có lời giải'),element('p',skill.example));
+    if(step.index===0)panel.append(makeModel(lesson.model,text=>{
+      if(current.events.filter(e=>e.kind==='observation').length>=25) {
+        const firstIndex=current.events.findIndex(e=>e.kind==='observation');
+        current.events.splice(firstIndex,1);
+      }
+      log('observation',{text});
+      save();
+    }, lesson.modelMission));
+    panel.append(action('Thử một nhiệm vụ',()=>nextAfter(),true));
+  } else {
+    panel.append(element('p',step.part==='transfer'?'Câu mới cùng mục tiêu':'Nhiệm vụ khám phá',{class:'small'}));
+    drawQuestion(panel,skill[step.part],false);
+  }
+}
+
+function renderStart(panel) {
+  panel.append(element('h2','Mục tiêu bài học'));
+  const ul=element('ul');
+  for(const skill of lesson.skills)ul.append(element('li',skill.title));
+  panel.append(ul);
+  if(!profile) {
+    const form=element('form');
+    const label=element('label','Mã học trên thiết bị này ');
+    const input=element('input',null,{maxlength:'32',required:'',placeholder:'Ví dụ: 6A-07',autocomplete:'off'});
+    label.append(input);
+    const submit=element('button','Chọn mã học',{class:'primary',type:'submit'});
+    form.append(label,submit);
+    panel.append(element('p','Dùng cùng một mã trên trình duyệt này để xem lại các lượt đã làm.',{class:'small'}),form);
+    form.onsubmit=e=>{
+      e.preventDefault();
+      const value=input.value.trim();
+      if(!value) return;
+      profile='device:'+value.toLocaleLowerCase('vi');
+      memory=[];
+      try {localStorage.setItem(standaloneKey,profile);}
+      catch(_) {storageError=true;}
+      renderThenFocus();
+    };
+    return;
+  }
+  const controls=element('div',null,{class:'actions'});
+  const inProgress=readHistory().find(r=>r.status==='in_progress' && r.version===VERSION);
+  if(inProgress)controls.append(action('Tiếp tục lượt gần nhất',()=>reopen(inProgress),true));
+  controls.append(action('Bắt đầu lượt mới',newAttempt,!inProgress));
+  panel.append(controls);
+}
+function render() {
+  root.replaceChildren();
+  const hero=element('header',null,{class:'hero'});
+  hero.append(element('p','Tây Đô Smart EDU · '+lesson.subjectName+' '+lesson.grade+(lesson.volume?' · Tập '+lesson.volume:''),{class:'eyebrow'}),
+    element('h1',lesson.title),element('p',lesson.intro));
+  root.append(hero);
+  const toolbar=element('div',null,{class:'toolbar'});
+  toolbar.append(element('span','',{id:'storage-label',class:'meta','aria-live':'polite'}));
+  const actions=element('div',null,{class:'actions'});
+  if(profile) {
+    if(embeddedAccount) actions.append(action('Đồng bộ lại',()=>send('hello')));
+    actions.append(action(historyVisible?'Quay lại bài':'Lịch sử',()=>{historyVisible=!historyVisible;renderThenFocus();}));
+    if(current && !historyVisible)actions.append(action('Về đầu bài',backToLesson));
+    if(!embeddedAccount)actions.append(action('Đổi mã học',()=>{
+      try {localStorage.removeItem(standaloneKey);} catch(_) {storageError=true;}
+      profile=null;memory=[];current=null;historyVisible=false;renderThenFocus();
+    }));
+  }
+  toolbar.append(actions);
+  root.append(toolbar);
+  const step=current?.step?.phase;
+  if(current && !historyVisible) {
+    const steps=element('nav',null,{class:'steps','aria-label':'Tiến trình bài'});
+    for(const [key,name] of [['probe','Khởi động'],['lab','Khám phá và sửa sai'],['quiz','Tự kiểm tra'],['result','Kết quả']]) {
+      steps.append(element('span',name,key===step?{'aria-current':'step'}:{}));
+    }
+    root.append(steps);
+  }
+  const panel=element('main',null,{class:'panel'});
+  root.append(panel);
+  if(historyVisible && profile)renderHistory(panel);
+  else if(current)renderStudy(panel);
+  else renderStart(panel);
+  root.append(element('footer','Tham chiếu SGK '+lesson.subjectName+' '+lesson.grade+' · '+lesson.bookSeries+(lesson.volume?' · Tập '+lesson.volume:'')+' · Trang '+lesson.page+'.',{class:'small source'}));
+  updateSyncLabel();
+}
+try {
+  const saved=localStorage.getItem(standaloneKey);
+  if(saved?.startsWith('device:'))profile=saved;
+} catch (_) {storageError=true;}
+render();
+send('hello');
+if (window.parent!==window) {
+  const retry=setInterval(()=>{ if(!embeddedAccount)send('hello'); },1500);
+  setTimeout(()=>clearInterval(retry),15000);
+}
+
+</script>
+</body>
+</html>
