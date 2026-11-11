@@ -1,0 +1,14 @@
+CẬP NHẬT MENU KIẾN THỨC TRỌNG TÂM TRONG WEBSITE HIỆN TẠI
+
+Đính kèm catalog_tong_hop.json (458 mục, đã gồm dữ liệu cũ) và catalog_bo_sung.json (chỉ 280 mục mới). Chọn một nguồn phù hợp; không nối cả hai file vì sẽ trùng dữ liệu.
+
+1. Bổ sung KHTN 6 (55 bài/10 chương), KHTN 7 (42 bài/10 chương và nhóm Mở đầu), KHTN 8 (47 bài/8 chương và nhóm Mở đầu), KHTN 9 (51 bài/14 chương và nhóm Mở đầu), Toán 9 hai tập (32 bài có số, tổng 63 mục), Tin học 9 (6 chủ đề, 22 mục tính cả hai nhánh a/b). Giữ các môn/lớp khác đã có trong website.
+2. Dùng đúng tên và số trong JSON. Không bịa thêm Toán 8 hoặc Tin học 8 vì chưa có sách của hai môn đó trong bộ này. Không tạo mục rỗng cho môn không có dữ liệu.
+3. Bộ chọn Khối > Môn > Chương/chủ đề > Bài > Vào học. KHTN và Toán dùng Chương; Tin học dùng Chủ đề. Bài 1 KHTN 7/8/9 là nhóm Mở đầu đứng trước Chương I, không gán vào Chương I. Giữ thứ tự theo volume, thứ tự nhóm xuất hiện trong dữ liệu rồi sortOrder, không sắp chương bằng chuỗi.
+4. Tin học 9 Chủ đề 4 có phần chung Bài 5–8, nhánh a Bài 9a–13a và nhánh b Bài 9b–13b. Giữ nguyên lessonCode và hậu tố a/b. Trong bộ chọn bài, dùng nhóm lựa chọn hoặc nhãn branch để phân biệt hai nhánh, không làm thành hai chủ đề mới và không ép học sinh học cả hai nhánh. ID và URL các bài không được trùng nhau.
+5. Đường dẫn mới: /lessons/lop-{khối}/{môn}/chuong-XX/bai-XX/index.html hoặc chu-de-XX. Tin 9 nhánh a dùng bai-09a, nhánh b bai-09b. Lấy htmlUrl đã lưu, không tự ghép ở nhiều component. Không thêm public vào URL. Cấu trúc thư mục mẫu đã có trong ZIP, chỉ chứa .gitkeep; không phải học liệu sẵn sàng.
+6. Nếu dữ liệu cục bộ đang dùng bản cũ 178 mục thì thay bằng catalog_tong_hop.json nhưng giữ các bản ghi mở rộng và URL đã xác nhận ngoài bộ này. Rà soát trạng thái của từng bài: không ghi đè ready/URL tùy chỉnh nếu file thật vẫn ở vị trí cũ. Lập bảng URL cũ/mới để chuyển học liệu có kiểm soát. previousHtmlUrl chỉ là thông tin đường dẫn cũ, không tự động chuyển file.
+7. Nếu Supabase là nguồn thực tế, ánh xạ vào bảng đang có. Chỉ dùng Import_bo_sung_Supabase.sql khi bảng kttt_catalog phù hợp. Bảng này dùng metadata JSONB, html_url và status; ánh xạ đối tượng giao diện là {...metadata, htmlUrl: html_url, status}. Không tạo bảng trùng chức năng. Không xóa dữ liệu học sinh hoặc mở quyền sửa cho học sinh.
+8. Các mục mới pending_upload. Chỉ bật Vào học cho bài có file HTML thật và status ready. Không tạo HTML giả, không biến .gitkeep thành bài học. Chưa có file thì hiển thị Đang cập nhật. Giữ tương tác HTML qua iframe, có quay lại, toàn màn hình, mở tab mới.
+9. Kiểm tra đường dẫn HTML không bị định tuyến Vercel trả về trang chủ. HTTP 200 không đủ xác nhận file bài. Không tự đánh dấu hoàn thành khi mở iframe.
+10. Kiểm thử bộ lọc phụ thuộc, thứ tự chương, phần mở đầu, nhánh a/b, mục luyện tập trùng tên, file thiếu và iframe. Báo file sửa, dữ liệu thêm, SQL cần chạy, trạng thái kiểm thử. Chỉ tuyên bố thao tác GitHub/Supabase/Vercel đã làm khi thực sự thực hiện được.

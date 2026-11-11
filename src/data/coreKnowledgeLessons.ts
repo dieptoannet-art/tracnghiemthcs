@@ -3,25 +3,26 @@ import { CoreKnowledgeLesson, CoreKnowledgeGroup, CoreKnowledgeStatus } from '..
 
 /**
  * Danh mục tập trung KIẾN THỨC TRỌNG TÂM
- * Nguồn dữ liệu duy nhất: catalog_kien_thuc_trong_tam.json
- * Đối chiếu 6 SGK Kết nối tri thức với cuộc sống:
- * - Toán 6 Tập 1 & 2
- * - Toán 7 Tập 1 & 2
- * - Tin học 6
- * - Tin học 7
+ * Nguồn dữ liệu duy nhất: catalog_kien_thuc_trong_tam.json (458 mục chuẩn hoá)
+ * Bao gồm:
+ * - Toán 6 (Tập 1 & 2), Toán 7 (Tập 1 & 2), Toán 9 (Tập 1 & 2)
+ * - Tin học 6, Tin học 7, Tin học 9 (gồm cả 2 nhánh a/b)
+ * - Khoa học tự nhiên 6, 7, 8, 9 (gồm nhóm Mở đầu đứng trước Chương I)
  *
  * Quy tắc:
  * - Không sửa tên bài, không tự bịa thêm lớp/môn/chương/bài.
  * - Chỉ đánh dấu 'ready' khi file HTML thực sự có sẵn trong public/lessons/.
- * - File duy nhất hiện có sẵn là /lessons/lop-6/toan/chuong-01/bai-01/index.html (bài toan_6_c1_b1).
+ * - Hiện tại có 2 bài học thực tế sẵn sàng:
+ *   1. /lessons/lop-6/toan/chuong-01/bai-01/index.html (toan_6_c1_b1)
+ *   2. /lessons/lop-6/toan/chuong-06/bai-23/index.html (toan_6_c6_b23)
  * - Tất cả các bài còn lại giữ nguyên trạng thái 'pending_upload' (Đang cập nhật).
  */
 
 const RAW_LIST = rawCatalogData as Array<Omit<CoreKnowledgeLesson, 'status'> & { status?: string }>;
 
 export const CORE_KNOWLEDGE_LESSONS: CoreKnowledgeLesson[] = RAW_LIST.map(item => {
-  // Chỉ toan_6_c1_b1 thực sự có file public/lessons/lop-6/toan/chuong-01/bai-01/index.html
-  const isReady = item.id === 'toan_6_c1_b1';
+  // Chỉ các bài có file HTML thực tế được đánh dấu ready
+  const isReady = item.id === 'toan_6_c1_b1' || item.id === 'toan_6_c6_b23';
   const status: CoreKnowledgeStatus = isReady ? 'ready' : 'pending_upload';
 
   return {
@@ -30,8 +31,8 @@ export const CORE_KNOWLEDGE_LESSONS: CoreKnowledgeLesson[] = RAW_LIST.map(item =
   };
 });
 
-/** Khối lớp hỗ trợ theo dữ liệu: chỉ khối 6 và 7 */
-export const AVAILABLE_GRADES: number[] = [6, 7];
+/** Khối lớp hỗ trợ theo dữ liệu: 6, 7, 8, 9 */
+export const AVAILABLE_GRADES: number[] = [6, 7, 8, 9];
 
 /** Lấy danh sách môn học theo khối lớp (Toán, Tin học) */
 export function getSubjectsByGrade(grade: number): Array<{ code: string; name: string }> {

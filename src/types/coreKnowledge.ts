@@ -2,12 +2,12 @@ export type CoreKnowledgeStatus = 'ready' | 'pending_upload';
 
 export interface CoreKnowledgeLesson {
   id: string;
-  grade: number; // 6, 7
-  subjectCode: string; // 'Toan', 'Tin'
-  subjectName: string; // 'Toán', 'Tin học'
+  grade: number; // 6, 7, 8, 9
+  subjectCode: string; // 'Toan', 'Tin', 'KHTN'
+  subjectName: string; // 'Toán', 'Tin học', 'Khoa học tự nhiên'
   bookSeries: string; // 'Kết nối tri thức với cuộc sống'
   volume: number; // 1, 2
-  groupType: 'chapter' | 'topic' | 'activity' | 'review' | string;
+  groupType: 'chapter' | 'topic' | 'intro' | 'activity' | 'review' | string;
   chapterNumber: number | null;
   chapterTitle: string;
   chapterLabel: string;
@@ -21,6 +21,9 @@ export interface CoreKnowledgeLesson {
   htmlFile: string;
   htmlUrl: string;
   status: CoreKnowledgeStatus;
+  branch?: string | null;
+  lessonCode?: string | null;
+  previousHtmlUrl?: string | null;
 }
 
 export interface CoreKnowledgeGroup {

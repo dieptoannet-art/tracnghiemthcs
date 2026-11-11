@@ -76,6 +76,18 @@ export const CoreKnowledgeView: React.FC = () => {
     return getLessonsByGroup(Number(selectedGrade), selectedSubjectCode, selectedGroupKey);
   }, [selectedGrade, selectedSubjectCode, selectedGroupKey]);
 
+  // Phân nhóm nhánh bài học (đặc biệt cho Tin học 9 Chủ đề 4: Bài 5-8 chung, Nhánh 9a-13a, Nhánh 9b-13b)
+  const lessonBranchGroups = useMemo(() => {
+    const hasBranches = availableLessons.some(l => Boolean(l.branch));
+    if (!hasBranches) {
+      return { hasBranches: false, common: availableLessons, branchA: [] as CoreKnowledgeLesson[], branchB: [] as CoreKnowledgeLesson[] };
+    }
+    const common = availableLessons.filter(l => !l.branch);
+    const branchA = availableLessons.filter(l => Boolean(l.branch && l.branch.startsWith('a')));
+    const branchB = availableLessons.filter(l => Boolean(l.branch && l.branch.startsWith('b')));
+    return { hasBranches: true, common, branchA, branchB };
+  }, [availableLessons]);
+
   // Thông tin nhóm đang chọn
   const currentSelectedGroup = useMemo<CoreKnowledgeGroup | undefined>(() => {
     return availableGroups.find(g => g.groupKey === selectedGroupKey);
@@ -158,15 +170,21 @@ export const CoreKnowledgeView: React.FC = () => {
   const groupLabelPrompt = selectedSubjectCode === 'Tin' ? 'Chủ đề' : 'Chương học';
 
   // Format nhãn hiển thị cho bài học trong danh sách chọn
-  // Quy tắc: Các mục "Luyện tập chung" trùng tên thêm nhãn phụ "(Trang SGK {sourcePage})" để phân biệt
+  // Quy tắc:
+  // - Các mục thuộc nhánh Tin học 9 hiển thị tiền tố [Nhánh a] / [Nhánh b]
+  // - Các mục "Luyện tập chung" trùng tên thêm nhãn phụ "(Trang SGK {sourcePage})" để phân biệt
   const getLessonOptionLabel = (lesson: CoreKnowledgeLesson) => {
     const isLuyenTapChung =
       lesson.lessonTitle.includes('Luyện tập chung') ||
       lesson.lessonLabel.includes('Luyện tập chung');
 
-    const baseLabel = isLuyenTapChung
-      ? `${lesson.lessonLabel} (Trang SGK ${lesson.sourcePage})`
-      : lesson.lessonLabel;
+    const branchPrefix = lesson.branch
+      ? `[Nhánh ${lesson.branch.startsWith('a') ? 'a' : 'b'}] `
+      : '';
+
+    const pageTag = isLuyenTapChung ? ` (Trang SGK ${lesson.sourcePage})` : '';
+
+    const baseLabel = `${branchPrefix}${lesson.lessonLabel}${pageTag}`;
 
     const statusBadge = lesson.status === 'ready' ? '(✓ Sẵn sàng)' : '(Đang cập nhật)';
     return `${baseLabel} ${statusBadge}`;
@@ -273,7 +291,7 @@ export const CoreKnowledgeView: React.FC = () => {
         <div className="flex items-center space-x-2">
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-50 text-blue-900 border border-blue-200 rounded-full text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-[#006BFF]" />
-            <span>Kết nối tri thức với cuộc sống • Lớp 6 & 7</span>
+            <span>Kết nối tri thức với cuộc sống • Lớp 6, 7, 8, 9</span>
           </span>
         </div>
       </div>
@@ -460,7 +478,7 @@ export const CoreKnowledgeView: React.FC = () => {
 
             {/* Lưới 4 dropdown phụ thuộc nhau */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-              {/* 1. KHỐI LỚP (Chỉ 6 và 7 theo dữ liệu) */}
+              {/* 1. KHỐI LỚP (6, 7, 8, 9) */}
               <div className="space-y-1.5">
                 <label className="block font-bold text-slate-700">
                   1. Khối lớp: <span className="text-rose-500">*</span>
@@ -477,10 +495,10 @@ export const CoreKnowledgeView: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-400">Dữ liệu chuẩn GDPT: Lớp 6 và 7</p>
+                <p className="text-[11px] text-slate-400">Dữ liệu chuẩn GDPT: Lớp 6, 7, 8, 9</p>
               </div>
 
-              {/* 2. MÔN HỌC (Toán, Tin học - Khóa nếu chưa chọn Khối) */}
+              {/* 2. MÔN HỌC (Toán, Tin học, KHTN - Khóa nếu chưa chọn Khối) */}
               <div className="space-y-1.5">
                 <label className="block font-bold text-slate-700">
                   2. Môn học: <span className="text-rose-500">*</span>
@@ -500,7 +518,7 @@ export const CoreKnowledgeView: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-400">Hai tập Toán được gộp chung</p>
+                <p className="text-[11px] text-slate-400">Hiển thị môn có dữ liệu thực tế</p>
               </div>
 
               {/* 3. CHƯƠNG / CHỦ ĐỀ (Khóa nếu chưa chọn Môn) */}
@@ -531,9 +549,9 @@ export const CoreKnowledgeView: React.FC = () => {
                   })}
                 </select>
                 <p className="text-[11px] text-slate-400">
-                  {selectedSubjectCode === 'Toan'
-                    ? 'Toán hiển thị Chương & Volume phụ'
-                    : 'Tin học hiển thị Chủ đề'}
+                  {selectedSubjectCode === 'Tin'
+                    ? 'Tin học hiển thị theo Chủ đề'
+                    : 'Toán & KHTN hiển thị Chương (kèm Mở đầu)'}
                 </p>
               </div>
 
@@ -553,13 +571,45 @@ export const CoreKnowledgeView: React.FC = () => {
                       ? `-- Vui lòng chọn ${groupLabelPrompt} trước --`
                       : '-- Chọn Bài học --'}
                   </option>
-                  {availableLessons.map(l => (
-                    <option key={l.id} value={l.id}>
-                      {getLessonOptionLabel(l)}
-                    </option>
-                  ))}
+                  {lessonBranchGroups.hasBranches ? (
+                    <>
+                      {lessonBranchGroups.common.length > 0 && (
+                        <optgroup label="— Phần nội dung chung (Bài 5 – 8) —">
+                          {lessonBranchGroups.common.map(l => (
+                            <option key={l.id} value={l.id}>
+                              {getLessonOptionLabel(l)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {lessonBranchGroups.branchA.length > 0 && (
+                        <optgroup label="— Nhánh a: Bảng tính điện tử nâng cao (Bài 9a – 13a) —">
+                          {lessonBranchGroups.branchA.map(l => (
+                            <option key={l.id} value={l.id}>
+                              {getLessonOptionLabel(l)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {lessonBranchGroups.branchB.length > 0 && (
+                        <optgroup label="— Nhánh b: Phần mềm làm video (Bài 9b – 13b) —">
+                          {lessonBranchGroups.branchB.map(l => (
+                            <option key={l.id} value={l.id}>
+                              {getLessonOptionLabel(l)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </>
+                  ) : (
+                    availableLessons.map(l => (
+                      <option key={l.id} value={l.id}>
+                        {getLessonOptionLabel(l)}
+                      </option>
+                    ))
+                  )}
                 </select>
-                <p className="text-[11px] text-slate-400">Sắp xếp theo thứ tự số của bài</p>
+                <p className="text-[11px] text-slate-400">Sắp xếp theo thứ tự số (có phân nhánh a/b)</p>
               </div>
             </div>
 
@@ -568,13 +618,23 @@ export const CoreKnowledgeView: React.FC = () => {
               <div className="p-4 rounded-xl border border-[#DCE8F7] bg-[#FBFDFF] space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
                         Thông tin bài học:
                       </span>
                       {currentSelectedLesson.volume && selectedSubjectCode === 'Toan' && (
                         <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-[10px] font-bold border border-blue-200">
                           Tập {currentSelectedLesson.volume}
+                        </span>
+                      )}
+                      {currentSelectedLesson.branch && (
+                        <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-md text-[10px] font-bold border border-purple-200">
+                          Nhánh {currentSelectedLesson.branch.startsWith('a') ? 'a' : 'b'}: {currentSelectedLesson.branch}
+                        </span>
+                      )}
+                      {currentSelectedLesson.groupType === 'intro' && (
+                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md text-[10px] font-bold border border-emerald-200">
+                          Phần Mở đầu
                         </span>
                       )}
                       <span className="text-[11px] text-slate-500">
@@ -585,7 +645,7 @@ export const CoreKnowledgeView: React.FC = () => {
                       {currentSelectedLesson.chapterLabel} • {currentSelectedLesson.lessonLabel}
                     </h4>
                     <p className="text-xs text-slate-500">
-                      Tệp bài học dự kiến: <code>{currentSelectedLesson.htmlUrl}</code>
+                      Tệp bài học: <code>{currentSelectedLesson.htmlUrl}</code>
                     </p>
                   </div>
 
@@ -698,16 +758,19 @@ export const CoreKnowledgeView: React.FC = () => {
             </h5>
             <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-600 pl-1 leading-relaxed">
               <li>
-                <strong>Nguồn dữ liệu chuẩn:</strong> Toàn bộ 178 bài học thuộc 6 sách giáo khoa GDPT 2018 (Toán 6 Tập 1 & 2, Toán 7 Tập 1 & 2, Tin học 6, Tin học 7).
+                <strong>Nguồn dữ liệu chuẩn:</strong> Toàn bộ 458 bài học thuộc 10 sách giáo khoa GDPT 2018 (Toán 6, 7, 9; Tin học 6, 7, 9; Khoa học tự nhiên 6, 7, 8, 9).
               </li>
               <li>
-                <strong>Vị trí đặt file HTML độc lập:</strong> Thư mục <code>public/lessons/</code> (ví dụ: <code>public/lessons/Toan_6_c1_b1.html</code>).
+                <strong>Cấu trúc học liệu:</strong> <code>public/lessons/lop-&#123;khối&#125;/&#123;môn&#125;/&#123;chương-hoặc-chủ-đề&#125;/&#123;bài&#125;/index.html</code> (mỗi bài có thư mục độc lập chứa index.html và tài nguyên).
               </li>
               <li>
-                <strong>Đường dẫn truy cập trực tiếp:</strong> <code>/lessons/Toan_6_c1_b1.html</code> (không chứa tiền tố <code>/public</code>).
+                <strong>Đường dẫn truy cập web:</strong> <code>/lessons/lop-6/toan/chuong-01/bai-01/index.html</code> (tuyệt đối không chứa tiền tố <code>/public</code>).
               </li>
               <li>
-                <strong>Bảo toàn nguyên bản:</strong> Hệ thống giữ nguyên 100% mã nguồn HTML, KaTeX toán học, CSS, tương tác JavaScript thông qua iframe.
+                <strong>Học liệu sẵn sàng:</strong> Hiện tại có 2 bài học thực tế sẵn sàng hoạt động độc lập là Bài 1 Toán 6 (Tập hợp) và Bài 23 Toán 6 (Mở rộng khái niệm phân số. Phân số bằng nhau).
+              </li>
+              <li>
+                <strong>Bảo toàn nguyên bản:</strong> Hệ thống giữ nguyên 100% mã nguồn HTML, KaTeX toán học, CSS, tương tác JavaScript thông qua iframe độc lập.
               </li>
             </ul>
           </div>

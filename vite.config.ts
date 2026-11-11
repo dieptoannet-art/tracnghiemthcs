@@ -29,6 +29,11 @@ function serveLessonsPlugin(): Plugin {
             };
             res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
             return fs.createReadStream(filePath).pipe(res);
+          } else {
+            // Ngăn chặn Vite fallback middleware biến yêu cầu học liệu thiếu thành trang chủ SPA
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            return res.end('Bài học đang được cập nhật (404 Not Found)');
           }
         }
         next();
