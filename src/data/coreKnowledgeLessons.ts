@@ -58,10 +58,73 @@ export const TOAN7_ALL_IDS = new Set<string>([
   ...Array.from(TOAN7_TAP2_IDS)
 ]);
 
-/** Toàn bộ 145 ID Toán 6 (Tập 1, 2) và Toán 7 (Tập 1, 2) có hỗ trợ cầu nối lịch sử Supabase */
+/** Tập hợp 38 ID thuộc gói học liệu Toán 8 Tập 1 */
+export const TOAN8_TAP1_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 8 && l.subjectCode === 'Toan' && l.volume === 1).map(l => l.id)
+);
+
+/** Tập hợp 37 ID thuộc gói học liệu Toán 8 Tập 2 */
+export const TOAN8_TAP2_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 8 && l.subjectCode === 'Toan' && l.volume === 2).map(l => l.id)
+);
+
+/** Toàn bộ 75 ID Toán 8 (Tập 1 & Tập 2) có hỗ trợ cầu nối lịch sử Supabase */
+export const TOAN8_ALL_IDS = new Set<string>([
+  ...Array.from(TOAN8_TAP1_IDS),
+  ...Array.from(TOAN8_TAP2_IDS)
+]);
+
+/** Tập hợp 31 ID thuộc gói học liệu Toán 9 Tập 1 */
+export const TOAN9_TAP1_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 9 && l.subjectCode === 'Toan' && l.volume === 1).map(l => l.id)
+);
+
+/** Tập hợp 32 ID thuộc gói học liệu Toán 9 Tập 2 */
+export const TOAN9_TAP2_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 9 && l.subjectCode === 'Toan' && l.volume === 2).map(l => l.id)
+);
+
+/** Toàn bộ 63 ID Toán 9 (Tập 1 & Tập 2) có hỗ trợ cầu nối lịch sử Supabase */
+export const TOAN9_ALL_IDS = new Set<string>([
+  ...Array.from(TOAN9_TAP1_IDS),
+  ...Array.from(TOAN9_TAP2_IDS)
+]);
+
+/** Tập hợp 17 ID thuộc gói học liệu Tin học 6 */
+export const TIN6_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 6 && l.subjectCode === 'Tin').map(l => l.id)
+);
+
+/** Tập hợp 16 ID thuộc gói học liệu Tin học 7 */
+export const TIN7_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 7 && l.subjectCode === 'Tin').map(l => l.id)
+);
+
+/** Tập hợp 20 ID thuộc gói học liệu Tin học 8 */
+export const TIN8_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 8 && l.subjectCode === 'Tin').map(l => l.id)
+);
+
+/** Tập hợp 22 ID thuộc gói học liệu Tin học 9 */
+export const TIN9_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 9 && l.subjectCode === 'Tin').map(l => l.id)
+);
+
+/** Toàn bộ 75 ID Tin học (Khối 6, 7, 8, 9) có hỗ trợ cầu nối lịch sử Supabase */
+export const TIN_ALL_IDS = new Set<string>([
+  ...Array.from(TIN6_IDS),
+  ...Array.from(TIN7_IDS),
+  ...Array.from(TIN8_IDS),
+  ...Array.from(TIN9_IDS)
+]);
+
+/** Toàn bộ các ID Toán 6–9 (283 mục) và Tin học 6–9 (75 mục) có hỗ trợ cầu nối lịch sử Supabase (358 mục) */
 export const SUPPORTED_BRIDGE_LESSON_IDS = new Set<string>([
   ...Array.from(TOAN6_ALL_IDS),
-  ...Array.from(TOAN7_ALL_IDS)
+  ...Array.from(TOAN7_ALL_IDS),
+  ...Array.from(TOAN8_ALL_IDS),
+  ...Array.from(TOAN9_ALL_IDS),
+  ...Array.from(TIN_ALL_IDS)
 ]);
 
 /** Khối lớp hỗ trợ theo dữ liệu: 6, 7, 8, 9 */

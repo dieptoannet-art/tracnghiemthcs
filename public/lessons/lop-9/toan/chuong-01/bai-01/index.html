@@ -15,4 +15,137 @@ function progress(){let n=Object.keys(state.answers).filter(k=>state.answers[k]!
 $('#grade').onclick=()=>{let correct=0;L.quiz.forEach((q,i)=>{let v=state.answers[i],ok=v===q.answer;if(ok)correct++;let el=$('#feed'+i);el.className='feedback '+(ok?'good':'bad');el.textContent=(ok?'✓ Đúng. ':'✗ '+(v===undefined?'Chưa chọn. ':'Chưa đúng. '))+'Đáp án: '+('ABCD'[q.answer])+'. '+q.explanation});$('#scoreMount').innerHTML='<p class="score">Kết quả: '+correct+'/'+L.quiz.length+' câu đúng ('+Math.round(100*correct/L.quiz.length)+'%)</p><p>'+(correct>=8?'Em đã nắm khá vững kiến thức.':'Hãy đọc lại các phần giải thích và thử lại.')+'</p>';save()};$('#resetQuiz').onclick=()=>{state.answers={};save();drawQuiz();$('#scoreMount').textContent=''};
 function drawPractice(){let mount=$('#practiceMount');L.practice.forEach((p,i)=>{let div=document.createElement('div');div.className='exercise';div.innerHTML='<h3>'+escapeHTML(p.title)+'</h3><p>'+escapeHTML(p.question)+'</p><textarea id="write'+i+'" aria-label="Lời giải bài '+(i+1)+'" placeholder="Nhập lời giải của em vào đây..."></textarea><details><summary>Mở gợi ý</summary><ol>'+p.steps.map(s=>'<li>'+escapeHTML(s)+'</li>').join('')+'</ol></details><details><summary>Xem đáp án tham khảo</summary><p class="note">'+escapeHTML(p.answer)+'</p></details>';mount.appendChild(div);let ta=div.querySelector('textarea');ta.value=state.writes[i]||'';ta.addEventListener('input',()=>{state.writes[i]=ta.value;save()})})}drawQuiz();drawPractice();document.querySelectorAll('[data-check]').forEach(c=>{let i=+c.dataset.check;c.checked=!!state.checks[i];c.onchange=()=>{state.checks[i]=c.checked;save();progress()}});$('#print').onclick=()=>window.print();$('#clearAll').onclick=()=>{if(confirm('Xóa mọi câu trả lời và tiến độ trên thiết bị này?')){try{localStorage.removeItem(key)}catch(e){}location.reload()}};
 const ns='http://www.w3.org/2000/svg';function drawPlot(){let c=Number($('#cSlider').value),svg=$('#plotContent');svg.replaceChildren();const X=x=>220+32*x,Y=y=>190-32*y;function make(type,attrs,parent=svg){let e=document.createElementNS(ns,type);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));parent.appendChild(e);return e}for(let z=-6;z<=6;z++){make('line',{x1:X(-6),y1:Y(z),x2:X(6),y2:Y(z),stroke:'#e7edf2'});make('line',{x1:X(z),y1:Y(-5.5),x2:X(z),y2:Y(5.5),stroke:'#e7edf2'})}make('line',{x1:20,y1:190,x2:420,y2:190,stroke:'#455c71','stroke-width':2});make('line',{x1:220,y1:10,x2:220,y2:380,stroke:'#455c71','stroke-width':2});for(let z=-5;z<=5;z++){if(z!==0){let a=make('text',{x:X(z),y:206,'text-anchor':'middle','font-size':10,fill:'#506579'});a.textContent=z;let b=make('text',{x:209,y:Y(z)+4,'text-anchor':'end','font-size':10,fill:'#506579'});b.textContent=z}}make('text',{x:418,y:180,fill:'#355b78'}).textContent='x';make('text',{x:230,y:13,fill:'#355b78'}).textContent='y';function line(a,b,col,dash){make('line',{x1:X(-9),y1:Y(a*(-9)+b),x2:X(9),y2:Y(a*9+b),stroke:col,'stroke-width':3,'stroke-dasharray':dash||'','stroke-linecap':'round'})}let clip=make('clipPath',{id:'plotclip'});make('rect',{x:20,y:11,width:400,height:366},clip);let lines=make('g',{'clip-path':'url(#plotclip)'});function lineClip(a,b,col,dash){make('line',{x1:X(-9),y1:Y(a*(-9)+b),x2:X(9),y2:Y(a*9+b),stroke:col,'stroke-width':3,'stroke-dasharray':dash||''},lines)}lineClip(-1,c,'#0f9297');lineClip(1,-1,'#db8728','7 5');let x=(c+1)/2,y=(c-1)/2;if(x>=-6&&x<=6&&y>=-5.5&&y<=5.5){make('circle',{cx:X(x),cy:Y(y),r:6,fill:'#ca3c61',stroke:'white','stroke-width':2});let t=make('text',{x:X(x)+10,y:Y(y)-12,fill:'#a21e49','font-weight':700,'font-size':12});t.textContent='P('+x+'; '+y+')'}$('#cval').textContent=c;$('#plotExplain').textContent='Hệ x + y = '+c+' và x − y = 1 có nghiệm chung ('+x+'; '+y+'). Mỗi khi c đổi, đường màu xanh dịch chuyển và điểm giao P thay đổi.'}$('#cSlider').addEventListener('input',drawPlot);drawPlot();
+
+// ==========================================
+// TÍCH HỢP CẦU NỐI LỊCH SỬ TÂY ĐÔ (taydo.edu.lesson.v1)
+// ==========================================
+(function() {
+  const LESSON_ID = "toan_9_c1_b1";
+  const CHANNEL = "taydo.edu.lesson.v1";
+  let currentUserId = null;
+  let currentRevision = 1;
+  let currentAttemptId = null;
+  const eventsList = [];
+
+  function getUUID() {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+
+  function initAttemptIdentity() {
+    const k = "attempt_id_" + LESSON_ID;
+    const revK = "attempt_rev_" + LESSON_ID;
+    currentAttemptId = localStorage.getItem(k);
+    if (!currentAttemptId) {
+      currentAttemptId = getUUID();
+      localStorage.setItem(k, currentAttemptId);
+    }
+    currentRevision = parseInt(localStorage.getItem(revK) || "1", 10);
+  }
+
+  initAttemptIdentity();
+
+  function pushAttemptEvent(type, data = {}) {
+    eventsList.push({
+      type,
+      ...data,
+      timestamp: new Date().toISOString()
+    });
+    if (eventsList.length > 100) eventsList.shift();
+    syncToSupabase();
+  }
+
+  function syncToSupabase() {
+    let quizList = [];
+    if (typeof data !== "undefined" && data && data.quiz) quizList = data.quiz;
+    else if (typeof L !== "undefined" && L && L.quiz) quizList = L.quiz;
+
+    let ansObj = {};
+    if (typeof state !== "undefined" && state && state.answers) ansObj = state.answers;
+    else if (typeof st !== "undefined" && st && st.answers) ansObj = st.answers;
+
+    const correctCount = quizList.filter((q, i) => ansObj[i] === q.answer).length;
+    const isCompleted = quizList.length > 0 && Object.keys(ansObj).length >= quizList.length;
+    currentRevision++;
+    localStorage.setItem("attempt_rev_" + LESSON_ID, String(currentRevision));
+
+    const payload = {
+      id: currentAttemptId,
+      lessonId: LESSON_ID,
+      revision: currentRevision,
+      status: isCompleted ? "completed" : "in_progress",
+      events: eventsList.slice(-100),
+      answers: ansObj,
+      writes: (typeof state !== "undefined" && state.writes) ? state.writes : {},
+      score: correctCount,
+      maxScore: quizList.length,
+      updated_at: new Date().toISOString()
+    };
+
+    if (currentUserId && window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        channel: CHANNEL,
+        type: "save",
+        lessonId: LESSON_ID,
+        userId: currentUserId,
+        record: payload
+      }, window.location.origin);
+    }
+  }
+
+  window.addEventListener("message", (event) => {
+    if (event.origin !== window.location.origin) return;
+    const msg = event.data;
+    if (!msg || msg.channel !== CHANNEL || msg.lessonId !== LESSON_ID) return;
+
+    if (msg.type === "account") {
+      currentUserId = msg.userId;
+      syncToSupabase();
+    } else if (msg.type === "history") {
+      const records = msg.records || [];
+      if (records.length > 0) {
+        const latest = records[records.length - 1];
+        if (latest && latest.answers && typeof state !== "undefined" && Object.keys(state.answers || {}).length === 0) {
+          state.answers = latest.answers;
+          if (latest.writes) state.writes = latest.writes;
+          if (typeof save === "function") save();
+          if (typeof drawQuiz === "function") drawQuiz();
+          if (typeof buildQuiz === "function") buildQuiz();
+          if (typeof renderQuiz === "function") renderQuiz();
+        }
+      }
+    } else if (msg.type === "saved") {
+      currentRevision = Math.max(currentRevision, msg.revision);
+      localStorage.setItem("attempt_rev_" + LESSON_ID, String(currentRevision));
+    } else if (msg.type === "signed-out") {
+      currentUserId = null;
+    }
+  });
+
+  function notifyParent() {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        channel: CHANNEL,
+        type: "hello",
+        lessonId: LESSON_ID
+      }, window.location.origin);
+    }
+  }
+  setTimeout(notifyParent, 150);
+
+  if (typeof save === "function") {
+    const origSave = save;
+    save = function() {
+      origSave();
+      let ans = {};
+      if (typeof state !== "undefined" && state.answers) ans = state.answers;
+      pushAttemptEvent("state_change", {
+        answered: Object.keys(ans).length
+      });
+    };
+  }
+})();
 </script></body></html>

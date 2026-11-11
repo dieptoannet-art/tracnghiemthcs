@@ -90,16 +90,51 @@ export const CoreKnowledgeView: React.FC = () => {
     return getLessonsByGroup(Number(selectedGrade), selectedSubjectCode, selectedGroupKey);
   }, [selectedGrade, selectedSubjectCode, selectedGroupKey]);
 
-  // Phân nhóm nhánh bài học (đặc biệt cho Tin học 9 Chủ đề 4: Bài 5-8 chung, Nhánh 9a-13a, Nhánh 9b-13b)
+  // Phân nhóm nhánh bài học (đặc biệt cho Tin học 8 & 9 Chủ đề 4: Bài chung, Nhánh a, Nhánh b)
   const lessonBranchGroups = useMemo(() => {
     const hasBranches = availableLessons.some(l => Boolean(l.branch));
     if (!hasBranches) {
-      return { hasBranches: false, common: availableLessons, branchA: [] as CoreKnowledgeLesson[], branchB: [] as CoreKnowledgeLesson[] };
+      return {
+        hasBranches: false,
+        common: availableLessons,
+        branchA: [] as CoreKnowledgeLesson[],
+        branchB: [] as CoreKnowledgeLesson[],
+        commonLabel: '',
+        branchALabel: '',
+        branchBLabel: ''
+      };
     }
     const common = availableLessons.filter(l => !l.branch);
     const branchA = availableLessons.filter(l => Boolean(l.branch && l.branch.startsWith('a')));
     const branchB = availableLessons.filter(l => Boolean(l.branch && l.branch.startsWith('b')));
-    return { hasBranches: true, common, branchA, branchB };
+
+    const getCode = (l?: CoreKnowledgeLesson): string => {
+      if (!l) return '';
+      const m = l.lessonLabel.match(/^(Bài\s+[0-9]+[ab]?)/i);
+      return m && m[1] ? m[1] : (l.lessonCode || '').toUpperCase();
+    };
+
+    const firstCommon = common[0];
+    const lastCommon = common[common.length - 1];
+    const commonLabel = firstCommon && lastCommon
+      ? `— Phần nội dung chung (${getCode(firstCommon)} – ${getCode(lastCommon)}) —`
+      : '— Phần nội dung chung —';
+
+    const firstA = branchA[0];
+    const lastA = branchA[branchA.length - 1];
+    const branchNameA = firstA?.branch || 'a';
+    const branchALabel = firstA && lastA
+      ? `— Nhánh ${branchNameA} (${getCode(firstA)} – ${getCode(lastA)}) —`
+      : '— Nhánh a —';
+
+    const firstB = branchB[0];
+    const lastB = branchB[branchB.length - 1];
+    const branchNameB = firstB?.branch || 'b';
+    const branchBLabel = firstB && lastB
+      ? `— Nhánh ${branchNameB} (${getCode(firstB)} – ${getCode(lastB)}) —`
+      : '— Nhánh b —';
+
+    return { hasBranches: true, common, branchA, branchB, commonLabel, branchALabel, branchBLabel };
   }, [availableLessons]);
 
   // Thông tin nhóm đang chọn
@@ -196,7 +231,9 @@ export const CoreKnowledgeView: React.FC = () => {
       ? `[Nhánh ${lesson.branch.startsWith('a') ? 'a' : 'b'}] `
       : '';
 
-    const pageTag = isLuyenTapChung ? ` (Trang SGK ${lesson.sourcePage})` : '';
+    const pageTag = isLuyenTapChung
+      ? ` (Mục ${lesson.sortOrder}${lesson.sourcePage ? ` · Trang ${lesson.sourcePage}` : ''})`
+      : '';
 
     const baseLabel = `${branchPrefix}${lesson.lessonLabel}${pageTag}`;
 
@@ -649,7 +686,7 @@ export const CoreKnowledgeView: React.FC = () => {
                   {lessonBranchGroups.hasBranches ? (
                     <>
                       {lessonBranchGroups.common.length > 0 && (
-                        <optgroup label="— Phần nội dung chung (Bài 5 – 8) —">
+                        <optgroup label={lessonBranchGroups.commonLabel}>
                           {lessonBranchGroups.common.map(l => (
                             <option key={l.id} value={l.id}>
                               {getLessonOptionLabel(l)}
@@ -658,7 +695,7 @@ export const CoreKnowledgeView: React.FC = () => {
                         </optgroup>
                       )}
                       {lessonBranchGroups.branchA.length > 0 && (
-                        <optgroup label="— Nhánh a: Bảng tính điện tử nâng cao (Bài 9a – 13a) —">
+                        <optgroup label={lessonBranchGroups.branchALabel}>
                           {lessonBranchGroups.branchA.map(l => (
                             <option key={l.id} value={l.id}>
                               {getLessonOptionLabel(l)}
@@ -667,7 +704,7 @@ export const CoreKnowledgeView: React.FC = () => {
                         </optgroup>
                       )}
                       {lessonBranchGroups.branchB.length > 0 && (
-                        <optgroup label="— Nhánh b: Phần mềm làm video (Bài 9b – 13b) —">
+                        <optgroup label={lessonBranchGroups.branchBLabel}>
                           {lessonBranchGroups.branchB.map(l => (
                             <option key={l.id} value={l.id}>
                               {getLessonOptionLabel(l)}
