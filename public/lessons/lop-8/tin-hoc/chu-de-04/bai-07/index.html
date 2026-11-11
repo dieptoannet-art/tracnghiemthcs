@@ -1,0 +1,1282 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bài 7. Trình bày dữ liệu bằng biểu đồ · Tây Đô Smart EDU</title>
+<style>:root {
+  color-scheme: light;
+  --navy: #102b4d;
+  --blue: #005ac4;
+  --paper: #fff;
+  --bg: #eef4fb;
+  --muted: #435b75;
+  --border: #cfdced;
+  --teal: #006e68;
+  --good: #156047;
+  --bad: #8e390f;
+  font: 18px/1.6 "Times New Roman", Georgia, serif;
+  color: var(--navy);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+#lesson-root { max-width: 930px; padding: clamp(12px, 4vw, 36px); margin: auto; }
+h1, h2, h3, p { margin: 0 0 .65rem; overflow-wrap: anywhere; }
+h1 { font-size: clamp(1.8rem, 4.8vw, 2.85rem); line-height: 1.1; }
+h2 { font-size: 1.45rem; line-height: 1.24; }
+h3 { font-size: 1.13rem; line-height: 1.28; }
+ul { padding-left: 1.3rem; }
+.hero {
+  color: #fff;
+  padding: clamp(20px, 5vw, 38px);
+  border-radius: 18px;
+  background: linear-gradient(115deg,#102b4d,#005bc4 88%);
+  box-shadow: 0 9px 22px #123d6c25;
+}
+.hero p { max-width: 65ch; margin-bottom: 0; color: #eef6ff; }
+.eyebrow, .meta, button, select, input, .steps, .small, .badge {
+  font: 500 .84rem/1.4 system-ui, sans-serif;
+}
+.eyebrow { margin-bottom: .65rem !important; }
+.toolbar, .actions, .model-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.toolbar { justify-content: space-between; padding: 12px 0; gap: 6px 12px; }
+.meta, .small { color: var(--muted); }
+.panel, .model { background: var(--paper); border: 1px solid var(--border); border-radius: 15px; }
+.panel { padding: clamp(14px, 3.5vw, 28px); margin: 14px 0; box-shadow: 0 4px 10px #112d4c0a; }
+.model { margin: 14px 0; padding: 15px; background: #f7faff; }
+.model-output { display: block; color: var(--teal); font-weight: bold; margin: .5rem 0; }
+.model-controls { margin: .4rem 0; }
+.model-controls label { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+button, input:not([type=checkbox]):not([type=radio]), select {
+  border: 1px solid #9fb5cf; background: #fff; color: var(--navy); border-radius: 9px;
+  min-height: 44px; padding: 8px 12px;
+}
+button { cursor: pointer; font-weight: 650; }
+button:hover:not(:disabled) { background: #e5f1ff; }
+button.primary { color: #fff; background: var(--blue); border-color: var(--blue); }
+button.primary:hover:not(:disabled) { background: #004ca6; }
+button:disabled { opacity: .5; cursor: default; }
+button[aria-pressed=true] { background: #dcecff; border-color: var(--blue); }
+:focus-visible { outline: 3px solid #1b72d3; outline-offset: 3px; }
+input[type=radio], input[type=checkbox] { accent-color: var(--blue); width: 18px; height: 18px; }
+input.answer { width: min(100%, 280px); font-size: 1rem; }
+input[type=range] { padding: 0 !important; max-width: 170px; }
+.steps { display: flex; flex-wrap: wrap; gap: 7px; }
+.steps span { border: 1px solid var(--border); border-radius: 999px; padding: 4px 11px; }
+.steps [aria-current=step] { background: #d6eaff; border-color: #7eafe5; font-weight: 700; }
+.feedback { border-left: 4px solid var(--blue); background: #eaf3ff; padding: 12px; margin: 12px 0; }
+.feedback:empty { display: none; }
+.feedback[data-state=good] { border-color: var(--good); color: var(--good); background: #e7f6ef; }
+.feedback[data-state=bad] { border-color: var(--bad); color: #763112; background: #fff2e7; }
+.question { margin: 12px 0; }
+.options { display: grid; gap: 8px; margin: .65rem 0; }
+.option { display: flex; gap: 9px; align-items: center; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px; cursor: pointer; }
+.option:has(input:checked) { background: #e3efff; border-color: #8fb5df; }
+.option span { overflow-wrap: anywhere; min-width: 0; }
+.order-list { margin: 10px 0; padding-left: 1.5rem; }
+.order-list li { margin-bottom: 5px; }
+.option-group, .history-row { border: 0; padding: 0; margin: 0; min-width: 0; }
+.history-row { border-top: 1px solid var(--border); padding: 9px 0; }
+.history-row summary { cursor: pointer; }
+canvas { width: min(100%, 460px); height: auto; display: block; background: #fff; border: 1px solid var(--border); border-radius: 8px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin: .45rem 0; }
+.badge { padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.badge.mark { border-color: #83b9e6; color: #064c96; background: #e1f0ff; }
+.result { font: 750 clamp(1.8rem,6vw,2.8rem)/1.15 system-ui,sans-serif; color: var(--teal); }
+.source { padding: 8px 2px; }
+a { color: #0054b6; }
+[hidden] { display: none !important; }
+@media(max-width: 440px) {
+  .actions button { flex: 1 1 auto; }
+  .steps { gap: 4px; }
+  .steps span { padding: 3px 7px; }
+}
+
+.study-table { border-collapse: collapse; max-width: 100%; margin: 8px 0; font-size: .9rem; }
+.study-table caption { text-align: left; font-weight: 650; margin-bottom: .35rem; }
+.study-table th, .study-table td { border: 1px solid #a8c2da; padding: .25rem .43rem; text-align: center; }
+.study-table th { background: #edf5ff; }
+.study-table .study-hit { background: #d6eee6; color: #144b3d; font-weight: 700; }
+@media (max-width: 430px) {
+  .study-table th, .study-table td { padding: .2rem .26rem; font-size: .8rem; }
+}
+.lab-panel { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
+.lab-panel label { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; font: 500 .82rem/1.45 system-ui,sans-serif; max-width: 100%; }
+.lab-panel input, .lab-panel select { max-width: 100%; }
+.lab-panel input[type=number] { width: 6rem; }
+.lab-panel input[type=range] { min-height: 42px; }
+.lab-panel ul, .lab-panel ol, .lab-panel .actions, .lab-chart { width: 100%; }
+.doc-preview { width: 100%; background: white; color: #102b4d; border-radius: 10px; border: 1px solid var(--border); padding: clamp(12px, 4vw, 30px); min-height: 122px; }
+.doc-preview[data-theme=dark] { background: #12365d; color: white; }
+.doc-preview[data-theme=dark] .small { color: #dceafb; }
+.page-band { border-block: 1px solid var(--border); padding: .35rem 0; font: 500 .82rem system-ui,sans-serif; }
+.lab-table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.lab-table th, .lab-table td { border: 1px solid var(--border); padding: .45rem; text-align: left; overflow-wrap: anywhere; }
+.lab-table th { background: #e0eeff; }
+.lab-table input { width: 100%; }
+.lab-canvas { max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 8px; }
+.timeline li { padding: .35rem; border-bottom: 1px solid var(--border); }
+.timeline button { margin: .2rem; }
+.chart-row { margin: .5rem 0; }
+.chart-track { height: 12px; border-radius: 8px; background: #e0eaf7; overflow: hidden; }
+.chart-fill { height: 100%; border-radius: 8px; background: #005ac4; }
+</style>
+</head>
+<body>
+<div id="lesson-root"></div>
+<noscript>Bật JavaScript để sử dụng bài tự học.</noscript>
+<script id="lesson-data" type="application/json">{"id": "tin_8_cd4_b7", "intro": "Chọn dạng biểu đồ và quan sát cột thay đổi khi dữ liệu đổi.", "model": "simulate", "modelMission": "Đổi hai giá trị để quan sát độ dài cột và chênh lệch.", "lab": {"values": ["Số sách nhóm A", "Số sách nhóm B", "8", "12"]}, "skills": [{"id": "mt1", "title": "Chọn biểu đồ theo mục đích", "rule": "Biểu đồ cột so sánh các nhóm. Biểu đồ đường thể hiện xu hướng theo thứ tự thời gian. Biểu đồ tròn minh hoạ phần của một tổng phù hợp.", "example": "Dùng cột để so sách mượn của bốn lớp; dùng đường cho số lượt qua các tháng.", "hint": "Hỏi cần so nhóm, xem xu hướng hay nhìn cơ cấu.", "probe": {"id": "mt1_probe", "skill": "mt1", "prompt": "So lượt mượn của bốn lớp. Chọn gì?", "mode": "choice", "options": ["Biểu đồ cột", "Ảnh không nhãn", "Bản đồ đường"], "answer": 0, "explanation": "Biểu đồ cột. Biểu đồ cột so sánh các nhóm. Biểu đồ đường thể hiện xu hướng theo thứ tự thời gian. Biểu đồ tròn minh hoạ phần của một tổng phù hợp."}, "practice": {"id": "mt1_practice", "skill": "mt1", "prompt": "Thể hiện biến đổi nhiệt độ theo từng giờ. Dạng phù hợp?", "mode": "choice", "options": ["Đường", "Chỉ ảnh tròn", "Bảng không có giờ"], "answer": 0, "explanation": "Đường. Biểu đồ cột so sánh các nhóm. Biểu đồ đường thể hiện xu hướng theo thứ tự thời gian. Biểu đồ tròn minh hoạ phần của một tổng phù hợp."}, "transfer": {"id": "mt1_transfer", "skill": "mt1", "prompt": "Muốn biểu diễn cơ cấu ba nhóm loại trừ nhau trong tổng. Dạng nào phù hợp?", "mode": "choice", "options": ["Tròn", "Đường thời gian", "Sơ đồ tệp"], "answer": 0, "explanation": "Tròn. Biểu đồ cột so sánh các nhóm. Biểu đồ đường thể hiện xu hướng theo thứ tự thời gian. Biểu đồ tròn minh hoạ phần của một tổng phù hợp."}}, {"id": "mt2", "title": "Đọc và thiết kế biểu đồ trung thực", "rule": "Chọn đúng vùng dữ liệu, đặt tiêu đề, nhãn và đơn vị. Kiểm tra tỉ lệ trục, nhất là biểu đồ cột.", "example": "Trục bắt đầu ở 0 giúp chiều dài cột thể hiện độ lớn trực quan.", "hint": "So giá trị theo nhãn và vạch trục, tránh đoán theo màu.", "probe": {"id": "mt2_probe", "skill": "mt2", "prompt": "Cột A = 8, B = 12. B hơn A bao nhiêu?", "mode": "number", "options": [], "answer": 4, "explanation": "4. Chọn đúng vùng dữ liệu, đặt tiêu đề, nhãn và đơn vị. Kiểm tra tỉ lệ trục, nhất là biểu đồ cột."}, "practice": {"id": "mt2_practice", "skill": "mt2", "prompt": "Biểu đồ thiếu đơn vị trên trục. Cần thêm gì?", "mode": "choice", "options": ["Đơn vị phù hợp", "Nhiều màu", "Ảnh nền"], "answer": 0, "explanation": "Đơn vị phù hợp. Chọn đúng vùng dữ liệu, đặt tiêu đề, nhãn và đơn vị. Kiểm tra tỉ lệ trục, nhất là biểu đồ cột."}, "transfer": {"id": "mt2_transfer", "skill": "mt2", "prompt": "Trục cột bắt đầu từ 90 cho giá trị 92 và 94. Rủi ro gì?", "mode": "choice", "options": ["Chênh lệch nhìn bị phóng đại", "Giá trị bắt buộc sai", "Mất dữ liệu nguồn"], "answer": 0, "explanation": "Chênh lệch nhìn bị phóng đại. Chọn đúng vùng dữ liệu, đặt tiêu đề, nhãn và đơn vị. Kiểm tra tỉ lệ trục, nhất là biểu đồ cột."}}], "quiz": [{"id": "mt1_quiz1", "skill": "mt1", "prompt": "Chọn hai trường hợp dùng biểu đồ cột hợp lí.", "mode": "multi", "options": ["So số cây giữa các lớp", "So số sách giữa các nhóm", "Mô tả thứ tự thao tác", "Chép nguyên đoạn văn"], "answer": [0, 1], "explanation": "So số cây giữa các lớp, So số sách giữa các nhóm. Biểu đồ cột so sánh các nhóm. Biểu đồ đường thể hiện xu hướng theo thứ tự thời gian. Biểu đồ tròn minh hoạ phần của một tổng phù hợp."}, {"id": "mt1_quiz2", "skill": "mt1", "prompt": "Các phần bị chồng lấn nên dùng tròn để thể hiện 100% không?", "mode": "choice", "options": ["Cần xác định các phần không trùng và cùng tổng trước", "Luôn được", "Chỉ cần thêm màu"], "answer": 0, "explanation": "Cần xác định các phần không trùng và cùng tổng trước. Biểu đồ cột so sánh các nhóm. Biểu đồ đường thể hiện xu hướng theo thứ tự thời gian. Biểu đồ tròn minh hoạ phần của một tổng phù hợp."}, {"id": "mt2_quiz1", "skill": "mt2", "prompt": "Chọn hai việc trước khi công bố biểu đồ.", "mode": "multi", "options": ["Đối chiếu số liệu gốc", "Kiểm tra nhãn và đơn vị", "Che nhãn trục", "Tô mọi cột trắng"], "answer": [0, 1], "explanation": "Đối chiếu số liệu gốc, Kiểm tra nhãn và đơn vị. Chọn đúng vùng dữ liệu, đặt tiêu đề, nhãn và đơn vị. Kiểm tra tỉ lệ trục, nhất là biểu đồ cột."}, {"id": "mt2_quiz2", "skill": "mt2", "prompt": "Thêm dữ liệu tháng mới mà biểu đồ thiếu. Kiểm tra gì?", "mode": "choice", "options": ["Vùng nguồn biểu đồ", "Tên máy", "Số trang in"], "answer": 0, "explanation": "Vùng nguồn biểu đồ. Chọn đúng vùng dữ liệu, đặt tiêu đề, nhãn và đơn vị. Kiểm tra tỉ lệ trục, nhất là biểu đồ cột."}], "version": "1.0.0", "title": "Bài 7. Trình bày dữ liệu bằng biểu đồ", "chapter": "Chủ đề 4. Ứng dụng tin học", "grade": 8, "subjectName": "Tin học", "volume": null, "bookSeries": "Kết nối tri thức với cuộc sống", "page": 32}</script>
+<script>
+"use strict";
+function element(tag, text, attrs = {}) {
+  const node = document.createElement(tag);
+  if (text != null) node.textContent = text;
+  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+  return node;
+}
+
+function labButton(label, handler) {
+  const button = element('button', label, {type:'button'});
+  button.onclick = handler;
+  return button;
+}
+
+function labInput(parent, label, value, attrs = {}) {
+  const wrapper = element('label', label);
+  const input = element('input', null, {type:'text', value, maxlength:180, ...attrs});
+  wrapper.append(input);
+  parent.append(wrapper);
+  return input;
+}
+
+function labSelect(parent, label, entries) {
+  const wrapper = element('label', label);
+  const select = element('select');
+  for (const [value, text] of entries) select.append(element('option', text, {value}));
+  select.value = entries[0][0];
+  wrapper.append(select);
+  parent.append(wrapper);
+  return select;
+}
+
+function bindInputs(controls, update) {
+  for (const control of controls) {
+    control.addEventListener('input', update);
+    control.addEventListener('change', update);
+  }
+  update();
+}
+
+function classificationLab(panel, report, [labels, ...items]) {
+  const categories = labels.split('~');
+  const cards = items.map(value => value.split('~'));
+  const selected = cards.map(([label]) => labSelect(panel, label, [
+    ['', 'Chọn nhóm'], ...categories.map((category, index) => [String(index), category])
+  ]));
+  const feedback = element('ul', null, {'aria-live':'polite'});
+  panel.append(labButton('Đối chiếu thẻ', () => {
+    const results = cards.map(([label, answer], index) => {
+      const value = selected[index].value;
+      if (value === '') return [false, label + ' · Chưa xếp'];
+      return [value === answer, label + (value === answer ? ' · Đúng' : ' · Nhóm phù hợp: ' + categories[Number(answer)])];
+    });
+    feedback.replaceChildren(...results.map(([,message]) => element('li',message)));
+    report('Xếp thẻ đúng ' + results.filter(([right]) => right).length + '/' + cards.length + '. ' +
+      cards.map(([label], index) => label + ' → ' + (categories[selected[index].value] ?? 'chưa xếp')).join(' · '));
+  }), feedback);
+  report('Chọn nhóm cho từng thẻ rồi đối chiếu.');
+}
+
+function orderLab(panel, report, steps) {
+  let order = [];
+  const available = element('div', null, {class:'actions'});
+  const chosen = element('ol');
+  panel.append(available, chosen);
+  function draw() {
+    available.replaceChildren(...steps.map((step,index) => [step,index])
+      .sort(([a],[b]) => a.localeCompare(b,'vi'))
+      .filter(([,index]) => !order.includes(index))
+      .map(([step,index]) => labButton(step, () => {
+        order.push(index);
+        draw();
+        const target = available.querySelector('button') || check;
+        target.focus();
+      })));
+    chosen.replaceChildren(...order.map(index => element('li', steps[index])));
+  }
+  const check = labButton('Kiểm tra trình tự', () => {
+    if (order.length !== steps.length) return report('Chọn đủ các bước trước khi kiểm tra.');
+    const firstMismatch = order.findIndex((index,position) => index !== position);
+    report((firstMismatch === -1 ? 'Trình tự đúng.' : 'Xem lại từ bước ' + (firstMismatch + 1) + '.') +
+      ' ' + order.map(index => steps[index]).join(' → '));
+  });
+  panel.append(check, labButton('Xếp lại', () => {
+    order = [];
+    draw();
+    report('Chọn từng bước để tạo trình tự.');
+  }));
+  draw();
+  report('Chọn từng bước để tạo trình tự.');
+}
+
+function bitsLab(panel, report, [size, target]) {
+  const count = Number(size);
+  const bits = Array(count).fill(0);
+  const toggles = bits.map((_,index) => labButton('0', () => {
+    bits[index] = 1 - bits[index];
+    draw();
+  }));
+  function draw() {
+    toggles.forEach((button,index) => {
+      button.textContent = String(bits[index]);
+      button.setAttribute('aria-label','Bit ' + (index + 1) + ', trọng số ' + 2 ** (count - index - 1));
+      button.setAttribute('aria-pressed',String(Boolean(bits[index])));
+    });
+    const value = Number.parseInt(bits.join(''),2);
+    report(bits.join('') + '₂ = ' + value + '₁₀. ' + (value === Number(target) ? 'Đã đạt mã yêu cầu.' : 'Thử đổi một bit.'));
+  }
+  panel.append(...toggles);
+  draw();
+}
+
+function readSheetFormula(formula, values) {
+  const text = formula.trim().replace(/;(?=(?:[^"]*"[^"]*")*[^"]*$)/g, ',');
+  if (!text.startsWith('=')) throw Error('Công thức cần bắt đầu bằng dấu =.');
+  const source = text.slice(1);
+  const tokens = source.match(/"(?:[^"]|"")*"|\$?[AB]\$?[12](?![\w])|\d+(?:\.\d+)?|[A-Z]+|>=|<=|<>|[+*/\-(),:><=&]/gi) || [];
+  if (tokens.join('') !== source.replace(/\s+(?=(?:[^"]*"[^"]*")*[^"]*$)/g,'')) throw Error('Cú pháp chưa được hỗ trợ.');
+  let position = 0;
+  const peek = () => tokens[position];
+  const take = token => {
+    if (peek() !== token) throw Error('Kiểm tra dấu ngoặc và đối số.');
+    position++;
+  };
+  const asNum = value => {
+    const number = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(number)) throw Error('Cần dữ liệu số.');
+    return number;
+  };
+  const cell = token => /^\$?[AB]\$?[12]$/i.test(token ?? '');
+  const key = token => token.toUpperCase().replaceAll('$','');
+  const range = (first, last) => {
+    const left = Math.min(first.charCodeAt(0),last.charCodeAt(0));
+    const right = Math.max(first.charCodeAt(0),last.charCodeAt(0));
+    const result = [];
+    for (let row=Math.min(first[1],last[1]); row<=Math.max(first[1],last[1]); row++) {
+      for (let col=left; col<=right; col++) result.push(values[String.fromCharCode(col)+row]);
+    }
+    return result;
+  };
+  const compare = (left, operator, right) => {
+    const a = typeof left === 'string' ? left.toLocaleLowerCase('vi') : left;
+    const b = typeof right === 'string' ? right.toLocaleLowerCase('vi') : right;
+    switch (operator) {
+      case '=': return a === b;
+      case '<>': return a !== b;
+      case '>': return a > b;
+      case '<': return a < b;
+      case '>=': return a >= b;
+      case '<=': return a <= b;
+      default: throw Error('Điều kiện chưa được hỗ trợ.');
+    }
+  };
+  const criterion = (value, condition) => {
+    if (typeof condition !== 'string') return compare(value,'=',condition);
+    const parts = condition.match(/^(>=|<=|<>|>|<|=)(.*)$/);
+    const literal = parts ? parts[2] : condition;
+    const target = literal.trim() && Number.isFinite(Number(literal)) ? Number(literal) : literal;
+    return compare(value,parts?.[1] ?? '=',target);
+  };
+  function evaluate(node) {
+    if (node.type === 'value') return node.value;
+    if (node.type === 'cell') return values[node.key];
+    if (node.type === 'range') return range(node.first,node.last);
+    if (node.type === 'negative') return -asNum(evaluate(node.child));
+    if (node.type === 'op') {
+      const a = evaluate(node.left);
+      const b = evaluate(node.right);
+      if (node.op === '&') return String(a) + String(b);
+      if (node.op === '+') return asNum(a) + asNum(b);
+      if (node.op === '-') return asNum(a) - asNum(b);
+      if (node.op === '*') return asNum(a) * asNum(b);
+      if (node.op === '/') {
+        if (asNum(b) === 0) throw Error('Không thể chia cho 0.');
+        return asNum(a) / asNum(b);
+      }
+      return compare(a,node.op,b);
+    }
+    const {name,args} = node;
+    if (name === 'IF' && args.length === 3) return evaluate(args[evaluate(args[0]) ? 1 : 2]);
+    const supplied = args.map(evaluate);
+    if ((name === 'COUNTIF' && supplied.length === 2) || (name === 'SUMIF' && [2,3].includes(supplied.length))) {
+      const [group, condition, sum = group] = supplied;
+      if (!Array.isArray(group) || !Array.isArray(sum) || group.length !== sum.length) throw Error('Kiểm tra hai vùng dữ liệu.');
+      return group.reduce((total,value,index) => {
+        if (!criterion(value,condition)) return total;
+        if (name === 'COUNTIF') return total + 1;
+        return total + (typeof sum[index] === 'number' ? sum[index] : 0);
+      },0);
+    }
+    const numbers = supplied.flat().filter(value => typeof value === 'number');
+    const total = numbers.reduce((sum,value) => sum + value,0);
+    if (name === 'SUM') return total;
+    if (name === 'COUNT') return numbers.length;
+    if (name === 'MIN') return numbers.length ? Math.min(...numbers) : 0;
+    if (name === 'MAX') return numbers.length ? Math.max(...numbers) : 0;
+    if (name === 'AVERAGE' && numbers.length) return total/numbers.length;
+    throw Error('Hàm, đối số hoặc vùng dữ liệu chưa hợp lệ trong mô phỏng.');
+  }
+  function primary() {
+    const token = tokens[position++];
+    if (token === '-') return {type:'negative',child:primary()};
+    if (token === '(') {
+      const node = expression();
+      take(')');
+      return node;
+    }
+    if (token?.startsWith('"')) return {type:'value',value:token.slice(1,-1).replaceAll('""','"')};
+    if (/^\d+(?:\.\d+)?$/.test(token ?? '')) return {type:'value',value:Number(token)};
+    if (cell(token)) {
+      if (peek() !== ':') return {type:'cell',key:key(token)};
+      position++;
+      const end = tokens[position++];
+      if (!cell(end)) throw Error('Vùng chỉ dùng các ô A1, B1, A2, B2.');
+      return {type:'range',first:key(token),last:key(end)};
+    }
+    if (!/^[A-Z]+$/i.test(token ?? '')) throw Error('Kiểm tra biểu thức và địa chỉ ô.');
+    take('(');
+    const args = [expression()];
+    while (peek() === ',') { position++; args.push(expression()); }
+    take(')');
+    return {type:'fn',name:token.toUpperCase(),args};
+  }
+  const precedence = {'=':1,'<>':1,'>':1,'<':1,'>=':1,'<=':1,'&':2,'+':3,'-':3,'*':4,'/':4};
+  function expression(min = 1) {
+    let left = primary();
+    while ((precedence[peek()] ?? 0) >= min) {
+      const op = tokens[position++];
+      left = {type:'op',op,left,right:expression(precedence[op]+1)};
+    }
+    return left;
+  }
+  const node = expression();
+  if (position !== tokens.length) throw Error('Kiểm tra cú pháp công thức.');
+  const result = evaluate(node);
+  if (typeof result === 'object' || (typeof result === 'number' && !Number.isFinite(result))) throw Error('Kết quả cần là một giá trị.');
+  return result;
+}
+
+function sheetLab(panel, report, [a,b,sample,goal,mode,secondA='2',secondB='5']) {
+  const fields = {};
+  for (const [name,value] of [['A1',a],['B1',b],['A2',secondA],['B2',secondB]]) fields[name] = labInput(panel,name,value);
+  const formula = labInput(panel,'Công thức kết quả',sample);
+  formula.setAttribute('aria-label','Công thức');
+  const format = mode === 'format' ? labSelect(panel,'Hiển thị', [['plain','Số thường'],['fixed','Hai chữ số thập phân'],['percent','Phần trăm']]) : null;
+  const direction = mode === 'copy' ? labSelect(panel,'Xem tham chiếu khi sao chép', [['none','Bản gốc'],['down','Xuống một hàng'],['right','Sang phải một cột']]) : null;
+  const initial = Object.fromEntries(Object.entries(fields).map(([name,field]) => [name,field.value]));
+  function update() {
+    const values = Object.fromEntries(Object.entries(fields).map(([name,field]) => {
+      const raw = field.value.trim();
+      return [name,raw && Number.isFinite(Number(raw)) ? Number(raw) : raw];
+    }));
+    if (mode === 'validate' && Object.values(values).some(x => !Number.isInteger(x) || x<0 || x>10)) {
+      return report('Quy tắc từ chối giá trị. Nhập số nguyên từ 0 đến 10 trong mỗi ô.');
+    }
+    try {
+      const result = readSheetFormula(formula.value,values);
+      const shown = typeof result !== 'number' ? String(result) : format?.value === 'fixed' ?
+        result.toFixed(2) : format?.value === 'percent' ? (result * 100).toFixed(2) + '%' : String(Math.round(result*1e8)/1e8);
+      let copyNote = '';
+      if (direction?.value && direction.value !== 'none') {
+        const copied = formula.value.replace(/"[^"]*"|(\$?)([AB])(\$?)([12])/gi,(match,fixedCol,col,fixedRow,row) => {
+          if (!col) return match;
+          const colShift = direction.value === 'right' && !fixedCol ? 1 : 0;
+          const rowShift = direction.value === 'down' && !fixedRow ? 1 : 0;
+          return fixedCol + String.fromCharCode(col.toUpperCase().charCodeAt(0)+colShift) + fixedRow + (Number(row)+rowShift);
+        });
+        copyNote = ' · Công thức sau sao chép: ' + copied;
+      }
+      report(Object.entries(values).map(([k,v])=>k+'='+v).join(' · ') +
+        ' · ' + formula.value + ' → ' + shown + (String(result)===goal ? ' · Đạt kết quả yêu cầu.' : '') + copyNote);
+    } catch (error) { report(error.message); }
+  }
+  panel.append(labButton('Khôi phục bảng', () => {
+    for (const [name,field] of Object.entries(fields)) field.value = initial[name];
+    formula.value = sample;
+    if (format) format.value = 'plain';
+    if (direction) direction.value = 'none';
+    update();
+  }));
+  bindInputs([...Object.values(fields),formula,...[format,direction].filter(Boolean)],update);
+}
+
+function tableLab(panel, report, [mode,...raw]) {
+  const rows = raw.map(line=>line.split('~'));
+  const table = element('table', null, {class:'lab-table'});
+  const field = mode === 'filter' ? labInput(panel,'Điểm tối thiểu',0,{type:'number',min:0,max:10}) : null;
+  const sort = mode === 'filter' ? labSelect(panel,'Sắp theo điểm',[['none','Thứ tự gốc'],['asc','Tăng dần'],['desc','Giảm dần']]) : null;
+  const headings = mode === 'filter' ? ['Tên','Nhóm','Điểm'] : ['Ngày','Nhóm trực'];
+  panel.append(table);
+  if (mode !== 'filter') panel.append(labButton('Thêm hàng trực',()=>{
+    if (rows.length < 7) rows.push(['Ngày mới','Chưa phân công']);
+    draw();
+  }),labButton('Xoá hàng cuối',()=>{ if(rows.length>1) rows.pop(); draw(); }));
+  function draw() {
+    let shown = rows;
+    if (field) shown = rows.filter(row => Number(row[2]) >= Number(field.value));
+    if (sort?.value !== undefined && sort.value !== 'none') shown = shown.slice().sort((a,b)=>(a[2]-b[2])*(sort.value==='asc'?1:-1));
+    const header = element('tr');
+    header.append(...headings.map(value=>element('th',value,{scope:'col'})));
+    table.replaceChildren(header,...shown.map(row=>{
+      const tr = element('tr');
+      row.forEach((value,index)=>{
+        const td = element('td');
+        if (field) td.textContent = value;
+        else {
+          const input = element('input',null,{value,maxlength:40,'aria-label':headings[index]+' hàng '+(rows.indexOf(row)+1)});
+          input.addEventListener('input',()=>{row[index]=input.value; summarize();});
+          td.append(input);
+        }
+        tr.append(td);
+      });
+      return tr;
+    }));
+    summarize(shown);
+  }
+  function summarize(shown = rows) {
+    report(shown.length + '/' + rows.length + ' hàng dữ liệu · ' + shown.map(row=>row.join(' / ')).join(' · '));
+  }
+  bindInputs([field,sort].filter(Boolean),draw);
+}
+
+function searchLab(panel, report, [method, raw, firstTarget]) {
+  const data = raw.split(',').map(Number);
+  const target = labInput(panel,'Giá trị cần tìm',firstTarget,{type:'number',min:-99,max:999});
+  let left, right, checks, done;
+  function reset() {
+    left=0; right=data.length-1; checks=0; done=false;
+    report('Dãy: ' + data.join(', ') + ' · Sẵn sàng.');
+  }
+  panel.append(labButton('So sánh bước tiếp',()=>{
+    if (done) return;
+    if (target.value === '' || !Number.isFinite(Number(target.value))) return report('Nhập mục tiêu dạng số.');
+    const mid = method === 'binary' ? Math.floor((left+right)/2) : left;
+    const wanted=Number(target.value);
+    checks++;
+    if(data[mid]===wanted) {
+      done=true;
+      return report('Tìm thấy ' + wanted + ' ở vị trí ' + (mid+1) + ' sau ' + checks + ' lần so sánh.');
+    }
+    if(method==='binary' && wanted<data[mid]) right=mid-1;
+    else left=mid+1;
+    done=left>right;
+    report('Lượt '+checks+' · So '+wanted+' với '+data[mid]+' ở vị trí '+(mid+1)+'. '+
+      (done?'Không tìm thấy.':'Vùng tiếp theo: '+data.slice(left,right+1).join(', ')));
+  }),labButton('Chạy lại',reset));
+  bindInputs([target],reset);
+}
+
+function sortLab(panel, report, [raw]) {
+  const method = labSelect(panel,'Phương pháp',[['bubble','Nổi bọt'],['selection','Chọn']]);
+  let values, cursor, last, rounds;
+  function reset() {
+    values=raw.split(',').map(Number);
+    cursor=0;
+    rounds=0;
+    last=values.length-1;
+    report('Dãy ban đầu: ' + values.join(', '));
+  }
+  panel.append(labButton('Thực hiện bước',()=>{
+    if (rounds>=values.length-1) return;
+    let description;
+    if(method.value==='bubble') {
+      description='So cặp '+values[cursor]+', '+values[cursor+1];
+      if(values[cursor]>values[cursor+1]) {
+        [values[cursor],values[cursor+1]]=[values[cursor+1],values[cursor]];
+        description+=' và đổi chỗ';
+      }
+      cursor++;
+      if(cursor===last) {last--;cursor=0;rounds++;}
+    } else {
+      const min=values.indexOf(Math.min(...values.slice(cursor)),cursor);
+      description='Chọn '+values[min]+' trong vùng chưa xếp';
+      [values[cursor],values[min]]=[values[min],values[cursor]];
+      cursor++;rounds++;
+    }
+    report(description+' · '+values.join(', ')+(rounds===values.length-1?' · Hoàn tất.':''));
+  }),labButton('Khôi phục dãy',reset));
+  bindInputs([method],reset);
+}
+
+function codeLab(panel, report, [mode,input,start,step,fourth]) {
+  const branch = mode === 'branch';
+  const first = labInput(panel,branch?'Đầu vào x':'Số vòng',input,{type:'number',min:branch?-99:0,max:branch?99:20});
+  const second = labInput(panel,branch?'Ngưỡng':'Giá trị ban đầu',start,{type:'number',min:-99,max:99});
+  const third = labInput(panel,branch?'Giá trị nhánh đúng':'Mỗi vòng cộng',step,{type:'number',min:-99,max:99});
+  const other = branch ? labInput(panel,'Giá trị nhánh sai',fourth,{type:'number',min:-99,max:99}) : null;
+  const trace = element('ol');
+  let iteration=0, value=0;
+  function reset() {
+    iteration=0;
+    value=Number(second.value);
+    trace.replaceChildren();
+    report(branch ? 'Nếu x ≥ '+second.value+' thì xuất '+third.value+', ngược lại xuất '+other.value+'.' :
+      'Khởi tạo '+value+'; lặp '+first.value+' lần, mỗi vòng cộng '+third.value+'.');
+  }
+  function runStep() {
+    const fields=[first,second,third,...(other?[other]:[])];
+    if(fields.some(field=>field.value==='' || !Number.isInteger(Number(field.value)) || Number(field.value)<Number(field.getAttribute('min')) || Number(field.value)>Number(field.getAttribute('max')))) {
+      return report('Nhập số nguyên trong giới hạn của từng ô.');
+    }
+    if (branch) {
+      const truth=Number(first.value)>=Number(second.value);
+      report('x = '+first.value+' · x ≥ '+second.value+' là '+(truth?'đúng':'sai')+' · đầu ra '+(truth?third.value:other.value)+'.');
+      return;
+    }
+    const count=Number(first.value);
+    if(iteration<count) {
+      value+=Number(third.value);
+      trace.append(element('li','Vòng '+(++iteration)+' → '+value));
+    }
+    report('Ban đầu '+second.value+' · mỗi vòng cộng '+third.value+' · '+iteration+'/'+count+' vòng · giá trị '+value+
+      (iteration===count && fourth!==undefined ? ' · Mục tiêu '+fourth+(value===Number(fourth)?' đã đạt.':' chưa đạt.') : '.'));
+  }
+  panel.append(labButton('Chạy một bước',runStep),labButton('Đặt lại',reset),trace);
+  bindInputs([first,second,third,...(other?[other]:[])],reset);
+}
+
+function designLab(panel, report, [heading,body,targetAlign,targetSize,mode,extra]) {
+  const title = labInput(panel,'Tiêu đề',heading);
+  const text = labInput(panel,'Nội dung',body);
+  const size = labInput(panel,'Cỡ tiêu đề',22,{type:'range',min:16,max:38,step:2});
+  const align = labSelect(panel,'Căn tiêu đề',[['left','Trái'],['center','Giữa'],['right','Phải']]);
+  const theme = labSelect(panel,'Giao diện',[['light','Nền sáng'],['dark','Nền tối']]);
+  const preview = element('div',null,{class:'doc-preview','aria-label':'Bản xem trước'});
+  const list = mode === 'list' ? labSelect(panel,'Kiểu nội dung',[['plain','Đoạn'],['unordered','Dấu đầu dòng'],['ordered','Đánh số']]) : null;
+  const page = mode === 'page' ? labSelect(panel,'Trang xem thử',[['1','Trang 1'],['2','Trang 2']]) : null;
+  const header = page ? labInput(panel,'Đầu trang','') : null;
+  const footer = page ? labSelect(panel,'Số ở chân trang',[['no','Ẩn'],['yes','Hiện']]) : null;
+  const search = mode && !['list','page','slide'].includes(mode) ? labInput(panel,'Tìm cụm',mode) : null;
+  const replacement = search ? labInput(panel,'Thay bằng',extra) : null;
+  let lastReplacement = '';
+  function draw() {
+    preview.setAttribute('data-theme',theme.value);
+    const mainTitle = element('h3',title.value);
+    mainTitle.style.fontSize=size.value+'px';
+    mainTitle.style.textAlign=align.value;
+    const parts = text.value.split(';').map(value=>value.trim()).filter(Boolean);
+    const main = list && list.value !== 'plain' ? element(list.value==='ordered'?'ol':'ul') : element('p',text.value);
+    if(list && list.value!=='plain') main.append(...parts.map(part=>element('li',part)));
+    const nodes=[mainTitle,main];
+    if(mode==='slide') nodes.unshift(element('p',extra,{class:'small'}));
+    if(header?.value) nodes.unshift(element('p',header.value,{class:'page-band'}));
+    if(footer?.value==='yes') nodes.push(element('p','Trang '+page.value,{class:'page-band'}));
+    preview.replaceChildren(...nodes);
+    const settings = 'Cỡ '+size.value+' · Căn '+({left:'trái',center:'giữa',right:'phải'}[align.value])+' · Nền '+(theme.value==='dark'?'tối':'sáng');
+    const hit = size.value===targetSize && align.value===targetAlign;
+    const pageInfo = page ? ' · Trang '+page.value+' · Đầu trang: '+(header.value||'trống')+' · Số trang: '+(footer.value==='yes'?'hiện':'ẩn') : '';
+    const listInfo = list ? ' · '+parts.length+' mục · '+(list.value===extra?'Kiểu liệt kê đúng nhiệm vụ.':'Kiểm tra vai trò thứ tự.') : '';
+    report(title.value+' · '+settings + pageInfo + listInfo + (hit?' · Đạt bố cục gợi ý.':'') + lastReplacement);
+  }
+  if(search) {
+    panel.append(labButton('Đếm vị trí khớp',()=>{
+      const count=search.value ? text.value.split(search.value).length-1 : 0;
+      lastReplacement=' · Tìm “'+search.value+'”: '+count+' vị trí khớp chính xác.';
+      draw();
+    }),labButton('Thay vị trí đầu',()=>{
+      if(search.value) text.value=text.value.replace(search.value,()=>replacement.value);
+      lastReplacement=' · Bản đang sửa: '+text.value;
+      draw();
+    }),labButton('Thay tất cả vị trí',()=>{
+      if(search.value) text.value=text.value.replaceAll(search.value,()=>replacement.value);
+      lastReplacement=' · Bản đang sửa: '+text.value;
+      draw();
+    }));
+  }
+  panel.append(preview);
+  bindInputs([title,text,size,align,theme,list,page,header,footer].filter(Boolean),draw);
+}
+
+function imageLab(panel, report, [label,rawWidth,rawHeight]) {
+  const width=Number(rawWidth);
+  const height=Number(rawHeight);
+  const crop=labInput(panel,'Cắt đều mép trái và phải (%)',0,{type:'range',min:0,max:35});
+  const scale=labInput(panel,'Chiều rộng sau đổi cỡ (%)',100,{type:'range',min:50,max:150});
+  const locked=labSelect(panel,'Tỉ lệ khi đổi cỡ',[['lock','Giữ tỉ lệ'],['stretch','Chỉ đổi chiều rộng']]);
+  const brightness=labInput(panel,'Độ sáng (%)',100,{type:'range',min:55,max:160});
+  const effect=labSelect(panel,'Hiệu ứng',[['color','Màu gốc'],['gray','Đen trắng']]);
+  const caption=labInput(panel,'Nhãn ảnh','');
+  const showOriginal=labSelect(panel,'So sánh',[['edited','Bản chỉnh'],['original','Bản gốc']]);
+  const canvas=element('canvas',null,{role:'img','aria-label':'Ảnh mô phỏng '+label,class:'lab-canvas'});
+  const source=element('canvas');
+  source.width=width;
+  source.height=height;
+  const painting=source.getContext('2d');
+  painting.fillStyle='#88cbed'; painting.fillRect(0,0,width,height);
+  painting.fillStyle='#f6cf75'; painting.beginPath(); painting.arc(width*.78,height*.26,height*.10,0,Math.PI*2); painting.fill();
+  painting.fillStyle='#477d5b'; painting.fillRect(0,height*.64,width,height*.36);
+  painting.fillStyle='#f3e1ad'; painting.fillRect(width*.24,height*.34,width*.46,height*.39);
+  painting.fillStyle='#345780'; painting.fillRect(width*.42,height*.47,width*.09,height*.26);
+  painting.fillStyle='#183b62'; painting.font='15px system-ui'; painting.fillText('TÂY ĐÔ',width*.39,height*.44);
+  panel.append(canvas,labButton('Khôi phục thông số ảnh',()=>{
+    crop.value='0';scale.value='100';locked.value='lock';brightness.value='100';effect.value='color';caption.value='';showOriginal.value='edited';
+    draw();
+  }));
+  function draw() {
+    const original=showOriginal.value==='original';
+    const left=original ? 0 : Math.round(width*Number(crop.value)/100);
+    const cropped=width-2*left;
+    const factor=original ? 1 : Number(scale.value)/100;
+    canvas.width=Math.round(cropped*factor);
+    canvas.height=Math.round(height*(locked.value==='lock'?factor:1));
+    const ctx=canvas.getContext('2d');
+    ctx.filter=original?'none':'brightness('+brightness.value+'%)'+(effect.value==='gray'?' grayscale(100%)':'');
+    ctx.drawImage(source,left,0,cropped,height,0,0,canvas.width,canvas.height);
+    ctx.filter='none';
+    if(!original && caption.value.trim()) {
+      ctx.fillStyle='#102b4de8';ctx.fillRect(0,canvas.height-24,canvas.width,24);
+      ctx.font='13px system-ui';ctx.fillStyle='#ffffff';ctx.fillText(caption.value,7,canvas.height-8,Math.max(10,canvas.width-14));
+    }
+    report((original?'Bản gốc':'Bản chỉnh')+' · '+canvas.width+' × '+canvas.height+' px'+
+      (original?'':' · Cắt mỗi mép '+crop.value+'% · Sáng '+brightness.value+'% · '+(effect.value==='gray'?'Đen trắng':'Màu')+
+      (caption.value?' · Nhãn: '+caption.value:'')));
+  }
+  bindInputs([crop,scale,locked,brightness,effect,caption,showOriginal],draw);
+}
+
+function timelineLab(panel, report, raw) {
+  const scenes=raw.map(entry=>{
+    const [name,seconds]=entry.split('~');
+    return {name,seconds:Number(seconds),trim:0};
+  });
+  const title=labInput(panel,'Tiêu đề video','');
+  const captions=labInput(panel,'Phụ đề cảnh đang xem','');
+  const music=labInput(panel,'Mức nhạc nền giả lập (%)',45,{type:'range',min:0,max:100});
+  const transition=labSelect(panel,'Kiểu chuyển cảnh',[['cut','Cắt thẳng'],['fade','Mờ dần']]);
+  const currentTime=labInput(panel,'Vị trí trên dòng thời gian (giây)',0,{type:'range',min:0,max:1,step:1});
+  const lanes=element('ol',null,{class:'timeline'});
+  const preview=element('div',null,{class:'doc-preview','data-theme':'dark','aria-live':'polite'});
+  const notes=new Map();
+  let active=null;
+  panel.append(lanes,preview);
+  function duration(scene) { return scene.seconds-scene.trim; }
+  function update() {
+    const total=scenes.reduce((sum,scene)=>sum+duration(scene),0);
+    currentTime.setAttribute('max',Math.max(0,total-1));
+    if(Number(currentTime.value)>=total) currentTime.value=String(Math.max(0,total-1));
+    let cursor=0;
+    const at=Number(currentTime.value);
+    const scene=scenes.find(candidate=>{cursor+=duration(candidate);return at<cursor;}) ?? scenes[0];
+    if(active!==scene) { active=scene; captions.value=notes.get(scene)||''; }
+    preview.replaceChildren(element('p',title.value||'Xem trước phân cảnh'),element('h3',scene.name),
+      element('p',captions.value||'Chưa có phụ đề'),element('p',at+' / '+total+' giây · Nhạc nền '+music.value+'% · '+(transition.value==='fade'?'Mờ dần':'Cắt thẳng')));
+    report('Tổng '+total+' giây · '+scenes.map(x=>x.name+' '+duration(x)+' giây').join(' → ')+
+      ' · Nhạc '+music.value+'%'+(title.value?' · Tiêu đề: '+title.value:'')+
+      (notes.size?' · Phụ đề: '+scenes.filter(x=>notes.has(x)).map(x=>x.name+': '+notes.get(x)).join(' / '):''));
+  }
+  function draw() {
+    lanes.replaceChildren(...scenes.map((scene,index)=>{
+      const row=element('li');
+      const trim=labInput(row,'Cắt bớt '+scene.name+' (giây)',scene.trim,{type:'number',min:0,max:scene.seconds-1});
+      trim.addEventListener('input',()=>{
+        const value=Number(trim.value);
+        if(trim.value!=='' && Number.isInteger(value) && value>=0 && value<scene.seconds) {scene.trim=value; update();}
+      });
+      row.append(labButton('Đưa lên',()=>{
+        if(index>0) { [scenes[index-1],scenes[index]]=[scenes[index],scenes[index-1]]; draw(); }
+      }),labButton('Đưa xuống',()=>{
+        if(index<scenes.length-1) { [scenes[index],scenes[index+1]]=[scenes[index+1],scenes[index]]; draw(); }
+      }));
+      return row;
+    }));
+    update();
+  }
+  captions.addEventListener('input',()=>{
+    if(captions.value.trim()) notes.set(active,captions.value.trim());
+    else notes.delete(active);
+    update();
+  });
+  bindInputs([title,music,transition,currentTime],update);
+  draw();
+}
+
+function simulationLab(panel, report, [nameA,nameB,valueA,valueB,mode]) {
+  const a=labInput(panel,nameA,valueA,{type:'range',min:0,max:25});
+  const b=labInput(panel,nameB,valueB,{type:'range',min:0,max:25});
+  const comparison=element('div',null,{class:'lab-chart','aria-label':'Kết quả trực quan'});
+  panel.append(comparison);
+  function draw() {
+    const x=Number(a.value);
+    const y=Number(b.value);
+    const series=mode==='product'?[[nameA,x,25],[nameB,y,25],['Quãng đường (m)',x*y,625]]:
+      [[nameA,x,25],[nameB,y,25]];
+    comparison.replaceChildren(...series.map(([label,value,max])=>{
+      const row=element('div',null,{class:'chart-row'});
+      const bar=element('div',null,{class:'chart-track','aria-hidden':'true'});
+      const fill=element('div',null,{class:'chart-fill'});
+      fill.style.width=(100*value/max)+'%';
+      bar.append(fill);
+      row.append(element('span',label+': '+value),bar);
+      return row;
+    }));
+    report(nameA+' = '+x+' · '+nameB+' = '+y+
+      (mode==='product'?' · Quãng đường = '+x+' × '+y+' = '+x*y+' m':' · Chênh lệch tuyệt đối: '+Math.abs(x-y)));
+  }
+  bindInputs([a,b],draw);
+}
+
+const lessonLabs = {
+  classify:classificationLab, steps:orderLab, bits:bitsLab, sheet:sheetLab, table:tableLab,
+  search:searchLab, sort:sortLab, code:codeLab, design:designLab, image:imageLab,
+  video:timelineLab, simulate:simulationLab
+};
+
+function makeModel(kind, save, mission, lab) {
+  const model=element('section',null,{class:'model','aria-label':'Thực hành tương tác'});
+  const panel=element('div',null,{class:'lab-panel'});
+  const output=element('output',null,{class:'model-output','aria-live':'polite'});
+  const status=element('p','',{class:'small','aria-live':'polite'});
+  const simulationNote={
+    sheet:'Bảng tính thực hành bốn ô. Hỗ trợ phép toán cơ bản và SUM, AVERAGE, MIN, MAX, COUNT, COUNTIF, SUMIF, IF. Dùng dấu chấm cho số thập phân.',
+    video:'Bản mô phỏng phân cảnh và thời lượng. Thanh thời gian dùng để xem từng cảnh. Mức nhạc là thông số giả lập.',
+    image:'Ảnh vẽ mẫu dùng để thử thao tác; bản xem trước cập nhật theo thiết lập.'
+  };
+  model.append(element('h3','Thực hành tương tác'),element('p',mission));
+  if(simulationNote[kind]) model.append(element('p',simulationNote[kind],{class:'small'}));
+  model.append(panel,output,labButton('Lưu quan sát',()=>{
+    save(output.textContent.slice(0,800));
+    status.textContent='Đã ghi quan sát vào lượt hiện tại.';
+  }),status);
+  lessonLabs[kind](panel,text=>{
+    output.textContent=text;
+    status.textContent='';
+  },lab.values);
+  return model;
+}
+
+const lesson = JSON.parse(document.querySelector('#lesson-data').textContent);
+const root = document.querySelector('#lesson-root');
+const CHANNEL = 'taydo.edu.lesson.v1';
+const VERSION = lesson.version || '1.0';
+const questionById = new Map([
+  ...lesson.skills.flatMap(s => [s.probe,s.practice,s.transfer]),
+  ...lesson.quiz
+].map(q => [q.id,q]));
+
+let profile = null;
+let embeddedAccount = false;
+let syncLabel = '';
+let current = null;
+let historyVisible = false;
+let memory = [];
+let storageError = false;
+const standaloneKey = 'taydo-edu-profile-v1';
+const pending = new Map();
+
+function storageKey() {
+  return 'taydo-edu-history-v1:'+lesson.id+':'+profile;
+}
+function readHistory() {
+  if (!profile) return [];
+  try {
+    const stored = localStorage.getItem(storageKey());
+    return stored ? JSON.parse(stored) : memory;
+  } catch (_) {
+    storageError = true;
+    return memory;
+  }
+}
+function writeHistory(records) {
+  memory = records;
+  try { localStorage.setItem(storageKey(),JSON.stringify(records)); }
+  catch (_) { storageError = true; }
+}
+function mergeHistory(records) {
+  const byId = new Map(readHistory().map(r=>[r.id,r]));
+  for (const record of records) {
+    const known = byId.get(record.id);
+    if (!known || record.revision>known.revision || (
+      record.revision===known.revision && record.updatedAt>known.updatedAt
+    )) byId.set(record.id,record);
+  }
+  writeHistory([...byId.values()].sort((a,b)=>b.startedAt.localeCompare(a.startedAt)));
+}
+function updateSyncLabel() {
+  const label = document.querySelector('#storage-label');
+  if (!label) return;
+  label.textContent = embeddedAccount
+    ? syncLabel
+    : storageError ? 'Trình duyệt đang chặn lưu trên thiết bị. Hãy tải lịch sử trước khi đóng trang.'
+    : 'Lịch sử lưu trên trình duyệt này';
+}
+function send(type, payload={}) {
+  if (window.parent!==window && location.origin!=='null') {
+    window.parent.postMessage({channel:CHANNEL,type,lessonId:lesson.id,...payload},location.origin);
+  }
+}
+function syncRecord(record) {
+  if (!embeddedAccount) return;
+  pending.set(record.id,record.revision);
+  syncLabel = 'Đang đồng bộ lịch sử…';
+  send('save',{record,userId:profile.slice('account:'.length)});
+  updateSyncLabel();
+}
+function save() {
+  current.revision++;
+  current.updatedAt = new Date().toISOString();
+  mergeHistory([current]);
+  syncRecord(current);
+  updateSyncLabel();
+}
+function log(kind, values) {
+  current.events.push({kind,at:new Date().toISOString(),...values});
+}
+function validRecord(r) {
+  return r && r.lessonId===lesson.id && typeof r.id==='string'
+    && Number.isInteger(r.revision) && typeof r.startedAt==='string'
+    && typeof r.updatedAt==='string' && Array.isArray(r.events);
+}
+
+window.addEventListener('message',event=>{
+  if (event.source!==window.parent || event.origin!==location.origin || window.parent===window) return;
+  const data=event.data;
+  if (!data || data.channel!==CHANNEL || data.lessonId!==lesson.id) return;
+  if (data.type==='account' && typeof data.userId==='string') {
+    const key='account:'+data.userId;
+    const changed=profile!==key || !embeddedAccount;
+    if (changed) { current=null; memory=[]; pending.clear(); profile=key; historyVisible=false; }
+    embeddedAccount=true;
+    syncLabel='Đang tải lịch sử tài khoản…';
+    if(changed) render();
+    updateSyncLabel();
+    return;
+  }
+  if (data.type==='signed-out' && embeddedAccount) {
+    embeddedAccount=false;
+    profile=null;
+    current=null;
+    memory=[];
+    pending.clear();
+    render();
+    return;
+  }
+  if (!embeddedAccount || profile!=='account:'+data.userId) return;
+  if (data.type==='history') {
+    const remote=(Array.isArray(data.records)?data.records:[]).filter(validRecord);
+    const remoteById=new Map(remote.map(r=>[r.id,r.revision]));
+    mergeHistory(remote);
+    for(const local of readHistory()) {
+      if(local.revision>(remoteById.get(local.id)||0)) syncRecord(local);
+    }
+    syncLabel = pending.size ? 'Đang đồng bộ lịch sử…' : 'Lịch sử tài khoản đã đồng bộ';
+    if (!current || historyVisible) render();
+    updateSyncLabel();
+  }
+  if (data.type==='saved') {
+    if ((pending.get(data.id)||0)<=data.revision) pending.delete(data.id);
+    syncLabel = pending.size ? 'Đang đồng bộ lịch sử…' : 'Lịch sử tài khoản đã đồng bộ';
+    updateSyncLabel();
+  }
+  if (data.type==='sync-error') {
+    syncLabel = storageError ? 'Chưa đồng bộ. Hãy tải lịch sử trước khi đóng trang.'
+      : 'Chưa đồng bộ. Đã giữ bản trên thiết bị này.';
+    updateSyncLabel();
+  }
+});
+window.addEventListener('online',()=>send('hello'));
+window.addEventListener('storage',e=>{
+  if(profile && e.key===storageKey() && (!current || historyVisible)) render();
+});
+
+function dateLabel(value) {
+  return new Intl.DateTimeFormat('vi-VN',{dateStyle:'short',timeStyle:'short'}).format(new Date(value));
+}
+function action(text, handler, primary=false) {
+  const btn=element('button',text,{type:'button',class:primary?'primary':''});
+  btn.onclick=handler;
+  return btn;
+}
+function focusMain() {
+  const title=root.querySelector('main h2');
+  if(title) { title.tabIndex=-1; title.focus({preventScroll:true}); title.scrollIntoView({block:'nearest'}); }
+}
+function renderThenFocus() { render(); focusMain(); }
+
+function newAttempt(skillIndex) {
+  const isReview=Number.isInteger(skillIndex);
+  const now=new Date().toISOString();
+  const id=typeof crypto.randomUUID==='function'?crypto.randomUUID():[
+    ...crypto.getRandomValues(new Uint8Array(16))
+  ].map(n=>n.toString(16).padStart(2,'0')).join('').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');
+  current={
+    id,lessonId:lesson.id,version:VERSION,startedAt:now,updatedAt:now,
+    revision:0,status:'in_progress',score:null,total:isReview?0:lesson.quiz.length,
+    mode:isReview?'review':'lesson',reviewSkill:isReview?lesson.skills[skillIndex].id:null,
+    step:{phase:isReview?'lab':'probe',index:isReview?skillIndex:0,part:isReview?'study':'question',feedback:null},
+    events:[]
+  };
+  save();
+  historyVisible=false;
+  renderThenFocus();
+}
+function reopen(record) {
+  current=structuredClone(record);
+  historyVisible=false;
+  renderThenFocus();
+}
+function backToLesson() {
+  current=null;
+  historyVisible=false;
+  renderThenFocus();
+}
+function shuffleOptions(q) {
+  const salt=current.id+q.id;
+  let seed=2166136261;
+  for (const char of salt) seed=Math.imul(seed^char.charCodeAt(0),16777619)>>>0;
+  const list=q.options.map((_,i)=>i);
+  for(let i=list.length-1;i>0;i--) {
+    seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+    const j=seed%(i+1);
+    [list[i],list[j]]=[list[j],list[i]];
+  }
+  if(q.mode==='order' && list.every((n,i)=>n===i)) list.push(list.shift());
+  return list;
+}
+function matches(q,value) {
+  if(q.mode==='multi') return value.length===q.answer.length && q.answer.every(x=>value.includes(x));
+  if(q.mode==='order') return q.answer.every((x,i)=>value[i]===x) && value.length===q.answer.length;
+  return value===q.answer;
+}
+function answerText(q,value) {
+  if(q.mode==='number') return String(value);
+  return (Array.isArray(value)?value:[value]).map(i=>q.options[i]).join(q.mode==='order'?' → ':', ');
+}
+function mistake(q,value) {
+  const goal=lesson.skills.find(s=>s.id===q.skill);
+  if(lesson.id==='toan_6_c1_b1' && q.id==='m1-practice') {
+    if(value.includes(4)) return {code:'boundary',hint:'Em đã chọn 4. Hãy thử thay x = 4 vào x < 4. Mệnh đề 4 < 4 đúng hay sai?'};
+    if(!value.includes(0)) return {code:'omitted_zero',hint:'Tập số tự nhiên có chứa 0. Hãy kiểm tra 0 có nhỏ hơn 4 không.'};
+  }
+  return {code:q.skill||'application',hint:goal?.hint||''};
+}
+function submitQuestion(q,value) {
+  const step=current.step;
+  if(step.feedback) return;
+  const right=matches(q,value);
+  const phase=step.phase==='lab' ? step.part : step.phase;
+  const seen=current.events.filter(e=>e.kind==='answer' && e.qid===q.id).length;
+  const hint = phase==='practice' && !right && seen===0;
+  const issue=right?null:mistake(q,value);
+  log('answer',{qid:q.id,skill:q.skill,phase,response:value,correct:right,number:seen+1,
+    errorCode:issue?.code||null,prompt:q.prompt,responseText:answerText(q,value)});
+  if(hint) log('hint',{qid:q.id,skill:q.skill,phase,errorCode:issue.code,text:issue.hint});
+  step.feedback={right,hint,response:value,hintText:hint?issue.hint:null};
+  save();
+  render();
+  document.querySelector('#question-feedback')?.focus({preventScroll:true});
+}
+function nextAfter(q) {
+  const step=current.step;
+  if (step.phase==='probe') {
+    if (++step.index===lesson.skills.length) {step.phase='lab';step.index=0;step.part='study';}
+  } else if(step.phase==='lab') {
+    if(step.part==='study') step.part='practice';
+    else if(step.part==='practice' && step.feedback?.hint) step.part='practice';
+    else if(step.part==='practice') step.part='transfer';
+    else if(current.mode==='review') {
+      current.status='completed';
+      current.completedAt=new Date().toISOString();
+      step.phase='result';
+    }
+    else if (++step.index===lesson.skills.length) {step.phase='quiz';step.index=0;step.part='question';}
+    else step.part='study';
+  } else if(step.phase==='quiz') {
+    if (++step.index===lesson.quiz.length) {
+      const answers=current.events.filter(e=>e.kind==='answer' && e.phase==='quiz');
+      current.score=answers.filter(a=>a.correct).length;
+      current.status='completed';
+      current.completedAt=new Date().toISOString();
+      step.phase='result';
+    }
+  }
+  step.feedback=null;
+  save();
+  renderThenFocus();
+}
+function drawQuestion(parent,q,graded) {
+  const panel=element('section',null,{class:'question'});
+  const form=element('form');
+  const group=element('fieldset',null,{class:'option-group'});
+  group.append(element('legend',q.prompt,{class:'question-title'}));
+  panel.append(form);
+  form.append(group);
+  parent.append(panel);
+  const snapshot=current.step.feedback;
+  if(snapshot) {
+    const chosen=element('p','Em đã chọn: '+answerText(q,snapshot.response),{class:'small'});
+    const skill=lesson.skills.find(s=>s.id===q.skill);
+    let feedback='Đã ghi nhận câu trả lời.';
+    if(!graded && current.step.phase==='probe') feedback='Đã ghi nhận câu trả lời. Em sẽ khám phá cách làm ở phần tiếp theo.';
+    else if(!graded && snapshot.hint) feedback='Gợi ý: '+(snapshot.hintText||skill.hint);
+    else if(!graded) feedback=(snapshot.right?'Chính xác. ':'Cùng xem cách làm. ')+q.explanation;
+    const banner=element('p',feedback,{class:'feedback',id:'question-feedback',tabindex:'-1',role:'status'});
+    if(!graded && current.step.phase!=='probe') banner.dataset.state=snapshot.right?'good':'bad';
+    group.append(chosen,banner);
+    const text = snapshot.hint ? 'Thử lại nhiệm vụ'
+      : graded && current.step.index===lesson.quiz.length-1 ? 'Xem kết quả'
+      : current.step.phase==='lab' && current.step.part==='practice' ? 'Làm câu mới' : 'Tiếp tục';
+    form.append(action(text,()=>nextAfter(q),true));
+    return;
+  }
+  let read;
+  const error=element('p','',{class:'feedback',role:'status','data-state':'bad'});
+  if(q.mode==='number') {
+    const field=element('input',null,{class:'answer',type:'text',inputmode:'text',
+      autocomplete:'off',maxlength:'18','aria-label':'Nhập đáp án dạng số nguyên',placeholder:'Nhập đáp án'});
+    group.append(element('p','Chỉ nhập số nguyên, có thể dùng dấu âm.',{class:'small'}),field);
+    read=()=>{
+      const val=field.value.trim().replace(/^−/,'-');
+      return /^[+-]?\d+$/.test(val) && Number.isSafeInteger(Number(val)) ? Number(val) : null;
+    };
+  } else if(q.mode==='order') {
+    let order=[];
+    const ordered=element('ol',null,{class:'order-list','aria-label':'Thứ tự đã chọn'});
+    const buttons=element('div',null,{class:'actions'});
+    const source=shuffleOptions(q);
+    const controls=source.map(i=>{
+      const btn=action(q.options[i],()=>{
+        order.push(i);drawOrder();
+        const next=controls.find(b=>!b.disabled);
+        (next||submit).focus();
+      });
+      btn.dataset.option=String(i);
+      return btn;
+    });
+    function drawOrder() {
+      ordered.replaceChildren(...order.map(i=>element('li',q.options[i])));
+      controls.forEach(btn=>btn.disabled=order.includes(Number(btn.dataset.option)));
+    }
+    buttons.append(...controls);
+    const clear=action('Xóa thứ tự',()=>{order=[];drawOrder();controls[0].focus();});
+    group.append(element('p','Bấm các thẻ theo thứ tự. Dùng “Xóa thứ tự” nếu muốn làm lại.',{class:'small'}),buttons,ordered,clear);
+    read=()=>order.length===source.length?order.slice():null;
+  } else {
+    const options=element('div',null,{class:'options'});
+    if(q.mode==='multi')group.append(element('p','Chọn tất cả đáp án đúng.',{class:'small'}));
+    for(const i of shuffleOptions(q)) {
+      const label=element('label',null,{class:'option'});
+      label.append(element('input',null,{type:q.mode==='multi'?'checkbox':'radio',name:'answer',value:i}),
+                   element('span',q.options[i]));
+      options.append(label);
+    }
+    group.append(options);
+    read=()=>{
+      const selected=[...group.querySelectorAll('input:checked')].map(el=>Number(el.value));
+      if(!selected.length) return null;
+      return q.mode==='multi'?selected:selected[0];
+    };
+  }
+  const submit=element('button',graded?'Ghi đáp án':'Gửi câu trả lời',{type:'submit',class:'primary'});
+  form.append(error,submit);
+  form.onsubmit=event=>{
+    event.preventDefault();
+    const value=read();
+    if(value===null) {error.textContent='Hãy hoàn thành câu trả lời trước khi gửi.';return;}
+    submitQuestion(q,value);
+  };
+}
+
+function downloadHistory() {
+  const rows=readHistory();
+  const file=new Blob([JSON.stringify({schema:CHANNEL,lessonId:lesson.id,exportedAt:new Date().toISOString(),attempts:rows},null,2)],
+    {type:'application/json'});
+  const href=URL.createObjectURL(file);
+  const link=element('a',null,{href,download:lesson.id+'-lich-su.json'});
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(href),1000);
+}
+function renderHistory(panel) {
+  panel.append(element('h2','Lịch sử từng lượt làm'));
+  const records=readHistory();
+  if(!records.length) {panel.append(element('p','Em chưa có lượt làm nào trong bài này.'));return;}
+  panel.append(action('Tải lịch sử JSON',downloadHistory));
+  for(const r of records) {
+    const details=element('details',null,{class:'history-row'});
+    const info=r.mode==='review' ? (r.status==='completed'?'Đã ôn theo mục tiêu':'Đang ôn theo mục tiêu')
+      : r.status==='completed'?r.score+'/'+r.total+' câu đúng':'Đang làm';
+    details.append(element('summary',dateLabel(r.startedAt)+' · '+info+' · '+r.events.filter(e=>e.kind==='answer').length+' câu trả lời đã ghi'));
+    if(r.status==='in_progress' && r.version===VERSION)details.append(action('Tiếp tục lượt này',()=>reopen(r),true));
+    for(const e of r.events) {
+      if(e.kind==='answer') {
+        const q=questionById.get(e.qid);
+        if(!q && !e.prompt)continue;
+        const phase={probe:'Khởi động',practice:'Khám phá',transfer:'Câu mới',quiz:'Tự kiểm tra'}[e.phase]||e.phase;
+        const result=e.phase==='quiz' && r.status!=='completed'?'Đã ghi':e.correct?'Đúng':'Sai';
+        details.append(element('p',dateLabel(e.at)+' · '+phase+' · '+(e.prompt||q.prompt)+' → '+(e.responseText||answerText(q,e.response))+' ('+result+')',{class:'small'}));
+      }
+      if(e.kind==='hint')details.append(element('p',e.text?'Gợi ý đã hiện: '+e.text:'Đã hiện gợi ý cho câu vừa trả lời.',{class:'small'}));
+      if(e.kind==='observation')details.append(element('p','Quan sát đã lưu: '+e.text,{class:'small'}));
+    }
+    panel.append(details);
+  }
+}
+function renderResult(panel) {
+  if(current.mode==='review') {
+    const skill=lesson.skills.find(s=>s.id===current.reviewSkill);
+    const check=current.events.find(e=>e.phase==='transfer' && e.kind==='answer');
+    panel.append(element('h2','Kết quả ôn theo mục tiêu'),element('h3',skill.title),
+      element('p',check?.correct?'Em đã trả lời đúng câu mới.':'Câu mới cần luyện thêm. Xem cách giải rồi thử lại.'),
+      element('p',skill.transfer.explanation));
+    const controls=element('div',null,{class:'actions'});
+    controls.append(action('Ôn lại mục tiêu này',()=>newAttempt(lesson.skills.indexOf(skill)),true),
+      action('Xem lịch sử',()=>{historyVisible=true;renderThenFocus();}));
+    panel.append(controls);
+    return;
+  }
+  panel.append(element('h2','Kết quả tự kiểm tra'),element('p',current.score+' / '+current.total,{class:'result'}),
+    element('p','Số câu đúng ở lượt làm này. Em có thể xem cách giải rồi quay lại luyện.'));
+  const checked=current.events.filter(e=>e.kind==='answer' && e.phase==='quiz');
+  const list=element('ul');
+  for(const skill of lesson.skills) {
+    const transfer=current.events.find(e=>e.kind==='answer' && e.qid===skill.transfer.id);
+    const test=checked.find(e=>e.skill===skill.id);
+    const status = test?.correct ? 'Câu cuối bài đúng' : 'Nên luyện thêm';
+    const item=element('li',skill.title+' — '+status+(transfer?' · Câu mới '+(transfer.correct?'đúng':'chưa đúng'):''));
+    if(!test?.correct) {
+      const more=element('details');
+      more.append(element('summary','Xem lại quy tắc và ví dụ'),element('p',skill.rule),element('p',skill.example));
+      item.append(more,action('Ôn mục tiêu này',()=>newAttempt(lesson.skills.indexOf(skill))));
+    }
+    list.append(item);
+  }
+  panel.append(list);
+  for(const a of checked) {
+    const q=questionById.get(a.qid);
+    const d=element('details',null,{class:'history-row'});
+    d.append(element('summary',(a.correct?'Đúng · ':'Xem lại · ')+q.prompt),
+      element('p','Em trả lời: '+answerText(q,a.response)),element('p','Đáp án: '+answerText(q,q.answer)),
+      element('p',q.explanation));
+    panel.append(d);
+  }
+  const controls=element('div',null,{class:'actions'});
+  controls.append(action('Bắt đầu lượt mới',newAttempt,true),action('Xem lịch sử',()=>{historyVisible=true;renderThenFocus();}));
+  panel.append(controls);
+}
+function renderStudy(panel) {
+  const step=current.step;
+  const skill=lesson.skills[step.index];
+  if(step.phase==='probe') {
+    panel.append(element('h2','Khởi động '+(step.index+1)+' / '+lesson.skills.length));
+    drawQuestion(panel,skill.probe,false);
+    return;
+  }
+  if(step.phase==='quiz') {
+    panel.append(element('h2','Tự kiểm tra '+(step.index+1)+' / '+lesson.quiz.length));
+    drawQuestion(panel,lesson.quiz[step.index],true);
+    return;
+  }
+  if(step.phase==='result') {renderResult(panel);return;}
+  panel.append(element('h2',skill.title));
+  if(step.part==='study') {
+    const first=current.events.find(e=>e.qid===skill.probe.id && e.kind==='answer');
+    if(first && !first.correct) panel.append(element('p','Từ câu khởi động: '+skill.hint,{class:'feedback'}));
+    panel.append(element('p',skill.rule),element('h3','Ví dụ có lời giải'),element('p',skill.example));
+    if(step.index===0)panel.append(makeModel(lesson.model,text=>{
+      if(current.events.filter(e=>e.kind==='observation').length>=25) {
+        const firstIndex=current.events.findIndex(e=>e.kind==='observation');
+        current.events.splice(firstIndex,1);
+      }
+      log('observation',{text});
+      save();
+    }, lesson.modelMission, lesson.lab));
+    panel.append(action('Thử một nhiệm vụ',()=>nextAfter(),true));
+  } else {
+    panel.append(element('p',step.part==='transfer'?'Câu mới cùng mục tiêu':'Nhiệm vụ khám phá',{class:'small'}));
+    drawQuestion(panel,skill[step.part],false);
+  }
+}
+
+function renderStart(panel) {
+  panel.append(element('h2','Mục tiêu bài học'));
+  const ul=element('ul');
+  for(const skill of lesson.skills)ul.append(element('li',skill.title));
+  panel.append(ul);
+  if(!profile) {
+    const form=element('form');
+    const label=element('label','Mã học trên thiết bị này ');
+    const input=element('input',null,{maxlength:'32',required:'',placeholder:'Ví dụ: 6A-07',autocomplete:'off'});
+    label.append(input);
+    const submit=element('button','Chọn mã học',{class:'primary',type:'submit'});
+    form.append(label,submit);
+    panel.append(element('p','Dùng cùng một mã trên trình duyệt này để xem lại các lượt đã làm.',{class:'small'}),form);
+    form.onsubmit=e=>{
+      e.preventDefault();
+      const value=input.value.trim();
+      if(!value) return;
+      profile='device:'+value.toLocaleLowerCase('vi');
+      memory=[];
+      try {localStorage.setItem(standaloneKey,profile);}
+      catch(_) {storageError=true;}
+      renderThenFocus();
+    };
+    return;
+  }
+  const controls=element('div',null,{class:'actions'});
+  const inProgress=readHistory().find(r=>r.status==='in_progress' && r.version===VERSION);
+  if(inProgress)controls.append(action('Tiếp tục lượt gần nhất',()=>reopen(inProgress),true));
+  controls.append(action('Bắt đầu lượt mới',newAttempt,!inProgress));
+  panel.append(controls);
+}
+function render() {
+  root.replaceChildren();
+  const hero=element('header',null,{class:'hero'});
+  hero.append(element('p','Tây Đô Smart EDU · '+lesson.subjectName+' '+lesson.grade+(lesson.volume?' · Tập '+lesson.volume:''),{class:'eyebrow'}),
+    element('h1',lesson.title),element('p',lesson.intro));
+  root.append(hero);
+  const toolbar=element('div',null,{class:'toolbar'});
+  toolbar.append(element('span','',{id:'storage-label',class:'meta','aria-live':'polite'}));
+  const actions=element('div',null,{class:'actions'});
+  if(profile) {
+    if(embeddedAccount) actions.append(action('Đồng bộ lại',()=>send('hello')));
+    actions.append(action(historyVisible?'Quay lại bài':'Lịch sử',()=>{historyVisible=!historyVisible;renderThenFocus();}));
+    if(current && !historyVisible)actions.append(action('Về đầu bài',backToLesson));
+    if(!embeddedAccount)actions.append(action('Đổi mã học',()=>{
+      try {localStorage.removeItem(standaloneKey);} catch(_) {storageError=true;}
+      profile=null;memory=[];current=null;historyVisible=false;renderThenFocus();
+    }));
+  }
+  toolbar.append(actions);
+  root.append(toolbar);
+  const step=current?.step?.phase;
+  if(current && !historyVisible) {
+    const steps=element('nav',null,{class:'steps','aria-label':'Tiến trình bài'});
+    for(const [key,name] of [['probe','Khởi động'],['lab','Khám phá và sửa sai'],['quiz','Tự kiểm tra'],['result','Kết quả']]) {
+      steps.append(element('span',name,key===step?{'aria-current':'step'}:{}));
+    }
+    root.append(steps);
+  }
+  const panel=element('main',null,{class:'panel'});
+  root.append(panel);
+  if(historyVisible && profile)renderHistory(panel);
+  else if(current)renderStudy(panel);
+  else renderStart(panel);
+  root.append(element('footer','Tham chiếu SGK '+lesson.subjectName+' '+lesson.grade+' · '+lesson.bookSeries+(lesson.volume?' · Tập '+lesson.volume:'')+' · Trang '+lesson.page+'.',{class:'small source'}));
+  updateSyncLabel();
+}
+try {
+  const saved=localStorage.getItem(standaloneKey);
+  if(saved?.startsWith('device:'))profile=saved;
+} catch (_) {storageError=true;}
+render();
+send('hello');
+if (window.parent!==window) {
+  const retry=setInterval(()=>{ if(!embeddedAccount)send('hello'); },1500);
+  setTimeout(()=>clearInterval(retry),15000);
+}
+
+</script>
+</body>
+</html>
