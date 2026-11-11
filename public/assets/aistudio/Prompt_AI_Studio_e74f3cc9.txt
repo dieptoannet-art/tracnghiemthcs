@@ -1,0 +1,6 @@
+Tích hợp mục Trò chơi gọi học sinh vào dự án Tây Đô Smart EDU hiện có. Dùng mã trong teacher-student-call.patch, đối chiếu với phiên bản hiện tại nếu bối cảnh diff thay đổi.
+
+1. Thêm nút Trò chơi gọi học sinh ngay dưới mục quản lý lớp trong nhóm Giáo viên của src/components/Sidebar.tsx. Thêm view teacher_student_call trong src/App.tsx, dùng route guard hiện tại. Học sinh không được thấy hoặc mở view này.
+2. Áp dụng StudentCallGames.tsx, studentCallRules.ts và studentCallGames.css trong src/components/teacher. Màn hình lấy classes và students từ AppContext hiện có, có danh sách nhập tay. Giữ 10 chế độ và các hành vi đã triển khai trong bản vá. Giữ Times New Roman và bảng màu xanh của dự án.
+3. Duy trì loại bỏ học sinh vắng, chống trùng chung cho các trò trong cùng phiên, lịch sử theo tài khoản và danh sách, cùng nút đặt lại có xác nhận. Dữ liệu dùng localStorage. Không tạo bảng Supabase mới.
+4. Chạy kiểm tra TypeScript và build. Thử menu bằng vai trò giáo viên và học sinh, chọn một lớp, thử gọi không trùng, đánh dấu một bạn vắng, gọi cặp và ba bạn, chạy đồng hồ rồi tải lại để kiểm tra lịch sử. Giữ các phân hệ hiện có. Báo các tệp thay đổi và các bước đã chạy thật.

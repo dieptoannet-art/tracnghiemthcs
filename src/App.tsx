@@ -21,6 +21,7 @@ import { ExamMatrixModal } from './components/teacher/ExamMatrixModal';
 import { GradingAndReports } from './components/teacher/GradingAndReports';
 import { GeminiAssistantView } from './components/teacher/GeminiAssistantView';
 import { QuestionImportModal } from './components/teacher/QuestionImportModal';
+import { StudentCallGames } from './components/teacher/StudentCallGames';
 
 // Admin views
 import { AccountManagement } from './components/admin/AccountManagement';
@@ -150,6 +151,8 @@ const AppContent: React.FC = () => {
       // Teacher views
       case 'teacher_classes':
         return <ClassManagement />;
+      case 'teacher_student_call':
+        return <StudentCallGames />;
       case 'teacher_question_bank':
         return <QuestionBank />;
       case 'teacher_create_exam':

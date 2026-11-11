@@ -17,7 +17,8 @@ import {
   Sparkles,
   UserCheck,
   ShieldCheck,
-  Settings
+  Settings,
+  Dices
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -149,6 +150,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
               >
                 <Users className="w-4 h-4 shrink-0" />
                 <span>Lớp học & học sinh</span>
+              </button>
+
+              <button
+                onClick={() => handleNav('teacher_student_call')}
+                className={navItemClass('teacher_student_call')}
+              >
+                <Dices className="w-4 h-4 shrink-0 text-amber-300" />
+                <span>Trò chơi gọi học sinh</span>
               </button>
 
               <button

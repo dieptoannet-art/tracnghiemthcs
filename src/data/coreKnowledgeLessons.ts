@@ -118,13 +118,42 @@ export const TIN_ALL_IDS = new Set<string>([
   ...Array.from(TIN9_IDS)
 ]);
 
-/** Toàn bộ các ID Toán 6–9 (283 mục) và Tin học 6–9 (75 mục) có hỗ trợ cầu nối lịch sử Supabase (358 mục) */
+/** Tập hợp 55 ID thuộc gói học liệu Khoa học tự nhiên 6 */
+export const KHTN6_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 6 && l.subjectCode === 'KHTN').map(l => l.id)
+);
+
+/** Tập hợp 42 ID thuộc gói học liệu Khoa học tự nhiên 7 */
+export const KHTN7_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 7 && l.subjectCode === 'KHTN').map(l => l.id)
+);
+
+/** Tập hợp 47 ID thuộc gói học liệu Khoa học tự nhiên 8 */
+export const KHTN8_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 8 && l.subjectCode === 'KHTN').map(l => l.id)
+);
+
+/** Tập hợp 51 ID thuộc gói học liệu Khoa học tự nhiên 9 */
+export const KHTN9_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 9 && l.subjectCode === 'KHTN').map(l => l.id)
+);
+
+/** Toàn bộ 195 ID Khoa học tự nhiên (Khối 6, 7, 8, 9) có hỗ trợ cầu nối lịch sử Supabase */
+export const KHTN_ALL_IDS = new Set<string>([
+  ...Array.from(KHTN6_IDS),
+  ...Array.from(KHTN7_IDS),
+  ...Array.from(KHTN8_IDS),
+  ...Array.from(KHTN9_IDS)
+]);
+
+/** Toàn bộ các ID Toán 6–9 (283 mục), Tin học 6–9 (75 mục) và Khoa học tự nhiên 6–9 (195 mục) có hỗ trợ cầu nối lịch sử Supabase (553 mục) */
 export const SUPPORTED_BRIDGE_LESSON_IDS = new Set<string>([
   ...Array.from(TOAN6_ALL_IDS),
   ...Array.from(TOAN7_ALL_IDS),
   ...Array.from(TOAN8_ALL_IDS),
   ...Array.from(TOAN9_ALL_IDS),
-  ...Array.from(TIN_ALL_IDS)
+  ...Array.from(TIN_ALL_IDS),
+  ...Array.from(KHTN_ALL_IDS)
 ]);
 
 /** Khối lớp hỗ trợ theo dữ liệu: 6, 7, 8, 9 */
