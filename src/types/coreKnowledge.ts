@@ -24,6 +24,7 @@ export interface CoreKnowledgeLesson {
   branch?: string | null;
   lessonCode?: string | null;
   previousHtmlUrl?: string | null;
+  contentVersion?: string | null;
 }
 
 export interface CoreKnowledgeGroup {

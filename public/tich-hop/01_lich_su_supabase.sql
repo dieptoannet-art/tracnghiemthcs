@@ -1,0 +1,218 @@
+-- Separate practice history from the application's exam grades.
+begin;
+create table if not exists public.edu_lesson_attempts (
+  learner_id uuid not null references auth.users(id) on delete cascade,
+  lesson_id text not null,
+  attempt_id uuid not null,
+  revision integer not null check (revision > 0),
+  updated_at timestamptz not null default now(),
+  payload jsonb not null,
+  primary key (learner_id, lesson_id, attempt_id)
+);
+alter table public.edu_lesson_attempts enable row level security;
+revoke all on table public.edu_lesson_attempts from public, anon, authenticated;
+grant select on table public.edu_lesson_attempts to authenticated;
+drop policy if exists edu_lesson_attempts_read_own on public.edu_lesson_attempts;
+create policy edu_lesson_attempts_read_own on public.edu_lesson_attempts
+  for select to authenticated using ((select auth.uid()) = learner_id);
+
+create table if not exists public.edu_lesson_history_catalog (lesson_id text primary key);
+alter table public.edu_lesson_history_catalog enable row level security;
+revoke all on table public.edu_lesson_history_catalog from public, anon, authenticated;
+insert into public.edu_lesson_history_catalog (lesson_id) values
+  ('toan_6_c1_b1'),
+  ('toan_6_c1_b2'),
+  ('toan_6_c1_b3'),
+  ('toan_6_c1_b4'),
+  ('toan_6_c1_b5'),
+  ('toan_6_c1_b6'),
+  ('toan_6_c1_b7'),
+  ('toan_6_c1_bt1'),
+  ('toan_6_c1_lt1'),
+  ('toan_6_c1_lt2'),
+  ('toan_6_c2_b10'),
+  ('toan_6_c2_b11'),
+  ('toan_6_c2_b12'),
+  ('toan_6_c2_b8'),
+  ('toan_6_c2_b9'),
+  ('toan_6_c2_bt1'),
+  ('toan_6_c2_lt1'),
+  ('toan_6_c2_lt2'),
+  ('toan_6_c3_b13'),
+  ('toan_6_c3_b14'),
+  ('toan_6_c3_b15'),
+  ('toan_6_c3_b16'),
+  ('toan_6_c3_b17'),
+  ('toan_6_c3_bt1'),
+  ('toan_6_c3_lt1'),
+  ('toan_6_c3_lt2'),
+  ('toan_6_c4_b18'),
+  ('toan_6_c4_b19'),
+  ('toan_6_c4_b20'),
+  ('toan_6_c4_bt1'),
+  ('toan_6_c4_lt1'),
+  ('toan_6_c5_b21'),
+  ('toan_6_c5_b22'),
+  ('toan_6_c5_bt1'),
+  ('toan_6_c5_lt1'),
+  ('toan_6_c6_b23'),
+  ('toan_6_c6_b24'),
+  ('toan_6_c6_b25'),
+  ('toan_6_c6_b26'),
+  ('toan_6_c6_b27'),
+  ('toan_6_c6_bt1'),
+  ('toan_6_c6_lt1'),
+  ('toan_6_c6_lt2'),
+  ('toan_6_c7_b28'),
+  ('toan_6_c7_b29'),
+  ('toan_6_c7_b30'),
+  ('toan_6_c7_b31'),
+  ('toan_6_c7_bt1'),
+  ('toan_6_c7_lt1'),
+  ('toan_6_c8_b32'),
+  ('toan_6_c8_b33'),
+  ('toan_6_c8_b34'),
+  ('toan_6_c8_b35'),
+  ('toan_6_c8_b36'),
+  ('toan_6_c8_b37'),
+  ('toan_6_c8_bt1'),
+  ('toan_6_c8_lt1'),
+  ('toan_6_c8_lt2'),
+  ('toan_6_c9_b38'),
+  ('toan_6_c9_b39'),
+  ('toan_6_c9_b40'),
+  ('toan_6_c9_b41'),
+  ('toan_6_c9_b42'),
+  ('toan_6_c9_b43'),
+  ('toan_6_c9_bt1'),
+  ('toan_6_c9_lt1'),
+  ('toan_6_c9_lt2'),
+  ('toan_6_hdtn_t1_hd1'),
+  ('toan_6_hdtn_t1_hd2'),
+  ('toan_6_hdtn_t1_hd3'),
+  ('toan_6_hdtn_t2_hd1'),
+  ('toan_6_hdtn_t2_hd2'),
+  ('toan_6_hdtn_t2_hd3'),
+  ('toan_6_hdtn_t2_on1'),
+  ('toan_7_c10_b36'),
+  ('toan_7_c10_b37'),
+  ('toan_7_c10_bt1'),
+  ('toan_7_c10_lt1'),
+  ('toan_7_c10_lt2'),
+  ('toan_7_c1_b1'),
+  ('toan_7_c1_b2'),
+  ('toan_7_c1_b3'),
+  ('toan_7_c1_b4'),
+  ('toan_7_c1_bt1'),
+  ('toan_7_c1_lt1'),
+  ('toan_7_c1_lt2'),
+  ('toan_7_c2_b5'),
+  ('toan_7_c2_b6'),
+  ('toan_7_c2_b7'),
+  ('toan_7_c2_bt1'),
+  ('toan_7_c2_lt1'),
+  ('toan_7_c3_b10'),
+  ('toan_7_c3_b11'),
+  ('toan_7_c3_b8'),
+  ('toan_7_c3_b9'),
+  ('toan_7_c3_bt1'),
+  ('toan_7_c3_lt1'),
+  ('toan_7_c3_lt2'),
+  ('toan_7_c4_b12'),
+  ('toan_7_c4_b13'),
+  ('toan_7_c4_b14'),
+  ('toan_7_c4_b15'),
+  ('toan_7_c4_b16'),
+  ('toan_7_c4_bt1'),
+  ('toan_7_c4_lt1'),
+  ('toan_7_c4_lt2'),
+  ('toan_7_c4_lt3'),
+  ('toan_7_c5_b17'),
+  ('toan_7_c5_b18'),
+  ('toan_7_c5_b19'),
+  ('toan_7_c5_bt1'),
+  ('toan_7_c5_lt1'),
+  ('toan_7_c6_b20'),
+  ('toan_7_c6_b21'),
+  ('toan_7_c6_b22'),
+  ('toan_7_c6_b23'),
+  ('toan_7_c6_bt1'),
+  ('toan_7_c6_lt1'),
+  ('toan_7_c6_lt2'),
+  ('toan_7_c7_b24'),
+  ('toan_7_c7_b25'),
+  ('toan_7_c7_b26'),
+  ('toan_7_c7_b27'),
+  ('toan_7_c7_b28'),
+  ('toan_7_c7_bt1'),
+  ('toan_7_c7_lt1'),
+  ('toan_7_c7_lt2'),
+  ('toan_7_c8_b29'),
+  ('toan_7_c8_b30'),
+  ('toan_7_c8_bt1'),
+  ('toan_7_c8_lt1'),
+  ('toan_7_c9_b31'),
+  ('toan_7_c9_b32'),
+  ('toan_7_c9_b33'),
+  ('toan_7_c9_b34'),
+  ('toan_7_c9_b35'),
+  ('toan_7_c9_bt1'),
+  ('toan_7_c9_lt1'),
+  ('toan_7_c9_lt2'),
+  ('toan_7_hdtn_t1_hd1'),
+  ('toan_7_hdtn_t1_hd2'),
+  ('toan_7_hdtn_t2_hd1'),
+  ('toan_7_hdtn_t2_hd2'),
+  ('toan_7_hdtn_t2_hd3'),
+  ('toan_7_hdtn_t2_on1')
+on conflict do nothing;
+
+create or replace function public.edu_save_lesson_attempt(
+  p_expected_user uuid, p_lesson_id text, p_payload jsonb
+) returns integer
+language plpgsql security definer
+set search_path = ''
+as $$
+declare
+  v_user uuid := auth.uid();
+  v_attempt uuid;
+  v_revision integer;
+  v_saved integer;
+begin
+  if v_user is null or p_expected_user is distinct from v_user then
+    raise exception 'Account changed or not authenticated' using errcode='42501';
+  end if;
+  if p_lesson_id is null or p_payload is null or
+      not exists (select 1 from public.edu_lesson_history_catalog c where c.lesson_id=p_lesson_id)
+      or pg_catalog.jsonb_typeof(p_payload) is distinct from 'object'
+      or p_payload->>'lessonId' is distinct from p_lesson_id
+      or pg_catalog.octet_length(p_payload::text) > 160000
+      or pg_catalog.jsonb_typeof(p_payload->'events') is distinct from 'array'
+      or coalesce(p_payload->>'status','') not in ('in_progress','completed')
+  then raise exception 'Invalid lesson attempt' using errcode='22023';
+  end if;
+  v_attempt := (p_payload->>'id')::uuid;
+  v_revision := (p_payload->>'revision')::integer;
+  if v_attempt is null or v_revision is null or v_revision < 1
+    or pg_catalog.jsonb_array_length(p_payload->'events')>100
+  then raise exception 'Invalid attempt identity or revision' using errcode='22023';
+  end if;
+
+  insert into public.edu_lesson_attempts as existing
+    (learner_id,lesson_id,attempt_id,revision,payload)
+  values (v_user,p_lesson_id,v_attempt,v_revision,p_payload)
+  on conflict (learner_id,lesson_id,attempt_id) do update
+    set revision=excluded.revision, payload=excluded.payload, updated_at=pg_catalog.now()
+    where excluded.revision > existing.revision
+  returning revision into v_saved;
+
+  if v_saved is null then
+    select a.revision into v_saved from public.edu_lesson_attempts a
+    where a.learner_id=v_user and a.lesson_id=p_lesson_id and a.attempt_id=v_attempt;
+  end if;
+  return v_saved;
+end;
+$$;
+revoke all on function public.edu_save_lesson_attempt(uuid,text,jsonb) from public, anon;
+grant execute on function public.edu_save_lesson_attempt(uuid,text,jsonb) to authenticated;
+commit;

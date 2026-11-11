@@ -20,15 +20,27 @@ import {
 import {
   CORE_KNOWLEDGE_LESSONS,
   AVAILABLE_GRADES,
+  TOAN6_TAP1_IDS,
+  TOAN6_TAP2_IDS,
+  TOAN6_ALL_IDS,
+  TOAN7_TAP1_IDS,
+  TOAN7_TAP2_IDS,
+  TOAN7_ALL_IDS,
+  SUPPORTED_BRIDGE_LESSON_IDS,
   getSubjectsByGrade,
   getGroupsByGradeAndSubject,
   getLessonsByGroup,
   getCoreKnowledgeLessonById
 } from '../../data/coreKnowledgeLessons';
+import { useApp } from '../../context/AppContext';
+import { supabase } from '../../lib/supabase';
+import { mountLessonHistoryBridge } from '../../lib/lessonHistoryBridge';
 
 const RECENT_VIEW_KEY = 'taydo_last_viewed_core_lesson';
 
 export const CoreKnowledgeView: React.FC = () => {
+  const { user } = useApp();
+
   // 1. Bộ chọn 4 cấp phụ thuộc: Khối lớp -> Môn học -> Chương/Chủ đề -> Bài học
   // Mặc định ban đầu: Khối 6, Môn Toán, Chương I, Bài 1 (để người dùng trải nghiệm ngay bài học mẫu Toan_6_c1_b1.html đã sẵn sàng)
   const [selectedGrade, setSelectedGrade] = useState<number | ''>(6);
@@ -42,6 +54,8 @@ export const CoreKnowledgeView: React.FC = () => {
   const [iframeError, setIframeError] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const frameContainerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [bridgeStatus, setBridgeStatus] = useState<'idle' | 'connected' | 'offline_mode'>('idle');
 
   // Ghi nhận lịch sử bài học vừa mở gần nhất (chỉ lưu vết, không tính điểm/hoàn thành)
   const [recentView, setRecentView] = useState<{
@@ -252,6 +266,49 @@ export const CoreKnowledgeView: React.FC = () => {
     return () => document.removeEventListener('fullscreenchange', onFsChange);
   }, []);
 
+  // Cài đặt cầu nối đồng bộ lịch sử bài học với Supabase (Toán 6 & Toán 7)
+  useEffect(() => {
+    if (!activeLesson || !iframeRef.current) return;
+
+    // Kích hoạt với các ID bài học thuộc gói Toán 6 & Toán 7 và đường dẫn học liệu THCS
+    const isSupportedLesson =
+      SUPPORTED_BRIDGE_LESSON_IDS.has(activeLesson.id) &&
+      /^\/lessons\/lop-[6-9]\//.test(activeLesson.htmlUrl);
+
+    if (!isSupportedLesson) {
+      setBridgeStatus('idle');
+      return;
+    }
+
+    const userId = user?.id;
+    const isValidUuid = Boolean(
+      userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)
+    );
+
+    if (!isValidUuid) {
+      setBridgeStatus('offline_mode');
+      return;
+    }
+
+    try {
+      setBridgeStatus('connected');
+      const cleanup = mountLessonHistoryBridge({
+        iframe: iframeRef.current,
+        lessonId: activeLesson.id,
+        userId: userId!,
+        supabase
+      });
+
+      return () => {
+        cleanup();
+        setBridgeStatus('idle');
+      };
+    } catch (err) {
+      console.warn('Cầu nối Supabase lịch sử bài học tạm bỏ qua:', err);
+      setBridgeStatus('idle');
+    }
+  }, [activeLesson, user?.id]);
+
   const formatTimeAgo = (isoString: string) => {
     try {
       const d = new Date(isoString);
@@ -337,8 +394,25 @@ export const CoreKnowledgeView: React.FC = () => {
               </div>
             </div>
 
-            {/* Các tiện ích: Toàn màn hình & Mở tab mới */}
+            {/* Các tiện ích: Trạng thái đồng bộ Supabase, Toàn màn hình & Mở tab mới */}
             <div className="flex items-center space-x-2 shrink-0">
+              {SUPPORTED_BRIDGE_LESSON_IDS.has(activeLesson.id) && (
+                <>
+                  {bridgeStatus === 'connected' && (
+                    <span className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 rounded-xl text-xs font-semibold">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                      <span>Đồng bộ Supabase ({user?.email?.split('@')[0] || 'Đã kết nối'})</span>
+                    </span>
+                  )}
+                  {bridgeStatus === 'offline_mode' && (
+                    <span className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 bg-amber-500/20 text-amber-200 border border-amber-400/30 rounded-xl text-xs font-semibold">
+                      <Clock className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Lưu trên thiết bị (Đăng nhập để đồng bộ)</span>
+                    </span>
+                  )}
+                </>
+              )}
+
               <button
                 type="button"
                 onClick={handleToggleFullscreen}
@@ -415,6 +489,7 @@ export const CoreKnowledgeView: React.FC = () => {
               </div>
             ) : (
               <iframe
+                ref={iframeRef}
                 title={`Bài học: ${activeLesson.lessonLabel} - ${activeLesson.chapterLabel}`}
                 src={activeLesson.htmlUrl}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
@@ -751,14 +826,30 @@ export const CoreKnowledgeView: React.FC = () => {
           )}
 
           {/* Thông tin quy định danh mục & tích hợp học liệu */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-2">
-            <h5 className="font-bold text-[#082B52] flex items-center space-x-1.5">
-              <Info className="w-4 h-4 text-[#006BFF]" />
-              <span>Quy tắc vận hành Danh mục Kiến thức trọng tâm:</span>
-            </h5>
-            <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-600 pl-1 leading-relaxed">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+              <h5 className="font-bold text-[#082B52] flex items-center space-x-1.5">
+                <Info className="w-4 h-4 text-[#006BFF]" />
+                <span>Quy tắc vận hành & Tích hợp Lịch sử Supabase (Toán 6 Tập 1):</span>
+              </h5>
+              <div className="flex items-center space-x-2">
+                <a
+                  href="/tich-hop/01_lich_su_supabase.sql"
+                  download="01_lich_su_supabase.sql"
+                  className="inline-flex items-center space-x-1 px-3 py-1 bg-white hover:bg-blue-50 text-[#006BFF] border border-[#DCE8F7] hover:border-blue-400 rounded-lg text-[11px] font-bold shadow-2xs transition-colors"
+                  title="Tải tệp SQL migration để chạy trong Supabase SQL Editor"
+                >
+                  <span>⬇ Tải 01_lich_su_supabase.sql</span>
+                </a>
+              </div>
+            </div>
+
+            <ul className="list-disc list-inside space-y-1.5 text-[11px] text-slate-600 pl-1 leading-relaxed">
               <li>
-                <strong>Nguồn dữ liệu chuẩn:</strong> Toàn bộ 458 bài học thuộc 10 sách giáo khoa GDPT 2018 (Toán 6, 7, 9; Tin học 6, 7, 9; Khoa học tự nhiên 6, 7, 8, 9).
+                <strong>Nguồn danh mục chuẩn:</strong> Toàn bộ 458 bài học thuộc 10 sách giáo khoa GDPT 2018 (Toán 6, 7, 9; Tin học 6, 7, 9; Khoa học tự nhiên 6, 7, 8, 9).
+              </li>
+              <li>
+                <strong>Cầu nối lịch sử học tập (Toán 6 Tập 1):</strong> Tự động kích hoạt khi học sinh đăng nhập. Dữ liệu tiến độ, câu trả lời, gợi ý và điểm số được lưu vào bảng <code>edu_lesson_attempts</code> thông qua RPC <code>edu_save_lesson_attempt</code>. Nếu chưa đăng nhập, bài học hoạt động độc lập và lưu cục bộ trên trình duyệt.
               </li>
               <li>
                 <strong>Cấu trúc học liệu:</strong> <code>public/lessons/lop-&#123;khối&#125;/&#123;môn&#125;/&#123;chương-hoặc-chủ-đề&#125;/&#123;bài&#125;/index.html</code> (mỗi bài có thư mục độc lập chứa index.html và tài nguyên).
@@ -767,10 +858,10 @@ export const CoreKnowledgeView: React.FC = () => {
                 <strong>Đường dẫn truy cập web:</strong> <code>/lessons/lop-6/toan/chuong-01/bai-01/index.html</code> (tuyệt đối không chứa tiền tố <code>/public</code>).
               </li>
               <li>
-                <strong>Học liệu sẵn sàng:</strong> Hiện tại có 2 bài học thực tế sẵn sàng hoạt động độc lập là Bài 1 Toán 6 (Tập hợp) và Bài 23 Toán 6 (Mở rộng khái niệm phân số. Phân số bằng nhau).
+                <strong>Học liệu sẵn sàng trực tiếp:</strong> Hệ thống tự động nhận diện các tệp bài học HTML có sẵn trên đĩa (Toán 6 Bài 1, Bài 23; Toán 9 Bài 1, Bài 2, Bài 3). Khi sao chép các tệp còn lại vào <code>public/lessons/</code>, hệ thống tự động mở nút "Vào học".
               </li>
               <li>
-                <strong>Bảo toàn nguyên bản:</strong> Hệ thống giữ nguyên 100% mã nguồn HTML, KaTeX toán học, CSS, tương tác JavaScript thông qua iframe độc lập.
+                <strong>Bảo toàn nguyên bản:</strong> Giữ nguyên 100% mã nguồn HTML, KaTeX toán học, CSS, tương tác JavaScript thông qua iframe độc lập cùng origin.
               </li>
             </ul>
           </div>

@@ -4,10 +4,36 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import {defineConfig, Plugin} from 'vite';
 
+function syncAvailableLessons() {
+  try {
+    const lessonsDir = path.join(process.cwd(), 'public', 'lessons');
+    const urls: string[] = [];
+    function scan(dir: string) {
+      if (!fs.existsSync(dir)) return;
+      for (const file of fs.readdirSync(dir)) {
+        const full = path.join(dir, file);
+        if (fs.statSync(full).isDirectory()) {
+          scan(full);
+        } else if (file === 'index.html' || file.endsWith('.html')) {
+          const rel = path.relative(path.join(process.cwd(), 'public'), full).replace(/\\/g, '/');
+          urls.push('/' + rel);
+        }
+      }
+    }
+    scan(lessonsDir);
+    const target = path.join(process.cwd(), 'src', 'data', 'availableLessonPaths.json');
+    fs.writeFileSync(target, JSON.stringify(urls, null, 2));
+  } catch (_) {}
+}
+
 function serveLessonsPlugin(): Plugin {
   return {
     name: 'serve-lessons-static',
+    buildStart() {
+      syncAvailableLessons();
+    },
     configureServer(server) {
+      syncAvailableLessons();
       server.middlewares.use((req, res, next) => {
         const rawUrl = req.url ? req.url.split('?')[0] : '';
         if (rawUrl.startsWith('/lessons/')) {

@@ -1,28 +1,23 @@
 import rawCatalogData from './catalog_kien_thuc_trong_tam.json';
+import availableLessonPaths from './availableLessonPaths.json';
 import { CoreKnowledgeLesson, CoreKnowledgeGroup, CoreKnowledgeStatus } from '../types/coreKnowledge';
 
 /**
  * Danh mục tập trung KIẾN THỨC TRỌNG TÂM
- * Nguồn dữ liệu duy nhất: catalog_kien_thuc_trong_tam.json (458 mục chuẩn hoá)
- * Bao gồm:
- * - Toán 6 (Tập 1 & 2), Toán 7 (Tập 1 & 2), Toán 9 (Tập 1 & 2)
- * - Tin học 6, Tin học 7, Tin học 9 (gồm cả 2 nhánh a/b)
- * - Khoa học tự nhiên 6, 7, 8, 9 (gồm nhóm Mở đầu đứng trước Chương I)
+ * Nguồn dữ liệu: catalog_kien_thuc_trong_tam.json (458 mục chuẩn hoá)
+ * Tích hợp Toán 6 (Tập 1 & 2), Toán 7 (Tập 1 & 2), Toán 9 (Tập 1 & 2), Tin học 6, 7, 9, KHTN 6, 7, 8, 9
  *
  * Quy tắc:
- * - Không sửa tên bài, không tự bịa thêm lớp/môn/chương/bài.
- * - Chỉ đánh dấu 'ready' khi file HTML thực sự có sẵn trong public/lessons/.
- * - Hiện tại có 2 bài học thực tế sẵn sàng:
- *   1. /lessons/lop-6/toan/chuong-01/bai-01/index.html (toan_6_c1_b1)
- *   2. /lessons/lop-6/toan/chuong-06/bai-23/index.html (toan_6_c6_b23)
- * - Tất cả các bài còn lại giữ nguyên trạng thái 'pending_upload' (Đang cập nhật).
+ * - Chỉ đánh dấu 'ready' khi file HTML thực sự có sẵn và kiểm tra được trong public/lessons/.
+ * - Tự động đồng bộ với danh sách availableLessonPaths.json.
  */
 
 const RAW_LIST = rawCatalogData as Array<Omit<CoreKnowledgeLesson, 'status'> & { status?: string }>;
+const availableSet = new Set(availableLessonPaths as string[]);
 
 export const CORE_KNOWLEDGE_LESSONS: CoreKnowledgeLesson[] = RAW_LIST.map(item => {
   // Chỉ các bài có file HTML thực tế được đánh dấu ready
-  const isReady = item.id === 'toan_6_c1_b1' || item.id === 'toan_6_c6_b23';
+  const isReady = availableSet.has(item.htmlUrl);
   const status: CoreKnowledgeStatus = isReady ? 'ready' : 'pending_upload';
 
   return {
@@ -30,6 +25,44 @@ export const CORE_KNOWLEDGE_LESSONS: CoreKnowledgeLesson[] = RAW_LIST.map(item =
     status
   };
 });
+
+/** Tập hợp 38 ID thuộc gói học liệu Toán 6 Tập 1 */
+export const TOAN6_TAP1_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 6 && l.subjectCode === 'Toan' && l.volume === 1).map(l => l.id)
+);
+
+/** Tập hợp 36 ID thuộc gói học liệu Toán 6 Tập 2 */
+export const TOAN6_TAP2_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 6 && l.subjectCode === 'Toan' && l.volume === 2).map(l => l.id)
+);
+
+/** Toàn bộ 74 ID Toán 6 (Tập 1 & Tập 2) có hỗ trợ cầu nối lịch sử Supabase */
+export const TOAN6_ALL_IDS = new Set<string>([
+  ...Array.from(TOAN6_TAP1_IDS),
+  ...Array.from(TOAN6_TAP2_IDS)
+]);
+
+/** Tập hợp 35 ID thuộc gói học liệu Toán 7 Tập 1 */
+export const TOAN7_TAP1_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 7 && l.subjectCode === 'Toan' && l.volume === 1).map(l => l.id)
+);
+
+/** Tập hợp 36 ID thuộc gói học liệu Toán 7 Tập 2 */
+export const TOAN7_TAP2_IDS = new Set<string>(
+  RAW_LIST.filter(l => l.grade === 7 && l.subjectCode === 'Toan' && l.volume === 2).map(l => l.id)
+);
+
+/** Toàn bộ 71 ID Toán 7 (Tập 1 & Tập 2) có hỗ trợ cầu nối lịch sử Supabase */
+export const TOAN7_ALL_IDS = new Set<string>([
+  ...Array.from(TOAN7_TAP1_IDS),
+  ...Array.from(TOAN7_TAP2_IDS)
+]);
+
+/** Toàn bộ 145 ID Toán 6 (Tập 1, 2) và Toán 7 (Tập 1, 2) có hỗ trợ cầu nối lịch sử Supabase */
+export const SUPPORTED_BRIDGE_LESSON_IDS = new Set<string>([
+  ...Array.from(TOAN6_ALL_IDS),
+  ...Array.from(TOAN7_ALL_IDS)
+]);
 
 /** Khối lớp hỗ trợ theo dữ liệu: 6, 7, 8, 9 */
 export const AVAILABLE_GRADES: number[] = [6, 7, 8, 9];

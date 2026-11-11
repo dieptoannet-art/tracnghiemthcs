@@ -5,6 +5,16 @@ import { UserProfile, UserRole } from '../types';
 export const DEFAULT_SUPABASE_URL = 'https://hhtwbmzqjpbbhqoqpsse.supabase.co';
 export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_XkHTL_jwWOBKiEGDtJ4-1g_MEaxSdGb';
 
+export const normalizeSupabaseUrl = (url: string): string => {
+  if (!url) return '';
+  let cleaned = url.trim();
+  // Tự động sửa lỗi gõ thiếu chữ 'p' trong mã dự án THCS Tây Đô (hqoqsse -> hqoqpsse)
+  if (cleaned.includes('hhtwbmzqjpbbhqoqsse.supabase.co')) {
+    cleaned = cleaned.replace('hhtwbmzqjpbbhqoqsse.supabase.co', 'hhtwbmzqjpbbhqoqpsse.supabase.co');
+  }
+  return cleaned;
+};
+
 // Read from localStorage (if user updated in guide modal), or Vite env, or fallback to default
 const getStoredConfig = () => {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -13,7 +23,7 @@ const getStoredConfig = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.url && parsed.anonKey) {
-          return { url: parsed.url.trim(), key: parsed.anonKey.trim() };
+          return { url: normalizeSupabaseUrl(parsed.url), key: parsed.anonKey.trim() };
         }
       }
     } catch {
@@ -25,12 +35,12 @@ const getStoredConfig = () => {
 
 const storedConfig = getStoredConfig();
 
-const rawUrl = (
+const rawUrl = normalizeSupabaseUrl(
   storedConfig?.url ||
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
   (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL) ||
   DEFAULT_SUPABASE_URL
-).trim();
+);
 
 const rawKey = (
   storedConfig?.key ||
@@ -68,7 +78,7 @@ export let supabase = createClient(
  * Cập nhật cấu hình Supabase URL & Key ngay lập tức tại runtime
  */
 export function updateSupabaseCredentials(newUrl: string, newKey: string) {
-  const cleanUrl = newUrl.trim();
+  const cleanUrl = normalizeSupabaseUrl(newUrl);
   const cleanKey = newKey.trim();
 
   SUPABASE_URL = cleanUrl;
@@ -124,8 +134,8 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
   isPausedOrDnsError?: boolean;
   helpGuidance?: string;
 }> {
-  const targetUrl = customUrl?.trim() || SUPABASE_URL;
-  const targetKey = customKey?.trim() || SUPABASE_ANON_KEY;
+  const targetUrl = normalizeSupabaseUrl(customUrl || SUPABASE_URL);
+  const targetKey = (customKey || SUPABASE_ANON_KEY).trim();
 
   const isTargetValid = Boolean(
     targetUrl &&

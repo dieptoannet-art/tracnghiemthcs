@@ -1,0 +1,18 @@
+TÍCH HỢP 38 BÀI TỰ HỌC TOÁN 6 TẬP MỘT VÀO TÂY ĐÔ SMART EDU
+
+Làm trong dự án đang mở. Dùng bộ tệp đã giải nén:
+- public/lessons/lop-6/toan/: 38 file index.html có CSS, JavaScript và dữ liệu từng bài.
+- catalog_toan6_tap1.json: 38 bản ghi giữ ID của danh mục hiện tại.
+- tich-hop/lessonHistoryBridge.mjs: cầu nối lịch sử của bài nhúng với Supabase.
+- tich-hop/01_lich_su_supabase.sql: migration cho lịch sử từng người học.
+
+1. Kiểm tra nguồn danh mục Kiến thức trọng tâm đang dùng. Chỉ cập nhật 38 bản ghi Toán 6 tập một theo id, hoặc thêm bản ghi nếu thiếu. Giữ các môn, tập và khối còn lại. Lấy htmlUrl từ danh mục, ví dụ Bài 1 là /lessons/lop-6/toan/chuong-01/bai-01/index.html. Đường dẫn truy cập không có public.
+2. Sao chép các file HTML vào cùng cây public/lessons hiện hữu. Giữ cấu trúc bài, mục luyện tập, bài tập cuối chương và trải nghiệm. Nếu môi trường này không truy cập được file HTML, ghi rõ đường dẫn cần tôi sao chép trên GitHub Desktop. Chỉ đánh dấu ready sau khi xác minh file có nội dung bài và chạy được. Không tạo tệp thay thế.
+3. Dùng khung đọc hiện tại. Học sinh chọn khối, môn, chương, bài và bấm Vào học. Website hiển thị iframe rộng 100%, có chiều cao đọc phù hợp, tiêu đề truy cập, nút quay lại, toàn màn hình và mở riêng. Khi quay lại, giữ bộ lọc. Với tệp học liệu do tôi cung cấp, iframe chạy JavaScript cùng origin và cho tải lịch sử. Dùng URL HTTPS cùng origin của website, không dùng GitHub Raw. Kiểm tra Vercel phục vụ tệp tĩnh trước quy tắc SPA trả về trang chủ.
+4. Cài cầu nối vào mã nguồn ứng dụng, chẳng hạn src/lib/lessonHistoryBridge.mjs. Gọi mountLessonHistoryBridge({iframe, lessonId, userId, supabase}) sau khi iframe gắn vào DOM, với id bài từ danh mục, userId của tài khoản Supabase Auth đang đăng nhập và client Supabase hiện có. Gọi hàm cleanup trả về khi đổi bài, đổi tài khoản hoặc tháo iframe. Chỉ gắn với các ID trong catalog_toan6_tap1.json và iframe của gói này. Không gửi token, khoá bí mật hoặc thông tin đăng nhập vào iframe.
+5. Nếu có quyền chạy SQL theo cấu hình dự án thì áp dụng migration. Nếu không, hướng dẫn tôi mở Supabase SQL Editor, dán và chạy 01_lich_su_supabase.sql. Dùng bảng edu_lesson_attempts và RPC edu_save_lesson_attempt. Mỗi lượt có một attempt_id riêng. Không viết trực tiếp vào bảng, không gom nhiều lượt thành một dòng, không đưa điểm luyện vào bảng điểm kiểm tra. Bản ghi ràng buộc theo tài khoản. Dữ liệu dùng cho tự học và quan sát quá trình.
+6. Khi học sinh đăng nhập và bridge được gắn, tải các lượt của riêng tài khoản. Lưu câu trả lời, mã lỗi, gợi ý, quan sát, kết quả câu mới, điểm cuối bài và vị trí đang làm. Nếu mất mạng, giữ bản trên trình duyệt và đồng bộ lại khi có mạng hoặc khi học sinh bấm Đồng bộ lại. Khi chưa đăng nhập, bài vẫn có chế độ dùng mã trên thiết bị. Hai chế độ có lịch sử riêng.
+7. Nếu menu lấy từ bảng kttt_catalog, ánh xạ cột html_url và status theo nguồn thực tế. Cập nhật URL theo ID sau khi file thật đã triển khai. Giữ thông tin SGK và không xoá bản ghi ngoài phạm vi 38 bài.
+8. Kiểm tra bằng hai tài khoản thử: mở đúng bài từ menu, làm sai rồi nhận gợi ý, trả lời câu mới, tải lại để tiếp tục, nộp bài, bắt đầu lượt mới, xem hai lượt riêng và kiểm tra tài khoản thứ hai không đọc được lịch sử tài khoản thứ nhất. Mở lại cùng tài khoản trên trình duyệt khác để xác nhận Supabase. Kiểm tra mobile và một bài hình học có mô hình. Báo rõ kết quả đã kiểm thử và bước tôi cần làm.
+
+Tôi muốn nhận phần triển khai chạy thật trong dự án, các file thay đổi và hướng dẫn cập nhật GitHub/Vercel.

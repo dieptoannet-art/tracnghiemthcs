@@ -19,10 +19,11 @@
     "sourcePage": 5,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/bai-01/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "1",
-    "previousHtmlUrl": "/lessons/Toan_6_c1_b1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_b1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_b2",
@@ -44,10 +45,11 @@
     "sourcePage": 9,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/bai-02/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "2",
-    "previousHtmlUrl": "/lessons/Toan_6_c1_b2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_b2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_b3",
@@ -69,10 +71,11 @@
     "sourcePage": 13,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/bai-03/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "3",
-    "previousHtmlUrl": "/lessons/Toan_6_c1_b3.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_b3.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_b4",
@@ -94,10 +97,11 @@
     "sourcePage": 15,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/bai-04/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "4",
-    "previousHtmlUrl": "/lessons/Toan_6_c1_b4.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_b4.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_b5",
@@ -119,10 +123,11 @@
     "sourcePage": 17,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/bai-05/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "5",
-    "previousHtmlUrl": "/lessons/Toan_6_c1_b5.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_b5.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_lt1",
@@ -144,10 +149,11 @@
     "sourcePage": 20,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/luyen-tap-01/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c1_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_b6",
@@ -169,10 +175,11 @@
     "sourcePage": 22,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/bai-06/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "6",
-    "previousHtmlUrl": "/lessons/Toan_6_c1_b6.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_b6.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_b7",
@@ -194,10 +201,11 @@
     "sourcePage": 25,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/bai-07/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "7",
-    "previousHtmlUrl": "/lessons/Toan_6_c1_b7.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_b7.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_lt2",
@@ -219,10 +227,11 @@
     "sourcePage": 27,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/luyen-tap-02/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c1_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c1_bt1",
@@ -244,10 +253,11 @@
     "sourcePage": 28,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-01/bai-tap-cuoi-chuong/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c1_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c1_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c2_b8",
@@ -269,10 +279,11 @@
     "sourcePage": 29,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-02/bai-08/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "8",
-    "previousHtmlUrl": "/lessons/Toan_6_c2_b8.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c2_b8.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c2_b9",
@@ -294,10 +305,11 @@
     "sourcePage": 34,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-02/bai-09/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "9",
-    "previousHtmlUrl": "/lessons/Toan_6_c2_b9.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c2_b9.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c2_b10",
@@ -319,10 +331,11 @@
     "sourcePage": 38,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-02/bai-10/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "10",
-    "previousHtmlUrl": "/lessons/Toan_6_c2_b10.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c2_b10.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c2_lt1",
@@ -344,10 +357,11 @@
     "sourcePage": 43,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-02/luyen-tap-01/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c2_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c2_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c2_b11",
@@ -369,10 +383,11 @@
     "sourcePage": 44,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-02/bai-11/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "11",
-    "previousHtmlUrl": "/lessons/Toan_6_c2_b11.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c2_b11.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c2_b12",
@@ -394,10 +409,11 @@
     "sourcePage": 49,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-02/bai-12/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "12",
-    "previousHtmlUrl": "/lessons/Toan_6_c2_b12.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c2_b12.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c2_lt2",
@@ -419,10 +435,11 @@
     "sourcePage": 54,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-02/luyen-tap-02/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c2_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c2_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c2_bt1",
@@ -444,10 +461,11 @@
     "sourcePage": 56,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-02/bai-tap-cuoi-chuong/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c2_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c2_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c3_b13",
@@ -469,10 +487,11 @@
     "sourcePage": 57,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-03/bai-13/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "13",
-    "previousHtmlUrl": "/lessons/Toan_6_c3_b13.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c3_b13.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c3_b14",
@@ -494,10 +513,11 @@
     "sourcePage": 62,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-03/bai-14/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "14",
-    "previousHtmlUrl": "/lessons/Toan_6_c3_b14.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c3_b14.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c3_b15",
@@ -519,10 +539,11 @@
     "sourcePage": 67,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-03/bai-15/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "15",
-    "previousHtmlUrl": "/lessons/Toan_6_c3_b15.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c3_b15.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c3_lt1",
@@ -544,10 +565,11 @@
     "sourcePage": 69,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-03/luyen-tap-01/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c3_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c3_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c3_b16",
@@ -569,10 +591,11 @@
     "sourcePage": 70,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-03/bai-16/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "16",
-    "previousHtmlUrl": "/lessons/Toan_6_c3_b16.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c3_b16.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c3_b17",
@@ -594,10 +617,11 @@
     "sourcePage": 73,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-03/bai-17/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "17",
-    "previousHtmlUrl": "/lessons/Toan_6_c3_b17.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c3_b17.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c3_lt2",
@@ -619,10 +643,11 @@
     "sourcePage": 75,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-03/luyen-tap-02/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c3_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c3_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c3_bt1",
@@ -644,10 +669,11 @@
     "sourcePage": 76,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-03/bai-tap-cuoi-chuong/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c3_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c3_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c4_b18",
@@ -669,10 +695,11 @@
     "sourcePage": 77,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-04/bai-18/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "18",
-    "previousHtmlUrl": "/lessons/Toan_6_c4_b18.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c4_b18.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c4_b19",
@@ -694,10 +721,11 @@
     "sourcePage": 83,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-04/bai-19/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "19",
-    "previousHtmlUrl": "/lessons/Toan_6_c4_b19.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c4_b19.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c4_b20",
@@ -719,10 +747,11 @@
     "sourcePage": 90,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-04/bai-20/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "20",
-    "previousHtmlUrl": "/lessons/Toan_6_c4_b20.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c4_b20.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c4_lt1",
@@ -744,10 +773,11 @@
     "sourcePage": 95,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-04/luyen-tap-01/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c4_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c4_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c4_bt1",
@@ -769,10 +799,11 @@
     "sourcePage": 97,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-04/bai-tap-cuoi-chuong/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c4_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c4_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c5_b21",
@@ -794,10 +825,11 @@
     "sourcePage": 98,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-05/bai-21/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "21",
-    "previousHtmlUrl": "/lessons/Toan_6_c5_b21.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c5_b21.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c5_b22",
@@ -819,10 +851,11 @@
     "sourcePage": 103,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-05/bai-22/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": "22",
-    "previousHtmlUrl": "/lessons/Toan_6_c5_b22.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c5_b22.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c5_lt1",
@@ -844,10 +877,11 @@
     "sourcePage": 108,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-05/luyen-tap-01/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c5_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c5_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c5_bt1",
@@ -869,10 +903,11 @@
     "sourcePage": 110,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/chuong-05/bai-tap-cuoi-chuong/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c5_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c5_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_hdtn_t1_hd1",
@@ -894,10 +929,11 @@
     "sourcePage": 111,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/trai-nghiem/tap-1/hoat-dong-01/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_hdtn_t1_hd2",
@@ -919,10 +955,11 @@
     "sourcePage": 113,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/trai-nghiem/tap-1/hoat-dong-02/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_hdtn_t1_hd3",
@@ -944,10 +981,11 @@
     "sourcePage": 119,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-6/toan/trai-nghiem/tap-1/hoat-dong-03/index.html",
-    "status": "pending_upload",
+    "status": "ready",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd3.html"
+    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd3.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c6_b23",
@@ -972,7 +1010,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "23",
-    "previousHtmlUrl": "/lessons/Toan_6_c6_b23.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c6_b23.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c6_b24",
@@ -997,7 +1036,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "24",
-    "previousHtmlUrl": "/lessons/Toan_6_c6_b24.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c6_b24.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c6_lt1",
@@ -1022,7 +1062,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c6_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c6_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c6_b25",
@@ -1047,7 +1088,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "25",
-    "previousHtmlUrl": "/lessons/Toan_6_c6_b25.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c6_b25.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c6_b26",
@@ -1072,7 +1114,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "26",
-    "previousHtmlUrl": "/lessons/Toan_6_c6_b26.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c6_b26.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c6_b27",
@@ -1097,7 +1140,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "27",
-    "previousHtmlUrl": "/lessons/Toan_6_c6_b27.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c6_b27.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c6_lt2",
@@ -1122,7 +1166,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c6_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c6_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c6_bt1",
@@ -1147,7 +1192,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c6_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c6_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c7_b28",
@@ -1172,7 +1218,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "28",
-    "previousHtmlUrl": "/lessons/Toan_6_c7_b28.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c7_b28.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c7_b29",
@@ -1197,7 +1244,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "29",
-    "previousHtmlUrl": "/lessons/Toan_6_c7_b29.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c7_b29.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c7_b30",
@@ -1222,7 +1270,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "30",
-    "previousHtmlUrl": "/lessons/Toan_6_c7_b30.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c7_b30.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c7_b31",
@@ -1247,7 +1296,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "31",
-    "previousHtmlUrl": "/lessons/Toan_6_c7_b31.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c7_b31.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c7_lt1",
@@ -1272,7 +1322,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c7_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c7_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c7_bt1",
@@ -1297,7 +1348,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c7_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c7_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_b32",
@@ -1322,7 +1374,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "32",
-    "previousHtmlUrl": "/lessons/Toan_6_c8_b32.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_b32.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_b33",
@@ -1347,7 +1400,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "33",
-    "previousHtmlUrl": "/lessons/Toan_6_c8_b33.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_b33.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_b34",
@@ -1372,7 +1426,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "34",
-    "previousHtmlUrl": "/lessons/Toan_6_c8_b34.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_b34.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_b35",
@@ -1397,7 +1452,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "35",
-    "previousHtmlUrl": "/lessons/Toan_6_c8_b35.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_b35.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_lt1",
@@ -1422,7 +1478,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c8_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_b36",
@@ -1447,7 +1504,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "36",
-    "previousHtmlUrl": "/lessons/Toan_6_c8_b36.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_b36.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_b37",
@@ -1472,7 +1530,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "37",
-    "previousHtmlUrl": "/lessons/Toan_6_c8_b37.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_b37.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_lt2",
@@ -1497,7 +1556,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c8_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c8_bt1",
@@ -1522,7 +1582,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c8_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c8_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_b38",
@@ -1547,7 +1608,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "38",
-    "previousHtmlUrl": "/lessons/Toan_6_c9_b38.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_b38.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_b39",
@@ -1572,7 +1634,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "39",
-    "previousHtmlUrl": "/lessons/Toan_6_c9_b39.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_b39.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_b40",
@@ -1597,7 +1660,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "40",
-    "previousHtmlUrl": "/lessons/Toan_6_c9_b40.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_b40.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_b41",
@@ -1622,7 +1686,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "41",
-    "previousHtmlUrl": "/lessons/Toan_6_c9_b41.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_b41.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_lt1",
@@ -1647,7 +1712,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c9_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_b42",
@@ -1672,7 +1738,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "42",
-    "previousHtmlUrl": "/lessons/Toan_6_c9_b42.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_b42.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_b43",
@@ -1697,7 +1764,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "43",
-    "previousHtmlUrl": "/lessons/Toan_6_c9_b43.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_b43.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_lt2",
@@ -1722,7 +1790,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c9_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_c9_bt1",
@@ -1747,7 +1816,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_c9_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_c9_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_hdtn_t2_hd1",
@@ -1772,7 +1842,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t2_hd1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t2_hd1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_hdtn_t2_hd2",
@@ -1797,7 +1868,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t2_hd2.html"
+    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t2_hd2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_hdtn_t2_hd3",
@@ -1822,7 +1894,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t2_hd3.html"
+    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t2_hd3.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_6_hdtn_t2_on1",
@@ -1847,7 +1920,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t2_on1.html"
+    "previousHtmlUrl": "/lessons/Toan_6_hdtn_t2_on1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c1_b1",
@@ -1872,7 +1946,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "1",
-    "previousHtmlUrl": "/lessons/Toan_7_c1_b1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c1_b1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c1_b2",
@@ -1897,7 +1972,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "2",
-    "previousHtmlUrl": "/lessons/Toan_7_c1_b2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c1_b2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c1_lt1",
@@ -1922,7 +1998,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c1_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c1_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c1_b3",
@@ -1947,7 +2024,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "3",
-    "previousHtmlUrl": "/lessons/Toan_7_c1_b3.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c1_b3.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c1_b4",
@@ -1972,7 +2050,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "4",
-    "previousHtmlUrl": "/lessons/Toan_7_c1_b4.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c1_b4.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c1_lt2",
@@ -1997,7 +2076,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c1_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c1_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c1_bt1",
@@ -2022,7 +2102,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c1_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c1_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c2_b5",
@@ -2047,7 +2128,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "5",
-    "previousHtmlUrl": "/lessons/Toan_7_c2_b5.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c2_b5.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c2_b6",
@@ -2072,7 +2154,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "6",
-    "previousHtmlUrl": "/lessons/Toan_7_c2_b6.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c2_b6.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c2_b7",
@@ -2097,7 +2180,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "7",
-    "previousHtmlUrl": "/lessons/Toan_7_c2_b7.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c2_b7.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c2_lt1",
@@ -2122,7 +2206,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c2_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c2_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c2_bt1",
@@ -2147,7 +2232,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c2_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c2_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c3_b8",
@@ -2172,7 +2258,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "8",
-    "previousHtmlUrl": "/lessons/Toan_7_c3_b8.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c3_b8.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c3_b9",
@@ -2197,7 +2284,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "9",
-    "previousHtmlUrl": "/lessons/Toan_7_c3_b9.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c3_b9.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c3_lt1",
@@ -2222,7 +2310,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c3_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c3_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c3_b10",
@@ -2247,7 +2336,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "10",
-    "previousHtmlUrl": "/lessons/Toan_7_c3_b10.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c3_b10.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c3_b11",
@@ -2272,7 +2362,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "11",
-    "previousHtmlUrl": "/lessons/Toan_7_c3_b11.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c3_b11.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c3_lt2",
@@ -2297,7 +2388,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c3_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c3_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c3_bt1",
@@ -2322,7 +2414,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c3_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c3_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_b12",
@@ -2347,7 +2440,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "12",
-    "previousHtmlUrl": "/lessons/Toan_7_c4_b12.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_b12.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_b13",
@@ -2372,7 +2466,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "13",
-    "previousHtmlUrl": "/lessons/Toan_7_c4_b13.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_b13.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_lt1",
@@ -2397,7 +2492,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c4_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_b14",
@@ -2422,7 +2518,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "14",
-    "previousHtmlUrl": "/lessons/Toan_7_c4_b14.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_b14.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_lt2",
@@ -2447,7 +2544,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c4_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_b15",
@@ -2472,7 +2570,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "15",
-    "previousHtmlUrl": "/lessons/Toan_7_c4_b15.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_b15.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_b16",
@@ -2497,7 +2596,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "16",
-    "previousHtmlUrl": "/lessons/Toan_7_c4_b16.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_b16.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_lt3",
@@ -2522,7 +2622,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c4_lt3.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_lt3.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c4_bt1",
@@ -2547,7 +2648,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c4_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c4_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c5_b17",
@@ -2572,7 +2674,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "17",
-    "previousHtmlUrl": "/lessons/Toan_7_c5_b17.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c5_b17.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c5_b18",
@@ -2591,13 +2694,14 @@
     "itemType": "lesson",
     "sortOrder": 2,
     "sourceFile": "07-sgk-toan-7-tap-mot.pdf",
-    "sourcePage": 92,
+    "sourcePage": 93,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-7/toan/chuong-05/bai-18/index.html",
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "18",
-    "previousHtmlUrl": "/lessons/Toan_7_c5_b18.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c5_b18.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c5_b19",
@@ -2622,7 +2726,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "19",
-    "previousHtmlUrl": "/lessons/Toan_7_c5_b19.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c5_b19.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c5_lt1",
@@ -2647,7 +2752,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c5_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c5_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c5_bt1",
@@ -2672,7 +2778,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c5_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c5_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_hdtn_t1_hd1",
@@ -2697,7 +2804,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t1_hd1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t1_hd1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_hdtn_t1_hd2",
@@ -2722,7 +2830,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t1_hd2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t1_hd2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c6_b20",
@@ -2747,7 +2856,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "20",
-    "previousHtmlUrl": "/lessons/Toan_7_c6_b20.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c6_b20.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c6_b21",
@@ -2772,7 +2882,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "21",
-    "previousHtmlUrl": "/lessons/Toan_7_c6_b21.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c6_b21.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c6_lt1",
@@ -2797,7 +2908,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c6_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c6_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c6_b22",
@@ -2822,7 +2934,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "22",
-    "previousHtmlUrl": "/lessons/Toan_7_c6_b22.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c6_b22.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c6_b23",
@@ -2847,7 +2960,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "23",
-    "previousHtmlUrl": "/lessons/Toan_7_c6_b23.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c6_b23.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c6_lt2",
@@ -2872,7 +2986,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c6_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c6_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c6_bt1",
@@ -2897,7 +3012,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c6_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c6_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c7_b24",
@@ -2922,7 +3038,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "24",
-    "previousHtmlUrl": "/lessons/Toan_7_c7_b24.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c7_b24.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c7_b25",
@@ -2947,7 +3064,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "25",
-    "previousHtmlUrl": "/lessons/Toan_7_c7_b25.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c7_b25.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c7_b26",
@@ -2972,7 +3090,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "26",
-    "previousHtmlUrl": "/lessons/Toan_7_c7_b26.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c7_b26.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c7_lt1",
@@ -2997,7 +3116,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c7_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c7_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c7_b27",
@@ -3022,7 +3142,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "27",
-    "previousHtmlUrl": "/lessons/Toan_7_c7_b27.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c7_b27.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c7_b28",
@@ -3047,7 +3168,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "28",
-    "previousHtmlUrl": "/lessons/Toan_7_c7_b28.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c7_b28.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c7_lt2",
@@ -3072,7 +3194,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c7_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c7_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c7_bt1",
@@ -3097,7 +3220,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c7_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c7_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c8_b29",
@@ -3122,7 +3246,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "29",
-    "previousHtmlUrl": "/lessons/Toan_7_c8_b29.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c8_b29.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c8_b30",
@@ -3147,7 +3272,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "30",
-    "previousHtmlUrl": "/lessons/Toan_7_c8_b30.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c8_b30.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c8_lt1",
@@ -3172,7 +3298,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c8_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c8_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c8_bt1",
@@ -3197,7 +3324,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c8_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c8_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c9_b31",
@@ -3222,7 +3350,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "31",
-    "previousHtmlUrl": "/lessons/Toan_7_c9_b31.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c9_b31.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c9_b32",
@@ -3241,13 +3370,14 @@
     "itemType": "lesson",
     "sortOrder": 2,
     "sourceFile": "07-sgk-toan-7-tap-hai.pdf",
-    "sourcePage": 62,
+    "sourcePage": 63,
     "htmlFile": "index.html",
     "htmlUrl": "/lessons/lop-7/toan/chuong-09/bai-32/index.html",
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "32",
-    "previousHtmlUrl": "/lessons/Toan_7_c9_b32.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c9_b32.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c9_b33",
@@ -3272,7 +3402,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "33",
-    "previousHtmlUrl": "/lessons/Toan_7_c9_b33.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c9_b33.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c9_lt1",
@@ -3297,7 +3428,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c9_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c9_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c9_b34",
@@ -3322,7 +3454,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "34",
-    "previousHtmlUrl": "/lessons/Toan_7_c9_b34.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c9_b34.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c9_b35",
@@ -3347,7 +3480,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "35",
-    "previousHtmlUrl": "/lessons/Toan_7_c9_b35.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c9_b35.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c9_lt2",
@@ -3372,7 +3506,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c9_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c9_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c9_bt1",
@@ -3397,7 +3532,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c9_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c9_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c10_b36",
@@ -3422,7 +3558,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "36",
-    "previousHtmlUrl": "/lessons/Toan_7_c10_b36.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c10_b36.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c10_lt1",
@@ -3436,8 +3573,8 @@
     "chapterTitle": "Một số hình khối trong thực tiễn",
     "chapterLabel": "Chương X. Một số hình khối trong thực tiễn",
     "lessonNumber": null,
-    "lessonTitle": "Luyện tập chung",
-    "lessonLabel": "Luyện tập chung",
+    "lessonTitle": "Luyện tập",
+    "lessonLabel": "Luyện tập",
     "itemType": "practice",
     "sortOrder": 2,
     "sourceFile": "07-sgk-toan-7-tap-hai.pdf",
@@ -3447,7 +3584,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c10_lt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c10_lt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c10_b37",
@@ -3472,7 +3610,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": "37",
-    "previousHtmlUrl": "/lessons/Toan_7_c10_b37.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c10_b37.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c10_lt2",
@@ -3486,8 +3625,8 @@
     "chapterTitle": "Một số hình khối trong thực tiễn",
     "chapterLabel": "Chương X. Một số hình khối trong thực tiễn",
     "lessonNumber": null,
-    "lessonTitle": "Luyện tập chung",
-    "lessonLabel": "Luyện tập chung",
+    "lessonTitle": "Luyện tập",
+    "lessonLabel": "Luyện tập",
     "itemType": "practice",
     "sortOrder": 4,
     "sourceFile": "07-sgk-toan-7-tap-hai.pdf",
@@ -3497,7 +3636,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c10_lt2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c10_lt2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_c10_bt1",
@@ -3522,7 +3662,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_c10_bt1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_c10_bt1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_hdtn_t2_hd1",
@@ -3547,7 +3688,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t2_hd1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t2_hd1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_hdtn_t2_hd2",
@@ -3572,7 +3714,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t2_hd2.html"
+    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t2_hd2.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_hdtn_t2_hd3",
@@ -3597,7 +3740,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t2_hd3.html"
+    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t2_hd3.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "toan_7_hdtn_t2_on1",
@@ -3622,7 +3766,8 @@
     "status": "pending_upload",
     "branch": null,
     "lessonCode": null,
-    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t2_on1.html"
+    "previousHtmlUrl": "/lessons/Toan_7_hdtn_t2_on1.html",
+    "contentVersion": "1.0"
   },
   {
     "id": "tin_6_cd1_b1",
