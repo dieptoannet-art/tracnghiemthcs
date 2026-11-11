@@ -1,8 +1,13 @@
 {
   "framework": "vite",
+  "cleanUrls": false,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/lessons/:path*",
+      "destination": "/lessons/:path*"
+    },
+    {
+      "source": "/((?!lessons/).*)",
       "destination": "/index.html"
     }
   ]

@@ -39,8 +39,8 @@ const rawKey = (
   DEFAULT_SUPABASE_ANON_KEY
 ).trim();
 
-export const SUPABASE_URL = rawUrl;
-export const SUPABASE_ANON_KEY = rawKey;
+export let SUPABASE_URL = rawUrl;
+export let SUPABASE_ANON_KEY = rawKey;
 
 // Check if valid URL and Key are provided
 export const isSupabaseConfigured = Boolean(
@@ -52,7 +52,7 @@ export const isSupabaseConfigured = Boolean(
 );
 
 // Create Supabase client instance
-export const supabase = createClient(
+export let supabase = createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
   {
@@ -65,6 +65,53 @@ export const supabase = createClient(
 );
 
 /**
+ * Cập nhật cấu hình Supabase URL & Key ngay lập tức tại runtime
+ */
+export function updateSupabaseCredentials(newUrl: string, newKey: string) {
+  const cleanUrl = newUrl.trim();
+  const cleanKey = newKey.trim();
+
+  SUPABASE_URL = cleanUrl;
+  SUPABASE_ANON_KEY = cleanKey;
+
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.setItem(
+      'taydo_supabase_config',
+      JSON.stringify({ url: cleanUrl, anonKey: cleanKey })
+    );
+  }
+
+  supabase = createClient(cleanUrl, cleanKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+
+  return supabase;
+}
+
+/**
+ * Đặt lại cấu hình Supabase về mặc định
+ */
+export function resetSupabaseCredentials() {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.removeItem('taydo_supabase_config');
+  }
+  SUPABASE_URL = DEFAULT_SUPABASE_URL;
+  SUPABASE_ANON_KEY = DEFAULT_SUPABASE_ANON_KEY;
+  supabase = createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+  return supabase;
+}
+
+/**
  * Test connectivity to the Supabase endpoint and distinguish Auth vs Database verification
  */
 export async function testSupabaseConnection(customUrl?: string, customKey?: string): Promise<{
@@ -74,6 +121,8 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
   authServiceAvailable?: boolean;
   authVerified?: boolean;
   dbVerified?: boolean;
+  isPausedOrDnsError?: boolean;
+  helpGuidance?: string;
 }> {
   const targetUrl = customUrl?.trim() || SUPABASE_URL;
   const targetKey = customKey?.trim() || SUPABASE_ANON_KEY;
@@ -99,17 +148,23 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
   let dbOk = false;
   let authServiceOk = false;
   let errors: string[] = [];
+  let isNetworkOrDns = false;
 
   // 1. Kiểm tra Cơ sở dữ liệu (REST API / CSDL)
   try {
     const pingUrl = `${targetUrl.replace(/\/$/, '')}/rest/v1/`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
     const res = await fetch(pingUrl, {
       method: 'GET',
       headers: {
         apikey: targetKey,
         Authorization: `Bearer ${targetKey}`,
       },
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     // 200: Open API spec / REST endpoint trả về thành công
     // 401 hoặc 404: Endpoint máy chủ phản hồi mã chuẩn Supabase
@@ -119,18 +174,29 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
       errors.push(`CSDL phản hồi mã: ${res.status}`);
     }
   } catch (err: any) {
-    errors.push(`Lỗi kết nối CSDL: ${err?.message || 'Mạng/CORS'}`);
+    const errMsg = err?.message || 'Mạng/CORS';
+    if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || err?.name === 'AbortError') {
+      isNetworkOrDns = true;
+      errors.push('Không thể kết nối tới máy chủ (Failed to fetch / Timeout)');
+    } else {
+      errors.push(`Lỗi kết nối CSDL: ${errMsg}`);
+    }
   }
 
   // 2. Kiểm tra Dịch vụ Xác thực Auth (Endpoint reachability)
   try {
     const authPingUrl = `${targetUrl.replace(/\/$/, '')}/auth/v1/settings`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
     const authRes = await fetch(authPingUrl, {
       method: 'GET',
       headers: {
         apikey: targetKey,
       },
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     if (authRes.ok || authRes.status === 200) {
       authServiceOk = true;
@@ -138,11 +204,16 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
       errors.push(`Dịch vụ Auth phản hồi mã: ${authRes.status}`);
     }
   } catch (err: any) {
-    errors.push(`Lỗi kết nối dịch vụ Auth: ${err?.message || 'Mạng/CORS'}`);
+    const errMsg = err?.message || 'Mạng/CORS';
+    if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || err?.name === 'AbortError') {
+      isNetworkOrDns = true;
+      errors.push('Dịch vụ Auth không phản hồi (Failed to fetch)');
+    } else {
+      errors.push(`Lỗi kết nối dịch vụ Auth: ${errMsg}`);
+    }
   }
 
   // 3. Kiểm tra bằng chứng xác thực thành công (Active User Session)
-  // Chỉ xác nhận Auth khi có bằng chứng phiên người dùng đăng nhập hợp lệ thực tế!
   let userAuthProof = false;
   try {
     const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
@@ -183,12 +254,19 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
       statusCode: 200
     };
   } else {
+    let guidance = '';
+    if (isNetworkOrDns) {
+      guidance = 'Dự án Supabase có thể đang ở trạng thái TẠM DỪNG (Paused) trên gói Free do lâu ngày không có request, hoặc mã Project URL chưa đúng. Vui lòng vào trang quản trị Supabase bấm "Restore project", hoặc kiểm tra lại URL từ mục Settings ➔ API.';
+    }
+
     return {
       success: false,
       message: errors.join('; ') || 'Không thể kết nối đến máy chủ Supabase.',
       authServiceAvailable: authServiceOk,
       authVerified: false,
-      dbVerified: false
+      dbVerified: false,
+      isPausedOrDnsError: isNetworkOrDns,
+      helpGuidance: guidance
     };
   }
 }

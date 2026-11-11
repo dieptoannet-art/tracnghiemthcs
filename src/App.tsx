@@ -5,6 +5,7 @@ import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 
 // Student views
+import { CoreKnowledgeView } from './components/student/CoreKnowledgeView';
 import { PracticeMode } from './components/student/PracticeMode';
 import { SemesterReview } from './components/student/SemesterReview';
 import { ExamTaking } from './components/student/ExamTaking';
@@ -130,6 +131,8 @@ const AppContent: React.FC = () => {
         );
 
       // Student views
+      case 'student_core_knowledge':
+        return <CoreKnowledgeView />;
       case 'student_practice':
         return <PracticeMode />;
       case 'student_semester_review':

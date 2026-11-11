@@ -1,0 +1,16 @@
+BỔ SUNG MỤC LỤC KIẾN THỨC TRỌNG TÂM VÀO WEBSITE HIỆN TẠI
+
+Dùng file catalog_kien_thuc_trong_tam.json đính kèm làm nguồn dữ liệu duy nhất. Đây là danh mục đã đối chiếu 6 PDF Kết nối tri thức với cuộc sống: Toán 6 hai tập, Toán 7 hai tập, Tin học 6 và Tin học 7. Không sửa tên bài, không bịa thêm lớp/môn/chương/bài.
+
+Triển khai trong dự án hiện tại, không tạo website khác:
+1. Menu HỌC SINH > Kiến thức trọng tâm. Bộ chọn Khối lớp > Môn học > Chương/chủ đề > Bài học. Chỉ có lớp 6,7 và Toán, Tin học theo dữ liệu. Toán hiển thị Chương; Tin học hiển thị Chủ đề. Các nhóm hoạt động trải nghiệm, ôn tập giữ đúng chapterLabel, không tự đánh số chương cho chúng.
+2. Hai tập Toán gộp trong cùng môn, dùng volume làm nhãn phụ. Không bắt chọn tập. Giữ số bài SGK toàn năm: Toán 6 Bài 1–43, Toán 7 Bài 1–37. Sắp theo volume, thứ tự nhóm xuất hiện trong JSON, sortOrder; không sắp chữ cái hoặc lấy thứ tự bài bằng chuỗi.
+3. Đổi bộ chọn cấp trước phải xóa cấp sau. Có nút Vào học chỉ bật khi bài status=ready. Mọi bản ghi ban đầu pending_upload, hiển thị Đang cập nhật. Không coi đã có file chỉ vì có đường dẫn dự kiến.
+4. Các mục Luyện tập chung trùng tên là bài khác nhau; giữ ID khác nhau. Trong bộ chọn thêm nhãn phụ Trang SGK {sourcePage} để phân biệt nhưng không thay đổi lessonLabel.
+5. Dùng htmlUrl từ dữ liệu để mở iframe, giữ CSS/JS và tài nguyên tương đối của bài. Không fetch HTML từ Supabase, không chèn HTML bằng innerHTML. Có quay lại, mở tab mới và toàn màn hình; title iframe rõ ràng; giao diện thích hợp điện thoại.
+6. Học liệu đặt trong public/lessons, đường dẫn trình duyệt /lessons/… không chứa public. Không đổi tên file đã tồn tại; nếu tên khác hãy cập nhật htmlUrl của đúng bản ghi. Không tự tạo file học liệu giả. Khi thiếu bài phải hiển thị đang cập nhật. Kiểm tra build và routing để đường dẫn HTML không bị SPA trả về trang chủ.
+7. Dùng JSON/JS cục bộ để chạy trước. Nếu dùng Supabase, tận dụng bảng hiện có tương đương hoặc bảng kttt_catalog trong SQL kèm theo. Với kttt_catalog, trải metadata thành đối tượng rồi ghi đè htmlUrl = html_url và status = status từ cột. Không tạo bảng trùng nếu dự án đã có cấu trúc phù hợp. Khi cập nhật trạng thái/đường dẫn chỉ cho quản trị viên, kiểm tra quyền ở backend/RLS.
+8. Không đánh dấu hoàn thành hay điểm số từ việc chỉ mở iframe. Không tự khai báo đã kiểm thử chức năng khi chưa chạy thực tế.
+9. Giữ nguyên các chức năng cũ. Kiểm thử bộ lọc phụ thuộc, mục trùng tên, số chương VI tiếp tục sau tập một, Tin học 7 có 5 chủ đề, file thiếu, HTML chạy tương tác và bố cục điện thoại. Báo rõ file sửa và kết quả kiểm thử.
+
+Mốc đối chiếu: Toán 6 Chương I/Bài 1 Tập hợp => /lessons/Toan_6_c1_b1.html. Toán 6 Chương VI/Bài 23 => /lessons/Toan_6_c6_b23.html. Tin học 7 Chủ đề 4/Bài 6 => /lessons/Tin_7_cd4_b6.html.

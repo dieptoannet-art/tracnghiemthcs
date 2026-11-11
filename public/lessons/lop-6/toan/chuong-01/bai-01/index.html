@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Toán 6 - Chương I - Bài 1: Tập hợp</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+  <style>
+    :root {
+      --primary: #082B52;
+      --accent: #006BFF;
+      --accent-light: #F3F8FF;
+      --text: #1e293b;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      background-color: #f8fafc;
+      color: var(--text);
+      line-height: 1.7;
+      padding: 24px 16px 48px;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    header {
+      background: linear-gradient(135deg, #082B52 0%, #006BFF 100%);
+      color: white;
+      padding: 28px 24px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 14px rgba(0, 107, 255, 0.15);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      color: white;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 10px;
+      font-family: system-ui, sans-serif;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 15px;
+      opacity: 0.9;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-title {
+      font-size: 19px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid var(--accent-light);
+      padding-bottom: 10px;
+    }
+    .card-title .num {
+      background: var(--accent);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-family: system-ui, sans-serif;
+    }
+    p {
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    .highlight-box {
+      background: #eff6ff;
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 0 12px 12px 0;
+      margin: 14px 0;
+    }
+    .math-example {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-size: 15.5px;
+    }
+    /* Interactive quiz */
+    .quiz-item {
+      background: #fafafa;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    .quiz-question {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--primary);
+    }
+    .quiz-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .btn-opt {
+      background: white;
+      border: 1.5px solid #cbd5e1;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-opt:hover {
+      border-color: var(--accent);
+      background: #f0f7ff;
+    }
+    .btn-opt.correct {
+      background: #ecfdf5;
+      border-color: var(--success);
+      color: #065f46;
+      font-weight: bold;
+    }
+    .btn-opt.wrong {
+      background: #fef2f2;
+      border-color: var(--error);
+      color: #991b1b;
+    }
+    .feedback {
+      margin-top: 10px;
+      font-size: 14.5px;
+      font-weight: bold;
+      display: none;
+    }
+    .summary-list {
+      list-style-type: none;
+    }
+    .summary-list li {
+      padding: 8px 0 8px 24px;
+      position: relative;
+    }
+    .summary-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">GDPT 2018 • Khối 6 • Môn Toán</div>
+      <h1>Chương I: Tập hợp các số tự nhiên</h1>
+      <div class="subtitle">Bài 1: Tập hợp – Phần tử của tập hợp</div>
+    </header>
+
+    <!-- 1. KHÁI NIỆM -->
+    <div class="card">
+      <h2 class="card-title">
+        <span class="num">1</span>
+        <span>Khái niệm Tập hợp và Phần tử</span>
+      </h2>
+      <p>Trong toán học và đời sống, ta thường gặp khái niệm <strong>tập hợp</strong>:</p>
+      <div class="highlight-box">
+        <ul style="padding-left: 20px;">
+          <li>Tập hợp các học sinh của lớp 6A.</li>
+          <li>Tập hợp các chữ cái $a, b, c$ trong bảng chữ cái tiếng Việt.</li>
+          <li>Tập hợp các số tự nhiên nhỏ hơn 10.</li>
+        </ul>
+      </div>
+      <p>Mỗi vật, mỗi số thuộc tập hợp được gọi là một <strong>phần tử</strong> của tập hợp đó.</p>
+    </div>
+
+    <!-- 2. KÍ HIỆU VÀ CÁCH CHO TẬP HỢP -->
+    <div class="card">
+      <h2 class="card-title">
+        <span class="num">2</span>
+        <span>Kí hiệu và Cách cho một tập hợp</span>
+      </h2>
+      <p>Người ta thường đặt tên tập hợp bằng chữ cái in hoa: $A, B, C, X, Y...$</p>
+      
+      <div class="highlight-box">
+        <p><strong>Kí hiệu thuộc ($\in$) và không thuộc ($\notin$):</strong></p>
+        <p>• $x \in A$ đọc là "$x$ thuộc $A$" hoặc "$x$ là phần tử của $A$".</p>
+        <p>• $y \notin A$ đọc là "$y$ không thuộc $A$" hoặc "$y$ không phải là phần tử của $A$".</p>
+      </div>
+
+      <p><strong>Có hai cách thường dùng để cho một tập hợp:</strong></p>
+      <div class="math-example">
+        <strong>Cách 1: Liệt kê các phần tử của tập hợp</strong><br/>
+        Ví dụ: Cho tập hợp $A$ gồm các số tự nhiên nhỏ hơn 5.<br/>
+        $$A = \{0; 1; 2; 3; 4\}$$
+        <em>Lưu ý:</em> Mỗi phần tử được liệt kê một lần; thứ tự liệt kê tùy ý; các phần tử ngăn cách bởi dấu chấm phẩy ($;$).
+      </div>
+
+      <div class="math-example">
+        <strong>Cách 2: Chỉ ra tính chất đặc trưng cho các phần tử của tập hợp</strong><br/>
+        Ví dụ: Viết lại tập hợp $A$ ở trên bằng cách nêu tính chất đặc trưng:<br/>
+        $$A = \{x \in \mathbb{N} \mid x < 5\}$$
+      </div>
+    </div>
+
+    <!-- 3. BÀI TẬP TƯƠNG TÁC NHANH -->
+    <div class="card">
+      <h2 class="card-title">
+        <span class="num">3</span>
+        <span>Thực hành tương tác tại chỗ</span>
+      </h2>
+      <p>Hãy chọn đáp án đúng để kiểm tra nhanh mức độ hiểu bài của bạn:</p>
+
+      <!-- Quiz 1 -->
+      <div class="quiz-item" id="quiz1">
+        <div class="quiz-question">Câu 1: Cho tập hợp $M = \{2; 3; 5; 7\}$. Khẳng định nào sau đây là ĐÚNG?</div>
+        <div class="quiz-options">
+          <button class="btn-opt" onclick="checkAnswer('quiz1', this, false, 'Sai rồi! Số 4 không nằm trong tập hợp M.')">4 &in; M</button>
+          <button class="btn-opt" onclick="checkAnswer('quiz1', this, true, 'Chính xác! 5 là một phần tử có trong tập hợp M.')">5 &in; M</button>
+          <button class="btn-opt" onclick="checkAnswer('quiz1', this, false, 'Sai rồi! 2 có thuộc M, nên 2 &notin; M là sai.')">2 &notin; M</button>
+          <button class="btn-opt" onclick="checkAnswer('quiz1', this, false, 'Sai rồi! 7 có thuộc M.')">7 &notin; M</button>
+        </div>
+        <div class="feedback" id="feedback-quiz1"></div>
+      </div>
+
+      <!-- Quiz 2 -->
+      <div class="quiz-item" id="quiz2">
+        <div class="quiz-question">Câu 2: Viết tập hợp các chữ cái trong từ "HỌC SINH" bằng cách liệt kê:</div>
+        <div class="quiz-options">
+          <button class="btn-opt" onclick="checkAnswer('quiz2', this, true, 'Hoàn toàn chính xác! Chữ H xuất hiện 2 lần nhưng chỉ được viết 1 lần trong tập hợp.')">{H; O; C; S; I; N}</button>
+          <button class="btn-opt" onclick="checkAnswer('quiz2', this, false, 'Chưa đúng, phần tử trong tập hợp không được lặp lại 2 chữ H.')">{H; O; C; S; I; N; H}</button>
+          <button class="btn-opt" onclick="checkAnswer('quiz2', this, false, 'Chưa đúng, thiếu phần tử.')">{H; O; C}</button>
+        </div>
+        <div class="feedback" id="feedback-quiz2"></div>
+      </div>
+    </div>
+
+    <!-- 4. GHI NHỚ TRỌNG TÂM -->
+    <div class="card">
+      <h2 class="card-title">
+        <span class="num">4</span>
+        <span>Kiến thức cần ghi nhớ</span>
+      </h2>
+      <ul class="summary-list">
+        <li>Tập hợp đặt tên bằng chữ in hoa $A, B, C...$; các phần tử viết trong dấu ngoặc nhọn $\{ \}$.</li>
+        <li>Kí hiệu: $\in$ (thuộc), $\notin$ (không thuộc).</li>
+        <li>Mỗi phần tử được liệt kê đúng một lần, thứ tự liệt kê tùy ý.</li>
+        <li>Tập hợp các số tự nhiên kí hiệu là $\mathbb{N} = \{0; 1; 2; 3; ...\}$.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function checkAnswer(quizId, btnElement, isCorrect, explanation) {
+      const parent = document.getElementById(quizId);
+      const buttons = parent.querySelectorAll('.btn-opt');
+      const feedback = document.getElementById('feedback-' + quizId);
+
+      buttons.forEach(btn => {
+        btn.classList.remove('correct', 'wrong');
+        btn.disabled = true;
+      });
+
+      if (isCorrect) {
+        btnElement.classList.add('correct');
+        feedback.style.color = '#059669';
+        feedback.innerHTML = '✓ ' + explanation;
+      } else {
+        btnElement.classList.add('wrong');
+        feedback.style.color = '#dc2626';
+        feedback.innerHTML = '✗ ' + explanation;
+      }
+      feedback.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import {
   Users,
   UserCheck,
   Settings,
+  Book,
   BookOpen,
   FileCheck2,
   AlertOctagon,
@@ -361,6 +362,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           <div className="space-y-3">
+            {/* Item 0: Kiến thức trọng tâm */}
+            <div
+              onClick={() => setCurrentView('student_core_knowledge')}
+              className="p-3 rounded-xl border border-[#DCE8F7] hover:border-[#006BFF] hover:bg-[#F3F8FF] transition-all cursor-pointer flex items-center justify-between group"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-blue-50 text-[#006BFF] rounded-xl">
+                  <Book className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-[#082B52] group-hover:text-[#006BFF]">
+                    Kiến thức trọng tâm
+                  </h4>
+                  <p className="text-xs text-slate-500">Tự học • Khám phá học liệu • Luyện tập</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#006BFF]" />
+            </div>
+
             {/* Item 1 */}
             <div
               onClick={() => setCurrentView('student_practice')}

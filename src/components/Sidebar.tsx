@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Home,
+  Book,
   BookOpen,
   GraduationCap,
   FileText,
@@ -69,6 +70,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
             HỌC SINH
           </h3>
           <div className="space-y-1">
+            <button
+              onClick={() => handleNav('student_core_knowledge')}
+              className={navItemClass('student_core_knowledge')}
+            >
+              <Book className="w-4 h-4 shrink-0" />
+              <span>Kiến thức trọng tâm</span>
+            </button>
+
             <button
               onClick={() => handleNav('student_practice')}
               className={navItemClass('student_practice')}

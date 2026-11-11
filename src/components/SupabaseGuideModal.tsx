@@ -1,7 +1,29 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Database, Check, Copy, ExternalLink, Download, AlertCircle, X, ShieldCheck, Laptop, CheckCircle2 } from 'lucide-react';
-import { testSupabaseConnection } from '../lib/supabase';
+import {
+  Database,
+  Check,
+  Copy,
+  ExternalLink,
+  Download,
+  AlertCircle,
+  X,
+  ShieldCheck,
+  Laptop,
+  CheckCircle2,
+  AlertTriangle,
+  RotateCcw,
+  Save,
+  HelpCircle,
+  Server
+} from 'lucide-react';
+import {
+  testSupabaseConnection,
+  updateSupabaseCredentials,
+  resetSupabaseCredentials,
+  DEFAULT_SUPABASE_URL,
+  DEFAULT_SUPABASE_ANON_KEY
+} from '../lib/supabase';
 
 interface SupabaseGuideModalProps {
   onClose: () => void;
@@ -22,17 +44,21 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
   const [anonKey, setAnonKey] = useState(supabaseConfig.anonKey || '');
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
+  const [isPausedError, setIsPausedError] = useState(false);
+  const [saveNotice, setSaveNotice] = useState('');
   const [testDetails, setTestDetails] = useState<{ auth?: boolean; db?: boolean } | null>(null);
 
   const handleTestConnection = async () => {
     if (!url.trim() || !anonKey.trim()) {
       setTestStatus('error');
       setTestMessage('Vui lòng nhập đầy đủ Supabase Project URL và Publishable/Anon Key.');
+      setIsPausedError(false);
       return;
     }
 
     setTestStatus('testing');
     setTestMessage('');
+    setIsPausedError(false);
     setTestDetails(null);
 
     try {
@@ -41,33 +67,67 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
       if (res.success) {
         setTestStatus('success');
         setTestMessage(res.message);
+        setIsPausedError(false);
         setTestDetails({
           auth: res.authVerified,
           db: res.dbVerified
         });
+        updateSupabaseCredentials(url.trim(), anonKey.trim());
         setSupabaseConfig({
           url: url.trim(),
           anonKey: anonKey.trim(),
           isConnected: true
         });
-        try {
-          localStorage.setItem(
-            'taydo_supabase_config',
-            JSON.stringify({ url: url.trim(), anonKey: anonKey.trim() })
-          );
-        } catch {
-          // ignore
-        }
         // Run verification in context
         verifySupabase();
       } else {
         setTestStatus('error');
         setTestMessage(res.message || 'Không thể kết nối tới Supabase. Kiểm tra lại URL và Key.');
+        if (res.isPausedOrDnsError) {
+          setIsPausedError(true);
+        }
       }
     } catch (err: any) {
       setTestStatus('error');
-      setTestMessage(err?.message || 'Lỗi mạng hoặc CORS khi kết nối tới Supabase URL.');
+      const msg = err?.message || 'Lỗi mạng hoặc CORS khi kết nối tới Supabase URL.';
+      setTestMessage(msg);
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        setIsPausedError(true);
+      }
     }
+  };
+
+  const handleSaveConfig = () => {
+    if (!url.trim() || !anonKey.trim()) {
+      setTestStatus('error');
+      setTestMessage('Vui lòng nhập đầy đủ Supabase Project URL và Publishable/Anon Key.');
+      return;
+    }
+
+    updateSupabaseCredentials(url.trim(), anonKey.trim());
+    setSupabaseConfig({
+      url: url.trim(),
+      anonKey: anonKey.trim(),
+      isConnected: true
+    });
+    setSaveNotice('Đã lưu cấu hình Supabase vào hệ thống thành công!');
+    setTimeout(() => setSaveNotice(''), 4000);
+    verifySupabase();
+  };
+
+  const handleResetDefault = () => {
+    resetSupabaseCredentials();
+    setUrl(DEFAULT_SUPABASE_URL);
+    setAnonKey(DEFAULT_SUPABASE_ANON_KEY);
+    setSupabaseConfig({
+      url: DEFAULT_SUPABASE_URL,
+      anonKey: DEFAULT_SUPABASE_ANON_KEY,
+      isConnected: true
+    });
+    setTestStatus('idle');
+    setTestMessage('Đã khôi phục thông tin cấu hình mặc định ban đầu.');
+    setIsPausedError(false);
+    verifySupabase();
   };
 
   const handleDownloadSql = () => {
@@ -104,10 +164,10 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
             </div>
             <div>
               <h3 className="text-xl font-bold text-[#082B52]">
-                Cấu hình & Trạng thái kết nối Supabase
+                Cấu hình & Trạng thái kết nối CSDL Supabase
               </h3>
               <p className="text-xs text-slate-500">
-                Kiểm tra xác thực thực tế cho Auth và Cơ sở dữ liệu (PostgreSQL)
+                Kết nối xác thực thực tế cho Auth và Cơ sở dữ liệu PostgreSQL
               </p>
             </div>
           </div>
@@ -127,42 +187,67 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
             </span>
             <p className="text-xs mt-1 opacity-80 leading-relaxed">
               {supabaseStatus === 'unconfigured' &&
-                'Chưa có URL và Publishable Key hợp lệ trong tệp biến môi trường (.env).'}
+                'Chưa có URL và Publishable Key hợp lệ trong tệp cấu hình.'}
               {supabaseStatus === 'configured_unverified' &&
-                'Đã điền URL và Key nhưng chưa thực hiện yêu cầu kiểm tra thực tế tới máy chủ Supabase.'}
+                'Đã cấu hình URL và Key. Nhấn "Kiểm tra kết nối" để xác minh trực tiếp với máy chủ Supabase.'}
               {supabaseStatus === 'verified_auth_only' &&
-                'Đã xác minh thành công Dịch vụ Xác thực (Auth). Cơ sở dữ liệu chưa được xác minh.'}
+                'Đã xác minh thành công Dịch vụ Xác thực (Auth). Cơ sở dữ liệu đang đợi phản hồi.'}
               {supabaseStatus === 'verified_db_only' &&
-                'Đã xác minh thành công Cơ sở dữ liệu (CSDL). Chưa có phiên đăng nhập Auth.'}
+                'Đã xác minh thành công Cơ sở dữ liệu (CSDL). Đang sử dụng dữ liệu thật từ bảng public.questions.'}
               {supabaseStatus === 'verified_all' &&
-                'Đã xác minh thực tế thành công cả Dịch vụ Xác thực (Auth) và Cơ sở dữ liệu (CSDL).'}
+                'Đã xác minh thực tế thành công cả Dịch vụ Xác thực (Auth) và Cơ sở dữ liệu (CSDL Supabase).'}
               {supabaseStatus === 'error' &&
-                'Có cấu hình nhưng kết nối tới máy chủ Supabase thất bại.'}
+                'Có cấu hình nhưng kết nối tới máy chủ Supabase không phản hồi (Kiểm tra bên dưới).'}
             </p>
           </div>
 
-          <button
-            onClick={verifySupabase}
-            className="px-3 py-1.5 bg-white border rounded-lg text-xs font-bold shadow-2xs hover:bg-slate-50 shrink-0 self-start sm:self-auto"
-          >
-            Kiểm tra ngay
-          </button>
+          <div className="flex items-center space-x-2 shrink-0 self-start sm:self-auto">
+            <button
+              onClick={verifySupabase}
+              className="px-3 py-1.5 bg-white border rounded-lg text-xs font-bold shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Kiểm tra ngay
+            </button>
+          </div>
         </div>
 
-        {/* LocalStorage Note Banner */}
-        <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-200 text-xs text-blue-900 flex items-start space-x-2">
-          <Laptop className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold">Lưu ý về lưu trữ dữ liệu hiện tại:</span>
-            <p className="text-[11px] text-blue-800 mt-0.5 leading-relaxed">
-              Các phân hệ Ngân hàng câu hỏi, Đề thi, Lớp học và Kết quả bài làm hiện đang lưu ở <strong>Dữ liệu trên trình duyệt (localStorage)</strong>. Hệ thống chưa tự động đồng bộ lên Supabase cho đến khi các bảng dữ liệu tương ứng được kích hoạt ở các bước kế tiếp.
+        {/* Supabase PostgreSQL Architecture Banner (Updated to correctly reflect database-first architecture) */}
+        <div className="p-4 bg-emerald-50/90 rounded-2xl border border-emerald-300 text-xs text-emerald-950 flex items-start space-x-3 shadow-2xs">
+          <Server className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+          <div className="space-y-1.5 flex-1">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-emerald-950 text-sm">
+                Kiến trúc lưu trữ & đồng bộ CSDL Supabase (PostgreSQL):
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800 text-[10px] font-bold">
+                Nguồn dữ liệu thật
+              </span>
+            </div>
+            <p className="text-xs text-emerald-900 leading-relaxed">
+              Hệ thống kết nối và lấy dữ liệu trực tiếp từ các bảng cơ sở dữ liệu Supabase:
             </p>
+            <ul className="list-disc list-inside space-y-1 pl-1 text-[11px] text-emerald-900">
+              <li><strong>public.questions:</strong> Nạp toàn bộ 272 câu Tin học 6 (170 ABCD, 51 Đúng–Sai 4 ý, 51 Tự luận) cùng ngân hàng câu hỏi môn Toán, KHTN...</li>
+              <li><strong>public.protected_solutions:</strong> Lưu trữ đáp án, barem chấm điểm và giải thích chi tiết, được bảo vệ qua chính sách phân quyền RLS.</li>
+              <li><strong>public.profiles:</strong> Quản lý vai trò Giáo viên / Quản trị viên / Học sinh theo tài khoản đăng nhập.</li>
+            </ul>
           </div>
         </div>
 
         {/* Supabase Connection Form */}
         <div className="space-y-4">
-          <h4 className="text-sm font-bold text-[#082B52]">1. Thông tin kết nối Supabase</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-bold text-[#082B52]">1. Thông tin kết nối Supabase</h4>
+            <button
+              type="button"
+              onClick={handleResetDefault}
+              className="text-[11px] text-slate-500 hover:text-blue-600 flex items-center space-x-1 cursor-pointer font-medium"
+              title="Đặt lại về thông số mặc định"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Khôi phục mặc định</span>
+            </button>
+          </div>
 
           <div className="space-y-3 text-xs">
             <div>
@@ -174,7 +259,7 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
                 value={url}
                 onChange={e => setUrl(e.target.value)}
                 placeholder="https://xyzcompany.supabase.co"
-                className="w-full px-3 py-2 border rounded-lg font-mono text-xs"
+                className="w-full px-3 py-2 border rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
               />
             </div>
 
@@ -186,36 +271,90 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
                 type="password"
                 value={anonKey}
                 onChange={e => setAnonKey(e.target.value)}
-                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-                className="w-full px-3 py-2 border rounded-lg font-mono text-xs"
+                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6... hoặc sb_publishable_..."
+                className="w-full px-3 py-2 border rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2">
               <button
+                type="button"
                 onClick={handleTestConnection}
                 disabled={testStatus === 'testing'}
-                className="px-4 py-2 bg-[#006BFF] text-white rounded-xl font-bold hover:bg-blue-600 shadow-xs disabled:opacity-50 text-xs"
+                className="px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl font-bold shadow-xs disabled:opacity-50 text-xs flex items-center space-x-1.5 cursor-pointer"
               >
-                {testStatus === 'testing' ? 'Đang kiểm tra kết nối...' : 'Kiểm tra kết nối thực tế'}
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{testStatus === 'testing' ? 'Đang kiểm tra kết nối...' : 'Kiểm tra kết nối thực tế'}</span>
               </button>
 
-              {testMessage && (
-                <div className="space-y-1">
-                  <span className={`text-xs font-bold block ${
-                    testStatus === 'success' ? 'text-emerald-600' : 'text-red-600'
-                  }`}>
-                    {testMessage}
-                  </span>
-                  {testDetails && (
-                    <div className="text-[11px] text-slate-600 space-x-2">
-                      <span>• CSDL: <strong className={testDetails.db ? 'text-emerald-700' : 'text-amber-700'}>{testDetails.db ? 'Đã phản hồi' : 'Chưa phản hồi'}</strong></span>
-                      <span>• Dịch vụ Auth: <strong className={testDetails.auth ? 'text-emerald-700' : 'text-amber-700'}>{testDetails.auth ? 'Đã xác minh (Có phiên)' : 'Chưa xác thực (Chưa có phiên)'}</strong></span>
-                    </div>
-                  )}
-                </div>
+              <button
+                type="button"
+                onClick={handleSaveConfig}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-xs text-xs flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Lưu cấu hình</span>
+              </button>
+
+              {saveNotice && (
+                <span className="text-xs font-bold text-emerald-600 animate-fadeIn">
+                  {saveNotice}
+                </span>
               )}
             </div>
+
+            {testMessage && (
+              <div className="space-y-1 pt-1">
+                <span className={`text-xs font-bold block ${
+                  testStatus === 'success' ? 'text-emerald-600' : 'text-red-600'
+                }`}>
+                  {testMessage}
+                </span>
+                {testDetails && (
+                  <div className="text-[11px] text-slate-600 space-x-2">
+                    <span>• CSDL: <strong className={testDetails.db ? 'text-emerald-700' : 'text-amber-700'}>{testDetails.db ? 'Đã kết nối' : 'Chưa phản hồi'}</strong></span>
+                    <span>• Dịch vụ Auth: <strong className={testDetails.auth ? 'text-emerald-700' : 'text-amber-700'}>{testDetails.auth ? 'Đã xác minh (Có phiên)' : 'Chưa xác thực (Chưa có phiên)'}</strong></span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Diagnostic Troubleshooting Card when Failed to fetch occurs */}
+            {(isPausedError || testStatus === 'error') && (
+              <div className="p-4 rounded-xl border border-amber-300 bg-amber-50/90 space-y-2.5 text-xs text-amber-950 mt-3 animate-fadeIn">
+                <div className="font-bold text-amber-900 flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-sm">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Hướng dẫn khắc phục khi máy chủ không phản hồi (Failed to fetch):</span>
+                  </div>
+                  <a
+                    href="https://supabase.com/dashboard"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-bold underline"
+                  >
+                    <span>Mở Supabase</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+
+                <div className="space-y-2 text-xs text-amber-900 leading-relaxed">
+                  <div className="flex items-start space-x-2">
+                    <span className="font-bold text-amber-800 shrink-0 mt-0.5">1.</span>
+                    <div>
+                      <strong>Dự án Supabase đang ở trạng thái TẠM DỪNG (Paused):</strong> Trên gói Supabase Free, máy chủ sẽ tự động tạm ngắt kết nối nếu không có hoạt động trong 7 ngày. Khi vào <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="text-blue-700 underline font-semibold">Supabase Dashboard</a>, nếu thấy banner thông báo màu vàng <em>"Project is paused"</em>, bạn chỉ cần bấm nút <strong>"Restore project"</strong>. Sau 1–2 phút máy chủ chuyển sang đèn xanh Active là kết nối lại bình thường.
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-2">
+                    <span className="font-bold text-amber-800 shrink-0 mt-0.5">2.</span>
+                    <div>
+                      <strong>Kiểm tra lại URL & Key chính xác:</strong> Trong giao diện Supabase của dự án (ví dụ <code>kien-thuc-thcs</code>), nhấp vào nút <strong>Connect</strong> ở thanh menu trên cùng hoặc vào <strong>Settings ➔ API</strong> để sao chép đúng Project URL và <code>anon / publishable key</code>, sau đó dán vào ô bên trên và bấm <strong>"Lưu cấu hình"</strong>.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -228,8 +367,9 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
             </h4>
 
             <button
+              type="button"
               onClick={handleDownloadSql}
-              className="flex items-center space-x-1 text-xs text-[#006BFF] font-bold hover:underline"
+              className="flex items-center space-x-1 text-xs text-[#006BFF] font-bold hover:underline cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Tải file SQL</span>
@@ -251,8 +391,9 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
 
         <div className="flex justify-end pt-2">
           <button
+            type="button"
             onClick={onClose}
-            className="px-5 py-2 bg-[#082B52] text-white font-bold rounded-xl text-xs hover:bg-[#0c3866]"
+            className="px-5 py-2 bg-[#082B52] hover:bg-[#0c3866] text-white font-bold rounded-xl text-xs cursor-pointer transition-colors"
           >
             Đóng
           </button>
@@ -261,3 +402,4 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
     </div>
   );
 };
+
