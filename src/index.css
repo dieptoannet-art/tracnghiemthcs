@@ -2,24 +2,22 @@
 
 @layer base {
   :root {
-    --color-sidebar: #082B52;
-    --color-primary: #006BFF;
+    --color-sidebar: #0F2D52;
+    --color-primary: #1769C2;
     --color-accent: #00B8E8;
-    --color-bg: #F3F8FF;
-    --color-text: #12345B;
-    --color-border: #DCE8F7;
-  }
-
-  * {
-    font-family: "Times New Roman", Times, Georgia, serif;
+    --color-bg: #F6FAFF;
+    --color-text: #0F2D52;
+    --color-border: #CFDCED;
   }
 
   body {
-    background-color: #F3F8FF;
-    color: #12345B;
-    font-family: "Times New Roman", Times, Georgia, serif;
+    background-color: #F6FAFF;
+    color: #0F2D52;
+    font-family: "Times New Roman", "Lora", Georgia, serif;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   /* Exception for math rendering: keep KaTeX specialized font */

@@ -19,7 +19,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
     openAuthModal,
     isSupabaseLiveConfigured,
     supabaseStatus,
-    supabaseStatusLabel
+    supabaseStatusLabel,
+    setCurrentView
   } = useApp();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -75,17 +76,21 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
             </svg>
           </button>
 
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => (window.location.hash = '')}>
-            <div className="text-[#006BFF] flex items-center justify-center p-1.5 bg-[#EBF3FF] rounded-lg">
-              <BookOpen className="w-7 h-7" strokeWidth={2.2} />
+          <div
+            className="flex items-center space-x-3 cursor-pointer select-none"
+            onClick={() => setCurrentView('dashboard')}
+          >
+            <div className="text-[#1769C2] flex items-center justify-center p-2 bg-[#EAF5FF] rounded-xl border border-[#CBE2FB]">
+              <BookOpen className="w-6 h-6" strokeWidth={2.4} />
             </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#082B52] leading-tight">
-                TÂY ĐÔ SMART EDU
-              </h1>
-              <p className="text-xs text-slate-500 font-medium tracking-wide">
-                Học tập • Luyện thi • Theo dõi tiến bộ
-              </p>
+            <div className="flex items-center space-x-2.5 font-serif">
+              <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F2D52]">
+                Tây Đô Smart EDU
+              </span>
+              <span className="text-slate-300 font-light hidden sm:inline text-lg">|</span>
+              <span className="text-xs sm:text-sm text-slate-600 font-medium hidden sm:inline">
+                Trường THCS Tây Đô
+              </span>
             </div>
           </div>
         </div>
@@ -125,23 +130,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
             </span>
           </button>
 
-          {/* User Info & Role Badge */}
-          {user || userProfile ? (
-            <div className="hidden md:flex items-center space-x-2 text-xs">
-              <span className={`px-2 py-0.5 rounded-full border font-bold text-[11px] ${roleBadge.bg}`}>
-                {roleBadge.label}
-              </span>
-              <span className="font-semibold text-[#082B52]">
-                {userProfile?.fullName || user?.email || (currentRole === 'teacher' ? 'Thầy Diệp Thanh Toàn' : 'Học sinh')}
-              </span>
+          {/* User Info & Role Badge matching mockup */}
+          <div className="flex items-center space-x-2 bg-white border border-[#CFDCED] px-3.5 py-1.5 rounded-full shadow-2xs">
+            <div className="w-6 h-6 rounded-full bg-[#EAF5FF] text-[#1769C2] flex items-center justify-center">
+              <User className="w-3.5 h-3.5" />
             </div>
-          ) : (
-            <div className="hidden md:flex items-center text-xs text-slate-500 space-x-1">
-              <span>Khách</span>
-              <span>•</span>
-              <span className="italic font-medium text-slate-500">Chưa đăng nhập</span>
-            </div>
-          )}
+            <span className="font-bold text-xs sm:text-sm text-[#0F2D52]">
+              {currentRole === 'teacher' || (userProfile?.role === 'teacher') || (userProfile?.fullName && userProfile.fullName.includes('Diệp Thanh Toàn'))
+                ? 'GV. Diệp Thanh Toàn'
+                : currentRole === 'admin'
+                ? 'Quản trị viên'
+                : (userProfile?.fullName || 'Học sinh')}
+            </span>
+          </div>
 
           {/* Login or Logout Action Button */}
           {user || userProfile ? (

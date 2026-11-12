@@ -189,7 +189,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F8FF] flex flex-col font-serif">
+    <div className="min-h-screen bg-[#F6FAFF] flex flex-col font-serif">
       {/* Top Header */}
       <Header
         onOpenSupabaseConfig={() => setSupabaseModalOpen(true)}

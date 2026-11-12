@@ -137,16 +137,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Mode & Auth States
   const [isDemoMode, setIsDemoMode] = useState<boolean>(!isSupabaseConfigured);
 
-  // Khôi phục hồ sơ đã lưu hoặc mặc định tài khoản Giáo viên Thầy Diệp Thanh Toàn
+  // Khôi phục hồ sơ đã lưu hoặc mặc định tài khoản Giáo viên GV. Diệp Thanh Toàn
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     try {
       const saved = localStorage.getItem('taydo_active_profile');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.fullName && parsed.fullName.includes('Diệp Thanh Toàn')) {
+          parsed.fullName = 'GV. Diệp Thanh Toàn';
+        }
+        return parsed;
+      }
     } catch {}
     return {
       id: 'teacher-dieptoan',
       email: 'dieptoan.net@gmail.com',
-      fullName: 'Thầy Diệp Thanh Toàn',
+      fullName: 'GV. Diệp Thanh Toàn',
       role: 'teacher',
       subject: 'Tin học',
       schoolName: 'Trường THCS Tây Đô'
