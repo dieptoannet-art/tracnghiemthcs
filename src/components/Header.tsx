@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#082B52] leading-tight">
-                TRẮC NGHIỆM THCS TÂY ĐÔ
+                TÂY ĐÔ SMART EDU
               </h1>
               <p className="text-xs text-slate-500 font-medium tracking-wide">
                 Học tập • Luyện thi • Theo dõi tiến bộ

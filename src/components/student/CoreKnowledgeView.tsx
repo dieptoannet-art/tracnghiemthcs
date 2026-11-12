@@ -540,7 +540,7 @@ export const CoreKnowledgeView: React.FC = () => {
                       // Phát hiện trường hợp máy chủ trả về nhầm trang chủ SPA thay vì nội dung bài học HTML
                       const hasSpaRoot = Boolean(doc.getElementById('root'));
                       const docTitle = doc.title || '';
-                      if (hasSpaRoot || (docTitle.includes('TRẮC NGHIỆM THCS TÂY ĐÔ') && !docTitle.includes('Chương'))) {
+                      if (hasSpaRoot || ((docTitle.includes('TRẮC NGHIỆM THCS TÂY ĐÔ') || docTitle.includes('TÂY ĐÔ SMART EDU')) && !docTitle.includes('Chương') && !docTitle.toLowerCase().includes('bài'))) {
                         setIframeError(true);
                       }
                     }
