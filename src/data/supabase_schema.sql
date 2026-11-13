@@ -253,12 +253,93 @@ create table if not exists public.exam_matrices (
   grade text not null,
   subject text not null,
   period text not null,
+  school_year text default '2025 - 2026',
+  duration_minutes integer default 45 not null,
   total_points numeric(4,2) default 10.0 not null,
-  cognitive_ratio jsonb not null, -- {know: 40, understand: 40, apply: 20}
+  cognitive_ratio jsonb not null, -- {knowPercent: 40, understandPercent: 30, applyPercent: 30}
   rows jsonb not null, -- Danh sách hàng ma trận
+  matrix_state jsonb, -- Trạng thái đầy đủ (YCCĐ đã chọn, phân bổ từng ô, mã câu/ý, thang điểm)
   created_by uuid references public.profiles(id),
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- Migration bổ sung an toàn nếu bảng exam_matrices đã tồn tại từ trước
+alter table public.exam_matrices add column if not exists school_year text default '2025 - 2026';
+alter table public.exam_matrices add column if not exists duration_minutes integer default 45;
+alter table public.exam_matrices add column if not exists matrix_state jsonb;
+alter table public.exam_matrices add column if not exists updated_at timestamp with time zone default timezone('utc'::text, now());
+
+alter table public.exam_matrices enable row level security;
+
+drop policy if exists "Giáo viên và Quản trị xem ma trận" on public.exam_matrices;
+drop policy if exists "Giáo viên và Quản trị tạo ma trận" on public.exam_matrices;
+drop policy if exists "Giáo viên và Quản trị cập nhật ma trận" on public.exam_matrices;
+drop policy if exists "Giáo viên và Quản trị xóa ma trận" on public.exam_matrices;
+
+create policy "Giáo viên và Quản trị xem ma trận" on public.exam_matrices
+  for select using (
+    exists (select 1 from public.profiles where id = auth.uid() and role in ('teacher', 'admin', 'reviewer'))
+  );
+
+create policy "Giáo viên và Quản trị tạo ma trận" on public.exam_matrices
+  for insert with check (
+    exists (select 1 from public.profiles where id = auth.uid() and role in ('teacher', 'admin', 'reviewer'))
+  );
+
+create policy "Giáo viên và Quản trị cập nhật ma trận" on public.exam_matrices
+  for update using (
+    created_by = auth.uid() or
+    exists (select 1 from public.profiles where id = auth.uid() and role in ('admin', 'reviewer'))
+  );
+
+create policy "Giáo viên và Quản trị xóa ma trận" on public.exam_matrices
+  for delete using (
+    created_by = auth.uid() or
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+-- Bảng danh mục Yêu cầu cần đạt (YCCĐ) dùng chung cho Ma trận & Bản đặc tả
+create table if not exists public.yccd_catalog (
+  stable_key text primary key,
+  subject text not null,
+  subject_key text not null,
+  grade text not null check (grade in ('6', '7', '8', '9')),
+  topic text not null,
+  unit text not null,
+  yccd text not null,
+  source_label text not null,
+  level cognitive_level not null,
+  level_label text not null,
+  topic_id text not null,
+  topic_short_label text not null,
+  unit_id text not null,
+  yccd_id text not null,
+  competency_code text,
+  order_index integer default 0 not null,
+  updated_by uuid references public.profiles(id),
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.yccd_catalog enable row level security;
+
+drop policy if exists "Xem danh mục YCCĐ" on public.yccd_catalog;
+drop policy if exists "Giáo viên và Quản trị nhập YCCĐ" on public.yccd_catalog;
+drop policy if exists "Giáo viên và Quản trị cập nhật YCCĐ" on public.yccd_catalog;
+
+create policy "Xem danh mục YCCĐ" on public.yccd_catalog
+  for select using (true);
+
+create policy "Giáo viên và Quản trị nhập YCCĐ" on public.yccd_catalog
+  for insert with check (
+    exists (select 1 from public.profiles where id = auth.uid() and role in ('teacher', 'admin', 'reviewer'))
+  );
+
+create policy "Giáo viên và Quản trị cập nhật YCCĐ" on public.yccd_catalog
+  for update using (
+    exists (select 1 from public.profiles where id = auth.uid() and role in ('teacher', 'admin', 'reviewer'))
+  );
+
 
 create table if not exists public.exams (
   id uuid default gen_random_uuid() primary key,

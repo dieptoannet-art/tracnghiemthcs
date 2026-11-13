@@ -16,8 +16,11 @@ import {
   StudyDocument,
   SubmissionAnswer,
   UserProfile,
-  SupabaseConnectionState
+  SupabaseConnectionState,
+  YccdItem
 } from '../types';
+import yccdCatalogSeed from '../data/yccdCatalogSeed.json';
+import { mergeYccdCatalog } from '../utils/yccdCsvParser';
 import {
   INITIAL_QUESTIONS,
   INITIAL_CLASSES,
@@ -104,6 +107,9 @@ interface AppContextType {
   geminiAssistants: GeminiAssistantConfig[];
   studyDocs: StudyDocument[];
   auditLogs: AuditLog[];
+  yccdCatalog: YccdItem[];
+  pendingMatrixPrompt: string;
+  setPendingMatrixPrompt: (prompt: string) => void;
 
   // Student Profile
   studentUser: {
@@ -120,7 +126,10 @@ interface AppContextType {
   deleteQuestion: (id: string) => void;
   approveQuestion: (id: string) => void;
   importQuestionsBatch: (newQuestions: Partial<Question>[]) => void;
+  importYccdItems: (incoming: YccdItem[]) => { inserted: number; updated: number; unchanged: number };
   createMatrix: (matrix: ExamMatrix) => void;
+  saveMatrixDraft: (matrix: ExamMatrix) => Promise<{ savedToSupabase: boolean; error?: string }>;
+  deleteMatrixDraft: (matrixId: string) => Promise<void>;
   createExam: (exam: Exam) => void;
   createAssignment: (asg: Assignment) => void;
   submitExamSession: (submission: Submission) => void;
@@ -305,6 +314,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [geminiAssistants] = useState<GeminiAssistantConfig[]>(INITIAL_GEMINI_ASSISTANTS);
   const [studyDocs] = useState<StudyDocument[]>(INITIAL_STUDY_DOCS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+  const [pendingMatrixPrompt, setPendingMatrixPrompt] = useState<string>('');
+
+  const [yccdCatalog, setYccdCatalog] = useState<YccdItem[]>(() => {
+    const seedList = yccdCatalogSeed as YccdItem[];
+    try {
+      const saved = localStorage.getItem('taydo_yccd_catalog_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved) as YccdItem[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return mergeYccdCatalog(seedList, parsed).merged;
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return seedList;
+  });
 
   // Sync to local storage
   useEffect(() => {
@@ -314,6 +340,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('taydo_classes', JSON.stringify(classes));
   }, [classes]);
+
+  useEffect(() => {
+    localStorage.setItem('taydo_matrices', JSON.stringify(matrices));
+  }, [matrices]);
+
+  useEffect(() => {
+    localStorage.setItem('taydo_yccd_catalog_v1', JSON.stringify(yccdCatalog));
+  }, [yccdCatalog]);
 
   useEffect(() => {
     localStorage.setItem('taydo_exams', JSON.stringify(exams));
@@ -792,13 +826,135 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog('Nhập file câu hỏi', `${formatted.length} câu`, 'Nhập hàng loạt câu hỏi từ file');
   };
 
+  const importYccdItems = (incoming: YccdItem[]): { inserted: number; updated: number; unchanged: number } => {
+    if (currentRole === 'student') {
+      console.warn('Truy cập trái quyền: Học sinh không được phép nhập danh mục YCCĐ.');
+      return { inserted: 0, updated: 0, unchanged: 0 };
+    }
+    const { merged, inserted, updated, unchanged } = mergeYccdCatalog(yccdCatalog, incoming);
+    setYccdCatalog(merged);
+    addAuditLog(
+      'Nhập danh mục YCCĐ',
+      `${incoming.length} dòng`,
+      `Thêm mới ${inserted}, cập nhật ${updated}, giữ nguyên ${unchanged}`
+    );
+
+    if (isSupabaseConfigured && user && incoming.length > 0) {
+      const payload = incoming.map(item => ({
+        stable_key: item.stableKey,
+        subject: item.subject,
+        subject_key: item.subjectKey,
+        grade: item.grade,
+        topic: item.topic,
+        unit: item.unit,
+        yccd: item.yccd,
+        source_label: item.sourceLabel,
+        level: item.level,
+        level_label: item.levelLabel,
+        topic_id: item.topicId,
+        topic_short_label: item.topicShortLabel,
+        unit_id: item.unitId,
+        yccd_id: item.yccdId,
+        competency_code: item.competencyCode || null,
+        order_index: item.orderIndex,
+        updated_by: user.id
+      }));
+      supabase
+        .from('yccd_catalog')
+        .upsert(payload, { onConflict: 'stable_key' })
+        .then(({ error }) => {
+          if (error) console.warn('Đồng bộ YCCĐ lên Supabase (giữ bản cục bộ):', error.message);
+        });
+    }
+
+    return { inserted, updated, unchanged };
+  };
+
   const createMatrix = (matrix: ExamMatrix) => {
     if (currentRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép tạo ma trận đề thi.');
       return;
     }
-    setMatrices(prev => [matrix, ...prev]);
+    setMatrices(prev => {
+      const idx = prev.findIndex(m => m.id === matrix.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = matrix;
+        return next;
+      }
+      return [matrix, ...prev];
+    });
     addAuditLog('Tạo ma trận', matrix.title, `Thiết lập ma trận tổng điểm ${matrix.totalPoints}đ`);
+  };
+
+  const saveMatrixDraft = async (
+    matrix: ExamMatrix
+  ): Promise<{ savedToSupabase: boolean; error?: string }> => {
+    if (currentRole === 'student') {
+      return { savedToSupabase: false, error: 'Học sinh không có quyền lưu ma trận đề.' };
+    }
+    const enriched: ExamMatrix = {
+      ...matrix,
+      updatedAt: new Date().toISOString(),
+      authorId: user?.id || userProfile?.id,
+      authorName: userProfile?.fullName || matrix.authorName || 'GV. Diệp Thanh Toàn'
+    };
+
+    setMatrices(prev => {
+      const idx = prev.findIndex(m => m.id === enriched.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = enriched;
+        return next;
+      }
+      return [enriched, ...prev];
+    });
+    addAuditLog(
+      'Lưu bản nháp ma trận',
+      enriched.title,
+      `Tổng ${enriched.totalPoints.toFixed(2)}đ • ${enriched.durationMinutes} phút`
+    );
+
+    if (isSupabaseConfigured && user) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(enriched.id);
+      try {
+        const rowPayload: Record<string, unknown> = {
+          ...(isUuid ? { id: enriched.id } : {}),
+          title: enriched.title,
+          grade: enriched.grade,
+          subject: enriched.subject,
+          period: enriched.period,
+          school_year: enriched.schoolYear,
+          duration_minutes: enriched.durationMinutes,
+          total_points: enriched.totalPoints,
+          cognitive_ratio: enriched.cognitiveRatio,
+          rows: enriched.rows,
+          matrix_state: enriched.draftState || null,
+          created_by: user.id
+        };
+        const { error } = isUuid
+          ? await supabase.from('exam_matrices').upsert(rowPayload, { onConflict: 'id' })
+          : await supabase.from('exam_matrices').insert(rowPayload);
+        if (error) {
+          console.warn('Lưu ma trận lên Supabase (đã lưu cục bộ):', error.message);
+          return { savedToSupabase: false, error: error.message };
+        }
+        return { savedToSupabase: true };
+      } catch (err: any) {
+        return { savedToSupabase: false, error: err?.message || 'Lỗi mạng khi đồng bộ Supabase' };
+      }
+    }
+
+    return { savedToSupabase: false };
+  };
+
+  const deleteMatrixDraft = async (matrixId: string): Promise<void> => {
+    if (currentRole === 'student') return;
+    setMatrices(prev => prev.filter(m => m.id !== matrixId));
+    addAuditLog('Xóa bản nháp ma trận', matrixId, 'Đã xóa hồ sơ ma trận khỏi danh sách');
+    if (isSupabaseConfigured && user && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(matrixId)) {
+      await supabase.from('exam_matrices').delete().eq('id', matrixId);
+    }
   };
 
   const createExam = (exam: Exam) => {
@@ -954,13 +1110,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         geminiAssistants,
         studyDocs,
         auditLogs,
+        yccdCatalog,
+        pendingMatrixPrompt,
+        setPendingMatrixPrompt,
         studentUser,
         addQuestion,
         updateQuestion,
         deleteQuestion,
         approveQuestion,
         importQuestionsBatch,
+        importYccdItems,
         createMatrix,
+        saveMatrixDraft,
+        deleteMatrixDraft,
         createExam,
         createAssignment,
         submitExamSession,

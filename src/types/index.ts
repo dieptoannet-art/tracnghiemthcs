@@ -109,6 +109,68 @@ export interface Question {
   examSection?: 'part1' | 'part2' | 'part3';
 }
 
+export interface YccdItem {
+  stableKey: string;
+  subject: string;
+  subjectKey: string;
+  grade: Grade;
+  topic: string;
+  unit: string;
+  yccd: string;
+  sourceLabel: string;
+  level: CognitiveLevel;
+  levelLabel: string;
+  topicId: string;
+  topicShortLabel: string;
+  unitId: string;
+  yccdId: string;
+  competencyCode?: string;
+  orderIndex: number;
+}
+
+export interface MatrixPointConfig {
+  targetTotalScore: number;
+  singleChoicePerQuestion: number;
+  trueFalsePerSubItem: number;
+  shortAnswerPerQuestion: number;
+  essayPerSubItem: number;
+  targetCognitiveRatio: {
+    knowPercent: number;
+    understandPercent: number;
+    applyPercent: number;
+  };
+}
+
+export interface MatrixAllocationCell {
+  unitKey: string;
+  level: CognitiveLevel;
+  questionType: QuestionType;
+  count: number;
+  rawCountText: string;
+  codeText: string;
+  isManualCode: boolean;
+  linkedYccdKeys: string[];
+  codeYccdMap?: Record<string, string[]>;
+}
+
+export interface MatrixDraftState {
+  id: string;
+  title: string;
+  subject: string;
+  subjectKey: SubjectId;
+  grade: Grade;
+  period: ExamPeriod;
+  schoolYear: string;
+  durationMinutes: number;
+  showShortAnswer: boolean;
+  selectedYccdKeys: string[];
+  allocations: Record<string, MatrixAllocationCell>;
+  competencyOverrides: Record<string, string>;
+  pointConfig: MatrixPointConfig;
+  updatedAt: string;
+  authorName?: string;
+}
+
 export interface MatrixRow {
   id: string;
   topic: string;
@@ -138,6 +200,10 @@ export interface ExamMatrix {
     understandPercent: number;
     applyPercent: number;
   };
+  draftState?: MatrixDraftState;
+  updatedAt?: string;
+  authorId?: string;
+  authorName?: string;
 }
 
 export interface Exam {

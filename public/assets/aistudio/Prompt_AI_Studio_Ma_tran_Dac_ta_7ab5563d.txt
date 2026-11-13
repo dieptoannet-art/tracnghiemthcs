@@ -1,0 +1,34 @@
+Hãy chỉnh trực tiếp dự án Smart EDU – Nền tảng học tập tương tác và hỗ trợ kiểm tra, đánh giá cấp THCS của Trường THCS Tây Đô. Thêm menu “Ma trận & Đặc tả” vào nhóm công cụ Giáo viên. Đọc router, sidebar, phân quyền, giao diện và cách lưu dữ liệu hiện có trước khi sửa. Gắn menu vào đúng route và layout của dự án. Phân hệ phải dùng được từ menu đến tải Word. Dùng ảnh đính kèm làm mẫu bố cục. Dùng file Yeu_cau_can_dat_Tin_hoc_6-12(1).xlsx làm nguồn dữ liệu ban đầu.
+
+1. GIAO DIỆN VÀ LUỒNG SỬ DỤNG
+
+- Thanh trên gồm Môn học, Khối lớp 6–9, Đợt kiểm tra (Giữa kì I, Cuối kì I, Giữa kì II, Cuối kì II), Thời lượng (phút, chỉnh được), checkbox Trả lời ngắn, nút Thu nhỏ và Hướng dẫn. Đặt Tin học – Khối 6 – Giữa kì I – 45 phút làm bộ lọc khởi đầu khi tạo mới.
+- Cột trái “Yêu cầu cần đạt” là cây Chương/Chủ đề → Nội dung/Đơn vị kiến thức → Yêu cầu cần đạt. Từng cấp có thể mở, thu gọn và chọn. Checkbox cấp cha có trạng thái chọn một phần. Cho phép tìm theo tên hoặc nội dung và hiển thị nhãn Nhận biết, Thông hiểu, Vận dụng.
+- Cột phải có hai tab “Ma trận” và “Bản đặc tả”. Tái tạo cách nhóm cột theo ảnh, ô nhập số lượng ở dòng trên và mã câu/ý ở dòng dưới. Dùng xanh dương cho nhiều lựa chọn, tím cho Đúng–Sai và xanh lục cho Tự luận. Cố định tiêu đề bảng khi cuộn. Bảng cuộn ngang trong vùng riêng. Trên màn hình nhỏ, cho phép mở hoặc đóng cây từ một nút để dành chỗ cho bảng.
+- Dùng kiểu chữ và thành phần giao diện hiện có của Smart EDU. Có nút Lưu bản nháp, Mở bản đã lưu và “Tải Ma trận & Đặc tả (Word)”.
+
+2. DỮ LIỆU YÊU CẦU CẦN ĐẠT
+
+- Đọc sheet Du_lieu_YCCD theo tên cột. Các cột gồm Môn học, Khối, Chương / Chủ đề, Nội dung / Đơn vị kiến thức, Yêu cầu cần đạt, Nhãn nguồn, Mức độ, ID chủ đề, Nhãn ngắn chủ đề, ID đơn vị, ID YCCĐ. Sheet Tong_hop dùng để tham chiếu tổng hợp.
+- Nhập 130 dòng Tin học THCS từ file gốc, gồm khối 6 có 42, khối 7 có 30, khối 8 có 27, khối 9 có 31. Giữ nguyên văn bản, thứ tự nguồn, các ID và ánh xạ [NB] → Nhận biết, [TH] → Thông hiểu, [VD] → Vận dụng. Thiết kế danh mục để nhập thêm Toán và các môn khác theo cùng cấu trúc. Nếu có luồng nhập lại, dùng khóa ổn định theo nguồn + môn + khối + ID YCCĐ để tránh nhân bản dữ liệu và báo các dòng lỗi.
+- File hiện tại chưa có cột học kỳ, đợt kiểm tra hoặc mã năng lực. Cho phép giáo viên chọn yêu cầu trong khối đã lọc và lưu phạm vi theo từng đợt. Hiển thị mã năng lực như NLa khi dữ liệu môn có trường đó hoặc giáo viên bổ sung. Nếu thiếu file trong môi trường dự án, làm chức năng nhập file và hiển thị trạng thái chờ nhập.
+
+3. MA TRẬN, BẢN ĐẶC TẢ VÀ TÍNH ĐIỂM
+
+- Ma trận gồm Chương/Chủ đề, Nội dung/Đơn vị kiến thức, Yêu cầu cần đạt, nhóm cột theo hình thức câu hỏi × ba mức độ, tổng theo mức độ và Điểm bài. Hiển thị nhiều lựa chọn, Đúng–Sai, Tự luận. Thêm nhóm Trả lời ngắn khi bật tùy chọn. Sau mỗi thay đổi, tính lại tổng số câu/ý, tổng điểm và tỉ lệ theo hình thức, mức độ.
+- Nhiều lựa chọn và Trả lời ngắn đếm theo câu. Đúng–Sai và Tự luận đếm theo ý trong các ô phân bổ. Lưu số câu gốc và mã ý riêng để báo cáo đồng thời số câu và số ý. Cho phép nhiều ý của một câu thuộc các mức độ khác nhau. Ví dụ mã 14a và 14b thuộc câu 14, có thể nằm ở hai mức độ. Mã 2a và 2b của Tự luận vẫn thuộc cùng câu tự luận số 2.
+- Tự sinh mã theo thứ tự các dòng và quy ước đánh số từng phần. Cho sửa mã và giữ mã đã sửa khi tính lại. Phát hiện mã trùng trong cùng phạm vi đánh số, số mã không khớp số lượng, và số lượng âm hoặc không nguyên. Hiển thị lỗi ngay tại ô. Giữ dữ liệu đã nhập khi thu gọn giao diện. Khi đổi bộ lọc hoặc bỏ chọn mục có phân bổ, xử lý bản nháp để người dùng có thể khôi phục phần đã nhập.
+- Cho cấu hình thang điểm và điểm theo hình thức/câu/ý. Có thể khởi đầu bằng mức 0,25 điểm mỗi ý nếu giáo viên chọn cấu hình minh họa theo ảnh. Cho phép điều chỉnh điểm từng ý để áp dụng cách chấm thực tế. Cảnh báo khi tổng khác thang điểm đã chọn và cho phép lưu bản nháp để chỉnh tiếp.
+- Dùng một cấu trúc dữ liệu cho cả hai tab. Mỗi phân bổ gắn với một hoặc nhiều ID YCCĐ cụ thể. Nếu một ô đang hiển thị nhiều yêu cầu cùng mức, cho giáo viên chọn yêu cầu mà từng câu/ý đánh giá. Bản đặc tả tự hiện nội dung, yêu cầu cần đạt, mức độ, hình thức, số câu/ý và mã tương ứng. Tránh nhân đôi số lượng hoặc điểm khi một câu/ý gắn với nhiều yêu cầu.
+
+4. LƯU, XUẤT WORD VÀ TÍCH HỢP
+
+- Dùng cơ chế lưu và đăng nhập hiện có. Nếu dự án dùng Supabase, tạo migration bổ sung khi cần, phân quyền theo tài khoản giáo viên và quyền quản trị hiện có. Giữ lịch sử dữ liệu theo cấu trúc đang dùng. Bản đã lưu phải mở lại được đúng bộ lọc, yêu cầu đã chọn, mã câu/ý, phân bổ và cấu hình điểm.
+- Xuất một file DOCX thực, gồm Ma trận và Bản đặc tả. Điền Trường THCS Tây Đô, môn, khối, đợt và thời lượng theo hồ sơ hiện hành. Dùng Times New Roman trong Word, bố trí trang ngang khi bảng rộng, lặp dòng tiêu đề qua trang. Số liệu trong file tải về phải trùng với màn hình.
+- Nếu dự án đã có “Tạo đề thi bằng AI”, nối nút này với phân bổ, danh sách YCCĐ, mã câu/ý và điểm. Nếu cần đầu nối, tạo nút “Sao chép cấu hình tạo đề” để giáo viên sử dụng ngay. Dùng quy trình sinh đề và quyền truy cập hiện có.
+
+5. KIỂM TRA TRƯỚC KHI BÀN GIAO
+
+- Mở phân hệ từ menu Giáo viên. Kiểm tra đủ số dòng Tin học khối 6–9. Chọn Tin học 6, mục “Thông tin và dữ liệu” và xác nhận các yêu cầu đã chọn xuất hiện đúng cấp và mức độ.
+- Nhập một câu Đúng–Sai có bốn ý, phân bổ sang hai mức độ. Xác nhận kết quả là 1 câu, 4 ý, và 1,00 điểm khi đặt mỗi ý 0,25 điểm. Thử chỉnh mã, đổi đợt, lưu và mở lại bản nháp.
+- Tải DOCX, kiểm tra hai phần, số liệu và dấu tiếng Việt. Chạy lệnh build của dự án. Báo các tệp đã sửa, dữ liệu đã nhập, kết quả kiểm thử và bước cấu hình còn cần thực hiện.

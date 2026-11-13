@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Sparkles, Copy, ExternalLink, Check, BookOpen, Layers } from 'lucide-react';
 
 export const GeminiAssistantView: React.FC = () => {
-  const { geminiAssistants, selectedGrade, selectedSubject } = useApp();
+  const { geminiAssistants, pendingMatrixPrompt, setPendingMatrixPrompt } = useApp();
 
   const [promptGrade, setPromptGrade] = useState('8');
   const [promptSubject, setPromptSubject] = useState('Toán');
@@ -49,6 +49,40 @@ Yêu cầu định dạng đầu ra:
           Tạo prompt yêu cầu sư phạm chuẩn GDPT 2018, sao chép sang Google Gemini và nhập kết quả vào ngân hàng câu hỏi
         </p>
       </div>
+
+      {pendingMatrixPrompt && (
+        <div className="bg-blue-50/90 border border-blue-200 rounded-2xl p-5 shadow-xs space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center space-x-2 text-[#082B52] font-bold text-sm">
+              <Sparkles className="w-4 h-4 text-[#006BFF]" />
+              <span>Cấu hình sinh đề nhận từ Ma trận & Bản đặc tả</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => handleCopyPrompt('matrix-handoff', pendingMatrixPrompt)}
+                className="px-3 py-1.5 bg-[#006BFF] text-white rounded-lg text-xs font-bold hover:bg-blue-600 flex items-center space-x-1"
+              >
+                {copiedId === 'matrix-handoff' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedId === 'matrix-handoff' ? 'Đã sao chép!' : 'Sao chép cấu hình ma trận'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingMatrixPrompt('')}
+                className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+          <textarea
+            rows={7}
+            readOnly
+            value={pendingMatrixPrompt}
+            className="w-full p-3 bg-white border border-blue-200 rounded-xl text-xs font-mono text-slate-800 leading-relaxed"
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Prompt Builder Form (7 cols) */}
