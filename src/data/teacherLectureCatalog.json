@@ -24,7 +24,9 @@
     "lessonCode": "1",
     "previousHtmlUrl": "/lessons/Toan_6_c1_b1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_b1"
+    "lectureId": "toan_6_c1_b1",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_b2",
@@ -51,7 +53,9 @@
     "lessonCode": "2",
     "previousHtmlUrl": "/lessons/Toan_6_c1_b2.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_b2"
+    "lectureId": "toan_6_c1_b2",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_b3",
@@ -78,7 +82,9 @@
     "lessonCode": "3",
     "previousHtmlUrl": "/lessons/Toan_6_c1_b3.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_b3"
+    "lectureId": "toan_6_c1_b3",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_b4",
@@ -105,7 +111,9 @@
     "lessonCode": "4",
     "previousHtmlUrl": "/lessons/Toan_6_c1_b4.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_b4"
+    "lectureId": "toan_6_c1_b4",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_b5",
@@ -132,7 +140,9 @@
     "lessonCode": "5",
     "previousHtmlUrl": "/lessons/Toan_6_c1_b5.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_b5"
+    "lectureId": "toan_6_c1_b5",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_lt1",
@@ -159,7 +169,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c1_lt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_lt1"
+    "lectureId": "toan_6_c1_lt1",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_b6",
@@ -186,7 +198,9 @@
     "lessonCode": "6",
     "previousHtmlUrl": "/lessons/Toan_6_c1_b6.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_b6"
+    "lectureId": "toan_6_c1_b6",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_b7",
@@ -213,7 +227,9 @@
     "lessonCode": "7",
     "previousHtmlUrl": "/lessons/Toan_6_c1_b7.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_b7"
+    "lectureId": "toan_6_c1_b7",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_lt2",
@@ -240,7 +256,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c1_lt2.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_lt2"
+    "lectureId": "toan_6_c1_lt2",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c1_bt1",
@@ -267,7 +285,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c1_bt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c1_bt1"
+    "lectureId": "toan_6_c1_bt1",
+    "chapterCode": "C1",
+    "chapterOrder": 1
   },
   {
     "id": "toan_6_c2_b8",
@@ -294,7 +314,9 @@
     "lessonCode": "8",
     "previousHtmlUrl": "/lessons/Toan_6_c2_b8.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c2_b8"
+    "lectureId": "toan_6_c2_b8",
+    "chapterCode": "C2",
+    "chapterOrder": 2
   },
   {
     "id": "toan_6_c2_b9",
@@ -321,7 +343,9 @@
     "lessonCode": "9",
     "previousHtmlUrl": "/lessons/Toan_6_c2_b9.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c2_b9"
+    "lectureId": "toan_6_c2_b9",
+    "chapterCode": "C2",
+    "chapterOrder": 2
   },
   {
     "id": "toan_6_c2_b10",
@@ -348,7 +372,9 @@
     "lessonCode": "10",
     "previousHtmlUrl": "/lessons/Toan_6_c2_b10.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c2_b10"
+    "lectureId": "toan_6_c2_b10",
+    "chapterCode": "C2",
+    "chapterOrder": 2
   },
   {
     "id": "toan_6_c2_lt1",
@@ -375,7 +401,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c2_lt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c2_lt1"
+    "lectureId": "toan_6_c2_lt1",
+    "chapterCode": "C2",
+    "chapterOrder": 2
   },
   {
     "id": "toan_6_c2_b11",
@@ -402,7 +430,9 @@
     "lessonCode": "11",
     "previousHtmlUrl": "/lessons/Toan_6_c2_b11.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c2_b11"
+    "lectureId": "toan_6_c2_b11",
+    "chapterCode": "C2",
+    "chapterOrder": 2
   },
   {
     "id": "toan_6_c2_b12",
@@ -429,7 +459,9 @@
     "lessonCode": "12",
     "previousHtmlUrl": "/lessons/Toan_6_c2_b12.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c2_b12"
+    "lectureId": "toan_6_c2_b12",
+    "chapterCode": "C2",
+    "chapterOrder": 2
   },
   {
     "id": "toan_6_c2_lt2",
@@ -456,7 +488,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c2_lt2.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c2_lt2"
+    "lectureId": "toan_6_c2_lt2",
+    "chapterCode": "C2",
+    "chapterOrder": 2
   },
   {
     "id": "toan_6_c2_bt1",
@@ -483,7 +517,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c2_bt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c2_bt1"
+    "lectureId": "toan_6_c2_bt1",
+    "chapterCode": "C2",
+    "chapterOrder": 2
   },
   {
     "id": "toan_6_c3_b13",
@@ -510,7 +546,9 @@
     "lessonCode": "13",
     "previousHtmlUrl": "/lessons/Toan_6_c3_b13.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c3_b13"
+    "lectureId": "toan_6_c3_b13",
+    "chapterCode": "C3",
+    "chapterOrder": 3
   },
   {
     "id": "toan_6_c3_b14",
@@ -537,7 +575,9 @@
     "lessonCode": "14",
     "previousHtmlUrl": "/lessons/Toan_6_c3_b14.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c3_b14"
+    "lectureId": "toan_6_c3_b14",
+    "chapterCode": "C3",
+    "chapterOrder": 3
   },
   {
     "id": "toan_6_c3_b15",
@@ -564,7 +604,9 @@
     "lessonCode": "15",
     "previousHtmlUrl": "/lessons/Toan_6_c3_b15.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c3_b15"
+    "lectureId": "toan_6_c3_b15",
+    "chapterCode": "C3",
+    "chapterOrder": 3
   },
   {
     "id": "toan_6_c3_lt1",
@@ -591,7 +633,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c3_lt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c3_lt1"
+    "lectureId": "toan_6_c3_lt1",
+    "chapterCode": "C3",
+    "chapterOrder": 3
   },
   {
     "id": "toan_6_c3_b16",
@@ -618,7 +662,9 @@
     "lessonCode": "16",
     "previousHtmlUrl": "/lessons/Toan_6_c3_b16.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c3_b16"
+    "lectureId": "toan_6_c3_b16",
+    "chapterCode": "C3",
+    "chapterOrder": 3
   },
   {
     "id": "toan_6_c3_b17",
@@ -645,7 +691,9 @@
     "lessonCode": "17",
     "previousHtmlUrl": "/lessons/Toan_6_c3_b17.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c3_b17"
+    "lectureId": "toan_6_c3_b17",
+    "chapterCode": "C3",
+    "chapterOrder": 3
   },
   {
     "id": "toan_6_c3_lt2",
@@ -672,7 +720,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c3_lt2.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c3_lt2"
+    "lectureId": "toan_6_c3_lt2",
+    "chapterCode": "C3",
+    "chapterOrder": 3
   },
   {
     "id": "toan_6_c3_bt1",
@@ -699,7 +749,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c3_bt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c3_bt1"
+    "lectureId": "toan_6_c3_bt1",
+    "chapterCode": "C3",
+    "chapterOrder": 3
   },
   {
     "id": "toan_6_c4_b18",
@@ -726,7 +778,9 @@
     "lessonCode": "18",
     "previousHtmlUrl": "/lessons/Toan_6_c4_b18.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c4_b18"
+    "lectureId": "toan_6_c4_b18",
+    "chapterCode": "C4",
+    "chapterOrder": 4
   },
   {
     "id": "toan_6_c4_b19",
@@ -753,7 +807,9 @@
     "lessonCode": "19",
     "previousHtmlUrl": "/lessons/Toan_6_c4_b19.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c4_b19"
+    "lectureId": "toan_6_c4_b19",
+    "chapterCode": "C4",
+    "chapterOrder": 4
   },
   {
     "id": "toan_6_c4_b20",
@@ -780,7 +836,9 @@
     "lessonCode": "20",
     "previousHtmlUrl": "/lessons/Toan_6_c4_b20.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c4_b20"
+    "lectureId": "toan_6_c4_b20",
+    "chapterCode": "C4",
+    "chapterOrder": 4
   },
   {
     "id": "toan_6_c4_lt1",
@@ -807,7 +865,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c4_lt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c4_lt1"
+    "lectureId": "toan_6_c4_lt1",
+    "chapterCode": "C4",
+    "chapterOrder": 4
   },
   {
     "id": "toan_6_c4_bt1",
@@ -834,7 +894,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c4_bt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c4_bt1"
+    "lectureId": "toan_6_c4_bt1",
+    "chapterCode": "C4",
+    "chapterOrder": 4
   },
   {
     "id": "toan_6_c5_b21",
@@ -861,7 +923,9 @@
     "lessonCode": "21",
     "previousHtmlUrl": "/lessons/Toan_6_c5_b21.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c5_b21"
+    "lectureId": "toan_6_c5_b21",
+    "chapterCode": "C5",
+    "chapterOrder": 5
   },
   {
     "id": "toan_6_c5_b22",
@@ -888,7 +952,9 @@
     "lessonCode": "22",
     "previousHtmlUrl": "/lessons/Toan_6_c5_b22.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c5_b22"
+    "lectureId": "toan_6_c5_b22",
+    "chapterCode": "C5",
+    "chapterOrder": 5
   },
   {
     "id": "toan_6_c5_lt1",
@@ -915,7 +981,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c5_lt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c5_lt1"
+    "lectureId": "toan_6_c5_lt1",
+    "chapterCode": "C5",
+    "chapterOrder": 5
   },
   {
     "id": "toan_6_c5_bt1",
@@ -942,7 +1010,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_c5_bt1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_c5_bt1"
+    "lectureId": "toan_6_c5_bt1",
+    "chapterCode": "C5",
+    "chapterOrder": 5
   },
   {
     "id": "toan_6_hdtn_t1_hd1",
@@ -969,7 +1039,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd1.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_hdtn_t1_hd1"
+    "lectureId": "toan_6_hdtn_t1_hd1",
+    "chapterCode": "HDTN_T1",
+    "chapterOrder": 99
   },
   {
     "id": "toan_6_hdtn_t1_hd2",
@@ -996,7 +1068,9 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd2.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_hdtn_t1_hd2"
+    "lectureId": "toan_6_hdtn_t1_hd2",
+    "chapterCode": "HDTN_T1",
+    "chapterOrder": 99
   },
   {
     "id": "toan_6_hdtn_t1_hd3",
@@ -1023,6 +1097,8 @@
     "lessonCode": null,
     "previousHtmlUrl": "/lessons/Toan_6_hdtn_t1_hd3.html",
     "contentVersion": "1.0",
-    "lectureId": "toan_6_hdtn_t1_hd3"
+    "lectureId": "toan_6_hdtn_t1_hd3",
+    "chapterCode": "HDTN_T1",
+    "chapterOrder": 99
   }
 ]

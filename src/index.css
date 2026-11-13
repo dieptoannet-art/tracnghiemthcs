@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --font-serif: "Times New Roman", "Noto Serif", "Lora", Times, serif;
+}
+
 @layer base {
   :root {
     --color-sidebar: #0F2D52;
@@ -13,7 +17,7 @@
   body {
     background-color: #F6FAFF;
     color: #0F2D52;
-    font-family: "Times New Roman", "Lora", Georgia, serif;
+    font-family: "Times New Roman", "Noto Serif", "Lora", Times, serif;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
