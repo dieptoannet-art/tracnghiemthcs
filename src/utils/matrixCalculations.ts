@@ -12,7 +12,9 @@ import {
   YccdItem
 } from '../types';
 import {
+  normalizeId,
   normalizeSubjectToKey,
+  normalizeYccdItem,
   stripVietnameseAccents
 } from './yccdCsvParser';
 
@@ -52,7 +54,7 @@ export const DEFAULT_POINT_CONFIG: MatrixPointConfig = {
 };
 
 export function buildUnitKey(item: Pick<YccdItem, 'subjectKey' | 'grade' | 'topicId' | 'unitId'>): string {
-  return `${item.subjectKey}|${item.grade}|${item.topicId}|${item.unitId}`;
+  return `${normalizeId(item.subjectKey)}|${normalizeId(item.grade)}|${normalizeId(item.topicId)}|${normalizeId(item.unitId)}`;
 }
 
 export function buildAllocationKey(unitKey: string, level: CognitiveLevel, questionType: QuestionType): string {
@@ -189,18 +191,20 @@ export function buildYccdTree(items: YccdItem[]): TreeTopicGroup[] {
   const topicMap = new Map<string, TreeTopicGroup>();
   const unitMap = new Map<string, TreeUnitGroup>();
 
-  const sorted = [...items].sort((a, b) => a.orderIndex - b.orderIndex);
+  const normalizedItems = items.map(normalizeYccdItem);
+  const sorted = normalizedItems.sort((a, b) => a.orderIndex - b.orderIndex);
 
   for (const item of sorted) {
-    let topicNode = topicMap.get(item.topicId);
+    const normTopicId = normalizeId(item.topicId);
+    let topicNode = topicMap.get(normTopicId);
     if (!topicNode) {
       topicNode = {
-        topicId: item.topicId,
+        topicId: normTopicId,
         topic: item.topic,
         topicShortLabel: item.topicShortLabel,
         units: []
       };
-      topicMap.set(item.topicId, topicNode);
+      topicMap.set(normTopicId, topicNode);
       topics.push(topicNode);
     }
 
@@ -209,9 +213,9 @@ export function buildYccdTree(items: YccdItem[]): TreeTopicGroup[] {
     if (!unitNode) {
       unitNode = {
         unitKey: uKey,
-        unitId: item.unitId,
+        unitId: normalizeId(item.unitId),
         unit: item.unit,
-        topicId: item.topicId,
+        topicId: normTopicId,
         topic: item.topic,
         topicShortLabel: item.topicShortLabel,
         itemsByLevel: {

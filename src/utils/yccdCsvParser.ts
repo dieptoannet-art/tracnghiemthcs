@@ -152,11 +152,53 @@ function parseCognitiveLevel(sourceLabel: string, levelText: string): { level: C
   return null;
 }
 
-export function buildYccdStableKey(sourceLabel: string, subject: string, grade: Grade, yccdId: string): string {
+export function normalizeId(value: unknown): string {
+  return String(value ?? '').trim();
+}
+
+export function normalizeGrade(value: unknown): Grade {
+  const match = String(value ?? '').match(/([6-9])/);
+  return (match ? match[1] : '6') as Grade;
+}
+
+export function buildYccdStableKey(sourceLabel: string, subject: string, grade: Grade, yccdId: unknown): string {
   const srcKey = stripVietnameseAccents(sourceLabel).replace(/[^a-z0-9]/g, '') || 'src';
   const subjKey = normalizeSubjectToKey(subject);
-  const idClean = String(yccdId).trim();
-  return `${srcKey}|${subjKey}|${grade}|${idClean}`;
+  const normGrade = normalizeGrade(grade);
+  const idClean = normalizeId(yccdId);
+  return `${srcKey}|${subjKey}|${normGrade}|${idClean}`;
+}
+
+export function normalizeYccdItem(raw: YccdItem): YccdItem {
+  const subject = String(raw.subject ?? '').trim();
+  const subjectKey = raw.subjectKey ? normalizeId(raw.subjectKey) : normalizeSubjectToKey(subject);
+  const grade = normalizeGrade(raw.grade);
+  const topic = String(raw.topic ?? '').trim();
+  const unit = String(raw.unit ?? '').trim();
+  const yccd = String(raw.yccd ?? '').trim();
+  const sourceLabel = String(raw.sourceLabel ?? '').trim().toUpperCase() || '[NB]';
+  const topicId = normalizeId(raw.topicId) || stripVietnameseAccents(topic).slice(0, 24);
+  const topicShortLabel = String(raw.topicShortLabel ?? '').trim() || topic.split('.')[0] || topic;
+  const unitId = normalizeId(raw.unitId) || stripVietnameseAccents(unit).slice(0, 24);
+  const yccdId = normalizeId(raw.yccdId);
+  const stableKey =
+    normalizeId(raw.stableKey) || buildYccdStableKey(sourceLabel, subject || subjectKey, grade, yccdId);
+
+  return {
+    ...raw,
+    stableKey,
+    subject,
+    subjectKey,
+    grade,
+    topic,
+    unit,
+    yccd,
+    sourceLabel,
+    topicId,
+    topicShortLabel,
+    unitId,
+    yccdId
+  };
 }
 
 export function parseYccdCsv(csvText: string): YccdCsvParseResult {
@@ -282,7 +324,7 @@ export function parseYccdCsv(csvText: string): YccdCsvParseResult {
     const subjectKey = normalizeSubjectToKey(subject);
     const stableKey = buildYccdStableKey(parsedLevel.normalizedSource, subject, grade, yccdId);
 
-    const item: YccdItem = {
+    const normalizedItem = normalizeYccdItem({
       stableKey,
       subject,
       subjectKey,
@@ -299,14 +341,14 @@ export function parseYccdCsv(csvText: string): YccdCsvParseResult {
       yccdId,
       competencyCode: competencyRaw || (subjectKey === 'informatics' ? 'NLa' : undefined),
       orderIndex: items.length
-    };
+    });
 
-    const dupIdx = seenKeys.get(stableKey);
+    const dupIdx = seenKeys.get(normalizedItem.stableKey);
     if (dupIdx !== undefined) {
-      items[dupIdx] = { ...item, orderIndex: items[dupIdx].orderIndex };
+      items[dupIdx] = { ...normalizedItem, orderIndex: items[dupIdx].orderIndex };
     } else {
-      seenKeys.set(stableKey, items.length);
-      items.push(item);
+      seenKeys.set(normalizedItem.stableKey, items.length);
+      items.push(normalizedItem);
     }
   }
 
@@ -336,7 +378,8 @@ export function mergeYccdCatalog(
   incoming: YccdItem[]
 ): { merged: YccdItem[]; inserted: number; updated: number; unchanged: number } {
   const byKey = new Map<string, number>();
-  const result = existing.map((item, idx) => {
+  const result = existing.map((raw, idx) => {
+    const item = normalizeYccdItem(raw);
     byKey.set(item.stableKey, idx);
     return item;
   });
@@ -345,7 +388,8 @@ export function mergeYccdCatalog(
   let updated = 0;
   let unchanged = 0;
 
-  for (const item of incoming) {
+  for (const rawItem of incoming) {
+    const item = normalizeYccdItem(rawItem);
     const idx = byKey.get(item.stableKey);
     if (idx === undefined) {
       byKey.set(item.stableKey, result.length);

@@ -54,6 +54,8 @@ import {
   TreeTopicGroup
 } from '../../utils/matrixCalculations';
 import {
+  normalizeGrade,
+  normalizeId,
   normalizeSubjectToKey,
   subjectKeyToDisplayName
 } from '../../utils/yccdCsvParser';
@@ -137,10 +139,10 @@ export const ExamMatrixModal: React.FC = () => {
     const grade6InformaticsTopicA = yccdCatalog.filter(
       it =>
         normalizeSubjectToKey(it.subject) === 'informatics' &&
-        it.grade === '6' &&
-        (it.topicId === '326' || it.topicShortLabel === 'Chủ đề A')
+        normalizeGrade(it.grade) === '6' &&
+        (normalizeId(it.topicId) === '326' || it.topicShortLabel === 'Chủ đề A')
     );
-    return grade6InformaticsTopicA.map(it => it.stableKey);
+    return grade6InformaticsTopicA.map(it => normalizeId(it.stableKey));
   });
 
   // UI States
@@ -186,7 +188,9 @@ export const ExamMatrixModal: React.FC = () => {
   const filteredCatalog = useMemo(
     () =>
       yccdCatalog.filter(
-        it => normalizeSubjectToKey(it.subject) === currentSubjectKey && it.grade === grade
+        it =>
+          normalizeSubjectToKey(it.subject) === currentSubjectKey &&
+          normalizeGrade(it.grade) === normalizeGrade(grade)
       ),
     [yccdCatalog, currentSubjectKey, grade]
   );
@@ -213,7 +217,7 @@ export const ExamMatrixModal: React.FC = () => {
     [showShortAnswer]
   );
 
-  const selectedSet = useMemo(() => new Set(selectedYccdKeys), [selectedYccdKeys]);
+  const selectedSet = useMemo(() => new Set(selectedYccdKeys.map(normalizeId)), [selectedYccdKeys]);
 
   // Compute live matrix & specification summary (Single Source of Truth)
   const summary = useMemo(
@@ -281,9 +285,10 @@ export const ExamMatrixModal: React.FC = () => {
     setPeriod(nextPeriod);
     setEditingLinkRowKey(null);
     setUndoSelectionSnapshot(null);
+    setCollapsedMatrixTopics({});
 
     if (cached) {
-      setSelectedYccdKeys(cached.selectedYccdKeys);
+      setSelectedYccdKeys(cached.selectedYccdKeys.map(normalizeId));
       setAllocations(cached.allocations);
       setPointConfig(cached.pointConfig);
       setDurationMinutes(cached.durationMinutes);
@@ -292,11 +297,13 @@ export const ExamMatrixModal: React.FC = () => {
     } else {
       // If first time visiting a subject/grade/period, pre-select Topic 1 if available cleanly
       const targetItems = yccdCatalog.filter(
-        it => normalizeSubjectToKey(it.subject) === nextSubjKey && it.grade === nextGrade
+        it =>
+          normalizeSubjectToKey(it.subject) === nextSubjKey &&
+          normalizeGrade(it.grade) === normalizeGrade(nextGrade)
       );
-      const firstTopicId = targetItems[0]?.topicId;
+      const firstTopicId = targetItems[0] ? normalizeId(targetItems[0].topicId) : '';
       const defaultKeys = firstTopicId
-        ? targetItems.filter(it => it.topicId === firstTopicId).map(it => it.stableKey)
+        ? targetItems.filter(it => normalizeId(it.topicId) === firstTopicId).map(it => normalizeId(it.stableKey))
         : [];
       setSelectedYccdKeys(defaultKeys);
       setAllocations({});
@@ -307,17 +314,20 @@ export const ExamMatrixModal: React.FC = () => {
   };
 
   // Toggle selection handlers with undo protection if unchecking allocated items
-  const applySelectionUpdate = (nextKeys: string[], uncheckLabel?: string) => {
-    const prevSet = new Set(selectedYccdKeys);
+  const applySelectionUpdate = (nextKeysRaw: string[], uncheckLabel?: string) => {
+    const nextKeys = Array.from(new Set(nextKeysRaw.map(normalizeId).filter(Boolean)));
+    const prevKeysNorm = selectedYccdKeys.map(normalizeId);
+    const prevSet = new Set(prevKeysNorm);
     const nextSet = new Set(nextKeys);
-    const removedKeys = selectedYccdKeys.filter(k => !nextSet.has(k));
+    const removedKeys = prevKeysNorm.filter(k => !nextSet.has(k));
 
     if (removedKeys.length > 0 && uncheckLabel) {
       // Check if any removed YCCĐ belongs to a unit that has entered allocations
+      const removedKeySet = new Set(removedKeys);
       const removedUnitKeys = new Set(
         filteredCatalog
-          .filter(it => removedKeys.includes(it.stableKey))
-          .map(it => `${it.subjectKey}|${it.grade}|${it.topicId}|${it.unitId}`)
+          .filter(it => removedKeySet.has(normalizeId(it.stableKey)))
+          .map(it => `${normalizeId(it.subjectKey)}|${normalizeGrade(it.grade)}|${normalizeId(it.topicId)}|${normalizeId(it.unitId)}`)
       );
       const affectsAllocated = Object.values(allocations).some(
         c => c.count > 0 && removedUnitKeys.has(c.unitKey)
@@ -331,34 +341,78 @@ export const ExamMatrixModal: React.FC = () => {
     setAllocations(prev => applyAutoCodesToAllocations(tree, nextSet, prev, activeFormats));
   };
 
+  const expandMatrixTopicsForKeys = (keys: string[]) => {
+    const keySet = new Set(keys.map(normalizeId));
+    const topicIdsToOpen: string[] = [];
+    for (const t of tree) {
+      const hasAny = t.units.some(u =>
+        COGNITIVE_LEVELS.some(lvl => u.itemsByLevel[lvl].some(it => keySet.has(normalizeId(it.stableKey))))
+      );
+      if (hasAny) {
+        topicIdsToOpen.push(normalizeId(t.topicId));
+      }
+    }
+    if (topicIdsToOpen.length > 0) {
+      setCollapsedMatrixTopics(prev => {
+        const next = { ...prev };
+        for (const tid of topicIdsToOpen) {
+          next[tid] = false;
+        }
+        return next;
+      });
+    }
+  };
+
   const handleToggleYccd = (stableKey: string) => {
-    const exists = selectedSet.has(stableKey);
+    const normKey = normalizeId(stableKey);
+    const exists = selectedSet.has(normKey);
     const nextKeys = exists
-      ? selectedYccdKeys.filter(k => k !== stableKey)
-      : [...selectedYccdKeys, stableKey];
+      ? selectedYccdKeys.filter(k => normalizeId(k) !== normKey)
+      : [...selectedYccdKeys, normKey];
+    if (!exists) {
+      expandMatrixTopicsForKeys([normKey]);
+    }
     applySelectionUpdate(nextKeys, exists ? '1 Yêu cầu cần đạt vừa bỏ chọn' : undefined);
   };
 
   const handleToggleUnit = (_unitKey: string, allUnitKeys: string[]) => {
-    const allChecked = allUnitKeys.every(k => selectedSet.has(k));
-    const unitKeySet = new Set(allUnitKeys);
+    const normUnitKeys = allUnitKeys.map(normalizeId).filter(Boolean);
+    const allChecked = normUnitKeys.length > 0 && normUnitKeys.every(k => selectedSet.has(k));
+    const unitKeySet = new Set(normUnitKeys);
     const nextKeys = allChecked
-      ? selectedYccdKeys.filter(k => !unitKeySet.has(k))
-      : Array.from(new Set([...selectedYccdKeys, ...allUnitKeys]));
+      ? selectedYccdKeys.filter(k => !unitKeySet.has(normalizeId(k)))
+      : Array.from(new Set([...selectedYccdKeys.map(normalizeId), ...normUnitKeys]));
+    if (!allChecked) {
+      expandMatrixTopicsForKeys(normUnitKeys);
+    }
     applySelectionUpdate(nextKeys, allChecked ? 'Đơn vị kiến thức vừa bỏ chọn' : undefined);
   };
 
-  const handleToggleTopic = (_topicId: string, allTopicKeys: string[]) => {
-    const allChecked = allTopicKeys.every(k => selectedSet.has(k));
-    const topicKeySet = new Set(allTopicKeys);
+  const handleToggleTopic = (topicId: string, allTopicKeys: string[]) => {
+    const normTopicId = normalizeId(topicId);
+    const treeTopic = tree.find(t => normalizeId(t.topicId) === normTopicId);
+    const canonicalTopicKeys = treeTopic
+      ? treeTopic.units.flatMap(u =>
+          COGNITIVE_LEVELS.flatMap(lvl => u.itemsByLevel[lvl].map(it => normalizeId(it.stableKey)))
+        )
+      : allTopicKeys.map(normalizeId).filter(Boolean);
+
+    const allChecked =
+      canonicalTopicKeys.length > 0 && canonicalTopicKeys.every(k => selectedSet.has(k));
+    const topicKeySet = new Set(canonicalTopicKeys);
     const nextKeys = allChecked
-      ? selectedYccdKeys.filter(k => !topicKeySet.has(k))
-      : Array.from(new Set([...selectedYccdKeys, ...allTopicKeys]));
+      ? selectedYccdKeys.filter(k => !topicKeySet.has(normalizeId(k)))
+      : Array.from(new Set([...selectedYccdKeys.map(normalizeId), ...canonicalTopicKeys]));
+
+    if (!allChecked) {
+      setCollapsedMatrixTopics(prev => ({ ...prev, [normTopicId]: false }));
+    }
     applySelectionUpdate(nextKeys, allChecked ? 'Chủ đề vừa bỏ chọn' : undefined);
   };
 
   const handleSelectAllFiltered = () => {
-    const allKeys = filteredCatalog.map(it => it.stableKey);
+    const allKeys = filteredCatalog.map(it => normalizeId(it.stableKey));
+    setCollapsedMatrixTopics({});
     applySelectionUpdate(allKeys);
   };
 
@@ -368,7 +422,8 @@ export const ExamMatrixModal: React.FC = () => {
 
   const handleUndoSelection = () => {
     if (!undoSelectionSnapshot) return;
-    const restored = undoSelectionSnapshot.prevKeys;
+    const restored = undoSelectionSnapshot.prevKeys.map(normalizeId);
+    expandMatrixTopicsForKeys(restored);
     setSelectedYccdKeys(restored);
     setAllocations(prev => applyAutoCodesToAllocations(tree, new Set(restored), prev, activeFormats));
     setUndoSelectionSnapshot(null);
@@ -541,17 +596,20 @@ export const ExamMatrixModal: React.FC = () => {
       setSchoolYear(ds.schoolYear || '2025 - 2026');
       setDurationMinutes(ds.durationMinutes || 45);
       setShowShortAnswer(Boolean(ds.showShortAnswer));
-      setSelectedYccdKeys(ds.selectedYccdKeys || []);
+      const normalizedLoadedKeys = (ds.selectedYccdKeys || []).map(normalizeId);
+      setSelectedYccdKeys(normalizedLoadedKeys);
       setAllocations(ds.allocations || {});
       setCompetencyOverrides(ds.competencyOverrides || {});
       setPointConfig(ds.pointConfig || { ...DEFAULT_POINT_CONFIG });
       setDraftTitle(ds.title);
+      setCollapsedMatrixTopics({});
 
       // Expand topics of loaded YCCĐs
-      const targetItems = yccdCatalog.filter(it => (ds.selectedYccdKeys || []).includes(it.stableKey));
+      const loadedKeySet = new Set(normalizedLoadedKeys);
+      const targetItems = yccdCatalog.filter(it => loadedKeySet.has(normalizeId(it.stableKey)));
       const expandMap: Record<string, boolean> = {};
       targetItems.forEach(it => {
-        expandMap[it.topicId] = true;
+        expandMap[normalizeId(it.topicId)] = true;
       });
       if (Object.keys(expandMap).length > 0) setExpandedTopics(expandMap);
 
@@ -726,7 +784,9 @@ export const ExamMatrixModal: React.FC = () => {
               {subjectOptions.map(s => {
                 const sKey = normalizeSubjectToKey(s);
                 const countInGrade = yccdCatalog.filter(
-                  it => normalizeSubjectToKey(it.subject) === sKey && it.grade === grade
+                  it =>
+                    normalizeSubjectToKey(it.subject) === sKey &&
+                    normalizeGrade(it.grade) === normalizeGrade(grade)
                 ).length;
                 return (
                   <option key={s} value={s}>
@@ -1316,14 +1376,14 @@ export const ExamMatrixModal: React.FC = () => {
                                 colSpan={3 + activeFormats.length * 3 + 4}
                                 className="border border-slate-200 px-3 py-2"
                               >
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center gap-3">
                                   <span className="font-bold text-[#006BFF]">{group.topic.topic}</span>
                                   <button
                                     type="button"
                                     onClick={() =>
                                       setCollapsedMatrixTopics(p => ({ ...p, [group.topic.topicId]: false }))
                                     }
-                                    className="px-2 py-0.5 bg-white border border-slate-300 rounded text-[11px] font-bold text-[#082B52] inline-flex items-center gap-1 cursor-pointer"
+                                    className="px-2.5 py-0.5 bg-white hover:bg-blue-50 border border-slate-300 rounded text-[11px] font-bold text-[#082B52] inline-flex items-center gap-1 cursor-pointer"
                                   >
                                     <ChevronDown className="w-3 h-3" />
                                     <span>Mở rộng ({group.unitRows.length} nội dung)</span>
@@ -1336,10 +1396,12 @@ export const ExamMatrixModal: React.FC = () => {
 
                         let topicRendered = false;
 
-                        return group.unitRows.map(uRow => {
-                          let unitRendered = false;
+                        return (
+                          <React.Fragment key={group.topic.topicId}>
+                            {group.unitRows.map(uRow => {
+                              let unitRendered = false;
 
-                          return uRow.levelRows.map(lRow => {
+                              return uRow.levelRows.map(lRow => {
                             const showTopicCell = !topicRendered;
                             topicRendered = true;
                             const showUnitCell = !unitRendered;
@@ -1653,7 +1715,9 @@ export const ExamMatrixModal: React.FC = () => {
                               </tr>
                             );
                           });
-                        });
+                        })}
+                          </React.Fragment>
+                        );
                       })}
 
                       {/* Footer Row 1: Tổng số câu / ý */}

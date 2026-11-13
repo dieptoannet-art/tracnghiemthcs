@@ -20,7 +20,7 @@ import {
   YccdItem
 } from '../types';
 import yccdCatalogSeed from '../data/yccdCatalogSeed.json';
-import { mergeYccdCatalog } from '../utils/yccdCsvParser';
+import { mergeYccdCatalog, normalizeYccdItem } from '../utils/yccdCsvParser';
 import {
   INITIAL_QUESTIONS,
   INITIAL_CLASSES,
@@ -317,13 +317,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [pendingMatrixPrompt, setPendingMatrixPrompt] = useState<string>('');
 
   const [yccdCatalog, setYccdCatalog] = useState<YccdItem[]>(() => {
-    const seedList = yccdCatalogSeed as YccdItem[];
+    const seedList = (yccdCatalogSeed as YccdItem[]).map(normalizeYccdItem);
     try {
       const saved = localStorage.getItem('taydo_yccd_catalog_v1');
       if (saved) {
         const parsed = JSON.parse(saved) as YccdItem[];
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return mergeYccdCatalog(seedList, parsed).merged;
+          return mergeYccdCatalog(seedList, parsed.map(normalizeYccdItem)).merged;
         }
       }
     } catch {
@@ -831,7 +831,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Truy cập trái quyền: Học sinh không được phép nhập danh mục YCCĐ.');
       return { inserted: 0, updated: 0, unchanged: 0 };
     }
-    const { merged, inserted, updated, unchanged } = mergeYccdCatalog(yccdCatalog, incoming);
+    const normalizedIncoming = incoming.map(normalizeYccdItem);
+    const { merged, inserted, updated, unchanged } = mergeYccdCatalog(yccdCatalog, normalizedIncoming);
     setYccdCatalog(merged);
     addAuditLog(
       'Nhập danh mục YCCĐ',

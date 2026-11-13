@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { CognitiveLevel } from '../../types';
 import { COGNITIVE_LEVELS, TreeTopicGroup } from '../../utils/matrixCalculations';
-import { stripVietnameseAccents } from '../../utils/yccdCsvParser';
+import { normalizeId, stripVietnameseAccents } from '../../utils/yccdCsvParser';
 
 interface TriStateCheckboxProps {
   checked: boolean;
@@ -136,33 +136,37 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
     return result;
   }, [tree, searchQuery]);
 
-  const totalItems = useMemo(
-    () =>
-      tree.reduce(
-        (sum, t) =>
-          sum +
-          t.units.reduce(
-            (us, u) =>
-              us + u.itemsByLevel.know.length + u.itemsByLevel.understand.length + u.itemsByLevel.apply.length,
-            0
-          ),
-        0
-      ),
-    [tree]
-  );
+  const { totalItems, selectedCount, fullTopicKeysById, fullUnitKeysByUnitKey } = useMemo(() => {
+    const topicMap = new Map<string, string[]>();
+    const unitMap = new Map<string, string[]>();
+    let total = 0;
+    let selected = 0;
 
-  const selectedCount = useMemo(() => {
-    let count = 0;
     for (const t of tree) {
+      const tKey = normalizeId(t.topicId);
+      const tKeys: string[] = [];
       for (const u of t.units) {
+        const uKeys: string[] = [];
         for (const lvl of COGNITIVE_LEVELS) {
           for (const it of u.itemsByLevel[lvl]) {
-            if (selectedKeys.has(it.stableKey)) count++;
+            const sk = normalizeId(it.stableKey);
+            tKeys.push(sk);
+            uKeys.push(sk);
+            total++;
+            if (selectedKeys.has(sk)) selected++;
           }
         }
+        unitMap.set(u.unitKey, uKeys);
       }
+      topicMap.set(tKey, tKeys);
     }
-    return count;
+
+    return {
+      totalItems: total,
+      selectedCount: selected,
+      fullTopicKeysById: topicMap,
+      fullUnitKeysByUnitKey: unitMap
+    };
   }, [tree, selectedKeys]);
 
   return (
@@ -262,22 +266,25 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
           </div>
         ) : (
           filteredTree.map((topic, tIdx) => {
-            const topicItemKeys = topic.units.flatMap(u =>
-              COGNITIVE_LEVELS.flatMap(lvl => u.itemsByLevel[lvl].map(it => it.stableKey))
-            );
+            const normTopicId = normalizeId(topic.topicId);
+            const topicItemKeys =
+              fullTopicKeysById.get(normTopicId) ||
+              topic.units.flatMap(u =>
+                COGNITIVE_LEVELS.flatMap(lvl => u.itemsByLevel[lvl].map(it => normalizeId(it.stableKey)))
+              );
             const topicSelectedCount = topicItemKeys.filter(k => selectedKeys.has(k)).length;
             const topicAllChecked = topicItemKeys.length > 0 && topicSelectedCount === topicItemKeys.length;
             const topicIndeterminate = topicSelectedCount > 0 && topicSelectedCount < topicItemKeys.length;
-            const isTopicExpanded = searchQuery.trim() !== '' ? true : expandedTopics[topic.topicId] ?? false;
+            const isTopicExpanded = searchQuery.trim() !== '' ? true : expandedTopics[normTopicId] ?? false;
             const colorClass = TOPIC_COLORS[tIdx % TOPIC_COLORS.length];
 
             return (
-              <div key={topic.topicId} className="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+              <div key={normTopicId} className="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
                 {/* Level 1: Topic Bar */}
                 <div className={`${colorClass} text-white px-2.5 py-2 flex items-start gap-2`}>
                   <button
                     type="button"
-                    onClick={() => onToggleTopicExpand(topic.topicId)}
+                    onClick={() => onToggleTopicExpand(normTopicId)}
                     className="p-0.5 hover:bg-white/20 rounded-sm mt-0.5 cursor-pointer shrink-0"
                     aria-label={isTopicExpanded ? 'Thu gọn chủ đề' : 'Mở chủ đề'}
                   >
@@ -287,14 +294,14 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
                   <TriStateCheckbox
                     checked={topicAllChecked}
                     indeterminate={topicIndeterminate}
-                    onChange={() => onToggleTopic(topic.topicId, topicItemKeys)}
+                    onChange={() => onToggleTopic(normTopicId, topicItemKeys)}
                     ariaLabel={`Chọn ${topic.topic}`}
                     className="mt-0.5 accent-white"
                   />
 
                   <button
                     type="button"
-                    onClick={() => onToggleTopicExpand(topic.topicId)}
+                    onClick={() => onToggleTopicExpand(normTopicId)}
                     className="text-left flex-1 min-w-0 cursor-pointer"
                   >
                     <div className="text-xs font-bold leading-snug">{topic.topic}</div>
@@ -308,9 +315,11 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
                 {isTopicExpanded && (
                   <div className="p-2 bg-slate-50/60 space-y-2">
                     {topic.units.map(unit => {
-                      const unitItemKeys = COGNITIVE_LEVELS.flatMap(lvl =>
-                        unit.itemsByLevel[lvl].map(it => it.stableKey)
-                      );
+                      const unitItemKeys =
+                        fullUnitKeysByUnitKey.get(unit.unitKey) ||
+                        COGNITIVE_LEVELS.flatMap(lvl =>
+                          unit.itemsByLevel[lvl].map(it => normalizeId(it.stableKey))
+                        );
                       const unitSelectedCount = unitItemKeys.filter(k => selectedKeys.has(k)).length;
                       const unitAllChecked = unitItemKeys.length > 0 && unitSelectedCount === unitItemKeys.length;
                       const unitIndeterminate = unitSelectedCount > 0 && unitSelectedCount < unitItemKeys.length;
