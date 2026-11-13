@@ -389,7 +389,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
                                       >
                                         {item.sourceLabel}
                                       </span>
-                                      <span className={isChecked ? 'text-slate-900 font-medium' : 'text-slate-600'}>
+                                      <span className={`whitespace-pre-line ${isChecked ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>
                                         {item.yccd}
                                       </span>
                                     </div>

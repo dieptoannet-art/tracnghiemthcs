@@ -332,6 +332,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return seedList;
   });
 
+  const yccdCatalogRef = useRef<YccdItem[]>(yccdCatalog);
+  useEffect(() => {
+    yccdCatalogRef.current = yccdCatalog;
+  }, [yccdCatalog]);
+
   // Sync to local storage
   useEffect(() => {
     localStorage.setItem('taydo_questions', JSON.stringify(questions));
@@ -394,6 +399,128 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     userRef.current = user;
   }, [user]);
 
+  // Fetch shared YCCĐ catalog from Supabase (paginated to support > 1,000 rows cleanly)
+  const syncYccdCatalogFromSupabase = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    try {
+      const pageSize = 1000;
+      let from = 0;
+      const remoteRows: YccdItem[] = [];
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('yccd_catalog')
+          .select('*')
+          .order('order_index', { ascending: true })
+          .range(from, from + pageSize - 1);
+
+        if (error) {
+          console.warn('Lưu ý khi tải danh mục YCCĐ từ Supabase (dùng bản cục bộ):', error.message);
+          return;
+        }
+        if (!data || data.length === 0) break;
+
+        for (const row of data as any[]) {
+          remoteRows.push(
+            normalizeYccdItem({
+              stableKey: row.stable_key,
+              subject: row.subject,
+              subjectKey: row.subject_key,
+              grade: row.grade,
+              topic: row.topic,
+              unit: row.unit,
+              yccd: row.yccd,
+              sourceLabel: row.source_label,
+              level: row.level,
+              levelLabel: row.level_label,
+              topicId: row.topic_id,
+              topicShortLabel: row.topic_short_label,
+              unitId: row.unit_id,
+              yccdId: row.yccd_id,
+              competencyCode: row.competency_code || undefined,
+              orderIndex: Number(row.order_index ?? 0)
+            })
+          );
+        }
+
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+
+      if (remoteRows.length > 0) {
+        const { merged } = mergeYccdCatalog(yccdCatalogRef.current, remoteRows);
+        yccdCatalogRef.current = merged;
+        setYccdCatalog(merged);
+        try {
+          localStorage.setItem('taydo_yccd_catalog_v1', JSON.stringify(merged));
+        } catch {}
+      }
+    } catch (err: any) {
+      console.warn('Ngoại lệ khi tải danh mục YCCĐ từ Supabase:', err?.message || err);
+    }
+  }, []);
+
+  // Fetch saved exam_matrices drafts from Supabase for authenticated teachers/admins
+  const syncMatricesFromSupabase = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    try {
+      const { data, error } = await supabase
+        .from('exam_matrices')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.warn('Lưu ý khi tải hồ sơ ma trận từ Supabase:', error.message);
+        return;
+      }
+      if (!data || data.length === 0) return;
+
+      const remoteMatrices: ExamMatrix[] = (data as any[]).map(row => ({
+        id: row.id,
+        title: row.title,
+        grade: row.grade,
+        subject: row.subject,
+        period: row.period,
+        schoolYear: row.school_year || '2025 - 2026',
+        durationMinutes: Number(row.duration_minutes ?? 45),
+        totalPoints: Number(row.total_points ?? 10),
+        cognitiveRatio: row.cognitive_ratio || { knowPercent: 40, understandPercent: 30, applyPercent: 30 },
+        rows: Array.isArray(row.rows) ? row.rows : [],
+        draftState: row.matrix_state || undefined,
+        updatedAt: row.updated_at || row.created_at,
+        authorId: row.created_by || undefined
+      }));
+
+      setMatrices(prev => {
+        const byId = new Map<string, ExamMatrix>();
+        for (const item of prev) byId.set(item.id, item);
+        for (const remote of remoteMatrices) {
+          const existing = byId.get(remote.id);
+          if (!existing) {
+            byId.set(remote.id, remote);
+          } else {
+            const existingTime = existing.updatedAt ? Date.parse(existing.updatedAt) : 0;
+            const remoteTime = remote.updatedAt ? Date.parse(remote.updatedAt) : 0;
+            if (remoteTime >= existingTime) {
+              byId.set(remote.id, { ...existing, ...remote });
+            }
+          }
+        }
+        const mergedList = Array.from(byId.values()).sort((a, b) => {
+          const ta = a.updatedAt ? Date.parse(a.updatedAt) : 0;
+          const tb = b.updatedAt ? Date.parse(b.updatedAt) : 0;
+          return tb - ta;
+        });
+        try {
+          localStorage.setItem('taydo_matrices', JSON.stringify(mergedList));
+        } catch {}
+        return mergedList;
+      });
+    } catch (err: any) {
+      console.warn('Ngoại lệ khi tải ma trận từ Supabase:', err?.message || err);
+    }
+  }, []);
+
   // Load and refresh user profile from Supabase
   const loadProfile = useCallback(async (userId: string, currentUser?: User | null) => {
     try {
@@ -406,6 +533,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         try {
           localStorage.setItem('taydo_active_profile', JSON.stringify(prof));
         } catch {}
+        if (prof.role !== 'student') {
+          syncMatricesFromSupabase();
+        }
       } else {
         const effectiveUser = currentUser || userRef.current;
         // Đọc vai trò được chọn từ user_metadata khi đăng ký (teacher hoặc student)
@@ -441,11 +571,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } catch (upsertErr) {
           console.warn('Lưu ý khi tạo hồ sơ ban đầu trên Supabase:', upsertErr);
         }
+        if (defaultProf.role !== 'student') {
+          syncMatricesFromSupabase();
+        }
       }
     } catch (err) {
       console.warn('Lỗi khi nạp hồ sơ người dùng:', err);
     }
-  }, []);
+  }, [syncMatricesFromSupabase]);
 
   const refreshProfile = useCallback(async () => {
     if (userRef.current) {
@@ -462,6 +595,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsDemoMode(true);
       return;
     }
+
+    syncYccdCatalogFromSupabase();
 
     let isMounted = true;
     setAuthLoading(true);
@@ -832,16 +967,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { inserted: 0, updated: 0, unchanged: 0 };
     }
     const normalizedIncoming = incoming.map(normalizeYccdItem);
-    const { merged, inserted, updated, unchanged } = mergeYccdCatalog(yccdCatalog, normalizedIncoming);
+    const { merged, inserted, updated, unchanged, upsertedItems } = mergeYccdCatalog(
+      yccdCatalogRef.current,
+      normalizedIncoming
+    );
+    yccdCatalogRef.current = merged;
     setYccdCatalog(merged);
+    try {
+      localStorage.setItem('taydo_yccd_catalog_v1', JSON.stringify(merged));
+    } catch {}
     addAuditLog(
       'Nhập danh mục YCCĐ',
       `${incoming.length} dòng`,
       `Thêm mới ${inserted}, cập nhật ${updated}, giữ nguyên ${unchanged}`
     );
 
-    if (isSupabaseConfigured && user && incoming.length > 0) {
-      const payload = incoming.map(item => ({
+    if (isSupabaseConfigured && user && upsertedItems.length > 0) {
+      const payload = upsertedItems.map(item => ({
         stable_key: item.stableKey,
         subject: item.subject,
         subject_key: item.subjectKey,
@@ -860,12 +1002,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         order_index: item.orderIndex,
         updated_by: user.id
       }));
-      supabase
-        .from('yccd_catalog')
-        .upsert(payload, { onConflict: 'stable_key' })
-        .then(({ error }) => {
-          if (error) console.warn('Đồng bộ YCCĐ lên Supabase (giữ bản cục bộ):', error.message);
-        });
+
+      (async () => {
+        const chunkSize = 200;
+        for (let i = 0; i < payload.length; i += chunkSize) {
+          const chunk = payload.slice(i, i + chunkSize);
+          const { error } = await supabase.from('yccd_catalog').upsert(chunk, { onConflict: 'stable_key' });
+          if (error) {
+            console.warn('Đồng bộ YCCĐ lên Supabase (giữ bản cục bộ):', error.message);
+            break;
+          }
+        }
+      })();
     }
 
     return { inserted, updated, unchanged };
@@ -903,12 +1051,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setMatrices(prev => {
       const idx = prev.findIndex(m => m.id === enriched.id);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = enriched;
-        return next;
-      }
-      return [enriched, ...prev];
+      const next =
+        idx >= 0
+          ? prev.map((item, i) => (i === idx ? enriched : item))
+          : [enriched, ...prev];
+      try {
+        localStorage.setItem('taydo_matrices', JSON.stringify(next));
+      } catch {}
+      return next;
     });
     addAuditLog(
       'Lưu bản nháp ma trận',
@@ -951,7 +1101,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteMatrixDraft = async (matrixId: string): Promise<void> => {
     if (currentRole === 'student') return;
-    setMatrices(prev => prev.filter(m => m.id !== matrixId));
+    setMatrices(prev => {
+      const next = prev.filter(m => m.id !== matrixId);
+      try {
+        localStorage.setItem('taydo_matrices', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     addAuditLog('Xóa bản nháp ma trận', matrixId, 'Đã xóa hồ sơ ma trận khỏi danh sách');
     if (isSupabaseConfigured && user && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(matrixId)) {
       await supabase.from('exam_matrices').delete().eq('id', matrixId);

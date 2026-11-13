@@ -83,9 +83,21 @@ const LEVEL_TAG_STYLES: Record<CognitiveLevel, string> = {
 interface BackupSnapshot {
   selectedYccdKeys: string[];
   allocations: Record<string, MatrixAllocationCell>;
+  competencyOverrides: Record<string, string>;
   pointConfig: MatrixPointConfig;
   durationMinutes: number;
   showShortAnswer: boolean;
+}
+
+function createDraftUuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, ch => {
+    const r = (Math.random() * 16) | 0;
+    const v = ch === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 export const ExamMatrixModal: React.FC = () => {
@@ -116,7 +128,7 @@ export const ExamMatrixModal: React.FC = () => {
   }, [yccdCatalog]);
 
   // Initial filter values: Tin học – Khối 6 – Giữa kì I – 45 phút (matching spec & mockup)
-  const [draftId, setDraftId] = useState<string>(() => `mtx-${Date.now()}`);
+  const [draftId, setDraftId] = useState<string>(() => createDraftUuid());
   const [draftTitle, setDraftTitle] = useState<string>(
     'Ma trận & Bản đặc tả kiểm tra Giữa kì I - Tin học 6'
   );
@@ -248,28 +260,15 @@ export const ExamMatrixModal: React.FC = () => {
     [tree, selectedSet, allocations, activeFormats, subjectName, grade, questions]
   );
 
-  // Auto-keep title updated when using generated title format
-  useEffect(() => {
-    setDraftTitle(`Ma trận & Bản đặc tả kiểm tra ${EXAM_PERIOD_LABELS[period]} - ${subjectName} ${grade}`);
-  }, [subjectName, grade, period]);
-
-  // Recompute auto codes cleanly whenever selection or formats change
-  const recomputeAllocationsWithAutoCodes = (
-    nextAllocations: Record<string, MatrixAllocationCell>,
-    nextSelectedKeys: string[],
-    nextFormats: QuestionType[]
-  ) => {
-    return applyAutoCodesToAllocations(tree, new Set(nextSelectedKeys), nextAllocations, nextFormats);
-  };
-
   // Switch filters safely while backing up unsaved entries per bucket
   const handleFilterChange = (nextSubject: string, nextGrade: Grade, nextPeriod: ExamPeriod) => {
     const oldBucket = `${currentSubjectKey}::${grade}::${period}`;
     const hasEnteredData = Object.values(allocations).some(a => a.count > 0 || a.codeText.trim() !== '');
-    if (hasEnteredData || selectedYccdKeys.length > 0) {
+    if (hasEnteredData || selectedYccdKeys.length > 0 || filteredCatalog.length > 0) {
       filterBucketCacheRef.current[oldBucket] = {
         selectedYccdKeys,
         allocations,
+        competencyOverrides,
         pointConfig,
         durationMinutes,
         showShortAnswer
@@ -283,6 +282,7 @@ export const ExamMatrixModal: React.FC = () => {
     setSubjectName(nextSubject);
     setGrade(nextGrade);
     setPeriod(nextPeriod);
+    setDraftTitle(`Ma trận & Bản đặc tả kiểm tra ${EXAM_PERIOD_LABELS[nextPeriod]} - ${nextSubject} ${nextGrade}`);
     setEditingLinkRowKey(null);
     setUndoSelectionSnapshot(null);
     setCollapsedMatrixTopics({});
@@ -290,6 +290,7 @@ export const ExamMatrixModal: React.FC = () => {
     if (cached) {
       setSelectedYccdKeys(cached.selectedYccdKeys.map(normalizeId));
       setAllocations(cached.allocations);
+      setCompetencyOverrides(cached.competencyOverrides || {});
       setPointConfig(cached.pointConfig);
       setDurationMinutes(cached.durationMinutes);
       setShowShortAnswer(cached.showShortAnswer);
@@ -307,6 +308,7 @@ export const ExamMatrixModal: React.FC = () => {
         : [];
       setSelectedYccdKeys(defaultKeys);
       setAllocations({});
+      setCompetencyOverrides({});
       if (firstTopicId) {
         setExpandedTopics(prev => ({ ...prev, [firstTopicId]: true }));
       }
@@ -461,7 +463,7 @@ export const ExamMatrixModal: React.FC = () => {
             : []
       };
       const updated = { ...prev, [allocKey]: nextCell };
-      return recomputeAllocationsWithAutoCodes(updated, selectedYccdKeys, activeFormats);
+      return applyAutoCodesToAllocations(tree, selectedSet, updated, activeFormats);
     });
   };
 
@@ -797,7 +799,7 @@ export const ExamMatrixModal: React.FC = () => {
             </select>
           </div>
 
-          <div className="w-[105px]">
+          <div className="min-w-[120px]">
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
               Khối lớp:
             </label>
@@ -806,11 +808,18 @@ export const ExamMatrixModal: React.FC = () => {
               onChange={e => handleFilterChange(subjectName, e.target.value as Grade, period)}
               className="w-full px-3 py-1.5 text-xs font-bold text-[#082B52] bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
             >
-              {(['6', '7', '8', '9'] as Grade[]).map(g => (
-                <option key={g} value={g}>
-                  Khối {g}
-                </option>
-              ))}
+              {(['6', '7', '8', '9'] as Grade[]).map(g => {
+                const countForGrade = yccdCatalog.filter(
+                  it =>
+                    normalizeSubjectToKey(it.subject) === currentSubjectKey &&
+                    normalizeGrade(it.grade) === g
+                ).length;
+                return (
+                  <option key={g} value={g}>
+                    Khối {g} {countForGrade > 0 ? `(${countForGrade})` : ''}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -1531,7 +1540,7 @@ export const ExamMatrixModal: React.FC = () => {
                                     {lRow.checkedItems.map(it => (
                                       <li key={it.stableKey} className="flex items-start gap-1">
                                         <span className="text-slate-400 select-none">-</span>
-                                        <span>{it.yccd}</span>
+                                        <span className="whitespace-pre-line">{it.yccd}</span>
                                       </li>
                                     ))}
                                   </ul>
@@ -1851,7 +1860,7 @@ export const ExamMatrixModal: React.FC = () => {
                           </td>
                           <td className="border border-slate-200 px-3 py-2.5 text-slate-700 leading-relaxed">
                             <span className="font-bold text-[#006BFF] mr-1">{sr.yccdItem.sourceLabel}</span>
-                            <span>{sr.yccdItem.yccd}</span>
+                            <span className="whitespace-pre-line">{sr.yccdItem.yccd}</span>
                           </td>
                           <td className="border border-slate-200 px-2 py-2.5 text-center font-bold text-[#082B52]">
                             {sr.competencyCode || '-'}
@@ -2028,9 +2037,10 @@ export const ExamMatrixModal: React.FC = () => {
         existingCatalog={yccdCatalog}
         onConfirmImport={items => {
           const stats = importYccdItems(items);
+          const importedSubjects = Array.from(new Set(items.map(it => it.subject)));
           showToast(
             'success',
-            `Đã nhập danh mục YCCĐ: +${stats.inserted} mới, ${stats.updated} cập nhật, ${stats.unchanged} giữ nguyên.`
+            `Đã nhập danh mục YCCĐ (${importedSubjects.join(', ')}): +${stats.inserted} mới, ${stats.updated} cập nhật, ${stats.unchanged} giữ nguyên.`
           );
           return stats;
         }}

@@ -20,21 +20,47 @@ export interface YccdCsvParseResult {
 }
 
 export function normalizeSubjectToKey(subject: string = ''): SubjectId {
-  const clean = String(subject)
-    .trim()
-    .toLowerCase()
+  const raw = String(subject).trim().toLowerCase();
+  if (
+    raw === 'informatics' ||
+    raw === 'math' ||
+    raw === 'science' ||
+    raw === 'literature' ||
+    raw === 'english' ||
+    raw === 'history_geo' ||
+    raw === 'technology' ||
+    raw === 'civics'
+  ) {
+    return raw as SubjectId;
+  }
+
+  const clean = raw
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd');
+    .replace(/đ/g, 'd')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  if (clean.includes('tin')) return 'informatics';
+  if (clean.includes('tin hoc') || clean === 'tin' || clean.includes('informatics')) return 'informatics';
   if (clean.includes('toan') || clean.includes('math')) return 'math';
   if (clean.includes('khoa hoc') || clean.includes('khtn') || clean.includes('science')) return 'science';
-  if (clean.includes('van') || clean.includes('literature')) return 'literature';
-  if (clean.includes('anh') || clean.includes('english')) return 'english';
-  if (clean.includes('su') || clean.includes('dia') || clean.includes('history')) return 'history_geo';
+  if (clean.includes('ngu van') || clean === 'van' || clean.includes('literature')) return 'literature';
+  if (clean.includes('tieng anh') || clean === 'anh' || clean.includes('english')) return 'english';
+  if (
+    clean.includes('lich su') ||
+    clean.includes('dia li') ||
+    clean.includes('dia ly') ||
+    clean.includes('su va dia') ||
+    clean === 'su' ||
+    clean === 'dia' ||
+    clean.includes('history')
+  ) {
+    return 'history_geo';
+  }
   if (clean.includes('cong nghe') || clean.includes('technology')) return 'technology';
-  if (clean.includes('gdcd') || clean.includes('cong dan') || clean.includes('civics')) return 'civics';
+  if (clean.includes('giao duc cong dan') || clean.includes('gdcd') || clean.includes('cong dan') || clean.includes('civics')) {
+    return 'civics';
+  }
   return 'other';
 }
 
@@ -169,9 +195,26 @@ export function buildYccdStableKey(sourceLabel: string, subject: string, grade: 
   return `${srcKey}|${subjKey}|${normGrade}|${idClean}`;
 }
 
+/**
+ * Canonical deduplication / upsert identity key:
+ * internal subject key + grade + source YCCĐ ID.
+ */
+export function buildYccdIdentityKey(
+  item: Pick<YccdItem, 'subjectKey' | 'subject' | 'grade' | 'yccdId' | 'stableKey'>
+): string {
+  const subjKey = item.subjectKey ? normalizeSubjectToKey(item.subjectKey) : normalizeSubjectToKey(item.subject);
+  const normGrade = normalizeGrade(item.grade);
+  const idClean = normalizeId(item.yccdId);
+  if (idClean) {
+    return `${subjKey}|${normGrade}|${idClean}`;
+  }
+  return normalizeId(item.stableKey);
+}
+
 export function normalizeYccdItem(raw: YccdItem): YccdItem {
-  const subject = String(raw.subject ?? '').trim();
-  const subjectKey = raw.subjectKey ? normalizeId(raw.subjectKey) : normalizeSubjectToKey(subject);
+  const subjectRaw = String(raw.subject ?? '').trim();
+  const subjectKey = raw.subjectKey ? normalizeSubjectToKey(raw.subjectKey) : normalizeSubjectToKey(subjectRaw);
+  const subject = subjectRaw || subjectKeyToDisplayName(subjectKey);
   const grade = normalizeGrade(raw.grade);
   const topic = String(raw.topic ?? '').trim();
   const unit = String(raw.unit ?? '').trim();
@@ -280,7 +323,7 @@ export function parseYccdCsv(csvText: string): YccdCsvParseResult {
     const rowNumber = i + 1;
     const get = (idx: number) => (idx >= 0 && idx < row.length ? row[idx].trim() : '');
 
-    const subject = get(colMap.subject);
+    const subjectRaw = get(colMap.subject);
     const gradeRaw = get(colMap.grade);
     const topic = get(colMap.topic);
     const unit = get(colMap.unit);
@@ -302,7 +345,7 @@ export function parseYccdCsv(csvText: string): YccdCsvParseResult {
     }
     const grade = gradeMatch[1] as Grade;
 
-    if (!subject || !topic || !unit || !yccd || !yccdId) {
+    if (!subjectRaw || !topic || !unit || !yccd || !yccdId) {
       errors.push({
         rowNumber,
         reason: 'Thiếu dữ liệu bắt buộc (Môn học, Chương / Chủ đề, Nội dung, YCCĐ hoặc ID YCCĐ).',
@@ -321,12 +364,13 @@ export function parseYccdCsv(csvText: string): YccdCsvParseResult {
       continue;
     }
 
-    const subjectKey = normalizeSubjectToKey(subject);
-    const stableKey = buildYccdStableKey(parsedLevel.normalizedSource, subject, grade, yccdId);
+    const subjectKey = normalizeSubjectToKey(subjectRaw);
+    const canonicalSubject = subjectKey !== 'other' ? subjectKeyToDisplayName(subjectKey) : subjectRaw;
+    const stableKey = buildYccdStableKey(parsedLevel.normalizedSource, canonicalSubject, grade, yccdId);
 
     const normalizedItem = normalizeYccdItem({
       stableKey,
-      subject,
+      subject: canonicalSubject,
       subjectKey,
       grade,
       topic,
@@ -343,11 +387,16 @@ export function parseYccdCsv(csvText: string): YccdCsvParseResult {
       orderIndex: items.length
     });
 
-    const dupIdx = seenKeys.get(normalizedItem.stableKey);
+    const identityKey = buildYccdIdentityKey(normalizedItem);
+    const dupIdx = seenKeys.get(identityKey);
     if (dupIdx !== undefined) {
-      items[dupIdx] = { ...normalizedItem, orderIndex: items[dupIdx].orderIndex };
+      items[dupIdx] = {
+        ...normalizedItem,
+        stableKey: items[dupIdx].stableKey,
+        orderIndex: items[dupIdx].orderIndex
+      };
     } else {
-      seenKeys.set(normalizedItem.stableKey, items.length);
+      seenKeys.set(identityKey, items.length);
       items.push(normalizedItem);
     }
   }
@@ -376,47 +425,71 @@ export function parseYccdCsv(csvText: string): YccdCsvParseResult {
 export function mergeYccdCatalog(
   existing: YccdItem[],
   incoming: YccdItem[]
-): { merged: YccdItem[]; inserted: number; updated: number; unchanged: number } {
-  const byKey = new Map<string, number>();
-  const result = existing.map((raw, idx) => {
+): { merged: YccdItem[]; inserted: number; updated: number; unchanged: number; upsertedItems: YccdItem[] } {
+  const byIdentity = new Map<string, number>();
+  const result: YccdItem[] = [];
+
+  for (const raw of existing) {
     const item = normalizeYccdItem(raw);
-    byKey.set(item.stableKey, idx);
-    return item;
-  });
+    const idKey = buildYccdIdentityKey(item);
+    const prevIdx = byIdentity.get(idKey);
+    if (prevIdx === undefined) {
+      byIdentity.set(idKey, result.length);
+      result.push({ ...item, orderIndex: result.length });
+    } else {
+      result[prevIdx] = {
+        ...item,
+        stableKey: result[prevIdx].stableKey,
+        orderIndex: result[prevIdx].orderIndex
+      };
+    }
+  }
 
   let inserted = 0;
   let updated = 0;
   let unchanged = 0;
+  const upsertedItems: YccdItem[] = [];
 
   for (const rawItem of incoming) {
     const item = normalizeYccdItem(rawItem);
-    const idx = byKey.get(item.stableKey);
+    const idKey = buildYccdIdentityKey(item);
+    const idx = byIdentity.get(idKey);
     if (idx === undefined) {
-      byKey.set(item.stableKey, result.length);
-      result.push({ ...item, orderIndex: result.length });
+      const nextItem = { ...item, orderIndex: result.length };
+      byIdentity.set(idKey, result.length);
+      result.push(nextItem);
+      upsertedItems.push(nextItem);
       inserted++;
     } else {
       const prev = result[idx];
       const same =
         prev.subject === item.subject &&
+        prev.subjectKey === item.subjectKey &&
         prev.grade === item.grade &&
         prev.topic === item.topic &&
+        prev.topicShortLabel === item.topicShortLabel &&
         prev.unit === item.unit &&
         prev.yccd === item.yccd &&
         prev.level === item.level &&
+        prev.levelLabel === item.levelLabel &&
         prev.sourceLabel === item.sourceLabel &&
         prev.topicId === item.topicId &&
         prev.unitId === item.unitId &&
-        prev.yccdId === item.yccdId;
+        prev.yccdId === item.yccdId &&
+        (prev.competencyCode || '') === (item.competencyCode || '');
 
       if (same) {
         unchanged++;
       } else {
-        result[idx] = { ...item, orderIndex: prev.orderIndex };
+        // Preserve prev.stableKey so saved ExamMatrix drafts referencing older stableKeys stay valid
+        const updatedItem = { ...item, stableKey: prev.stableKey, orderIndex: prev.orderIndex };
+        result[idx] = updatedItem;
+        upsertedItems.push(updatedItem);
         updated++;
       }
     }
   }
 
-  return { merged: result, inserted, updated, unchanged };
+  return { merged: result, inserted, updated, unchanged, upsertedItems };
 }
+

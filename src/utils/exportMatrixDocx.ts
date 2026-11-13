@@ -621,18 +621,37 @@ export function buildMatrixAndSpecDocx(input: DocxBuildInput): Document {
         ? sr.allocations.map(al => al.codeText).filter(Boolean).join('; ')
         : '-';
 
+    const yccdLines = String(sr.yccdItem.yccd || '')
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    const yccdParagraphs: Paragraph[] =
+      yccdLines.length > 0
+        ? yccdLines.map((line, lIdx) =>
+            makePara(
+              lIdx === 0
+                ? [
+                    makeRun(`${sr.yccdItem.sourceLabel} `, { bold: true, size: 18, color: '1D4ED8' }),
+                    makeRun(line, { size: 18 })
+                  ]
+                : [makeRun(line, { size: 18 })]
+            )
+          )
+        : [
+            makePara([
+              makeRun(`${sr.yccdItem.sourceLabel} `, { bold: true, size: 18, color: '1D4ED8' }),
+              makeRun(sr.yccdItem.yccd, { size: 18 })
+            ])
+          ];
+
     return new TableRow({
       cantSplit: true,
       children: [
         makeCell([makePara([makeRun(String(sr.orderIndex), { bold: true, size: 18 })], { align: AlignmentType.CENTER })]),
         makeCell([makePara([makeRun(sr.topic, { bold: true, size: 18 })])]),
         makeCell([makePara([makeRun(sr.unit, { size: 18 })])]),
-        makeCell([
-          makePara([
-            makeRun(`${sr.yccdItem.sourceLabel} `, { bold: true, size: 18, color: '1D4ED8' }),
-            makeRun(sr.yccdItem.yccd, { size: 18 })
-          ])
-        ]),
+        makeCell(yccdParagraphs),
         makeCell([makePara([makeRun(sr.competencyCode || '-', { bold: true, size: 18 })], { align: AlignmentType.CENTER })]),
         makeCell([
           makePara(
