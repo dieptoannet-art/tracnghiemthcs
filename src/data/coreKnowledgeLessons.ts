@@ -4,8 +4,8 @@ import { CoreKnowledgeLesson, CoreKnowledgeGroup, CoreKnowledgeStatus } from '..
 
 /**
  * Danh mục tập trung KIẾN THỨC TRỌNG TÂM
- * Nguồn dữ liệu: catalog_kien_thuc_trong_tam.json (458 mục chuẩn hoá)
- * Tích hợp Toán 6 (Tập 1 & 2), Toán 7 (Tập 1 & 2), Toán 9 (Tập 1 & 2), Tin học 6, 7, 9, KHTN 6, 7, 8, 9
+ * Nguồn dữ liệu: catalog_kien_thuc_trong_tam.json (553 mục chuẩn hoá)
+ * Tích hợp Toán 6–9 (Tập 1 & 2), Tin học 6–9, KHTN 6–9
  *
  * Quy tắc:
  * - Chỉ đánh dấu 'ready' khi file HTML thực sự có sẵn và kiểm tra được trong public/lessons/.
@@ -173,21 +173,46 @@ export function getSubjectsByGrade(grade: number): Array<{ code: string; name: s
   return Array.from(map.entries()).map(([code, name]) => ({ code, name }));
 }
 
+/** Lấy danh sách tập sách (volume) theo khối lớp và môn học, sắp xếp tăng dần */
+export function getVolumesByGradeAndSubject(grade: number, subjectCode: string): number[] {
+  const vols = new Set<number>();
+  CORE_KNOWLEDGE_LESSONS
+    .filter(l => l.grade === grade && l.subjectCode === subjectCode)
+    .forEach(l => {
+      vols.add(l.volume || 1);
+    });
+  return Array.from(vols).sort((a, b) => a - b);
+}
+
+const GROUP_TYPE_ORDER: Record<string, number> = {
+  intro: 0,
+  chapter: 1,
+  topic: 1,
+  activity: 2,
+  review: 3
+};
+
 /**
- * Lấy danh sách nhóm (Chương/Chủ đề/Hoạt động trải nghiệm/Ôn tập) theo khối và môn.
- * Quy tắc: Giữ nguyên thứ tự xuất hiện trong JSON (đã sắp đúng theo volume 1 -> volume 2 và thứ tự SGK).
+ * Lấy danh sách nhóm (Chương/Chủ đề/Hoạt động trải nghiệm/Ôn tập) theo khối, môn và tập sách (nếu chọn).
+ * Quy tắc: Sắp theo volume -> loại nhóm (Mở đầu -> Chương/Chủ đề -> Hoạt động trải nghiệm -> Ôn tập cuối năm) -> số chương -> thứ tự xuất hiện.
  */
 export function getGroupsByGradeAndSubject(
   grade: number,
-  subjectCode: string
+  subjectCode: string,
+  volume?: number
 ): CoreKnowledgeGroup[] {
   const seenKeys = new Set<string>();
   const groups: CoreKnowledgeGroup[] = [];
 
   CORE_KNOWLEDGE_LESSONS
-    .filter(l => l.grade === grade && l.subjectCode === subjectCode)
+    .filter(
+      l =>
+        l.grade === grade &&
+        l.subjectCode === subjectCode &&
+        (volume === undefined || l.volume === volume)
+    )
     .forEach(l => {
-      // Dùng chapterLabel hoặc kết hợp volume + chapterLabel để làm khóa nhóm duy nhất
+      // Dùng kết hợp volume + chapterLabel để làm khóa nhóm duy nhất
       const groupKey = `${l.volume}_${l.chapterLabel}`;
       if (!seenKeys.has(groupKey)) {
         seenKeys.add(groupKey);
@@ -202,7 +227,13 @@ export function getGroupsByGradeAndSubject(
       }
     });
 
-  return groups;
+  return groups.sort((a, b) => {
+    if (a.volume !== b.volume) return a.volume - b.volume;
+    const rankA = GROUP_TYPE_ORDER[a.groupType] ?? 9;
+    const rankB = GROUP_TYPE_ORDER[b.groupType] ?? 9;
+    if (rankA !== rankB) return rankA - rankB;
+    return (a.chapterNumber ?? 0) - (b.chapterNumber ?? 0);
+  });
 }
 
 /**

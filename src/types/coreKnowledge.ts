@@ -39,6 +39,7 @@ export interface CoreKnowledgeGroup {
 export interface CoreKnowledgeSelection {
   grade?: number;
   subjectCode?: string;
+  volume?: number | '';
   groupKey?: string;
   lessonId?: string;
 }

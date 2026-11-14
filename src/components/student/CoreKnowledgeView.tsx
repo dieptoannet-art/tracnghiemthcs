@@ -18,16 +18,10 @@ import {
   CoreKnowledgeGroup
 } from '../../types/coreKnowledge';
 import {
-  CORE_KNOWLEDGE_LESSONS,
   AVAILABLE_GRADES,
-  TOAN6_TAP1_IDS,
-  TOAN6_TAP2_IDS,
-  TOAN6_ALL_IDS,
-  TOAN7_TAP1_IDS,
-  TOAN7_TAP2_IDS,
-  TOAN7_ALL_IDS,
   SUPPORTED_BRIDGE_LESSON_IDS,
   getSubjectsByGrade,
+  getVolumesByGradeAndSubject,
   getGroupsByGradeAndSubject,
   getLessonsByGroup,
   getCoreKnowledgeLessonById
@@ -41,10 +35,11 @@ const RECENT_VIEW_KEY = 'taydo_last_viewed_core_lesson';
 export const CoreKnowledgeView: React.FC = () => {
   const { user } = useApp();
 
-  // 1. Bộ chọn 4 cấp phụ thuộc: Khối lớp -> Môn học -> Chương/Chủ đề -> Bài học
-  // Mặc định ban đầu: Khối 6, Môn Toán, Chương I, Bài 1 (để người dùng trải nghiệm ngay bài học mẫu Toan_6_c1_b1.html đã sẵn sàng)
+  // 1. Bộ chọn 5 cấp phụ thuộc: Khối lớp -> Môn học -> Tập sách -> Chương/Chủ đề -> Bài học
+  // Mặc định ban đầu: Khối 6, Môn Toán, Tập 1, Chương I, Bài 1
   const [selectedGrade, setSelectedGrade] = useState<number | ''>(6);
   const [selectedSubjectCode, setSelectedSubjectCode] = useState<string>('Toan');
+  const [selectedVolume, setSelectedVolume] = useState<number | ''>(1);
   const [selectedGroupKey, setSelectedGroupKey] = useState<string>('1_Chương I. Tập hợp các số tự nhiên');
   const [selectedLessonId, setSelectedLessonId] = useState<string>('toan_6_c1_b1');
 
@@ -72,19 +67,32 @@ export const CoreKnowledgeView: React.FC = () => {
     }
   });
 
-  // 2. Danh sách Môn học phụ thuộc vào Khối lớp (chỉ có Toán & Tin học)
+  // 2. Danh sách Môn học phụ thuộc vào Khối lớp
   const availableSubjects = useMemo(() => {
     if (!selectedGrade) return [];
     return getSubjectsByGrade(Number(selectedGrade));
   }, [selectedGrade]);
 
-  // 3. Danh sách Chương / Chủ đề phụ thuộc vào Khối & Môn (giữ nguyên thứ tự JSON, volume 1 -> volume 2)
-  const availableGroups = useMemo(() => {
+  // 3. Danh sách Tập sách phụ thuộc vào Khối lớp & Môn học (Toán có Tập 1 / Tập 2)
+  const availableVolumes = useMemo(() => {
     if (!selectedGrade || !selectedSubjectCode) return [];
-    return getGroupsByGradeAndSubject(Number(selectedGrade), selectedSubjectCode);
+    return getVolumesByGradeAndSubject(Number(selectedGrade), selectedSubjectCode);
   }, [selectedGrade, selectedSubjectCode]);
 
-  // 4. Danh sách Bài học phụ thuộc vào Khối, Môn & Nhóm (sắp xếp theo sortOrder số học)
+  const hasMultipleVolumes = availableVolumes.length > 1;
+
+  // 4. Danh sách Chương / Chủ đề phụ thuộc vào Khối, Môn & Tập sách
+  const availableGroups = useMemo(() => {
+    if (!selectedGrade || !selectedSubjectCode) return [];
+    if (hasMultipleVolumes && !selectedVolume) return [];
+    return getGroupsByGradeAndSubject(
+      Number(selectedGrade),
+      selectedSubjectCode,
+      selectedVolume ? Number(selectedVolume) : undefined
+    );
+  }, [selectedGrade, selectedSubjectCode, selectedVolume, hasMultipleVolumes]);
+
+  // 5. Danh sách Bài học phụ thuộc vào Khối, Môn & Nhóm (sắp xếp theo sortOrder số học)
   const availableLessons = useMemo(() => {
     if (!selectedGrade || !selectedSubjectCode || !selectedGroupKey) return [];
     return getLessonsByGroup(Number(selectedGrade), selectedSubjectCode, selectedGroupKey);
@@ -151,17 +159,30 @@ export const CoreKnowledgeView: React.FC = () => {
   // ==========================================
   // QUY TẮC RESET PHỤ THUỘC KHI ĐỔI CẤP CHỌN
   // ==========================================
-  // Khi đổi Khối: xóa lựa chọn Môn, Chương, Bài
+  // Khi đổi Khối: xóa lựa chọn Môn, Tập, Chương, Bài
   const handleGradeChange = (newGrade: number | '') => {
     setSelectedGrade(newGrade);
     setSelectedSubjectCode('');
+    setSelectedVolume('');
     setSelectedGroupKey('');
     setSelectedLessonId('');
   };
 
-  // Khi đổi Môn: xóa lựa chọn Chương, Bài
+  // Khi đổi Môn: cập nhật Tập sách mặc định nếu môn chỉ có 1 tập, ngược lại yêu cầu chọn Tập 1 / Tập 2
   const handleSubjectChange = (newSubjectCode: string) => {
     setSelectedSubjectCode(newSubjectCode);
+    const vols =
+      selectedGrade && newSubjectCode
+        ? getVolumesByGradeAndSubject(Number(selectedGrade), newSubjectCode)
+        : [];
+    setSelectedVolume(vols.length === 1 ? vols[0] : '');
+    setSelectedGroupKey('');
+    setSelectedLessonId('');
+  };
+
+  // Khi đổi Tập sách: xóa lựa chọn Chương, Bài
+  const handleVolumeChange = (newVolume: number | '') => {
+    setSelectedVolume(newVolume);
     setSelectedGroupKey('');
     setSelectedLessonId('');
   };
@@ -177,10 +198,11 @@ export const CoreKnowledgeView: React.FC = () => {
     setSelectedLessonId(newLessonId);
   };
 
-  // Nút "Vào học" chỉ bật khi chọn đủ cả 4 cấp VÀ status === 'ready'
+  // Nút "Vào học" chỉ bật khi chọn đủ các cấp VÀ status === 'ready'
   const isReadyToStart = Boolean(
     selectedGrade &&
     selectedSubjectCode &&
+    selectedVolume &&
     selectedGroupKey &&
     selectedLessonId &&
     currentSelectedLesson &&
@@ -195,13 +217,11 @@ export const CoreKnowledgeView: React.FC = () => {
       const subj = availableSubjects.find(s => s.code === selectedSubjectCode);
       parts.push(subj ? subj.name : selectedSubjectCode);
     }
+    if (hasMultipleVolumes && selectedVolume) {
+      parts.push(`Tập ${selectedVolume}`);
+    }
     if (currentSelectedGroup) {
-      // Nếu là môn Toán thì thêm nhãn volume phụ nếu có
-      const volumeTag =
-        selectedSubjectCode === 'Toan' && currentSelectedGroup.volume
-          ? `[Tập ${currentSelectedGroup.volume}] `
-          : '';
-      parts.push(`${volumeTag}${currentSelectedGroup.chapterLabel}`);
+      parts.push(currentSelectedGroup.chapterLabel);
     }
     if (currentSelectedLesson) {
       parts.push(currentSelectedLesson.lessonLabel);
@@ -210,6 +230,8 @@ export const CoreKnowledgeView: React.FC = () => {
   }, [
     selectedGrade,
     selectedSubjectCode,
+    selectedVolume,
+    hasMultipleVolumes,
     currentSelectedGroup,
     currentSelectedLesson,
     availableSubjects
@@ -303,11 +325,11 @@ export const CoreKnowledgeView: React.FC = () => {
     return () => document.removeEventListener('fullscreenchange', onFsChange);
   }, []);
 
-  // Cài đặt cầu nối đồng bộ lịch sử bài học với Supabase (Toán 6 & Toán 7)
+  // Cài đặt cầu nối đồng bộ lịch sử bài học với Supabase (Toán 6–9, Tin học 6–9, KHTN 6–9)
   useEffect(() => {
     if (!activeLesson || !iframeRef.current) return;
 
-    // Kích hoạt với các ID bài học thuộc gói Toán 6 & Toán 7 và đường dẫn học liệu THCS
+    // Kích hoạt với các ID bài học trong danh mục cầu nối và đường dẫn học liệu THCS cùng origin
     const isSupportedLesson =
       SUPPORTED_BRIDGE_LESSON_IDS.has(activeLesson.id) &&
       /^\/lessons\/lop-[6-9]\//.test(activeLesson.htmlUrl);
@@ -483,7 +505,7 @@ export const CoreKnowledgeView: React.FC = () => {
           </div>
 
           {/* Vùng iframe nhúng bài học */}
-          <div className="relative flex-1 bg-slate-50 w-full min-h-[660px] flex flex-col">
+          <div className="relative flex-1 bg-slate-50 w-full min-h-[65vh] sm:min-h-[660px] flex flex-col">
             {isIframeLoading && !iframeError && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-2xs">
                 <div className="w-10 h-10 border-3 border-[#006BFF] border-t-transparent rounded-full animate-spin"></div>
@@ -530,7 +552,7 @@ export const CoreKnowledgeView: React.FC = () => {
                 title={`Bài học: ${activeLesson.lessonLabel} - ${activeLesson.chapterLabel}`}
                 src={activeLesson.htmlUrl}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
-                className="w-full flex-1 border-0 h-full min-h-[680px]"
+                className="w-full flex-1 border-0 h-full min-h-[65vh] sm:min-h-[680px]"
                 onLoad={(e) => {
                   setIsIframeLoading(false);
                   try {
@@ -540,7 +562,10 @@ export const CoreKnowledgeView: React.FC = () => {
                       // Phát hiện trường hợp máy chủ trả về nhầm trang chủ SPA thay vì nội dung bài học HTML
                       const hasSpaRoot = Boolean(doc.getElementById('root'));
                       const docTitle = doc.title || '';
-                      if (hasSpaRoot || ((docTitle.includes('TRẮC NGHIỆM THCS TÂY ĐÔ') || docTitle.includes('TÂY ĐÔ SMART EDU')) && !docTitle.includes('Chương') && !docTitle.toLowerCase().includes('bài'))) {
+                      const isSpaTitle =
+                        docTitle.startsWith('TÂY ĐÔ SMART EDU') ||
+                        docTitle.includes('TRẮC NGHIỆM THCS TÂY ĐÔ');
+                      if (hasSpaRoot || isSpaTitle) {
                         setIframeError(true);
                       }
                     }
@@ -558,11 +583,12 @@ export const CoreKnowledgeView: React.FC = () => {
         </div>
       ) : (
         /* ------------------------------------------------------------
-           B. BỘ CHỌN BÀI HỌC 4 CẤP (CASCADE SELECTORS)
-           1. Khối lớp (6, 7)
-           2. Môn học (Toán, Tin học)
-           3. Chương học / Chủ đề
-           4. Bài học cụ thể (sắp theo sortOrder số)
+           B. BỘ CHỌN BÀI HỌC 5 CẤP (CASCADE SELECTORS)
+           1. Khối lớp (6, 7, 8, 9)
+           2. Môn học (Toán, Tin học, KHTN)
+           3. Tập sách (Tập 1 / Tập 2 cho Toán; tự chọn trọn bộ cho môn 1 tập)
+           4. Chương học / Chủ đề
+           5. Bài học cụ thể (sắp theo sortOrder số)
            ------------------------------------------------------------ */
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-xs space-y-6">
@@ -573,7 +599,7 @@ export const CoreKnowledgeView: React.FC = () => {
                   <span>Bộ chọn học liệu theo cấp bậc</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Chọn lần lượt: Khối lớp → Môn học → {groupLabelPrompt} → Bài học để mở nội dung.
+                  Chọn lần lượt: Khối lớp → Môn học → {hasMultipleVolumes ? 'Tập 1 / Tập 2 → ' : ''}{groupLabelPrompt} → Bài học để mở nội dung.
                 </p>
               </div>
 
@@ -588,30 +614,30 @@ export const CoreKnowledgeView: React.FC = () => {
               </div>
             </div>
 
-            {/* Lưới 4 dropdown phụ thuộc nhau */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            {/* Lưới 5 dropdown phụ thuộc nhau */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 text-xs">
               {/* 1. KHỐI LỚP (6, 7, 8, 9) */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 lg:col-span-2">
                 <label className="block font-bold text-slate-700">
                   1. Khối lớp: <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={selectedGrade}
                   onChange={e => handleGradeChange(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
                 >
-                  <option value="">-- Chọn Khối lớp --</option>
+                  <option value="">-- Chọn Khối --</option>
                   {AVAILABLE_GRADES.map(g => (
                     <option key={g} value={g}>
                       Khối {g} (Lớp {g})
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-400">Dữ liệu chuẩn GDPT: Lớp 6, 7, 8, 9</p>
+                <p className="text-[11px] text-slate-400">Chuẩn GDPT: Lớp 6–9</p>
               </div>
 
               {/* 2. MÔN HỌC (Toán, Tin học, KHTN - Khóa nếu chưa chọn Khối) */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 lg:col-span-2">
                 <label className="block font-bold text-slate-700">
                   2. Môn học: <span className="text-rose-500">*</span>
                 </label>
@@ -619,10 +645,10 @@ export const CoreKnowledgeView: React.FC = () => {
                   value={selectedSubjectCode}
                   onChange={e => handleSubjectChange(e.target.value)}
                   disabled={!selectedGrade}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                   <option value="">
-                    {!selectedGrade ? '-- Vui lòng chọn Khối trước --' : '-- Chọn Môn học --'}
+                    {!selectedGrade ? '-- Chọn Khối trước --' : '-- Chọn Môn học --'}
                   </option>
                   {availableSubjects.map(s => (
                     <option key={s.code} value={s.code}>
@@ -630,47 +656,79 @@ export const CoreKnowledgeView: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-400">Hiển thị môn có dữ liệu thực tế</p>
+                <p className="text-[11px] text-slate-400">Môn có dữ liệu thực tế</p>
               </div>
 
-              {/* 3. CHƯƠNG / CHỦ ĐỀ (Khóa nếu chưa chọn Môn) */}
-              <div className="space-y-1.5">
+              {/* 3. TẬP SÁCH (Tập 1 / Tập 2 cho Toán; tự chọn cho môn 1 tập) */}
+              <div className="space-y-1.5 lg:col-span-2">
                 <label className="block font-bold text-slate-700">
-                  3. {groupLabelPrompt}: <span className="text-rose-500">*</span>
+                  3. Tập sách: <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={selectedVolume}
+                  onChange={e => handleVolumeChange(e.target.value ? Number(e.target.value) : '')}
+                  disabled={!selectedSubjectCode}
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                >
+                  {!selectedSubjectCode ? (
+                    <option value="">-- Chọn Môn trước --</option>
+                  ) : hasMultipleVolumes ? (
+                    <>
+                      <option value="">-- Chọn Tập sách --</option>
+                      {availableVolumes.map(v => (
+                        <option key={v} value={v}>
+                          Tập {v}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    availableVolumes.map(v => (
+                      <option key={v} value={v}>
+                        Trọn bộ (1 tập)
+                      </option>
+                    ))
+                  )}
+                </select>
+                <p className="text-[11px] text-slate-400">
+                  {hasMultipleVolumes ? 'Toán chia Tập 1 & Tập 2' : 'Tự chọn theo bộ sách'}
+                </p>
+              </div>
+
+              {/* 4. CHƯƠNG / CHỦ ĐỀ (Khóa nếu chưa chọn Môn & Tập) */}
+              <div className="space-y-1.5 lg:col-span-3">
+                <label className="block font-bold text-slate-700">
+                  4. {groupLabelPrompt}: <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={selectedGroupKey}
                   onChange={e => handleGroupChange(e.target.value)}
-                  disabled={!selectedSubjectCode}
+                  disabled={!selectedSubjectCode || !selectedVolume}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                   <option value="">
                     {!selectedSubjectCode
-                      ? '-- Vui lòng chọn Môn trước --'
-                      : `-- Chọn ${groupLabelPrompt} --`}
+                      ? '-- Chọn Môn trước --'
+                      : !selectedVolume
+                        ? '-- Chọn Tập sách trước --'
+                        : `-- Chọn ${groupLabelPrompt} --`}
                   </option>
-                  {availableGroups.map(g => {
-                    const volumeBadge =
-                      selectedSubjectCode === 'Toan' && g.volume ? `[Tập ${g.volume}] ` : '';
-                    return (
-                      <option key={g.groupKey} value={g.groupKey}>
-                        {volumeBadge}
-                        {g.chapterLabel}
-                      </option>
-                    );
-                  })}
+                  {availableGroups.map(g => (
+                    <option key={g.groupKey} value={g.groupKey}>
+                      {g.chapterLabel}
+                    </option>
+                  ))}
                 </select>
                 <p className="text-[11px] text-slate-400">
                   {selectedSubjectCode === 'Tin'
                     ? 'Tin học hiển thị theo Chủ đề'
-                    : 'Toán & KHTN hiển thị Chương (kèm Mở đầu)'}
+                    : 'Gồm Chương, Trải nghiệm & Ôn tập'}
                 </p>
               </div>
 
-              {/* 4. BÀI HỌC CỤ THỂ (Khóa nếu chưa chọn Chương/Chủ đề) */}
-              <div className="space-y-1.5">
+              {/* 5. BÀI HỌC CỤ THỂ (Khóa nếu chưa chọn Chương/Chủ đề) */}
+              <div className="space-y-1.5 lg:col-span-3">
                 <label className="block font-bold text-slate-700">
-                  4. Bài học cụ thể: <span className="text-rose-500">*</span>
+                  5. Bài học cụ thể: <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={selectedLessonId}
@@ -680,7 +738,7 @@ export const CoreKnowledgeView: React.FC = () => {
                 >
                   <option value="">
                     {!selectedGroupKey
-                      ? `-- Vui lòng chọn ${groupLabelPrompt} trước --`
+                      ? `-- Chọn ${groupLabelPrompt} trước --`
                       : '-- Chọn Bài học --'}
                   </option>
                   {lessonBranchGroups.hasBranches ? (
@@ -721,7 +779,7 @@ export const CoreKnowledgeView: React.FC = () => {
                     ))
                   )}
                 </select>
-                <p className="text-[11px] text-slate-400">Sắp xếp theo thứ tự số (có phân nhánh a/b)</p>
+                <p className="text-[11px] text-slate-400">Gồm Bài học, Luyện tập chung, Ôn tập</p>
               </div>
             </div>
 
@@ -747,6 +805,26 @@ export const CoreKnowledgeView: React.FC = () => {
                       {currentSelectedLesson.groupType === 'intro' && (
                         <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md text-[10px] font-bold border border-emerald-200">
                           Phần Mở đầu
+                        </span>
+                      )}
+                      {currentSelectedLesson.itemType === 'practice' && (
+                        <span className="px-2 py-0.5 bg-sky-50 text-sky-700 rounded-md text-[10px] font-bold border border-sky-200">
+                          Luyện tập chung · Mục {currentSelectedLesson.sortOrder}
+                        </span>
+                      )}
+                      {currentSelectedLesson.itemType === 'chapter_review' && (
+                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md text-[10px] font-bold border border-indigo-200">
+                          Bài tập cuối chương
+                        </span>
+                      )}
+                      {currentSelectedLesson.itemType === 'activity' && (
+                        <span className="px-2 py-0.5 bg-teal-50 text-teal-700 rounded-md text-[10px] font-bold border border-teal-200">
+                          Hoạt động thực hành trải nghiệm
+                        </span>
+                      )}
+                      {currentSelectedLesson.itemType === 'year_review' && (
+                        <span className="px-2 py-0.5 bg-amber-50 text-amber-800 rounded-md text-[10px] font-bold border border-amber-200">
+                          Ôn tập cuối năm
                         </span>
                       )}
                       <span className="text-[11px] text-slate-500">
@@ -795,8 +873,8 @@ export const CoreKnowledgeView: React.FC = () => {
             {/* Nút hành động "Vào học" */}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100">
               <div className="text-xs text-slate-500">
-                {!selectedGrade || !selectedSubjectCode || !selectedGroupKey || !selectedLessonId ? (
-                  <span>* Hãy chọn đủ 4 thông tin: Khối lớp, Môn học, {groupLabelPrompt}, Bài học để kích hoạt nút vào học.</span>
+                {!selectedGrade || !selectedSubjectCode || !selectedVolume || !selectedGroupKey || !selectedLessonId ? (
+                  <span>* Hãy chọn đủ Khối lớp, Môn học, {hasMultipleVolumes ? 'Tập sách, ' : ''}{groupLabelPrompt} và Bài học để kích hoạt nút vào học.</span>
                 ) : currentSelectedLesson?.status === 'ready' ? (
                   <span className="text-emerald-600 font-semibold flex items-center space-x-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
@@ -849,10 +927,12 @@ export const CoreKnowledgeView: React.FC = () => {
                   if (lesson && lesson.status === 'ready') {
                     setSelectedGrade(lesson.grade);
                     setSelectedSubjectCode(lesson.subjectCode);
+                    setSelectedVolume(lesson.volume);
                     setSelectedGroupKey(`${lesson.volume}_${lesson.chapterLabel}`);
                     setSelectedLessonId(lesson.id);
                     setActiveLesson(lesson);
                     setIsIframeLoading(true);
+                    setIframeError(false);
                   }
                 }}
                 className="px-3.5 py-1.5 border border-[#DCE8F7] hover:border-blue-400 text-[#006BFF] bg-blue-50/50 hover:bg-blue-50 rounded-xl font-bold transition-colors cursor-pointer shrink-0"
@@ -867,7 +947,7 @@ export const CoreKnowledgeView: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
               <h5 className="font-bold text-[#082B52] flex items-center space-x-1.5">
                 <Info className="w-4 h-4 text-[#006BFF]" />
-                <span>Quy tắc vận hành & Tích hợp Lịch sử Supabase (Toán 6 Tập 1):</span>
+                <span>Quy tắc vận hành & Tích hợp Lịch sử Supabase (Toán 6–9, Tin học 6–9, KHTN 6–9):</span>
               </h5>
               <div className="flex items-center space-x-2">
                 <a
@@ -883,19 +963,19 @@ export const CoreKnowledgeView: React.FC = () => {
 
             <ul className="list-disc list-inside space-y-1.5 text-[11px] text-slate-600 pl-1 leading-relaxed">
               <li>
-                <strong>Nguồn danh mục chuẩn:</strong> Toàn bộ 458 bài học thuộc 10 sách giáo khoa GDPT 2018 (Toán 6, 7, 9; Tin học 6, 7, 9; Khoa học tự nhiên 6, 7, 8, 9).
+                <strong>Nguồn danh mục chuẩn:</strong> Toàn bộ 553 mục thuộc sách giáo khoa Kết nối tri thức với cuộc sống (Toán 6, 7, 8, 9 Tập 1 &amp; Tập 2; Tin học 6, 7, 8, 9; Khoa học tự nhiên 6, 7, 8, 9).
               </li>
               <li>
-                <strong>Cầu nối lịch sử học tập (Toán 6 Tập 1):</strong> Tự động kích hoạt khi học sinh đăng nhập. Dữ liệu tiến độ, câu trả lời, gợi ý và điểm số được lưu vào bảng <code>edu_lesson_attempts</code> thông qua RPC <code>edu_save_lesson_attempt</code>. Nếu chưa đăng nhập, bài học hoạt động độc lập và lưu cục bộ trên trình duyệt.
+                <strong>Cầu nối lịch sử học tập:</strong> Tự động kích hoạt khi học sinh đăng nhập bằng tài khoản Supabase Auth. Dữ liệu tiến độ, câu trả lời, gợi ý và điểm số được lưu vào bảng <code>edu_lesson_attempts</code> thông qua RPC <code>edu_save_lesson_attempt</code>. Nếu chưa đăng nhập, bài học hoạt động độc lập và lưu cục bộ trên trình duyệt.
               </li>
               <li>
                 <strong>Cấu trúc học liệu:</strong> <code>public/lessons/lop-&#123;khối&#125;/&#123;môn&#125;/&#123;chương-hoặc-chủ-đề&#125;/&#123;bài&#125;/index.html</code> (mỗi bài có thư mục độc lập chứa index.html và tài nguyên).
               </li>
               <li>
-                <strong>Đường dẫn truy cập web:</strong> <code>/lessons/lop-6/toan/chuong-01/bai-01/index.html</code> (tuyệt đối không chứa tiền tố <code>/public</code>).
+                <strong>Đường dẫn truy cập web:</strong> <code>/lessons/lop-8/toan/chuong-04/bai-15/index.html</code> (tuyệt đối không chứa tiền tố <code>/public</code>).
               </li>
               <li>
-                <strong>Học liệu sẵn sàng trực tiếp:</strong> Hệ thống tự động nhận diện các tệp bài học HTML có sẵn trên đĩa (Toán 6 Bài 1, Bài 23; Toán 9 Bài 1, Bài 2, Bài 3). Khi sao chép các tệp còn lại vào <code>public/lessons/</code>, hệ thống tự động mở nút "Vào học".
+                <strong>Học liệu sẵn sàng trực tiếp:</strong> Hệ thống tự động đối chiếu các tệp HTML có sẵn trong <code>public/lessons/</code> qua <code>availableLessonPaths.json</code> (Toán 8 hiện sẵn sàng 58/75 mục; 17 mục chưa tải lên giữ trạng thái “Đang cập nhật”). Khi chép các tệp còn lại vào đúng thư mục và build lại, nút “Vào học” sẽ tự động kích hoạt.
               </li>
               <li>
                 <strong>Bảo toàn nguyên bản:</strong> Giữ nguyên 100% mã nguồn HTML, KaTeX toán học, CSS, tương tác JavaScript thông qua iframe độc lập cùng origin.

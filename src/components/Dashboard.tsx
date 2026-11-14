@@ -37,13 +37,6 @@ interface FeatureCardItem {
 export const Dashboard: React.FC<DashboardProps> = () => {
   const { setCurrentView, currentRole } = useApp();
 
-  const scrollToStudentFeatures = () => {
-    const target = document.getElementById('student-features');
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   const handleCardClick = (viewId: string) => {
     setCurrentView(viewId);
   };
@@ -170,37 +163,13 @@ export const Dashboard: React.FC<DashboardProps> = () => {
 
   return (
     <div className="space-y-8 pb-16 font-serif">
-      {/* 1. WELCOME BANNER (Nền xanh da trời nhạt, minh họa sách bút thước ê-ke) */}
-      <div className="bg-[#EAF5FF] border border-[#CFDCED] rounded-2xl p-6 sm:p-8 lg:p-10 shadow-xs relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-          {/* Banner Left Text */}
-          <div className="max-w-xl space-y-3 text-left">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F2D52] tracking-tight leading-tight">
-              Chào mừng đến với<br />
-              Tây Đô Smart EDU
-            </h1>
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-              Nền tảng dạy học, luyện tập và kiểm tra trực tuyến dành cho THCS.
-            </p>
-            <div className="pt-2">
-              <button
-                onClick={scrollToStudentFeatures}
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-[#1769C2] hover:bg-[#12549e] text-white text-sm sm:text-base font-bold rounded-xl transition-all shadow-md hover:shadow-lg cursor-pointer"
-              >
-                <span>Khám phá các chức năng</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Banner Right Illustration */}
-          <div className="w-full md:w-auto shrink-0 flex justify-center md:justify-end">
-            <img
-              src="/assets/banner_illustration.jpg"
-              alt="Minh họa giáo dục Tây Đô Smart EDU"
-              className="w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[380px] rounded-2xl shadow-sm object-contain"
-            />
-          </div>
-        </div>
+      {/* 1. WELCOME BANNER */}
+      <div className="rounded-2xl border border-[#CFDCED] shadow-xs overflow-hidden bg-[#EAF5FF]">
+        <img
+          src="/assets/aistudio/image_54b299b4.png"
+          alt="Tây Đô Smart EDU - Trường THCS Tây Đô"
+          className="w-full h-auto block"
+        />
       </div>
 
       {/* 2. DÀNH CHO HỌC SINH (8 thẻ giới thiệu chức năng) */}
