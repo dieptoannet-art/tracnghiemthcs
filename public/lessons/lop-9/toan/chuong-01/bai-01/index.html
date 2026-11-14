@@ -1,151 +1,2422 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Toán 9 | Bài 1 · Tự học tương tác</title><style>
-:root{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#172d41;background:#f3f7fc}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(115deg,#0a516e,#168c91);color:white;padding:36px max(18px,calc((100% - 1060px)/2))}header small{letter-spacing:.11em;text-transform:uppercase}h1{font-size:clamp(25px,3vw,38px);max-width:850px;line-height:1.22;margin:12px 0}p{line-height:1.7}.sub{opacity:.9}main{max-width:1080px;margin:auto;padding:22px 16px 60px}.nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 20px}.nav a{border-radius:22px;padding:8px 13px;background:white;color:#12556b;text-decoration:none;font-weight:650;border:1px solid #d4e3ea}.panel{background:white;border:1px solid #dce5ed;border-radius:18px;padding:22px;margin:20px 0;box-shadow:0 3px 12px #142d4110}h2{margin:0 0 14px;color:#075e77;font-size:24px}h3{color:#0a6176;margin:20px 0 8px}.note{background:#eaf8f6;border-left:5px solid #149b8e;padding:12px 16px;border-radius:8px}.warn{background:#fff5e4;border-left:5px solid #e59a27;padding:12px 16px;border-radius:8px}.formula{font-size:clamp(21px,3vw,28px);font-weight:750;text-align:center;color:#104f76;background:#eef4fa;padding:15px;border-radius:12px;margin:12px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:720px){.grid{grid-template-columns:1fr}.panel{padding:16px}}.steps{counter-reset:step;list-style:none;padding:0}.steps li{margin:12px 0;padding:10px 12px 10px 46px;background:#f4f9fc;border-radius:10px;position:relative}.steps li:before{counter-increment:step;content:counter(step);position:absolute;left:12px;background:#127c87;color:white;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:700}.btn{border:0;border-radius:10px;background:#0b7c87;color:white;padding:11px 15px;cursor:pointer;font-weight:700;margin:6px 6px 6px 0}.btn.alt{background:#e9f2f7;color:#165671}.btn:focus-visible,.option:focus-visible{outline:3px solid orange;outline-offset:2px}.option{display:block;width:100%;text-align:left;background:white;border:1px solid #cbd9e5;padding:12px;border-radius:10px;margin:7px 0;cursor:pointer;font:inherit}.option.selected{border:2px solid #126e8c;background:#eef9fb}.feedback{padding:12px;border-radius:10px;margin-top:10px;display:none}.feedback.good{display:block;background:#e2f7e9;color:#195d30}.feedback.bad{display:block;background:#fff1e0;color:#70440d}.tiny{font-size:13px;color:#556978}.tag{display:inline-block;background:#e5f3f7;padding:4px 9px;border-radius:20px;color:#125a75;font-size:13px}.diagram{border:1px solid #dde7f0;background:#f9fcff;border-radius:14px;padding:8px;overflow:hidden}.diagram svg{display:block;max-width:100%;margin:auto}.exercise{padding:17px;border:1px solid #d9e7eb;border-radius:14px;margin:14px 0}.exercise textarea{width:100%;min-height:88px;border:1px solid #bbcddb;border-radius:8px;padding:12px;font:inherit;resize:vertical}.hidden{display:none}.progress{height:12px;border-radius:10px;background:#dbe8eb;overflow:hidden}.progress div{background:#11a58d;height:100%;width:0%;transition:width .2s}.pair{font-variant-numeric:tabular-nums}.footer{font-size:13px;color:#607484;padding:12px 0}.call{font-weight:700;color:#0e6174}.rule{border-top:1px solid #dfe9f0;margin:16px 0}#plot{width:100%;height:auto}input[type=range]{width:100%;accent-color:#00868b}details summary{cursor:pointer;color:#096b80;font-weight:700} .q{margin:12px 0 20px;padding:14px;border-radius:12px;border:1px solid #e0e8ed} .score{font-size:26px;font-weight:800;color:#0d7180} @media print{header{color:black;background:white}.nav,.btn{display:none}.panel{break-inside:avoid}}
-</style></head><body><header><small>Toán 9 · Kết nối tri thức · Tập một</small><h1>Bài 1 · Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn</h1><p class="sub">Bài tự học tương tác · Khám phá → Ví dụ → Luyện tập → Vận dụng → Tự đánh giá</p><div><span id="progressLabel">Đã hoàn thành 0/10 câu trắc nghiệm</span><div class="progress" style="max-width:480px;margin-top:8px"><div id="bar"></div></div></div></header>
-<main><nav class="nav"><a href="#start">Mục tiêu</a><a href="#part1">Kiến thức 1</a><a href="#part2">Kiến thức 2</a><a href="#visual">Sơ đồ</a><a href="#quiz">Trắc nghiệm</a><a href="#practice">Vận dụng</a><a href="#summary">Tổng kết</a></nav>
-<section class="panel" id="start"><h2>🎯 Em sẽ học được gì?</h2><ul><li>Nhận biết phương trình có dạng <b>ax + by = c</b> (a và b không đồng thời bằng 0).</li><li>Kiểm tra cặp số là nghiệm của phương trình hoặc hệ phương trình.</li><li>Hình dung mỗi phương trình qua một đường thẳng trên mặt phẳng tọa độ.</li><li>Nhận biết nghiệm chung của hệ và lập hệ từ bài toán thực tế.</li></ul><div class="note"><b>Khởi động:</b> Tổng số vở và bút là 12. Gọi x là số vở, y là số bút. Em viết được mối quan hệ nào? <details><summary>Gợi ý / xem đáp án</summary>x + y = 12, với x, y là các số nguyên không âm trong tình huống này.</details></div></section>
-<section class="panel" id="part1"><h2>1. Phương trình bậc nhất hai ẩn</h2><div class="formula">ax + by = c</div><p>Trong đó <b>x, y</b> là hai ẩn; <b>a, b, c</b> là các số đã biết; <b>a và b không đồng thời bằng 0</b>.</p><div class="grid"><div class="note"><b>Đúng dạng:</b><p>2x + 3y = 6<br>0x + 5y = 10<br>4x − y = 7</p></div><div class="warn"><b>Không đúng dạng:</b><p>x² + y = 3 (có x²)<br>xy + 1 = 0 (có tích xy)<br>0x + 0y = 1 (a=b=0)</p></div></div><h3>Ví dụ 1 · Kiểm tra nghiệm</h3><p>Cho phương trình <b>2x + y = 7</b>. Cặp (2; 3) có phải là một nghiệm không?</p><ol class="steps"><li>Thay x = 2 và y = 3 vào vế trái.</li><li>Tính 2·2 + 3 = 7.</li><li>Vế trái bằng vế phải nên <b>(2; 3) là nghiệm</b>.</li></ol><h3>Ví dụ 2 · Một phương trình có nhiều nghiệm</h3><p>Với <b>x + y = 4</b>, ta có (0; 4), (1; 3), (2; 2), (3; 1), … Đối với các ẩn thực, phương trình có vô số nghiệm.</p><div class="note">Ghi nhớ: Nghiệm của phương trình hai ẩn là <b>một cặp số có thứ tự</b> (x; y) làm cho đẳng thức đúng.</div></section>
-<section class="panel" id="part2"><h2>2. Hệ hai phương trình bậc nhất hai ẩn</h2><div class="formula">{ ax + by = c<br>{ a′x + b′y = c′</div><p>Một <b>nghiệm của hệ</b> phải làm cho <b>cả hai phương trình cùng đúng</b>, không chỉ một phương trình.</p><h3>Ví dụ 3 · Tìm nghiệm chung</h3><p>Xét hệ <b>x + y = 5</b> và <b>x − y = 1</b>.</p><ol class="steps"><li>Cộng hai phương trình: 2x = 6.</li><li>Suy ra x = 3, thay vào x + y = 5 được y = 2.</li><li>Kiểm tra: 3 + 2 = 5; 3 − 2 = 1. Vậy nghiệm của hệ là <b>(3; 2)</b>.</li></ol><div class="note">Trên hình vẽ, nghiệm của hệ là giao điểm chung của hai đường thẳng (nếu có). Hai đường thẳng phân biệt song song → không có nghiệm; trùng nhau → vô số nghiệm.</div></section>
-<section class="panel" id="visual"><h2>3. Sơ đồ trực quan tương tác</h2><p>Kéo thanh trượt để đổi giá trị <b>c</b> của đường thẳng <b>x + y = c</b>. Quan sát đường thẳng dịch chuyển như thế nào. Đường nét đứt là <b>x − y = 1</b>.</p><div class="grid"><div class="diagram"><svg id="plot" viewBox="0 0 440 390" role="img" aria-label="Hệ trục tọa độ và hai đường thẳng, có điểm giao nếu tồn tại"><g id="plotContent"></g></svg></div><div><label for="cSlider" class="call">Điều chỉnh c = <output id="cval">5</output></label><input id="cSlider" type="range" min="-4" max="8" step="1" value="5"><p id="plotExplain" class="note pair"></p><p class="tiny">Sơ đồ biểu diễn nghiệm trên tập số thực. Khi dùng để đếm vật, vé, người… còn phải xét điều kiện nghiệm nguyên, không âm.</p><h3>Sơ đồ ghi nhớ</h3><svg viewBox="0 0 360 265" width="100%" role="img" aria-label="Sơ đồ: phương trình bậc nhất hai ẩn, nghiệm là cặp số, hệ phương trình tìm nghiệm chung"><rect x="55" y="8" width="250" height="55" rx="12" fill="#dff4f4" stroke="#178b8b"/><text x="180" y="30" text-anchor="middle" font-weight="bold" font-size="15">ax + by = c</text><text x="180" y="49" text-anchor="middle" font-size="12">a, b không đồng thời bằng 0</text><path d="M180 63V91M180 91l-6 -8m6 8l6 -8" fill="none" stroke="#18768b" stroke-width="2"/><rect x="55" y="95" width="250" height="55" rx="12" fill="#e6f0ff" stroke="#4183b2"/><text x="180" y="117" text-anchor="middle" font-weight="bold" font-size="15">Nghiệm (x; y)</text><text x="180" y="136" text-anchor="middle" font-size="12">Thay vào làm đẳng thức đúng</text><path d="M180 150V178M180 178l-6 -8m6 8l6 -8" fill="none" stroke="#18768b" stroke-width="2"/><rect x="55" y="183" width="250" height="60" rx="12" fill="#fff3df" stroke="#c18b36"/><text x="180" y="207" text-anchor="middle" font-weight="bold" font-size="15">Hệ hai phương trình</text><text x="180" y="225" text-anchor="middle" font-size="12">Tìm nghiệm chung của cả hai</text></svg></div></div></section>
-<section class="panel" id="quiz"><h2>4. Trắc nghiệm tự kiểm tra</h2><p>Chọn một đáp án cho mỗi câu, bấm <b>Chấm bài</b> để nhận điểm và giải thích chi tiết. Có thể làm lại bao nhiêu lần tùy thích.</p><div id="quizMount"></div><button class="btn" id="grade">Chấm bài</button><button class="btn alt" id="resetQuiz">Làm lại trắc nghiệm</button><div id="scoreMount" aria-live="polite"></div></section>
-<section class="panel" id="practice"><h2>5. Bài tập tự luận và vận dụng</h2><p>Em tự giải trước, có thể mở gợi ý theo từng bài rồi so sánh đáp án. Câu trả lời được lưu trên trình duyệt của em.</p><div id="practiceMount"></div></section>
-<section class="panel" id="summary"><h2>6. Tổng kết và tự đánh giá</h2><div class="grid"><div class="note"><b>Ba điều cần nhớ</b><ol><li>Phương trình bậc nhất hai ẩn có dạng ax + by = c với a, b không đồng thời bằng 0.</li><li>Cặp (x; y) là nghiệm khi thay vào phương trình được đẳng thức đúng.</li><li>Nghiệm của hệ phải thỏa mãn đồng thời cả hai phương trình.</li></ol></div><div><b>Em tự đánh giá</b><label style="display:block;margin-top:14px"><input type="checkbox" data-check="0"> Nhận biết đúng dạng phương trình</label><label style="display:block;margin-top:10px"><input type="checkbox" data-check="1"> Kiểm tra được một cặp nghiệm</label><label style="display:block;margin-top:10px"><input type="checkbox" data-check="2"> Tìm được nghiệm chung của hệ</label><label style="display:block;margin-top:10px"><input type="checkbox" data-check="3"> Lập được hệ từ tình huống thực tế</label><p id="selfReport" class="tiny"></p></div></div><button class="btn alt" id="print">In bài học / lưu PDF</button><button class="btn alt" id="clearAll">Xóa tiến độ trên thiết bị</button></section><div class="footer">Tài liệu học bổ trợ biên soạn mới, bám chủ đề Bài 1 – Toán 9 Kết nối tri thức, tập một. Hoạt động hoàn toàn ngoại tuyến, không gửi dữ liệu học sinh lên máy chủ. Giáo viên có thể chỉnh nội dung ở lesson.json.</div></main>
-<script id="lesson-data" type="application/json">{"id": "toan9-kntt-t1-bai01", "title": "Bài 1. Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn", "subject": "Toán", "grade": 9, "series": "Kết nối tri thức với cuộc sống", "volume": 1, "source_note": "Dựa trên chủ đề Bài 1 của SGK Toán 9 tập một (trang 5–10) theo bài học đã xác định trước đó; SGK tập một và Skill EDU Toán THCS 1.0 không có trong các tệp hiện gắn ở lượt này. Ví dụ, câu hỏi và sơ đồ là nội dung biên soạn mới.", "objectives": ["Nhận biết phương trình bậc nhất hai ẩn ax + by = c, a và b không đồng thời bằng 0.", "Kiểm tra một cặp số có là nghiệm của phương trình/hệ hay không.", "Hiểu nghiệm và biểu diễn hình học của phương trình bậc nhất hai ẩn.", "Nhận biết hệ hai phương trình bậc nhất hai ẩn và ý nghĩa nghiệm chung.", "Lập hệ phương trình đơn giản từ tình huống thực tế."], "sections": ["Phương trình bậc nhất hai ẩn", "Hệ hai phương trình bậc nhất hai ẩn"], "quiz": [{"id": 1, "question": "Phương trình nào là phương trình bậc nhất hai ẩn?", "options": ["2x + 3y = 5", "x² + y = 2", "xy = 4", "x + 1 = 0"], "answer": 0, "explanation": "Dạng ax + by = c với a, b không đồng thời bằng 0."}, {"id": 2, "question": "Cặp (2; 1) là nghiệm của phương trình nào?", "options": ["x + y = 5", "2x − y = 3", "x − 2y = 3", "3x + y = 8"], "answer": 1, "explanation": "Thay x=2, y=1: 2·2 − 1 = 3."}, {"id": 3, "question": "Phương trình x + y = 4 có bao nhiêu nghiệm thực?", "options": ["0", "1", "2", "Vô số"], "answer": 3, "explanation": "Với mỗi x thực, chọn y = 4 − x."}, {"id": 4, "question": "Cho 3x + 0y = 6. Giá trị x của mọi nghiệm là?", "options": ["0", "2", "3", "6"], "answer": 1, "explanation": "3x=6 suy ra x=2, còn y tùy ý."}, {"id": 5, "question": "Cặp (1; 2) có là nghiệm của hệ x+y=3, 2x−y=0 không?", "options": ["Có", "Không", "Chỉ của phương trình thứ nhất", "Chỉ của phương trình thứ hai"], "answer": 0, "explanation": "Thế vào hai phương trình đều đúng."}, {"id": 6, "question": "Đồ thị của phương trình x + y = 3 là?", "options": ["Parabol", "Đường tròn", "Đường thẳng", "Một điểm"], "answer": 2, "explanation": "Đồ thị ax + by = c là một đường thẳng."}, {"id": 7, "question": "Nghiệm của hệ x+y=5 và x−y=1 là?", "options": ["(2;3)", "(3;2)", "(1;4)", "(4;1)"], "answer": 1, "explanation": "Cộng hai phương trình: 2x=6, suy ra x=3, y=2."}, {"id": 8, "question": "Phương trình 0x + 0y = 4 có thuộc dạng bậc nhất hai ẩn không?", "options": ["Có", "Không"], "answer": 1, "explanation": "Hai hệ số của x và y không được đồng thời bằng 0."}, {"id": 9, "question": "Cho x−2y=0. Cặp nào là một nghiệm?", "options": ["(4;2)", "(2;4)", "(1;1)", "(0;2)"], "answer": 0, "explanation": "4−2·2=0."}, {"id": 10, "question": "Nếu hai đường thẳng biểu diễn hai phương trình cắt nhau tại P, hệ có?", "options": ["Vô nghiệm", "Đúng một nghiệm", "Vô số nghiệm", "Không kết luận được"], "answer": 1, "explanation": "Giao điểm biểu diễn nghiệm chung duy nhất."}], "practice": [{"id": "vd1", "title": "Bài tập 1 · Nhận biết", "question": "Trong các phương trình x² + y = 3; 2x − 5y = 7; xy = 1, hãy chỉ ra phương trình bậc nhất hai ẩn.", "steps": ["Nhớ lại dạng ax + by = c.", "Các ẩn phải có bậc một, không có tích xy hoặc x²."], "answer": "2x − 5y = 7."}, {"id": "vd2", "title": "Bài tập 2 · Kiểm tra nghiệm", "question": "Kiểm tra xem (3; −1) có là nghiệm của 2x + y = 5 không.", "steps": ["Thay x = 3 và y = −1.", "So sánh vế trái với 5."], "answer": "Có, vì 2·3 + (−1) = 5."}, {"id": "vd3", "title": "Bài tập 3 · Tìm thêm nghiệm", "question": "Tìm ba nghiệm khác nhau của phương trình x + 2y = 6.", "steps": ["Tự chọn ba giá trị y, chẳng hạn 0, 1, 2.", "Tính x = 6 − 2y."], "answer": "Ví dụ: (6;0), (4;1), (2;2)."}, {"id": "vd4", "title": "Bài tập 4 · Nghiệm của hệ", "question": "Tìm nghiệm chung của hệ x + y = 7 và x − y = 1.", "steps": ["Cộng hai phương trình để khử y.", "Tìm x rồi thay ngược lại để tính y."], "answer": "(x; y) = (4; 3)."}, {"id": "vd5", "title": "Bài tập 5 · Vận dụng thực tế", "question": "Một quầy bán 15 vé gồm vé người lớn và vé học sinh. Tổng doanh thu 460 nghìn đồng; vé người lớn 40 nghìn, vé học sinh 20 nghìn. Gọi x, y lần lượt là số vé mỗi loại. Lập hệ và tìm số vé.", "steps": ["Tổng số vé: x + y = 15.", "Tổng tiền (nghìn đồng): 40x + 20y = 460.", "Chia phương trình hai cho 20 rồi trừ phương trình một."], "answer": "Hệ x+y=15 và 40x+20y=460. Tương đương x+y=15; 2x+y=23. Suy ra x=8, y=7 (đều là số nguyên không âm)."}]}</script><script>
-'use strict';const L=JSON.parse(document.getElementById('lesson-data').textContent),key='toan9-kntt-b01-v2';let state={answers:{},writes:{},checks:[false,false,false,false]};try{state={...state,...JSON.parse(localStorage.getItem(key)||'{}')}}catch(e){};const save=()=>{try{localStorage.setItem(key,JSON.stringify(state))}catch(e){}};const $=s=>document.querySelector(s);const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function drawQuiz(){const mount=$('#quizMount');mount.innerHTML='';L.quiz.forEach((q,i)=>{let d=document.createElement('div');d.className='q';d.innerHTML='<b>Câu '+(i+1)+'. '+escapeHTML(q.question)+'</b><div class="opts"></div><div class="feedback" id="feed'+i+'" aria-live="polite"></div>';const opts=d.querySelector('.opts');q.options.forEach((v,j)=>{let b=document.createElement('button');b.className='option'+(state.answers[i]===j?' selected':'');b.textContent='ABCD'[j]+'. '+v;b.onclick=()=>{state.answers[i]=j;Array.from(opts.children).forEach((el,k)=>el.classList.toggle('selected',k===j));d.querySelector('.feedback').className='feedback';d.querySelector('.feedback').textContent='';$('#scoreMount').textContent='';save();progress()};opts.appendChild(b)});mount.appendChild(d)});progress()}
-function progress(){let n=Object.keys(state.answers).filter(k=>state.answers[k]!==undefined).length;$('#progressLabel').textContent='Đã làm '+n+'/'+L.quiz.length+' câu trắc nghiệm';$('#bar').style.width=(n/L.quiz.length*100)+'%';let ncheck=state.checks.filter(Boolean).length;$('#selfReport').textContent='Đã tự đánh giá '+ncheck+'/4 mục.'}
-$('#grade').onclick=()=>{let correct=0;L.quiz.forEach((q,i)=>{let v=state.answers[i],ok=v===q.answer;if(ok)correct++;let el=$('#feed'+i);el.className='feedback '+(ok?'good':'bad');el.textContent=(ok?'✓ Đúng. ':'✗ '+(v===undefined?'Chưa chọn. ':'Chưa đúng. '))+'Đáp án: '+('ABCD'[q.answer])+'. '+q.explanation});$('#scoreMount').innerHTML='<p class="score">Kết quả: '+correct+'/'+L.quiz.length+' câu đúng ('+Math.round(100*correct/L.quiz.length)+'%)</p><p>'+(correct>=8?'Em đã nắm khá vững kiến thức.':'Hãy đọc lại các phần giải thích và thử lại.')+'</p>';save()};$('#resetQuiz').onclick=()=>{state.answers={};save();drawQuiz();$('#scoreMount').textContent=''};
-function drawPractice(){let mount=$('#practiceMount');L.practice.forEach((p,i)=>{let div=document.createElement('div');div.className='exercise';div.innerHTML='<h3>'+escapeHTML(p.title)+'</h3><p>'+escapeHTML(p.question)+'</p><textarea id="write'+i+'" aria-label="Lời giải bài '+(i+1)+'" placeholder="Nhập lời giải của em vào đây..."></textarea><details><summary>Mở gợi ý</summary><ol>'+p.steps.map(s=>'<li>'+escapeHTML(s)+'</li>').join('')+'</ol></details><details><summary>Xem đáp án tham khảo</summary><p class="note">'+escapeHTML(p.answer)+'</p></details>';mount.appendChild(div);let ta=div.querySelector('textarea');ta.value=state.writes[i]||'';ta.addEventListener('input',()=>{state.writes[i]=ta.value;save()})})}drawQuiz();drawPractice();document.querySelectorAll('[data-check]').forEach(c=>{let i=+c.dataset.check;c.checked=!!state.checks[i];c.onchange=()=>{state.checks[i]=c.checked;save();progress()}});$('#print').onclick=()=>window.print();$('#clearAll').onclick=()=>{if(confirm('Xóa mọi câu trả lời và tiến độ trên thiết bị này?')){try{localStorage.removeItem(key)}catch(e){}location.reload()}};
-const ns='http://www.w3.org/2000/svg';function drawPlot(){let c=Number($('#cSlider').value),svg=$('#plotContent');svg.replaceChildren();const X=x=>220+32*x,Y=y=>190-32*y;function make(type,attrs,parent=svg){let e=document.createElementNS(ns,type);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));parent.appendChild(e);return e}for(let z=-6;z<=6;z++){make('line',{x1:X(-6),y1:Y(z),x2:X(6),y2:Y(z),stroke:'#e7edf2'});make('line',{x1:X(z),y1:Y(-5.5),x2:X(z),y2:Y(5.5),stroke:'#e7edf2'})}make('line',{x1:20,y1:190,x2:420,y2:190,stroke:'#455c71','stroke-width':2});make('line',{x1:220,y1:10,x2:220,y2:380,stroke:'#455c71','stroke-width':2});for(let z=-5;z<=5;z++){if(z!==0){let a=make('text',{x:X(z),y:206,'text-anchor':'middle','font-size':10,fill:'#506579'});a.textContent=z;let b=make('text',{x:209,y:Y(z)+4,'text-anchor':'end','font-size':10,fill:'#506579'});b.textContent=z}}make('text',{x:418,y:180,fill:'#355b78'}).textContent='x';make('text',{x:230,y:13,fill:'#355b78'}).textContent='y';function line(a,b,col,dash){make('line',{x1:X(-9),y1:Y(a*(-9)+b),x2:X(9),y2:Y(a*9+b),stroke:col,'stroke-width':3,'stroke-dasharray':dash||'','stroke-linecap':'round'})}let clip=make('clipPath',{id:'plotclip'});make('rect',{x:20,y:11,width:400,height:366},clip);let lines=make('g',{'clip-path':'url(#plotclip)'});function lineClip(a,b,col,dash){make('line',{x1:X(-9),y1:Y(a*(-9)+b),x2:X(9),y2:Y(a*9+b),stroke:col,'stroke-width':3,'stroke-dasharray':dash||''},lines)}lineClip(-1,c,'#0f9297');lineClip(1,-1,'#db8728','7 5');let x=(c+1)/2,y=(c-1)/2;if(x>=-6&&x<=6&&y>=-5.5&&y<=5.5){make('circle',{cx:X(x),cy:Y(y),r:6,fill:'#ca3c61',stroke:'white','stroke-width':2});let t=make('text',{x:X(x)+10,y:Y(y)-12,fill:'#a21e49','font-weight':700,'font-size':12});t.textContent='P('+x+'; '+y+')'}$('#cval').textContent=c;$('#plotExplain').textContent='Hệ x + y = '+c+' và x − y = 1 có nghiệm chung ('+x+'; '+y+'). Mỗi khi c đổi, đường màu xanh dịch chuyển và điểm giao P thay đổi.'}$('#cSlider').addEventListener('input',drawPlot);drawPlot();
-
-// ==========================================
-// TÍCH HỢP CẦU NỐI LỊCH SỬ TÂY ĐÔ (taydo.edu.lesson.v1)
-// ==========================================
-(function() {
-  const LESSON_ID = "toan_9_c1_b1";
-  const CHANNEL = "taydo.edu.lesson.v1";
-  let currentUserId = null;
-  let currentRevision = 1;
-  let currentAttemptId = null;
-  const eventsList = [];
-
-  function getUUID() {
-    if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0;
-      return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-  }
-
-  function initAttemptIdentity() {
-    const k = "attempt_id_" + LESSON_ID;
-    const revK = "attempt_rev_" + LESSON_ID;
-    currentAttemptId = localStorage.getItem(k);
-    if (!currentAttemptId) {
-      currentAttemptId = getUUID();
-      localStorage.setItem(k, currentAttemptId);
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Toán 9 KNTT - Bài 1: Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    .math-serif { font-family: 'Times New Roman', Times, serif; font-style: italic; }
+    .sgk-gold-box {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border-left: 6px solid #16a34a;
+      box-shadow: 0 4px 15px -3px rgba(217, 119, 6, 0.15);
     }
-    currentRevision = parseInt(localStorage.getItem(revK) || "1", 10);
-  }
-
-  initAttemptIdentity();
-
-  function pushAttemptEvent(type, data = {}) {
-    eventsList.push({
-      type,
-      ...data,
-      timestamp: new Date().toISOString()
-    });
-    if (eventsList.length > 100) eventsList.shift();
-    syncToSupabase();
-  }
-
-  function syncToSupabase() {
-    let quizList = [];
-    if (typeof data !== "undefined" && data && data.quiz) quizList = data.quiz;
-    else if (typeof L !== "undefined" && L && L.quiz) quizList = L.quiz;
-
-    let ansObj = {};
-    if (typeof state !== "undefined" && state && state.answers) ansObj = state.answers;
-    else if (typeof st !== "undefined" && st && st.answers) ansObj = st.answers;
-
-    const correctCount = quizList.filter((q, i) => ansObj[i] === q.answer).length;
-    const isCompleted = quizList.length > 0 && Object.keys(ansObj).length >= quizList.length;
-    currentRevision++;
-    localStorage.setItem("attempt_rev_" + LESSON_ID, String(currentRevision));
-
-    const payload = {
-      id: currentAttemptId,
-      lessonId: LESSON_ID,
-      revision: currentRevision,
-      status: isCompleted ? "completed" : "in_progress",
-      events: eventsList.slice(-100),
-      answers: ansObj,
-      writes: (typeof state !== "undefined" && state.writes) ? state.writes : {},
-      score: correctCount,
-      maxScore: quizList.length,
-      updated_at: new Date().toISOString()
-    };
-
-    if (currentUserId && window.parent && window.parent !== window) {
-      window.parent.postMessage({
-        channel: CHANNEL,
-        type: "save",
-        lessonId: LESSON_ID,
-        userId: currentUserId,
-        record: payload
-      }, window.location.origin);
+    .hd-badge {
+      background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+      color: white;
+      font-weight: 800;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      letter-spacing: 0.03em;
+      display: inline-block;
     }
-  }
+    .vd-badge {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      display: inline-block;
+    }
+    .lt-badge {
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      color: white;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      display: inline-block;
+    }
+    .vandung-badge {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: white;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      display: inline-block;
+    }
+    .casio-key {
+      transition: all 0.12s ease;
+      user-select: none;
+      box-shadow: 0 3px 0 #1e293b;
+    }
+    .casio-key:active, .casio-key.active-step {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #1e293b;
+    }
+    .casio-key.active-step {
+      outline: 3px solid #f59e0b;
+      background-color: #fde68a !important;
+      color: #78350f !important;
+    }
+    .lcd-screen {
+      background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 100%);
+      border: 4px solid #334155;
+      box-shadow: inset 0 3px 8px rgba(15, 23, 42, 0.18);
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+    canvas { touch-action: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-  window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin) return;
-    const msg = event.data;
-    if (!msg || msg.channel !== CHANNEL || msg.lessonId !== LESSON_ID) return;
+  <!-- Toast Notification -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 transition-all duration-300">
+    <span id="toastIcon" class="text-xl">✨</span>
+    <div class="text-sm font-medium" id="toastMsg">Thông báo</div>
+  </div>
 
-    if (msg.type === "account") {
-      currentUserId = msg.userId;
-      syncToSupabase();
-    } else if (msg.type === "history") {
-      const records = msg.records || [];
-      if (records.length > 0) {
-        const latest = records[records.length - 1];
-        if (latest && latest.answers && typeof state !== "undefined" && Object.keys(state.answers || {}).length === 0) {
-          state.answers = latest.answers;
-          if (latest.writes) state.writes = latest.writes;
-          if (typeof save === "function") save();
-          if (typeof drawQuiz === "function") drawQuiz();
-          if (typeof buildQuiz === "function") buildQuiz();
-          if (typeof renderQuiz === "function") renderQuiz();
+  <!-- Top Header -->
+  <header class="bg-gradient-to-r from-emerald-800 via-teal-700 to-emerald-900 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center font-extrabold text-xl border border-white/25 shadow-inner">
+          9
+        </div>
+        <div>
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-200">
+            <span>Kết nối tri thức với cuộc sống</span>
+            <span>•</span>
+            <span>Chương I • Đại số (Trang 5 – 10 SGK)</span>
+          </div>
+          <h1 class="text-base sm:text-lg md:text-xl font-extrabold leading-tight">
+            Bài 1: Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn
+          </h1>
+        </div>
+      </div>
+
+      <!-- Progress & Utility Controls -->
+      <div class="flex items-center gap-3 ml-auto">
+        <div class="hidden sm:flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+          <span class="text-xs text-emerald-100 font-medium">Tiến độ tự học:</span>
+          <div class="w-24 h-2.5 bg-emerald-950 rounded-full overflow-hidden">
+            <div id="progressBar" class="h-full bg-amber-400 transition-all duration-500" style="width: 16%"></div>
+          </div>
+          <span id="progressText" class="text-xs font-bold text-amber-300">1/6</span>
+        </div>
+
+        <div class="bg-amber-400/20 border border-amber-300/40 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+          <span class="text-amber-300 text-sm">🏆</span>
+          <span class="text-xs font-semibold text-emerald-50">Điểm:</span>
+          <span id="scoreDisplay" class="text-sm font-extrabold text-amber-300">0</span>
+        </div>
+
+        <button id="soundToggleBtn" type="button" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold flex items-center gap-1 transition" title="Bật/Tắt âm thanh phản hồi">
+          <span id="soundIcon">🔊</span>
+          <span class="hidden md:inline" id="soundLabel">Âm thanh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-emerald-950/60 border-t border-white/10">
+      <div class="max-w-7xl mx-auto px-3 py-2 flex items-center gap-1.5 overflow-x-auto">
+        <button type="button" data-tab="tab-1" class="tab-btn active px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-emerald-100 hover:bg-white/10">
+          <span>🍊</span><span>1. Mở đầu & HĐ</span>
+        </button>
+        <button type="button" data-tab="tab-2" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-emerald-100 hover:bg-white/10">
+          <span>📘</span><span>2. PT bậc nhất 2 ẩn</span>
+        </button>
+        <button type="button" data-tab="tab-3" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-emerald-100 hover:bg-white/10">
+          <span>📗</span><span>3. Hệ hai PT bậc nhất 2 ẩn</span>
+        </button>
+        <button type="button" data-tab="tab-4" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-emerald-100 hover:bg-white/10">
+          <span>📐</span><span>4. Đồ thị kéo thả (Oxy Lab)</span>
+        </button>
+        <button type="button" data-tab="tab-5" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-emerald-100 hover:bg-white/10">
+          <span>🖩</span><span>5. MTCT Casio (580 & 880)</span>
+        </button>
+        <button type="button" data-tab="tab-6" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-emerald-100 hover:bg-white/10">
+          <span>✍️</span><span>6. Bài tập SGK (1.1 – 1.5)</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1 space-y-6">
+
+    <!-- ================= TAB 1: MỞ ĐẦU & KHÁM PHÁ (TRANG 5 - 6 SGK) ================= -->
+    <section id="tab-1" class="tab-panel space-y-6">
+      <!-- Định hướng bài học (Trang 5 SGK) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-amber-50/90 border border-amber-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center gap-2 text-amber-900 font-bold text-sm mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            KHÁI NIỆM, THUẬT NGỮ (Trang 5 SGK)
+          </div>
+          <ul class="space-y-1.5 text-sm text-slate-700 list-disc list-inside">
+            <li>Phương trình và hệ hai phương trình bậc nhất hai ẩn</li>
+            <li>Nghiệm của phương trình, hệ hai phương trình bậc nhất hai ẩn</li>
+          </ul>
+        </div>
+        <div class="bg-sky-50/90 border border-sky-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center gap-2 text-sky-900 font-bold text-sm mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+            KIẾN THỨC, KĨ NĂNG (Trang 5 SGK)
+          </div>
+          <ul class="space-y-1.5 text-sm text-slate-700 list-disc list-inside">
+            <li>Nhận biết phương trình, hệ hai phương trình bậc nhất hai ẩn.</li>
+            <li>Nhận biết nghiệm của phương trình và hệ hai phương trình bậc nhất hai ẩn.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tình huống mở đầu: Bài toán cổ Cam - Quýt -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4 text-white flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-xs uppercase font-bold tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full">Tình huống mở đầu • Trang 5 SGK</span>
+            <h2 class="text-lg sm:text-xl font-extrabold mt-1">Bài toán dân gian: Quýt, cam mười bảy quả tươi</h2>
+          </div>
+          <span class="text-3xl">🍊🍋</span>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Bài thơ cổ -->
+          <div class="lg:col-span-5 bg-orange-50/70 border border-orange-200 rounded-2xl p-5 space-y-3">
+            <p class="text-xs font-bold uppercase tracking-wider text-orange-700">Xét bài toán cổ sau:</p>
+            <blockquote class="italic text-slate-800 font-medium space-y-1.5 pl-4 border-l-4 border-orange-400 text-base leading-relaxed">
+              <p>Quýt, cam mười bảy quả tươi</p>
+              <p>Đem chia cho một trăm người cùng vui.</p>
+              <p>Chia ba mỗi quả quýt rồi,</p>
+              <p>Còn cam, mỗi quả chia mười vừa xinh.</p>
+              <p>Trăm người, trăm miếng ngọt lành.</p>
+              <p>Quýt, cam mỗi loại tính rành là bao?</p>
+            </blockquote>
+            <p class="text-sm text-slate-600 leading-relaxed pt-2">
+              Trong bài toán này có <strong>hai đại lượng chưa biết</strong> (số cam và số quýt). Hãy kéo thanh trượt bên cạnh để thử tìm số cam (<span class="math-serif">x</span>) và số quýt (<span class="math-serif">y</span>) sao cho vừa đúng <strong>17 quả</strong>, vừa cắt được đúng <strong>100 miếng</strong>!
+            </p>
+          </div>
+
+          <!-- Mô phỏng tương tác Chia Cam - Quýt -->
+          <div class="lg:col-span-7 bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                <span>🧪</span> Phòng thí nghiệm tương tác: Chia Cam & Quýt
+              </h3>
+              <button id="lockSum17Btn" type="button" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition">
+                🔒 Giữ tổng x + y = 17
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Cam Slider -->
+              <div class="bg-white p-4 rounded-xl border border-orange-200 shadow-sm">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-orange-700 text-sm">🍊 Số quả cam (<span class="math-serif">x</span>):</span>
+                  <span id="camCountVal" class="text-lg font-extrabold text-orange-600">5</span>
+                </div>
+                <input id="camSlider" type="range" min="1" max="16" value="5" class="w-full accent-orange-500 cursor-pointer" />
+                <div class="text-xs text-slate-500 mt-1 flex justify-between">
+                  <span>Mỗi quả cam chia 10 miếng</span>
+                  <span class="font-semibold text-orange-700">= <span id="camPiecesVal">50</span> miếng</span>
+                </div>
+              </div>
+
+              <!-- Quýt Slider -->
+              <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-amber-700 text-sm">🍋 Số quả quýt (<span class="math-serif">y</span>):</span>
+                  <span id="quytCountVal" class="text-lg font-extrabold text-amber-600">12</span>
+                </div>
+                <input id="quytSlider" type="range" min="1" max="16" value="12" class="w-full accent-amber-500 cursor-pointer" />
+                <div class="text-xs text-slate-500 mt-1 flex justify-between">
+                  <span>Mỗi quả quýt chia 3 miếng</span>
+                  <span class="font-semibold text-amber-700">= <span id="quytPiecesVal">36</span> miếng</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Trạng thái kiểm tra 2 điều kiện -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div id="cond1Card" class="p-3.5 rounded-xl border flex items-center justify-between bg-emerald-50 border-emerald-300">
+                <div>
+                  <div class="text-xs font-semibold text-slate-500">Điều kiện 1 (Tổng số quả = 17)</div>
+                  <div class="text-sm font-bold text-slate-800 mt-0.5">
+                    <span class="math-serif">x + y</span> = <span id="sumFruitsFormula">5 + 12 = 17</span>
+                  </div>
+                </div>
+                <span id="cond1Badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white">ĐÚNG</span>
+              </div>
+
+              <div id="cond2Card" class="p-3.5 rounded-xl border flex items-center justify-between bg-rose-50 border-rose-300">
+                <div>
+                  <div class="text-xs font-semibold text-slate-500">Điều kiện 2 (Tổng số miếng = 100)</div>
+                  <div class="text-sm font-bold text-slate-800 mt-0.5">
+                    <span class="math-serif">10x + 3y</span> = <span id="sumPiecesFormula">10·5 + 3·12 = 86</span>
+                  </div>
+                </div>
+                <span id="cond2Badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white">CHƯA ĐỦ 100</span>
+              </div>
+            </div>
+
+            <!-- Visual Fruit Tray -->
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+              <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
+                <span>Khay quả trực quan:</span>
+                <span id="fruitSolvedBanner" class="font-bold text-emerald-700 hidden">🎉 Chính xác! 7 quả cam và 10 quả quýt!</span>
+              </div>
+              <div id="fruitVisualTray" class="flex flex-wrap gap-1.5 text-xl min-h-[2.25rem]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hoạt động khám phá HĐ1 & HĐ2 (Trang 6 SGK) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">🔍</span>
+          <div>
+            <h3 class="text-lg font-extrabold text-slate-800">Hoạt động Hình thành kiến thức (Trang 6 SGK)</h3>
+            <p class="text-xs text-slate-500">Gọi <span class="math-serif">x</span> là số cam, <span class="math-serif">y</span> là số quýt (với <span class="math-serif">x, y</span> nguyên dương và nhỏ hơn 17).</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- HĐ1 -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+            <div class="flex items-start gap-2.5">
+              <span class="hd-badge shrink-0">HĐ1</span>
+              <p class="text-sm text-slate-700 font-medium">
+                Câu “Quýt, cam mười bảy quả tươi” có nghĩa là tổng số cam và số quýt là 17. Hãy viết hệ thức với hai biến <span class="math-serif">x</span> và <span class="math-serif">y</span> biểu thị giả thiết này.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <select id="hd1Select" class="px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="">-- Chọn hệ thức biểu thị HĐ1 --</option>
+                <option value="wrong1">x - y = 17</option>
+                <option value="correct">x + y = 17</option>
+                <option value="wrong2">10x + 3y = 17</option>
+                <option value="wrong3">x · y = 17</option>
+              </select>
+              <button id="checkHd1Btn" type="button" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+                Kiểm tra HĐ1
+              </button>
+            </div>
+            <div id="hd1Feedback" class="text-xs font-medium hidden p-2.5 rounded-lg"></div>
+          </div>
+
+          <!-- HĐ2 -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+            <div class="flex items-start gap-2.5">
+              <span class="hd-badge shrink-0">HĐ2</span>
+              <p class="text-sm text-slate-700 font-medium">
+                Tương tự, hãy viết hệ thức với hai biến <span class="math-serif">x</span> và <span class="math-serif">y</span> biểu thị giả thiết cho bởi các câu thơ thứ ba, thứ tư và thứ năm (mỗi quả quýt chia 3, mỗi quả cam chia 10, tổng 100 miếng).
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <select id="hd2Select" class="px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="">-- Chọn hệ thức biểu thị HĐ2 --</option>
+                <option value="wrong1">3x + 10y = 100</option>
+                <option value="correct">10x + 3y = 100</option>
+                <option value="wrong2">10x + 3y = 17</option>
+                <option value="wrong3">x + y = 100</option>
+              </select>
+              <button id="checkHd2Btn" type="button" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+                Kiểm tra HĐ2
+              </button>
+            </div>
+            <div id="hd2Feedback" class="text-xs font-medium hidden p-2.5 rounded-lg"></div>
+          </div>
+        </div>
+
+        <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-serif font-bold text-xl shrink-0">π</div>
+            <p class="text-sm text-emerald-950">
+              <strong>Anh Pi "thông thái":</strong> Các hệ thức <span class="math-serif font-bold">x + y = 17</span> và <span class="math-serif font-bold">10x + 3y = 100</span> nhận được trong HĐ1, HĐ2 chính là những ví dụ về <strong>phương trình bậc nhất hai ẩn</strong>!
+            </p>
+          </div>
+          <button type="button" data-goto="tab-2" class="goto-tab-btn px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition shrink-0">
+            Sang Mục 1: PT bậc nhất hai ẩn →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: PHƯƠNG TRÌNH BẬC NHẤT HAI ẨN (TRANG 6 - 8 SGK) ================= -->
+    <section id="tab-2" class="tab-panel hidden space-y-6">
+      <!-- Khung kiến thức trọng tâm (Trang 6 SGK) -->
+      <div class="sgk-gold-box rounded-2xl p-6 space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+            ⭐ Kiến thức trọng tâm • Trang 6 SGK
+          </span>
+          <span class="text-xs text-amber-800 font-semibold">Mục 1. Phương trình bậc nhất hai ẩn</span>
+        </div>
+        <ul class="space-y-2.5 text-slate-800 text-sm sm:text-base leading-relaxed">
+          <li>
+            • <strong class="text-rose-700">Phương trình bậc nhất hai ẩn <span class="math-serif">x</span> và <span class="math-serif">y</span></strong> là hệ thức dạng
+            <span class="block text-center my-2 font-bold text-lg text-slate-900 bg-white/80 py-2 px-4 rounded-xl border border-amber-300 max-w-md mx-auto">
+              <span class="math-serif">ax + by = c</span> &nbsp;&nbsp;&nbsp;(1)
+            </span>
+            trong đó <span class="math-serif">a, b</span> và <span class="math-serif">c</span> là các số đã biết (<span class="math-serif font-bold">a ≠ 0</span> hoặc <span class="math-serif font-bold">b ≠ 0</span>).
+          </li>
+          <li>
+            • Nếu tại <span class="math-serif">x = x₀</span> và <span class="math-serif">y = y₀</span> ta có <span class="math-serif">ax₀ + by₀ = c</span> là một khẳng định đúng thì cặp số <span class="math-serif font-bold">(x₀; y₀)</span> được gọi là một <strong class="text-rose-700">nghiệm</strong> của phương trình (1).
+          </li>
+        </ul>
+      </div>
+
+      <!-- Ví dụ 1 & Luyện tập 1 (Trang 6 SGK) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Ví dụ 1 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="vd-badge">Ví dụ 1 • Trang 6 SGK</span>
+            <span class="text-xs text-slate-400 font-medium">Nhận diện PT & Nghiệm</span>
+          </div>
+          <div class="text-sm text-slate-700 space-y-2">
+            <p><strong>a)</strong> Trong các hệ thức <span class="math-serif">4x + 3y = 5</span>; <span class="math-serif">0x + y = −1</span>; <span class="math-serif">0x + 0y = 3</span>, hệ thức nào là phương trình bậc nhất hai ẩn? Hệ thức nào không là phương trình bậc nhất hai ẩn?</p>
+            <p><strong>b)</strong> Trong các cặp số <span class="math-serif">(2; −1)</span> và <span class="math-serif">(1; 0)</span>, cặp số nào là nghiệm của phương trình <span class="math-serif">4x + 3y = 5</span>?</p>
+          </div>
+          <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-4 text-sm space-y-2 text-slate-800">
+            <div class="font-bold text-blue-800">Lời giải chi tiết (SGK):</div>
+            <p><strong>a)</strong> Cả ba hệ thức đều có dạng <span class="math-serif">ax + by = c</span>. Nhưng chỉ có hai hệ thức <strong class="text-emerald-700"><span class="math-serif">4x + 3y = 5</span></strong> (<span class="math-serif">a = 4, b = 3</span>) và <strong class="text-emerald-700"><span class="math-serif">0x + y = −1</span></strong> (<span class="math-serif">a = 0, b = 1</span>) thoả mãn điều kiện <span class="math-serif">a ≠ 0</span> hoặc <span class="math-serif">b ≠ 0</span> nên là phương trình bậc nhất hai ẩn.</p>
+            <p>Hệ thức <strong class="text-rose-700"><span class="math-serif">0x + 0y = 3</span></strong> có <span class="math-serif">a = b = 0</span>, không thoả mãn điều kiện trên nên <em>không phải</em> là phương trình bậc nhất hai ẩn.</p>
+            <p><strong>b)</strong> Cặp số <strong class="text-emerald-700">(2; −1)</strong> là một nghiệm của <span class="math-serif">4x + 3y = 5</span>, vì <span class="math-serif">4·2 + 3·(−1) = 8 − 3 = 5</span>.</p>
+            <p>Cặp số <strong class="text-rose-700">(1; 0)</strong> <em>không</em> là nghiệm của <span class="math-serif">4x + 3y = 5</span>, vì <span class="math-serif">4·1 + 3·0 = 4 ≠ 5</span>.</p>
+          </div>
+        </div>
+
+        <!-- Luyện tập 1 tương tác -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="lt-badge">Luyện tập 1 • Trang 6 SGK</span>
+            <span class="text-xs text-indigo-600 font-semibold">Tự tạo phương trình & Kiểm tra nghiệm</span>
+          </div>
+          <p class="text-sm text-slate-700">
+            <strong>Đề bài:</strong> Hãy viết một phương trình bậc nhất hai ẩn <span class="math-serif">ax + by = c</span> và chỉ ra một nghiệm <span class="math-serif">(x₀; y₀)</span> của nó.
+          </p>
+
+          <div class="bg-indigo-50/60 border border-indigo-200 rounded-xl p-4 space-y-3">
+            <div class="text-xs font-bold text-indigo-900 uppercase">Bước 1: Nhập hệ số a, b, c của phương trình</div>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <input id="lt1A" type="number" step="any" value="2" class="w-16 px-2 py-1.5 rounded-lg border border-slate-300 text-center font-bold" />
+              <span class="math-serif font-bold">x +</span>
+              <input id="lt1B" type="number" step="any" value="1" class="w-16 px-2 py-1.5 rounded-lg border border-slate-300 text-center font-bold" />
+              <span class="math-serif font-bold">y =</span>
+              <input id="lt1C" type="number" step="any" value="5" class="w-16 px-2 py-1.5 rounded-lg border border-slate-300 text-center font-bold" />
+            </div>
+
+            <div class="text-xs font-bold text-indigo-900 uppercase pt-1">Bước 2: Nhập một cặp số (x₀; y₀) bất kì</div>
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+              <label class="flex items-center gap-1.5">
+                <span class="math-serif font-bold">x₀ =</span>
+                <input id="lt1X0" type="number" step="any" value="2" class="w-20 px-2 py-1.5 rounded-lg border border-slate-300 text-center font-bold" />
+              </label>
+              <label class="flex items-center gap-1.5">
+                <span class="math-serif font-bold">y₀ =</span>
+                <input id="lt1Y0" type="number" step="any" value="1" class="w-20 px-2 py-1.5 rounded-lg border border-slate-300 text-center font-bold" />
+              </label>
+              <button id="checkLt1Btn" type="button" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition">
+                Kiểm tra ngay
+              </button>
+            </div>
+            <div id="lt1Result" class="text-xs font-medium p-3 rounded-lg bg-white border border-indigo-200 text-slate-700">
+              Phương trình <span class="math-serif font-bold">2x + 1y = 5</span> thoả mãn (<span class="math-serif">a = 2 ≠ 0</span>). Tại <span class="math-serif">(2; 1)</span>: VT = <span class="math-serif">2·2 + 1·1 = 5 = VP</span> (Đúng!).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ví dụ 2: Bảng giá trị nghiệm (Trang 7 SGK) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span class="vd-badge">Ví dụ 2 • Trang 7 SGK</span>
+            <h3 class="font-bold text-slate-800 text-base">Tìm các nghiệm của phương trình <span class="math-serif">x + 2y = 5</span></h3>
+          </div>
+          <button id="fillVd2Btn" type="button" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition">
+            Điền đáp án mẫu SGK
+          </button>
+        </div>
+
+        <p class="text-sm text-slate-700">
+          <strong>a)</strong> Hoàn thành bảng sau đây (nhập số thập phân hoặc phân số dạng <code class="bg-slate-100 px-1 rounded">7/2</code>, <code class="bg-slate-100 px-1 rounded">3.5</code>):
+        </p>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-center border-collapse border border-slate-300 rounded-xl overflow-hidden">
+            <thead>
+              <tr class="bg-slate-100 text-slate-800 font-bold">
+                <th class="border border-slate-300 px-3 py-2.5 w-24 math-serif text-base">x</th>
+                <td class="border border-slate-300 px-3 py-2.5 font-bold">−2</td>
+                <td class="border border-slate-300 px-3 py-2.5 font-bold">−1</td>
+                <td class="border border-slate-300 px-3 py-2.5 font-bold">0</td>
+                <td class="border border-slate-300 px-3 py-2.5">
+                  <input id="vd2_x4" type="text" placeholder="?" class="w-20 px-2 py-1 text-center border border-blue-300 rounded bg-blue-50/50 font-bold" />
+                </td>
+                <td class="border border-slate-300 px-3 py-2.5">
+                  <input id="vd2_x5" type="text" placeholder="?" class="w-20 px-2 py-1 text-center border border-blue-300 rounded bg-blue-50/50 font-bold" />
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th class="border border-slate-300 px-3 py-2.5 bg-slate-100 math-serif text-base">y</th>
+                <td class="border border-slate-300 px-3 py-2.5">
+                  <input id="vd2_y1" type="text" placeholder="?" class="w-20 px-2 py-1 text-center border border-blue-300 rounded bg-blue-50/50 font-bold" />
+                </td>
+                <td class="border border-slate-300 px-3 py-2.5">
+                  <input id="vd2_y2" type="text" placeholder="?" class="w-20 px-2 py-1 text-center border border-blue-300 rounded bg-blue-50/50 font-bold" />
+                </td>
+                <td class="border border-slate-300 px-3 py-2.5">
+                  <input id="vd2_y3" type="text" placeholder="?" class="w-20 px-2 py-1 text-center border border-blue-300 rounded bg-blue-50/50 font-bold" />
+                </td>
+                <td class="border border-slate-300 px-3 py-2.5 font-bold">1</td>
+                <td class="border border-slate-300 px-3 py-2.5 font-bold">2</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <button id="checkVd2Btn" type="button" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">
+            Kiểm tra bảng Ví dụ 2
+          </button>
+          <div id="vd2Feedback" class="text-xs font-medium text-slate-600">
+            <strong>b)</strong> Biểu diễn <span class="math-serif">y</span> theo <span class="math-serif">x</span>: <span class="math-serif font-bold">y = (5 − x) / 2</span>. Với mỗi giá trị <span class="math-serif">x</span> tuỳ ý cho trước, ta luôn tìm được một giá trị <span class="math-serif">y</span> tương ứng. Do đó phương trình có <strong>vô số nghiệm</strong>.
+          </div>
+        </div>
+      </div>
+
+      <!-- Ví dụ 3 & Luyện tập 2: Biểu diễn hình học (Trang 7 - 8 SGK) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span class="vd-badge">Ví dụ 3 & Nhận xét • Trang 7 – 8 SGK</span>
+            <h3 class="font-bold text-slate-800 text-base">Biểu diễn hình học tất cả các nghiệm trên mặt phẳng tọa độ Oxy</h3>
+          </div>
+          <button type="button" data-goto="tab-4" class="goto-tab-btn text-xs font-bold px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">
+            📐 Mở trong Bảng vẽ Oxy kéo thả →
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- TH1: a ≠ 0, b ≠ 0 -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+            <div class="text-xs font-extrabold uppercase text-emerald-700">Hình 1.1a • a ≠ 0 và b ≠ 0</div>
+            <div class="font-bold text-slate-900">a) Phương trình <span class="math-serif">x + 2y = 3</span></div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Viết dưới dạng <span class="math-serif">y = −0,5x + 1,5</span>. Nghiệm tổng quát:
+              <span class="block font-bold text-slate-800 my-1">(x; −0,5x + 1,5) với x ∈ ℝ tuỳ ý.</span>
+              Biểu diễn hình học là đường thẳng <span class="math-serif">d: x + 2y = 3</span> đi qua <span class="math-serif">A(0; 1,5)</span> và <span class="math-serif">B(3; 0)</span>.
+            </p>
+          </div>
+
+          <!-- TH2: a = 0, b ≠ 0 -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+            <div class="text-xs font-extrabold uppercase text-blue-700">Hình 1.1b • a = 0 và b ≠ 0</div>
+            <div class="font-bold text-slate-900">b) Phương trình <span class="math-serif">0x + y = −2</span></div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Viết gọn thành <span class="math-serif">y = −2</span>. Nghiệm tổng quát:
+              <span class="block font-bold text-slate-800 my-1">(x; −2) với x ∈ ℝ tuỳ ý.</span>
+              Biểu diễn hình học là đường thẳng <span class="math-serif">y = −2</span> <strong>song song với trục hoành Ox</strong> và cắt trục tung tại <span class="math-serif">(0; −2)</span>.
+            </p>
+          </div>
+
+          <!-- TH3: a ≠ 0, b = 0 -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+            <div class="text-xs font-extrabold uppercase text-purple-700">Hình 1.1c • a ≠ 0 và b = 0</div>
+            <div class="font-bold text-slate-900">c) Phương trình <span class="math-serif">x + 0y = 3</span></div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Viết gọn thành <span class="math-serif">x = 3</span>. Nghiệm tổng quát:
+              <span class="block font-bold text-slate-800 my-1">(3; y) với y ∈ ℝ tuỳ ý.</span>
+              Biểu diễn hình học là đường thẳng <span class="math-serif">x = 3</span> <strong>song song với trục tung Oy</strong> và cắt trục hoành tại <span class="math-serif">(3; 0)</span>.
+            </p>
+          </div>
+        </div>
+
+        <div class="sgk-gold-box rounded-xl p-4 text-sm text-slate-800">
+          <strong>Nhận xét (Trang 8 SGK):</strong> Trong mặt phẳng toạ độ, tập hợp các điểm có toạ độ <span class="math-serif">(x; y)</span> thoả mãn phương trình bậc nhất hai ẩn <span class="math-serif">ax + by = c</span> là một đường thẳng. Đường thẳng đó gọi là <strong class="text-rose-700">đường thẳng <span class="math-serif">ax + by = c</span></strong>.
+        </div>
+
+        <!-- Luyện tập 2 (Trang 8 SGK) -->
+        <div class="bg-indigo-50/50 border border-indigo-200 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <span class="lt-badge">Luyện tập 2 • Trang 8 SGK</span>
+            <span class="text-xs text-slate-500">Ghép mỗi phương trình với nghiệm tổng quát và đặc điểm đường thẳng</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+              <div class="font-bold text-slate-800">a) <span class="math-serif">2x − 3y = 5</span></div>
+              <select id="lt2_a" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs">
+                <option value="">-- Chọn nghiệm tổng quát --</option>
+                <option value="correct">(x; (2x - 5)/3) với x ∈ ℝ tuỳ ý</option>
+                <option value="w1">(x; 3) với x ∈ ℝ tuỳ ý</option>
+                <option value="w2">(-2; y) với y ∈ ℝ tuỳ ý</option>
+              </select>
+            </div>
+            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+              <div class="font-bold text-slate-800">b) <span class="math-serif">0x + y = 3</span></div>
+              <select id="lt2_b" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs">
+                <option value="">-- Chọn nghiệm tổng quát --</option>
+                <option value="w1">(x; (2x - 5)/3) với x ∈ ℝ tuỳ ý</option>
+                <option value="correct">(x; 3) với x ∈ ℝ, song song trục hoành</option>
+                <option value="w2">(-2; y) với y ∈ ℝ, song song trục tung</option>
+              </select>
+            </div>
+            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+              <div class="font-bold text-slate-800">c) <span class="math-serif">x + 0y = −2</span></div>
+              <select id="lt2_c" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs">
+                <option value="">-- Chọn nghiệm tổng quát --</option>
+                <option value="w1">(x; -2) với x ∈ ℝ, song song trục hoành</option>
+                <option value="w2">(2; y) với y ∈ ℝ tuỳ ý</option>
+                <option value="correct">(-2; y) với y ∈ ℝ, song song trục tung</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="checkLt2Btn" type="button" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition">
+              Kiểm tra Luyện tập 2
+            </button>
+            <span id="lt2Feedback" class="text-xs font-semibold"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: HỆ HAI PHƯƠNG TRÌNH BẬC NHẤT HAI ẨN (TRANG 8 - 10 SGK) ================= -->
+    <section id="tab-3" class="tab-panel hidden space-y-6">
+      <!-- Khung kiến thức trọng tâm Mục 2 (Trang 8 SGK) -->
+      <div class="sgk-gold-box rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+            ⭐ Kiến thức trọng tâm • Trang 8 SGK
+          </span>
+          <span class="text-xs text-amber-800 font-semibold">Mục 2. Hệ hai phương trình bậc nhất hai ẩn</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+          <div class="lg:col-span-8 space-y-2.5 text-sm sm:text-base text-slate-800">
+            <p>
+              <strong>1.</strong> Một cặp gồm hai phương trình bậc nhất hai ẩn <span class="math-serif">ax + by = c</span> và <span class="math-serif">a'x + b'y = c'</span> được gọi là một <strong class="text-rose-700">hệ hai phương trình bậc nhất hai ẩn</strong>. Ta thường viết hệ phương trình đó dưới dạng:
+            </p>
+            <div class="bg-white/90 border border-amber-300 rounded-xl py-2.5 px-6 max-w-xs mx-auto text-center font-bold text-lg text-slate-900 shadow-sm">
+              ⎧ <span class="math-serif">ax + by = c</span><br/>
+              ⎩ <span class="math-serif">a'x + b'y = c'</span> &nbsp;&nbsp;&nbsp;(*)
+            </div>
+            <p>
+              <strong>2.</strong> Mỗi cặp số <span class="math-serif font-bold">(x₀; y₀)</span> được gọi là một <strong class="text-rose-700">nghiệm</strong> của hệ (*) nếu nó <strong>đồng thời là nghiệm của cả hai phương trình</strong> của hệ (*).
+            </p>
+          </div>
+
+          <div class="lg:col-span-4 bg-white/90 border border-emerald-200 rounded-xl p-4 shadow-sm flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-serif font-bold text-xl shrink-0">π</div>
+            <div class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              <strong class="text-emerald-800 block mb-0.5">Anh Pi nhắn nhủ:</strong>
+              Mỗi nghiệm của hệ (*) chính là một <strong class="text-emerald-700">nghiệm chung</strong> của hai phương trình của hệ (*), và trên mặt phẳng tọa độ là <strong>giao điểm</strong> của hai đường thẳng!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ví dụ 4 & Ví dụ 5 (Trang 9 SGK) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Ví dụ 4 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+          <span class="vd-badge">Ví dụ 4 • Trang 9 SGK</span>
+          <p class="text-sm text-slate-700 font-medium">
+            Trong các hệ phương trình sau, hệ nào <em>không</em> phải là hệ hai phương trình bậc nhất hai ẩn? Vì sao?
+          </p>
+          <div class="grid grid-cols-3 gap-2 text-xs sm:text-sm bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div>
+              <strong>a)</strong><br/>
+              ⎧ <span class="math-serif">2x = −6</span><br/>
+              ⎩ <span class="math-serif">5x + 4y = 1</span>
+            </div>
+            <div class="bg-rose-50 border border-rose-200 p-1.5 rounded-lg">
+              <strong>b)</strong><br/>
+              ⎧ <span class="math-serif">x + 2y = −3</span><br/>
+              ⎩ <span class="math-serif text-rose-700 font-bold">0x + 0y = 1</span>
+            </div>
+            <div>
+              <strong>c)</strong><br/>
+              ⎧ <span class="math-serif">3x − y = 1</span><br/>
+              ⎩ <span class="math-serif">x + y = 3</span>
+            </div>
+          </div>
+          <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 text-xs sm:text-sm text-slate-800">
+            <strong class="text-blue-800">Giải:</strong> Hệ phương trình <strong>b)</strong> không phải là hệ hai phương trình bậc nhất hai ẩn, vì phương trình thứ hai của hệ là <span class="math-serif font-bold">0x + 0y = 1</span> (<span class="math-serif">a' = b' = 0</span>) không phải là phương trình bậc nhất hai ẩn.
+          </div>
+        </div>
+
+        <!-- Ví dụ 5 & Chú ý Hình 1.2 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="vd-badge">Ví dụ 5 & Chú ý • Trang 9 SGK</span>
+            <button type="button" data-preset="vd5" class="load-graph-preset text-xs font-bold text-emerald-700 hover:underline">
+              Xem Hình 1.2 trên đồ thị →
+            </button>
+          </div>
+          <p class="text-sm text-slate-700 font-medium">
+            Giải thích tại sao cặp số <span class="math-serif font-bold">(1; 2)</span> là một nghiệm của hệ phương trình:
+            <span class="math-serif font-bold">{ 2x − y = 0 ; x + y = 3 }</span>
+          </p>
+          <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 text-xs sm:text-sm text-slate-800 space-y-1.5">
+            <p>Ta thấy khi <span class="math-serif">x = 1</span> và <span class="math-serif">y = 2</span> thì:</p>
+            <p>• <span class="math-serif">2x − y = 2·1 − 2 = 0</span> nên <span class="math-serif">(1; 2)</span> là nghiệm của phương trình thứ nhất;</p>
+            <p>• <span class="math-serif">x + y = 1 + 2 = 3</span> nên <span class="math-serif">(1; 2)</span> là nghiệm của phương trình thứ hai.</p>
+            <p>Vậy <span class="math-serif font-bold">(1; 2)</span> là nghiệm chung của hai phương trình, nghĩa là nghiệm của hệ.</p>
+            <p class="text-emerald-800 font-medium pt-1 border-t border-blue-200">
+              📌 <strong>Chú ý (Hình 1.2):</strong> Điểm <span class="math-serif">M(1; 2)</span> vừa thuộc <span class="math-serif">d₁: 2x − y = 0</span>, vừa thuộc <span class="math-serif">d₂: x + y = 3</span> nên <span class="math-serif">M(1; 2)</span> là <strong>giao điểm</strong> của <span class="math-serif">d₁</span> và <span class="math-serif">d₂</span>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Luyện tập 3 & Vận dụng (Trang 9 - 10 SGK) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Luyện tập 3 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <span class="lt-badge">Luyện tập 3 • Trang 9 SGK</span>
+          <p class="text-sm text-slate-700">
+            Trong hai cặp số <span class="math-serif font-bold">(0; −2)</span> và <span class="math-serif font-bold">(2; −1)</span>, cặp số nào là nghiệm của hệ phương trình sau?
+          </p>
+          <div class="bg-slate-100 rounded-xl py-2 px-4 text-center font-bold text-slate-900 max-w-xs mx-auto">
+            ⎧ <span class="math-serif">x − 2y = 4</span><br/>
+            ⎩ <span class="math-serif">4x + 3y = 5</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" data-lt3="0,-2" class="lt3-choice-btn p-3 rounded-xl border border-slate-300 hover:border-indigo-500 bg-slate-50 text-sm font-bold text-slate-800 transition">
+              Chọn cặp (0; −2)
+            </button>
+            <button type="button" data-lt3="2,-1" class="lt3-choice-btn p-3 rounded-xl border border-slate-300 hover:border-indigo-500 bg-slate-50 text-sm font-bold text-slate-800 transition">
+              Chọn cặp (2; −1)
+            </button>
+          </div>
+          <div id="lt3Feedback" class="text-xs font-medium hidden p-3 rounded-xl"></div>
+        </div>
+
+        <!-- Vận dụng (Trang 9 - 10 SGK) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <span class="vandung-badge">Vận dụng • Trang 9 – 10 SGK</span>
+          <p class="text-sm text-slate-700">
+            Xét bài toán cổ trong <em>tình huống mở đầu</em>. Gọi <span class="math-serif">x</span> là số cam, <span class="math-serif">y</span> là số quýt cần tính (<span class="math-serif">x, y ∈ ℕ*</span>), ta có hệ phương trình:
+            <span class="block text-center font-bold text-slate-900 my-1.5 bg-amber-50 py-1.5 rounded-lg border border-amber-200">
+              { x + y = 17 ; 10x + 3y = 100 }
+            </span>
+            Trong hai cặp số <span class="math-serif font-bold">(10; 7)</span> và <span class="math-serif font-bold">(7; 10)</span>, cặp số nào là nghiệm của hệ?
+          </p>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" data-vdung="10,7" class="vdung-choice-btn p-3 rounded-xl border border-slate-300 hover:border-amber-500 bg-slate-50 text-sm font-bold text-slate-800 transition">
+              (10; 7) → 10 cam, 7 quýt
+            </button>
+            <button type="button" data-vdung="7,10" class="vdung-choice-btn p-3 rounded-xl border border-slate-300 hover:border-amber-500 bg-slate-50 text-sm font-bold text-slate-800 transition">
+              (7; 10) → 7 cam, 10 quýt
+            </button>
+          </div>
+          <div id="vdungFeedback" class="text-xs font-medium hidden p-3 rounded-xl"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: ĐỒ THỊ KÉO THẢ (OXY INTERACTIVE LAB) ================= -->
+    <section id="tab-4" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+              Bảng vẽ Tương tác Kéo thả • Oxy Geometry Lab
+            </span>
+            <h2 class="text-lg font-extrabold text-slate-800 mt-1">
+              Biểu diễn hình học nghiệm của Phương trình & Hệ hai phương trình bậc nhất hai ẩn
+            </h2>
+          </div>
+
+          <!-- Preset Selector -->
+          <div class="flex flex-wrap items-center gap-2">
+            <label for="graphPresetSelect" class="text-xs font-bold text-slate-600">Chọn bài mẫu SGK:</label>
+            <select id="graphPresetSelect" class="px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="vd5">Ví dụ 5 (Hình 1.2): { 2x - y = 0 ; x + y = 3 } → M(1; 2)</option>
+              <option value="vd3a">Ví dụ 3a (Hình 1.1a): x + 2y = 3 và 0x + y = -2</option>
+              <option value="vd3bc">Ví dụ 3b & 3c (Hình 1.1b,c): y = -2 và x = 3</option>
+              <option value="lt3">Luyện tập 3 (tr. 9): { x - 2y = 4 ; 4x + 3y = 5 } → (2; -1)</option>
+              <option value="bai15">Bài tập 1.5c (tr. 10): { 5x + 4y = 8 ; 3x + 5y = -3 } → (4; -3)</option>
+              <option value="bai14">Bài tập 1.4 (tr. 10): { 2x + 0y = -6 ; 5x + 4y = 1 } → (-3; 4)</option>
+              <option value="camquyt">Bài toán cổ Cam - Quýt: { x + y = 17 ; 10x + 3y = 100 }</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-5 items-start">
+          <!-- Interactive Canvas -->
+          <div class="lg:col-span-7 space-y-2">
+            <div class="relative w-full bg-slate-900 rounded-2xl overflow-hidden border-2 border-slate-300 shadow-inner" style="height: 460px;">
+              <canvas id="oxyCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+              <div class="absolute top-3 left-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm pointer-events-none">
+                💡 Kéo thả các điểm <span class="text-emerald-600 font-bold">A, B</span> (đường d₁), <span class="text-blue-600 font-bold">C, D</span> (đường d₂) hoặc điểm thử <span class="text-amber-600 font-bold">P(x; y)</span>!
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 px-1">
+              <span>Chế độ kéo thả: Điểm A, B xác định đường thẳng d₁; Điểm C, D xác định đường thẳng d₂.</span>
+              <button id="resetGraphBtn" type="button" class="px-3 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold transition">
+                🔄 Đặt lại góc nhìn
+              </button>
+            </div>
+          </div>
+
+          <!-- Controls & Real-time Readout -->
+          <div class="lg:col-span-5 space-y-4">
+            <!-- Đường thẳng d1 -->
+            <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase text-emerald-800 flex items-center gap-1.5">
+                  <span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span>
+                  Phương trình (1) — Đường thẳng d₁
+                </span>
+                <span id="d1EqBadge" class="font-mono-code text-xs font-bold bg-white px-2.5 py-1 rounded border border-emerald-300 text-emerald-900">2x - 1y = 0</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <label class="block">
+                  <span class="text-slate-600 font-semibold">Hệ số a:</span>
+                  <input id="g_a1" type="number" step="0.5" value="2" class="mt-1 w-full px-2 py-1.5 rounded border border-emerald-300 bg-white font-bold text-center" />
+                </label>
+                <label class="block">
+                  <span class="text-slate-600 font-semibold">Hệ số b:</span>
+                  <input id="g_b1" type="number" step="0.5" value="-1" class="mt-1 w-full px-2 py-1.5 rounded border border-emerald-300 bg-white font-bold text-center" />
+                </label>
+                <label class="block">
+                  <span class="text-slate-600 font-semibold">Hệ số c:</span>
+                  <input id="g_c1" type="number" step="0.5" value="0" class="mt-1 w-full px-2 py-1.5 rounded border border-emerald-300 bg-white font-bold text-center" />
+                </label>
+              </div>
+              <div id="d1GenSol" class="text-xs text-emerald-900 bg-white/80 p-2 rounded-lg border border-emerald-200">
+                Nghiệm tổng quát: (x; 2x) với x ∈ ℝ tuỳ ý.
+              </div>
+            </div>
+
+            <!-- Đường thẳng d2 -->
+            <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-4 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase text-blue-800 flex items-center gap-1.5">
+                  <span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span>
+                  Phương trình (2) — Đường thẳng d₂
+                </span>
+                <span id="d2EqBadge" class="font-mono-code text-xs font-bold bg-white px-2.5 py-1 rounded border border-blue-300 text-blue-900">1x + 1y = 3</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <label class="block">
+                  <span class="text-slate-600 font-semibold">Hệ số a':</span>
+                  <input id="g_a2" type="number" step="0.5" value="1" class="mt-1 w-full px-2 py-1.5 rounded border border-blue-300 bg-white font-bold text-center" />
+                </label>
+                <label class="block">
+                  <span class="text-slate-600 font-semibold">Hệ số b':</span>
+                  <input id="g_b2" type="number" step="0.5" value="1" class="mt-1 w-full px-2 py-1.5 rounded border border-blue-300 bg-white font-bold text-center" />
+                </label>
+                <label class="block">
+                  <span class="text-slate-600 font-semibold">Hệ số c':</span>
+                  <input id="g_c2" type="number" step="0.5" value="3" class="mt-1 w-full px-2 py-1.5 rounded border border-blue-300 bg-white font-bold text-center" />
+                </label>
+              </div>
+              <div id="d2GenSol" class="text-xs text-blue-900 bg-white/80 p-2 rounded-lg border border-blue-200">
+                Nghiệm tổng quát: (x; 3 - x) với x ∈ ℝ tuỳ ý.
+              </div>
+            </div>
+
+            <!-- Kết quả Giao điểm M & Điểm thử P -->
+            <div class="bg-amber-50 border border-amber-300 rounded-xl p-4 space-y-2">
+              <div class="text-xs font-extrabold uppercase text-amber-900">🎯 Giao điểm M (Nghiệm của hệ phương trình)</div>
+              <div id="intersectionReadout" class="text-sm font-bold text-slate-900">
+                Hai đường thẳng cắt nhau tại M(1; 2) → Hệ có nghiệm duy nhất (1; 2).
+              </div>
+              <div class="pt-2 border-t border-amber-200 text-xs text-slate-700 space-y-1">
+                <div class="font-bold text-amber-900">📍 Điểm thử kéo thả P(x₀; y₀): <span id="probeCoords" class="font-mono-code">(-2; 1)</span></div>
+                <div id="probeCheck1">• Thay vào (1): 2·(-2) - 1·(1) = -5 ≠ 0 (P ∉ d₁)</div>
+                <div id="probeCheck2">• Thay vào (2): 1·(-2) + 1·(1) = -1 ≠ 3 (P ∉ d₂)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 5: TRỢ LÝ MTCT CASIO (FX-580VN X & FX-880BTG) ================= -->
+    <section id="tab-5" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-full">
+              Tiện ích đặc thù • Hướng dẫn & Mô phỏng Máy tính cầm tay
+            </span>
+            <h2 class="text-lg font-extrabold text-slate-800 mt-1">
+              Sử dụng MTCT Casio fx-580VN X & fx-880BTG cho Bài 1 (Hệ phương trình & Kiểm tra nghiệm)
+            </h2>
+          </div>
+
+          <!-- Chọn dòng máy Casio -->
+          <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+            <button type="button" data-model="580" class="casio-model-btn px-3 py-1.5 rounded-lg text-xs font-extrabold bg-indigo-600 text-white shadow-sm transition">
+              Casio fx-580VN X
+            </button>
+            <button type="button" data-model="880" class="casio-model-btn px-3 py-1.5 rounded-lg text-xs font-extrabold text-slate-700 hover:bg-white transition">
+              Casio fx-880BTG
+            </button>
+            <button type="button" data-model="570" class="casio-model-btn px-3 py-1.5 rounded-lg text-xs font-extrabold text-slate-700 hover:bg-white transition">
+              fx-570VN PLUS (SGK tr.15)
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Cột trái: Nhập bài toán & Quy trình bấm phím từng bước -->
+          <div class="lg:col-span-7 space-y-4">
+            <!-- Chọn nhanh hệ phương trình từ SGK -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-bold uppercase text-slate-600">1. Chọn hoặc nhập hệ phương trình cần bấm máy:</span>
+                <select id="casioPresetSelect" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold bg-white">
+                  <option value="camquyt">Bài toán cổ: { x + y = 17 ; 10x + 3y = 100 }</option>
+                  <option value="vd5">Ví dụ 5 (tr. 9): { 2x - y = 0 ; x + y = 3 }</option>
+                  <option value="lt3">Luyện tập 3 (tr. 9): { x - 2y = 4 ; 4x + 3y = 5 }</option>
+                  <option value="bai14">Bài 1.4 (tr. 10): { 2x + 0y = -6 ; 5x + 4y = 1 }</option>
+                  <option value="bai15">Bài 1.5 (tr. 10): { 5x + 4y = 8 ; 3x + 5y = -3 }</option>
+                  <option value="sgktr15">Ví dụ MTCT (tr. 15): { 2x + 3y = 4 ; 5x + 6y = 7 }</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div class="bg-white p-3 rounded-lg border border-slate-200 flex items-center gap-1.5 justify-center">
+                  <span class="font-bold text-slate-400">PT 1:</span>
+                  <input id="c_a1" type="number" step="any" value="1" class="w-14 px-1.5 py-1 border rounded text-center font-bold" />
+                  <span class="math-serif font-bold">x +</span>
+                  <input id="c_b1" type="number" step="any" value="1" class="w-14 px-1.5 py-1 border rounded text-center font-bold" />
+                  <span class="math-serif font-bold">y =</span>
+                  <input id="c_c1" type="number" step="any" value="17" class="w-14 px-1.5 py-1 border rounded text-center font-bold" />
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200 flex items-center gap-1.5 justify-center">
+                  <span class="font-bold text-slate-400">PT 2:</span>
+                  <input id="c_a2" type="number" step="any" value="10" class="w-14 px-1.5 py-1 border rounded text-center font-bold" />
+                  <span class="math-serif font-bold">x +</span>
+                  <input id="c_b2" type="number" step="any" value="3" class="w-14 px-1.5 py-1 border rounded text-center font-bold" />
+                  <span class="math-serif font-bold">y =</span>
+                  <input id="c_c2" type="number" step="any" value="100" class="w-14 px-1.5 py-1 border rounded text-center font-bold" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Hướng dẫn quy trình bấm phím chi tiết theo dòng máy -->
+            <div class="bg-indigo-50/60 border border-indigo-200 rounded-xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 id="casioGuideTitle" class="font-extrabold text-indigo-950 text-sm">
+                  Quy trình bấm trên Casio fx-580VN X (Màn hình Tiếng Việt)
+                </h3>
+                <div class="flex items-center gap-1.5">
+                  <button id="casioPrevStepBtn" type="button" class="px-2.5 py-1 rounded bg-white border border-indigo-200 text-xs font-bold text-indigo-700 hover:bg-indigo-100">
+                    ◀ Bước trước
+                  </button>
+                  <button id="casioNextStepBtn" type="button" class="px-3 py-1 rounded bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700">
+                    Bước tiếp theo ▶
+                  </button>
+                </div>
+              </div>
+
+              <div id="casioStepsContainer" class="space-y-2 text-xs sm:text-sm"></div>
+            </div>
+
+            <!-- Mẹo dùng CALC và TABLE cho Bài 1 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs space-y-1.5">
+                <div class="font-extrabold text-amber-900">⚡ Mẹo 1: Dùng phím CALC thử cặp số (x₀; y₀)</div>
+                <p class="text-slate-700 leading-relaxed">
+                  Để kiểm tra nhanh cặp <span class="math-serif">(x₀; y₀)</span> có thuộc <span class="math-serif">ax + by = c</span> (như Bài 1.5a): Nhập <code class="font-mono-code bg-white px-1 rounded border">aX + bY</code> → bấm <kbd class="px-1.5 py-0.5 bg-slate-800 text-white rounded text-[10px]">CALC</kbd> (580VN X) hoặc <kbd class="px-1.5 py-0.5 bg-slate-800 text-white rounded text-[10px]">TOOLS</kbd> → Calc (880BTG), nhập <span class="math-serif">X = x₀, Y = y₀</span> rồi so sánh với <span class="math-serif">c</span>.
+                </p>
+              </div>
+              <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs space-y-1.5">
+                <div class="font-extrabold text-emerald-900">📊 Mẹo 2: Dùng TABLE lập bảng nghiệm (Bài 1.2)</div>
+                <p class="text-slate-700 leading-relaxed">
+                  Từ <span class="math-serif">2x − y = 1 ⇒ y = 2x − 1</span>: Bấm <kbd class="px-1.5 py-0.5 bg-slate-800 text-white rounded text-[10px]">MENU</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 text-white rounded text-[10px]">8</kbd> (580VN X) hoặc <kbd class="px-1.5 py-0.5 bg-slate-800 text-white rounded text-[10px]">HOME</kbd> → Table (880BTG), nhập <code class="font-mono-code bg-white px-1 rounded border">f(x) = 2x - 1</code>, chọn <code class="font-mono-code">Start = -1, End = 2, Step = 0.5</code> để xuất toàn bộ bảng!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cột phải: Máy tính ảo Casio tương tác -->
+          <div class="lg:col-span-5">
+            <div class="bg-slate-800 rounded-3xl p-5 shadow-2xl border-4 border-slate-700 max-w-sm mx-auto space-y-4">
+              <!-- Brand Header -->
+              <div class="flex items-center justify-between text-white px-1">
+                <div>
+                  <div class="font-extrabold tracking-widest text-sm text-slate-200">CASIO</div>
+                  <div id="calcModelLabel" class="text-xs font-mono-code text-amber-400">fx-580VN X • CLASSWIZ</div>
+                </div>
+                <div class="w-16 h-5 bg-amber-950/80 rounded border border-slate-600"></div>
+              </div>
+
+              <!-- LCD Screen -->
+              <div class="lcd-screen rounded-xl p-3.5 min-h-[135px] flex flex-col justify-between text-slate-900 font-mono-code">
+                <div class="flex items-center justify-between text-[10px] text-slate-600 border-b border-slate-300 pb-1">
+                  <span id="lcdStatusTop">MATH • HỆ PT BẬC NHẤT 2 ẨN</span>
+                  <span id="lcdStepCounter">Bước 1/4</span>
+                </div>
+                <div id="lcdMainContent" class="py-2 text-xs sm:text-sm font-bold whitespace-pre-line leading-snug">
+                  1x + 1y = 17
+                  10x + 3y = 100
+                </div>
+                <div id="lcdBottomResult" class="text-right text-sm sm:text-base font-extrabold text-indigo-900 border-t border-slate-300 pt-1">
+                  x = 7 ; y = 10
+                </div>
+              </div>
+
+              <!-- Key Sequence Bar -->
+              <div class="bg-slate-900/90 rounded-xl p-2.5 border border-slate-700">
+                <div class="text-[10px] text-slate-400 uppercase font-semibold mb-1">Chuỗi phím bấm tương ứng:</div>
+                <div id="keySequenceDisplay" class="flex flex-wrap gap-1 text-xs font-mono-code text-amber-300"></div>
+              </div>
+
+              <!-- Interactive Keypad Grid -->
+              <div class="grid grid-cols-4 gap-2 text-xs font-bold">
+                <button type="button" data-key="MENU" class="casio-key py-2 rounded-lg bg-slate-600 text-white hover:bg-slate-500">MENU/HOME</button>
+                <button type="button" data-key="CALC" class="casio-key py-2 rounded-lg bg-slate-600 text-amber-300 hover:bg-slate-500">CALC</button>
+                <button type="button" data-key="OPTN" class="casio-key py-2 rounded-lg bg-slate-600 text-white hover:bg-slate-500">OPTN/TOOLS</button>
+                <button type="button" data-key="AC" class="casio-key py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-500">AC</button>
+
+                <button type="button" data-key="7" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">7</button>
+                <button type="button" data-key="8" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">8</button>
+                <button type="button" data-key="9" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">9</button>
+                <button type="button" data-key="DEL" class="casio-key py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-500">DEL</button>
+
+                <button type="button" data-key="4" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">4</button>
+                <button type="button" data-key="5" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">5</button>
+                <button type="button" data-key="6" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">6</button>
+                <button type="button" data-key="-" class="casio-key py-2 rounded-lg bg-slate-300 text-slate-900 hover:bg-white">−</button>
+
+                <button type="button" data-key="1" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">1</button>
+                <button type="button" data-key="2" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">2</button>
+                <button type="button" data-key="3" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">3</button>
+                <button type="button" data-key="=" class="casio-key py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 row-span-2 flex items-center justify-center">= / EXE</button>
+
+                <button type="button" data-key="0" class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">0</button>
+                <button type="button" data-key="." class="casio-key py-2 rounded-lg bg-slate-200 text-slate-900 hover:bg-white">.</button>
+                <button type="button" data-key="SD" class="casio-key py-2 rounded-lg bg-slate-300 text-slate-900 hover:bg-white">S⇔D</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 6: BÀI TẬP SGK (BÀI 1.1 ĐẾN 1.5 - TRANG 10 SGK) ================= -->
+    <section id="tab-6" class="tab-panel hidden space-y-6">
+      <!-- Banner Tổng quan Bài tập -->
+      <div class="bg-gradient-to-r from-indigo-800 to-slate-900 rounded-2xl p-6 text-white flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider bg-white/15 px-3 py-1 rounded-full">
+            Hệ thống bài tập chuẩn SGK • Trang 10
+          </span>
+          <h2 class="text-xl font-extrabold mt-1.5">Luyện tập & Tự đánh giá: Bài 1.1 đến Bài 1.5</h2>
+          <p class="text-xs sm:text-sm text-indigo-200 mt-1">
+            Hoàn thành cả 5 bài tập dưới đây để kiểm tra mức độ nắm vững kiến thức Bài 1.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="gradeAllExercisesBtn" type="button" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg transition">
+            ✅ Chấm điểm toàn bộ (1.1 – 1.5)
+          </button>
+          <button id="toggleAllSolutionsBtn" type="button" class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-xs sm:text-sm border border-white/20 transition">
+            📖 Hiện/Ẩn lời giải chi tiết
+          </button>
+        </div>
+      </div>
+
+      <!-- Bài 1.1 (Trang 10 SGK) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h3 class="font-extrabold text-slate-800 text-base">
+            <span class="text-rose-600">Bài 1.1 (Trang 10 SGK):</span> Phương trình nào sau đây là phương trình bậc nhất hai ẩn? Vì sao?
+          </h3>
+          <span id="status_1_1" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">Chưa kiểm tra</span>
+        </div>
+        <p class="text-xs text-slate-500">Đánh dấu chọn vào các phương trình <strong>là phương trình bậc nhất hai ẩn</strong>:</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+          <label class="flex items-center gap-2.5 p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-emerald-400">
+            <input type="checkbox" id="b11_a" class="w-4 h-4 accent-emerald-600" />
+            <span><strong>a)</strong> <span class="math-serif">5x − 8y = 0</span></span>
+          </label>
+          <label class="flex items-center gap-2.5 p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-emerald-400">
+            <input type="checkbox" id="b11_b" class="w-4 h-4 accent-emerald-600" />
+            <span><strong>b)</strong> <span class="math-serif">4x + 0y = −2</span></span>
+          </label>
+          <label class="flex items-center gap-2.5 p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-emerald-400">
+            <input type="checkbox" id="b11_c" class="w-4 h-4 accent-emerald-600" />
+            <span><strong>c)</strong> <span class="math-serif">0x + 0y = 1</span></span>
+          </label>
+          <label class="flex items-center gap-2.5 p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-emerald-400">
+            <input type="checkbox" id="b11_d" class="w-4 h-4 accent-emerald-600" />
+            <span><strong>d)</strong> <span class="math-serif">0x − 3y = 9</span></span>
+          </label>
+        </div>
+        <div id="sol_1_1" class="solution-box hidden bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 text-xs sm:text-sm text-slate-800 space-y-1">
+          <div class="font-bold text-emerald-900">Lời giải Bài 1.1:</div>
+          <p>• Các phương trình <strong>a) <span class="math-serif">5x − 8y = 0</span></strong> (<span class="math-serif">a = 5, b = −8</span>), <strong>b) <span class="math-serif">4x + 0y = −2</span></strong> (<span class="math-serif">a = 4 ≠ 0, b = 0</span>), và <strong>d) <span class="math-serif">0x − 3y = 9</span></strong> (<span class="math-serif">a = 0, b = −3 ≠ 0</span>) là các phương trình bậc nhất hai ẩn vì đều có dạng <span class="math-serif">ax + by = c</span> với <span class="math-serif">a ≠ 0</span> hoặc <span class="math-serif">b ≠ 0</span>.</p>
+          <p>• Phương trình <strong>c) <span class="math-serif">0x + 0y = 1</span></strong> <em>không</em> là phương trình bậc nhất hai ẩn vì cả hai hệ số <span class="math-serif">a = 0</span> và <span class="math-serif">b = 0</span>.</p>
+        </div>
+      </div>
+
+      <!-- Bài 1.2 (Trang 10 SGK) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h3 class="font-extrabold text-slate-800 text-base">
+            <span class="text-rose-600">Bài 1.2 (Trang 10 SGK):</span> Cho phương trình <span class="math-serif">2x − y = 1</span>
+          </h3>
+          <span id="status_1_2" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">Chưa kiểm tra</span>
+        </div>
+        <p class="text-sm text-slate-700">
+          <strong>a)</strong> Tìm giá trị thích hợp thay cho dấu “?” trong bảng sau rồi cho biết 6 nghiệm của phương trình <span class="math-serif">2x − y = 1</span>:
+        </p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-center border-collapse border border-slate-300">
+            <thead>
+              <tr class="bg-slate-100 font-bold">
+                <th class="border border-slate-300 px-3 py-2 math-serif">x</th>
+                <td class="border border-slate-300 px-3 py-2">−1</td>
+                <td class="border border-slate-300 px-3 py-2">−0,5</td>
+                <td class="border border-slate-300 px-3 py-2">0</td>
+                <td class="border border-slate-300 px-3 py-2">0,5</td>
+                <td class="border border-slate-300 px-3 py-2">1</td>
+                <td class="border border-slate-300 px-3 py-2">2</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th class="border border-slate-300 px-3 py-2 bg-slate-100 math-serif">y = 2x − 1</th>
+                <td class="border border-slate-300 p-2"><input id="b12_1" type="number" step="any" placeholder="?" class="w-16 px-2 py-1 text-center border rounded font-bold" /></td>
+                <td class="border border-slate-300 p-2"><input id="b12_2" type="number" step="any" placeholder="?" class="w-16 px-2 py-1 text-center border rounded font-bold" /></td>
+                <td class="border border-slate-300 p-2"><input id="b12_3" type="number" step="any" placeholder="?" class="w-16 px-2 py-1 text-center border rounded font-bold" /></td>
+                <td class="border border-slate-300 p-2"><input id="b12_4" type="number" step="any" placeholder="?" class="w-16 px-2 py-1 text-center border rounded font-bold" /></td>
+                <td class="border border-slate-300 p-2"><input id="b12_5" type="number" step="any" placeholder="?" class="w-16 px-2 py-1 text-center border rounded font-bold" /></td>
+                <td class="border border-slate-300 p-2"><input id="b12_6" type="number" step="any" placeholder="?" class="w-16 px-2 py-1 text-center border rounded font-bold" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-sm">
+          <strong>b)</strong> Nghiệm tổng quát của phương trình <span class="math-serif">2x − y = 1</span> là:
+          <select id="b12_gen" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm font-semibold">
+            <option value="">-- Chọn nghiệm tổng quát --</option>
+            <option value="w1">(x; 1 - 2x) với x ∈ ℝ tuỳ ý</option>
+            <option value="correct">(x; 2x - 1) với x ∈ ℝ tuỳ ý</option>
+            <option value="w2">(2x - 1; x) với x ∈ ℝ tuỳ ý</option>
+          </select>
+        </div>
+        <div id="sol_1_2" class="solution-box hidden bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 text-xs sm:text-sm text-slate-800 space-y-1">
+          <div class="font-bold text-emerald-900">Lời giải Bài 1.2:</div>
+          <p><strong>a)</strong> Các giá trị của <span class="math-serif">y = 2x − 1</span> lần lượt là: <strong>−3; −2; −1; 0; 1; 3</strong>. Sáu nghiệm của phương trình là: <span class="math-serif">(−1; −3), (−0,5; −2), (0; −1), (0,5; 0), (1; 1), (2; 3)</span>.</p>
+          <p><strong>b)</strong> Nghiệm tổng quát của phương trình là <span class="math-serif font-bold">(x; 2x − 1)</span> với <span class="math-serif">x ∈ ℝ</span> tuỳ ý.</p>
+        </div>
+      </div>
+
+      <!-- Bài 1.3 (Trang 10 SGK) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h3 class="font-extrabold text-slate-800 text-base">
+            <span class="text-rose-600">Bài 1.3 (Trang 10 SGK):</span> Viết nghiệm và biểu diễn hình học tất cả các nghiệm
+          </h3>
+          <span id="status_1_3" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">Chưa kiểm tra</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="font-bold">a) <span class="math-serif">2x − y = 3</span></div>
+            <select id="b13_a" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs">
+              <option value="">-- Chọn nghiệm & đường thẳng --</option>
+              <option value="correct">Nghiệm (x; 2x - 3), đường thẳng qua (0; -3) và (1,5; 0)</option>
+              <option value="w1">Nghiệm (x; 3 - 2x), đường thẳng qua (0; 3) và (1,5; 0)</option>
+              <option value="w2">Nghiệm (x; -2), đường thẳng song song trục Ox</option>
+            </select>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="font-bold">b) <span class="math-serif">0x + 2y = −4</span></div>
+            <select id="b13_b" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs">
+              <option value="">-- Chọn nghiệm & đường thẳng --</option>
+              <option value="w1">Nghiệm (-2; y), đường thẳng song song trục Oy</option>
+              <option value="correct">Nghiệm (x; -2), đường thẳng y = -2 song song trục Ox</option>
+              <option value="w2">Nghiệm (x; -4), đường thẳng y = -4 song song trục Ox</option>
+            </select>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="font-bold">c) <span class="math-serif">3x + 0y = 5</span></div>
+            <select id="b13_c" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs">
+              <option value="">-- Chọn nghiệm & đường thẳng --</option>
+              <option value="w1">Nghiệm (x; 5/3), đường thẳng song song trục Ox</option>
+              <option value="correct">Nghiệm (5/3; y), đường thẳng x = 5/3 song song trục Oy</option>
+              <option value="w2">Nghiệm (5; y), đường thẳng x = 5 song song trục Oy</option>
+            </select>
+          </div>
+        </div>
+        <div id="sol_1_3" class="solution-box hidden bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 text-xs sm:text-sm text-slate-800 space-y-1">
+          <div class="font-bold text-emerald-900">Lời giải Bài 1.3:</div>
+          <p>• <strong>a) <span class="math-serif">2x − y = 3</span>:</strong> Nghiệm tổng quát <span class="math-serif">(x; 2x − 3)</span> với <span class="math-serif">x ∈ ℝ</span> tuỳ ý. Biểu diễn hình học là đường thẳng đi qua <span class="math-serif">A(0; −3)</span> và <span class="math-serif">B(1,5; 0)</span>.</p>
+          <p>• <strong>b) <span class="math-serif">0x + 2y = −4 ⇒ y = −2</span>:</strong> Nghiệm tổng quát <span class="math-serif">(x; −2)</span> với <span class="math-serif">x ∈ ℝ</span> tuỳ ý. Đường thẳng <span class="math-serif">y = −2</span> song song với trục hoành và cắt trục tung tại <span class="math-serif">(0; −2)</span>.</p>
+          <p>• <strong>c) <span class="math-serif">3x + 0y = 5 ⇒ x = 5/3</span>:</strong> Nghiệm tổng quát <span class="math-serif">(5/3; y)</span> với <span class="math-serif">y ∈ ℝ</span> tuỳ ý. Đường thẳng <span class="math-serif">x = 5/3</span> song song với trục tung và cắt trục hoành tại <span class="math-serif">(5/3; 0)</span>.</p>
+        </div>
+      </div>
+
+      <!-- Bài 1.4 (Trang 10 SGK) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h3 class="font-extrabold text-slate-800 text-base">
+            <span class="text-rose-600">Bài 1.4 (Trang 10 SGK):</span> Cho hệ phương trình <span class="math-serif">{ 2x = −6 ; 5x + 4y = 1 }</span>
+          </h3>
+          <span id="status_1_4" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">Chưa kiểm tra</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="font-semibold">a) Hệ phương trình trên có là một hệ hai phương trình bậc nhất hai ẩn không? Vì sao?</div>
+            <select id="b14_a" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs">
+              <option value="">-- Chọn câu trả lời --</option>
+              <option value="w1">Không, vì phương trình đầu thiếu ẩn y.</option>
+              <option value="correct">Có, vì cả hai phương trình (2x + 0y = -6 và 5x + 4y = 1) đều là PTBN hai ẩn.</option>
+            </select>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="font-semibold">b) Cặp số (−3; 4) có là một nghiệm của hệ phương trình đã cho hay không? Vì sao?</div>
+            <select id="b14_b" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs">
+              <option value="">-- Chọn câu trả lời --</option>
+              <option value="correct">Có, vì thay x = -3, y = 4 vào cả hai phương trình đều được khẳng định đúng (2·(-3) = -6 và 5·(-3) + 4·4 = 1).</option>
+              <option value="w1">Không, vì thay vào phương trình thứ hai không thoả mãn.</option>
+            </select>
+          </div>
+        </div>
+        <div id="sol_1_4" class="solution-box hidden bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 text-xs sm:text-sm text-slate-800 space-y-1">
+          <div class="font-bold text-emerald-900">Lời giải Bài 1.4:</div>
+          <p><strong>a)</strong> Hệ đã cho <strong>là một hệ hai phương trình bậc nhất hai ẩn</strong> vì phương trình thứ nhất <span class="math-serif">2x + 0y = −6</span> (<span class="math-serif">a = 2, b = 0</span>) và phương trình thứ hai <span class="math-serif">5x + 4y = 1</span> (<span class="math-serif">a' = 5, b' = 4</span>) đều là phương trình bậc nhất hai ẩn.</p>
+          <p><strong>b)</strong> Thay <span class="math-serif">x = −3, y = 4</span> vào hệ: <span class="math-serif">2·(−3) = −6</span> (đúng) và <span class="math-serif">5·(−3) + 4·4 = −15 + 16 = 1</span> (đúng). Vậy <span class="math-serif font-bold">(−3; 4)</span> là nghiệm của hệ.</p>
+        </div>
+      </div>
+
+      <!-- Bài 1.5 (Trang 10 SGK) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h3 class="font-extrabold text-slate-800 text-base">
+            <span class="text-rose-600">Bài 1.5 (Trang 10 SGK):</span> Cho các cặp số <span class="math-serif">(−2; 1), (0; 2), (1; 0), (1,5; 3), (4; −3)</span> và hai phương trình <span class="math-serif">5x + 4y = 8 (1)</span>; <span class="math-serif">3x + 5y = −3 (2)</span>
+          </h3>
+          <span id="status_1_5" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">Chưa kiểm tra</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="font-semibold">a) Những cặp số nào là nghiệm của phương trình (1) <span class="math-serif">5x + 4y = 8</span>?</div>
+            <select id="b15_a" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs">
+              <option value="">-- Chọn các cặp số đúng --</option>
+              <option value="w1">(-2; 1) và (0; 2)</option>
+              <option value="correct">(0; 2) và (4; -3)</option>
+              <option value="w2">(1; 0) và (4; -3)</option>
+            </select>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="font-semibold">b) Cặp số nào là nghiệm của hệ gồm phương trình (1) và phương trình (2)?</div>
+            <select id="b15_b" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs">
+              <option value="">-- Chọn nghiệm chung của (1) và (2) --</option>
+              <option value="w1">(0; 2)</option>
+              <option value="correct">(4; -3)</option>
+              <option value="w2">(1,5; 3)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <span class="text-xs text-slate-600">
+            <strong>c)</strong> Vẽ hai đường thẳng <span class="math-serif">5x + 4y = 8</span> và <span class="math-serif">3x + 5y = −3</span> trên cùng một mặt phẳng toạ độ để minh hoạ kết luận ở câu b.
+          </span>
+          <button type="button" data-preset="bai15" class="load-graph-preset px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+            📐 Xem đồ thị minh hoạ câu 1.5c →
+          </button>
+        </div>
+
+        <div id="sol_1_5" class="solution-box hidden bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 text-xs sm:text-sm text-slate-800 space-y-1">
+          <div class="font-bold text-emerald-900">Lời giải Bài 1.5:</div>
+          <p><strong>a)</strong> Thay từng cặp số vào (1) <span class="math-serif">5x + 4y = 8</span>: Chỉ có <span class="math-serif font-bold">(0; 2)</span> (vì <span class="math-serif">5·0 + 4·2 = 8</span>) và <span class="math-serif font-bold">(4; −3)</span> (vì <span class="math-serif">5·4 + 4·(−3) = 8</span>) là nghiệm của phương trình (1).</p>
+          <p><strong>b)</strong> Thử hai cặp số trên vào (2) <span class="math-serif">3x + 5y = −3</span>: Cặp <span class="math-serif">(0; 2)</span> cho <span class="math-serif">3·0 + 5·2 = 10 ≠ −3</span> (loại); cặp <span class="math-serif font-bold">(4; −3)</span> cho <span class="math-serif">3·4 + 5·(−3) = 12 − 15 = −3</span> (thoả mãn). Vậy <span class="math-serif font-bold">(4; −3)</span> là nghiệm của hệ.</p>
+          <p><strong>c)</strong> Hai đường thẳng <span class="math-serif">5x + 4y = 8</span> và <span class="math-serif">3x + 5y = −3</span> cắt nhau tại điểm <span class="math-serif font-bold">M(4; −3)</span> trên mặt phẳng tọa độ Oxy.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500">
+    Học liệu số tương tác Toán 9 – Tập một (Kết nối tri thức với cuộc sống) • Bài 1: Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn
+  </footer>
+
+  <!-- Interactive Logic -->
+  <script>
+    (function () {
+      // --- State ---
+      const state = {
+        activeTab: 'tab-1',
+        visitedTabs: new Set(['tab-1']),
+        score: 0,
+        earnedBadges: new Set(),
+        soundEnabled: true,
+        lockSum17: true,
+        cam: 5,
+        quyt: 12,
+        // Graph state
+        g: {
+          a1: 2, b1: -1, c1: 0,
+          a2: 1, b2: 1, c2: 3,
+          p1A: { x: 0, y: 0 },
+          p1B: { x: 1, y: 2 },
+          p2C: { x: 0, y: 3 },
+          p2D: { x: 3, y: 0 },
+          probe: { x: -2, y: 1 },
+          dragging: null
+        },
+        // Casio state
+        casio: {
+          model: '580',
+          stepIndex: 0,
+          a1: 1, b1: 1, c1: 17,
+          a2: 10, b2: 3, c2: 100
+        }
+      };
+
+      // --- Web Audio API Sound Effects ---
+      let audioCtx = null;
+      function playTone(type) {
+        if (!state.soundEnabled) return;
+        try {
+          if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) audioCtx = new AudioContextClass();
+          }
+          if (!audioCtx) return;
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          const now = audioCtx.currentTime;
+          if (type === 'success') {
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.setValueAtTime(659.25, now + 0.08);
+            osc.frequency.setValueAtTime(783.99, now + 0.16);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+            osc.start(now);
+            osc.stop(now + 0.32);
+          } else if (type === 'error') {
+            osc.frequency.setValueAtTime(240, now);
+            osc.frequency.setValueAtTime(180, now + 0.1);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+            osc.start(now);
+            osc.stop(now + 0.25);
+          } else {
+            osc.frequency.setValueAtTime(440, now);
+            gain.gain.setValueAtTime(0.04, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+            osc.start(now);
+            osc.stop(now + 0.08);
+          }
+        } catch (e) {
+          // Ignore audio errors
         }
       }
-    } else if (msg.type === "saved") {
-      currentRevision = Math.max(currentRevision, msg.revision);
-      localStorage.setItem("attempt_rev_" + LESSON_ID, String(currentRevision));
-    } else if (msg.type === "signed-out") {
-      currentUserId = null;
-    }
-  });
 
-  function notifyParent() {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({
-        channel: CHANNEL,
-        type: "hello",
-        lessonId: LESSON_ID
-      }, window.location.origin);
-    }
-  }
-  setTimeout(notifyParent, 150);
+      // --- Toast & Score Helper ---
+      let toastTimer = null;
+      function showToast(msg, icon = '✨') {
+        const container = document.getElementById('toastContainer');
+        const msgEl = document.getElementById('toastMsg');
+        const iconEl = document.getElementById('toastIcon');
+        if (!container || !msgEl || !iconEl) return;
+        msgEl.textContent = msg;
+        iconEl.textContent = icon;
+        container.classList.remove('hidden');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          container.classList.add('hidden');
+        }, 3200);
+      }
 
-  if (typeof save === "function") {
-    const origSave = save;
-    save = function() {
-      origSave();
-      let ans = {};
-      if (typeof state !== "undefined" && state.answers) ans = state.answers;
-      pushAttemptEvent("state_change", {
-        answered: Object.keys(ans).length
+      function awardPoints(badgeId, points, msg) {
+        if (!state.earnedBadges.has(badgeId)) {
+          state.earnedBadges.add(badgeId);
+          state.score += points;
+          const scoreEl = document.getElementById('scoreDisplay');
+          if (scoreEl) scoreEl.textContent = String(state.score);
+          showToast(`${msg} (+${points} điểm)`, '🏆');
+        } else {
+          showToast(msg, '✅');
+        }
+      }
+
+      // --- Tab Switching ---
+      function switchTab(tabId) {
+        state.activeTab = tabId;
+        state.visitedTabs.add(tabId);
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+          panel.classList.toggle('hidden', panel.id !== tabId);
+        });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+        });
+        const count = state.visitedTabs.size;
+        const pct = Math.round((count / 6) * 100);
+        const bar = document.getElementById('progressBar');
+        const txt = document.getElementById('progressText');
+        if (bar) bar.style.width = `${pct}%`;
+        if (txt) txt.textContent = `${count}/6`;
+        playTone('click');
+        if (tabId === 'tab-4') {
+          setTimeout(() => {
+            resizeAndDrawOxy();
+          }, 40);
+        }
+      }
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-tab');
+          if (target) switchTab(target);
+        });
       });
-    };
-  }
-})();
-</script></body></html>
+
+      document.querySelectorAll('.goto-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-goto');
+          if (target) switchTab(target);
+        });
+      });
+
+      // Sound Toggle
+      const soundBtn = document.getElementById('soundToggleBtn');
+      if (soundBtn) {
+        soundBtn.addEventListener('click', () => {
+          state.soundEnabled = !state.soundEnabled;
+          const icon = document.getElementById('soundIcon');
+          const label = document.getElementById('soundLabel');
+          if (icon) icon.textContent = state.soundEnabled ? '🔊' : '🔇';
+          if (label) label.textContent = state.soundEnabled ? 'Âm thanh' : 'Đã tắt âm';
+        });
+      }
+
+      // ================= TAB 1: MÔ PHỎNG CAM - QUÝT & HĐ1, HĐ2 =================
+      const camSlider = document.getElementById('camSlider');
+      const quytSlider = document.getElementById('quytSlider');
+      const lockSum17Btn = document.getElementById('lockSum17Btn');
+
+      function updateFruitLab(changed) {
+        let x = Number(camSlider.value);
+        let y = Number(quytSlider.value);
+        if (state.lockSum17) {
+          if (changed === 'cam') {
+            y = 17 - x;
+            quytSlider.value = String(y);
+          } else if (changed === 'quyt') {
+            x = 17 - y;
+            camSlider.value = String(x);
+          }
+        }
+        state.cam = x;
+        state.quyt = y;
+
+        document.getElementById('camCountVal').textContent = String(x);
+        document.getElementById('quytCountVal').textContent = String(y);
+        document.getElementById('camPiecesVal').textContent = String(10 * x);
+        document.getElementById('quytPiecesVal').textContent = String(3 * y);
+
+        const sumFruits = x + y;
+        const sumPieces = 10 * x + 3 * y;
+        document.getElementById('sumFruitsFormula').textContent = `${x} + ${y} = ${sumFruits}`;
+        document.getElementById('sumPiecesFormula').textContent = `10·${x} + 3·${y} = ${sumPieces}`;
+
+        const cond1Card = document.getElementById('cond1Card');
+        const cond1Badge = document.getElementById('cond1Badge');
+        if (sumFruits === 17) {
+          cond1Card.className = 'p-3.5 rounded-xl border flex items-center justify-between bg-emerald-50 border-emerald-300';
+          cond1Badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white';
+          cond1Badge.textContent = 'ĐÚNG (17 quả)';
+        } else {
+          cond1Card.className = 'p-3.5 rounded-xl border flex items-center justify-between bg-rose-50 border-rose-300';
+          cond1Badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white';
+          cond1Badge.textContent = `LỆCH (${sumFruits} quả)`;
+        }
+
+        const cond2Card = document.getElementById('cond2Card');
+        const cond2Badge = document.getElementById('cond2Badge');
+        const solvedBanner = document.getElementById('fruitSolvedBanner');
+        if (sumPieces === 100) {
+          cond2Card.className = 'p-3.5 rounded-xl border flex items-center justify-between bg-emerald-50 border-emerald-300';
+          cond2Badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white';
+          cond2Badge.textContent = 'ĐÚNG (100 miếng)';
+        } else {
+          cond2Card.className = 'p-3.5 rounded-xl border flex items-center justify-between bg-rose-50 border-rose-300';
+          cond2Badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white';
+          cond2Badge.textContent = `${sumPieces} miếng`;
+        }
+
+        if (sumFruits === 17 && sumPieces === 100) {
+          solvedBanner.classList.remove('hidden');
+          playTone('success');
+          awardPoints('camquyt_lab', 15, 'Tìm ra 7 quả cam và 10 quả quýt!');
+        } else {
+          solvedBanner.classList.add('hidden');
+        }
+
+        const tray = document.getElementById('fruitVisualTray');
+        const icons = [];
+        for (let i = 0; i < x; i++) icons.push('<span title="Cam (10 miếng)">🍊</span>');
+        for (let j = 0; j < y; j++) icons.push('<span title="Quýt (3 miếng)">🍋</span>');
+        tray.innerHTML = icons.join('');
+      }
+
+      camSlider.addEventListener('input', () => updateFruitLab('cam'));
+      quytSlider.addEventListener('input', () => updateFruitLab('quyt'));
+      lockSum17Btn.addEventListener('click', () => {
+        state.lockSum17 = !state.lockSum17;
+        lockSum17Btn.textContent = state.lockSum17 ? '🔒 Giữ tổng x + y = 17' : '🔓 Tự do chỉnh x, y';
+        lockSum17Btn.className = state.lockSum17
+          ? 'text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition'
+          : 'text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition';
+        if (state.lockSum17) updateFruitLab('cam');
+      });
+      updateFruitLab('cam');
+
+      // HĐ1 & HĐ2 Check
+      document.getElementById('checkHd1Btn').addEventListener('click', () => {
+        const val = document.getElementById('hd1Select').value;
+        const fb = document.getElementById('hd1Feedback');
+        fb.classList.remove('hidden');
+        if (val === 'correct') {
+          fb.className = 'text-xs font-medium p-2.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200';
+          fb.textContent = '✅ Chính xác! Tổng số cam (x) và số quýt (y) là 17 nên ta có hệ thức x + y = 17.';
+          playTone('success');
+          awardPoints('hd1', 10, 'Hoàn thành HĐ1');
+        } else {
+          fb.className = 'text-xs font-medium p-2.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200';
+          fb.textContent = '❌ Chưa đúng. Tổng số cam (x) và quýt (y) bằng 17 quả nên hệ thức đúng là x + y = 17.';
+          playTone('error');
+        }
+      });
+
+      document.getElementById('checkHd2Btn').addEventListener('click', () => {
+        const val = document.getElementById('hd2Select').value;
+        const fb = document.getElementById('hd2Feedback');
+        fb.classList.remove('hidden');
+        if (val === 'correct') {
+          fb.className = 'text-xs font-medium p-2.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200';
+          fb.textContent = '✅ Chính xác! x quả cam chia 10 được 10x miếng; y quả quýt chia 3 được 3y miếng. Tổng 100 miếng: 10x + 3y = 100.';
+          playTone('success');
+          awardPoints('hd2', 10, 'Hoàn thành HĐ2');
+        } else {
+          fb.className = 'text-xs font-medium p-2.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200';
+          fb.textContent = '❌ Chưa đúng. Chú ý: x là số cam (mỗi quả chia 10 → 10x), y là số quýt (mỗi quả chia 3 → 3y). Hệ thức là 10x + 3y = 100.';
+          playTone('error');
+        }
+      });
+
+      // ================= TAB 2: LUYỆN TẬP 1, VÍ DỤ 2, LUYỆN TẬP 2 =================
+      document.getElementById('checkLt1Btn').addEventListener('click', () => {
+        const a = parseFloat(document.getElementById('lt1A').value) || 0;
+        const b = parseFloat(document.getElementById('lt1B').value) || 0;
+        const c = parseFloat(document.getElementById('lt1C').value) || 0;
+        const x0 = parseFloat(document.getElementById('lt1X0').value) || 0;
+        const y0 = parseFloat(document.getElementById('lt1Y0').value) || 0;
+        const res = document.getElementById('lt1Result');
+
+        if (Math.abs(a) < 1e-9 && Math.abs(b) < 1e-9) {
+          res.className = 'text-xs font-medium p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800';
+          res.textContent = '⚠️ Không hợp lệ: Hệ số a và b không được đồng thời bằng 0 (a ≠ 0 hoặc b ≠ 0).';
+          playTone('error');
+          return;
+        }
+        const lhs = a * x0 + b * y0;
+        if (Math.abs(lhs - c) < 1e-6) {
+          res.className = 'text-xs font-medium p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900';
+          res.textContent = `✅ Tuyệt vời! Phương trình ${a}x + (${b})y = ${c} là PTBN hai ẩn và cặp số (${x0}; ${y0}) là một nghiệm vì ${a}·(${x0}) + ${b}·(${y0}) = ${lhs} = ${c}.`;
+          playTone('success');
+          awardPoints('lt1', 10, 'Hoàn thành Luyện tập 1');
+        } else {
+          let suggestion = '';
+          if (Math.abs(b) > 1e-9) {
+            const suggestedY = ((c - a * x0) / b).toFixed(2);
+            suggestion = ` Gợi ý: Với x₀ = ${x0}, bạn có thể chọn y₀ = ${suggestedY}.`;
+          }
+          res.className = 'text-xs font-medium p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900';
+          res.textContent = `ℹ️ Phương trình ${a}x + (${b})y = ${c} hợp lệ, nhưng tại (${x0}; ${y0}) thì VT = ${lhs.toFixed(2)} ≠ ${c}.${suggestion}`;
+          playTone('error');
+        }
+      });
+
+      function parseMathInput(str) {
+        if (!str) return NaN;
+        const clean = str.trim().replace(',', '.');
+        if (clean.includes('/')) {
+          const parts = clean.split('/');
+          if (parts.length === 2) {
+            return parseFloat(parts[0]) / parseFloat(parts[1]);
+          }
+        }
+        return parseFloat(clean);
+      }
+
+      document.getElementById('fillVd2Btn').addEventListener('click', () => {
+        document.getElementById('vd2_y1').value = '7/2';
+        document.getElementById('vd2_y2').value = '3';
+        document.getElementById('vd2_y3').value = '5/2';
+        document.getElementById('vd2_x4').value = '3';
+        document.getElementById('vd2_x5').value = '1';
+        playTone('click');
+      });
+
+      document.getElementById('checkVd2Btn').addEventListener('click', () => {
+        const y1 = parseMathInput(document.getElementById('vd2_y1').value);
+        const y2 = parseMathInput(document.getElementById('vd2_y2').value);
+        const y3 = parseMathInput(document.getElementById('vd2_y3').value);
+        const x4 = parseMathInput(document.getElementById('vd2_x4').value);
+        const x5 = parseMathInput(document.getElementById('vd2_x5').value);
+
+        const ok =
+          Math.abs(y1 - 3.5) < 1e-4 &&
+          Math.abs(y2 - 3) < 1e-4 &&
+          Math.abs(y3 - 2.5) < 1e-4 &&
+          Math.abs(x4 - 3) < 1e-4 &&
+          Math.abs(x5 - 1) < 1e-4;
+
+        const fb = document.getElementById('vd2Feedback');
+        if (ok) {
+          fb.className = 'text-xs font-bold text-emerald-700';
+          fb.textContent = '✅ Chính xác! 5 nghiệm trong bảng là: (−2; 7/2), (−1; 3), (0; 5/2), (3; 1), (1; 2).';
+          playTone('success');
+          awardPoints('vd2', 10, 'Hoàn thành bảng Ví dụ 2');
+        } else {
+          fb.className = 'text-xs font-bold text-rose-700';
+          fb.textContent = '❌ Có ô chưa chính xác. Thay x vào x + 2y = 5 ⇒ y = (5 - x)/2 để tính lại nhé!';
+          playTone('error');
+        }
+      });
+
+      document.getElementById('checkLt2Btn').addEventListener('click', () => {
+        const a = document.getElementById('lt2_a').value;
+        const b = document.getElementById('lt2_b').value;
+        const c = document.getElementById('lt2_c').value;
+        const fb = document.getElementById('lt2Feedback');
+        if (a === 'correct' && b === 'correct' && c === 'correct') {
+          fb.className = 'text-xs font-bold text-emerald-700';
+          fb.textContent = '✅ Tuyệt vời! Bạn đã nắm vững cả 3 dạng đường thẳng biểu diễn nghiệm.';
+          playTone('success');
+          awardPoints('lt2', 15, 'Hoàn thành Luyện tập 2');
+        } else {
+          fb.className = 'text-xs font-bold text-rose-700';
+          fb.textContent = '❌ Chưa chính xác ở cả 3 câu, hãy kiểm tra lại cách rút y theo x (hoặc x = -2).';
+          playTone('error');
+        }
+      });
+
+      // ================= TAB 3: LUYỆN TẬP 3 & VẬN DỤNG =================
+      document.querySelectorAll('.lt3-choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-lt3');
+          const fb = document.getElementById('lt3Feedback');
+          fb.classList.remove('hidden');
+          if (val === '2,-1') {
+            fb.className = 'text-xs font-medium p-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200';
+            fb.innerHTML = '✅ <strong>Chính xác!</strong> Thay <span class="math-serif">x = 2, y = −1</span> vào hệ: <span class="math-serif">2 − 2·(−1) = 4</span> (đúng) và <span class="math-serif">4·2 + 3·(−1) = 5</span> (đúng). Vậy <span class="math-serif">(2; −1)</span> là nghiệm của hệ.';
+            playTone('success');
+            awardPoints('lt3', 10, 'Hoàn thành Luyện tập 3');
+          } else {
+            fb.className = 'text-xs font-medium p-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-200';
+            fb.innerHTML = '❌ <strong>Chưa đúng!</strong> Cặp <span class="math-serif">(0; −2)</span> thoả mãn PT thứ nhất (<span class="math-serif">0 − 2·(−2) = 4</span>) nhưng thay vào PT thứ hai: <span class="math-serif">4·0 + 3·(−2) = −6 ≠ 5</span> nên không là nghiệm của hệ.';
+            playTone('error');
+          }
+        });
+      });
+
+      document.querySelectorAll('.vdung-choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-vdung');
+          const fb = document.getElementById('vdungFeedback');
+          fb.classList.remove('hidden');
+          if (val === '7,10') {
+            fb.className = 'text-xs font-medium p-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200';
+            fb.innerHTML = '✅ <strong>Chính xác!</strong> Với <span class="math-serif">(7; 10)</span>: <span class="math-serif">7 + 10 = 17</span> và <span class="math-serif">10·7 + 3·10 = 70 + 30 = 100</span>. Vậy có <strong>7 quả cam</strong> và <strong>10 quả quýt</strong>!';
+            playTone('success');
+            awardPoints('vandung', 15, 'Giải thành công bài toán cổ Vận dụng');
+          } else {
+            fb.className = 'text-xs font-medium p-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-200';
+            fb.innerHTML = '❌ <strong>Chưa đúng!</strong> Với <span class="math-serif">(10; 7)</span>: <span class="math-serif">10 + 7 = 17</span> nhưng <span class="math-serif">10·10 + 3·7 = 121 ≠ 100</span>.';
+            playTone('error');
+          }
+        });
+      });
+
+      // ================= TAB 4: BẢNG VẼ ĐỒ THỊ OXY KÉO THẢ =================
+      const canvas = document.getElementById('oxyCanvas');
+      const ctx = canvas.getContext('2d');
+      let scale = 36; // pixels per unit
+      let originX = 0;
+      let originY = 0;
+
+      function syncPointsFromCoeffs() {
+        const g = state.g;
+        // Find two well-separated points on d1: a1*x + b1*y = c1
+        if (Math.abs(g.b1) > 1e-6) {
+          g.p1A = { x: -2, y: (g.c1 - g.a1 * -2) / g.b1 };
+          g.p1B = { x: 2, y: (g.c1 - g.a1 * 2) / g.b1 };
+        } else if (Math.abs(g.a1) > 1e-6) {
+          const xVal = g.c1 / g.a1;
+          g.p1A = { x: xVal, y: -2 };
+          g.p1B = { x: xVal, y: 2 };
+        }
+        // Find two points on d2: a2*x + b2*y = c2
+        if (Math.abs(g.b2) > 1e-6) {
+          g.p2C = { x: -2, y: (g.c2 - g.a2 * -2) / g.b2 };
+          g.p2D = { x: 3, y: (g.c2 - g.a2 * 3) / g.b2 };
+        } else if (Math.abs(g.a2) > 1e-6) {
+          const xVal = g.c2 / g.a2;
+          g.p2C = { x: xVal, y: -2 };
+          g.p2D = { x: xVal, y: 3 };
+        }
+      }
+
+      function syncCoeffsFromPoints(which) {
+        const g = state.g;
+        if (which === 1) {
+          // Line through p1A and p1B: (yA - yB)x + (xB - xA)y = c
+          let a = g.p1A.y - g.p1B.y;
+          let b = g.p1B.x - g.p1A.x;
+          let c = a * g.p1A.x + b * g.p1A.y;
+          // Normalize nicely
+          if (Math.abs(a) < 1e-6 && Math.abs(b) > 1e-6) {
+            c = c / b; b = 1; a = 0;
+          } else if (Math.abs(b) < 1e-6 && Math.abs(a) > 1e-6) {
+            c = c / a; a = 1; b = 0;
+          }
+          g.a1 = Math.round(a * 2) / 2;
+          g.b1 = Math.round(b * 2) / 2;
+          g.c1 = Math.round(c * 2) / 2;
+          document.getElementById('g_a1').value = String(g.a1);
+          document.getElementById('g_b1').value = String(g.b1);
+          document.getElementById('g_c1').value = String(g.c1);
+        } else if (which === 2) {
+          let a = g.p2C.y - g.p2D.y;
+          let b = g.p2D.x - g.p2C.x;
+          let c = a * g.p2C.x + b * g.p2C.y;
+          if (Math.abs(a) < 1e-6 && Math.abs(b) > 1e-6) {
+            c = c / b; b = 1; a = 0;
+          } else if (Math.abs(b) < 1e-6 && Math.abs(a) > 1e-6) {
+            c = c / a; a = 1; b = 0;
+          }
+          g.a2 = Math.round(a * 2) / 2;
+          g.b2 = Math.round(b * 2) / 2;
+          g.c2 = Math.round(c * 2) / 2;
+          document.getElementById('g_a2').value = String(g.a2);
+          document.getElementById('g_b2').value = String(g.b2);
+          document.getElementById('g_c2').value = String(g.c2);
+        }
+      }
+
+      function toScreen(x, y) {
+        return {
+          px: originX + x * scale,
+          py: originY - y * scale
+        };
+      }
+
+      function toWorld(px, py) {
+        return {
+          x: Math.round(((px - originX) / scale) * 2) / 2,
+          y: Math.round(((originY - py) / scale) * 2) / 2
+        };
+      }
+
+      function formatGeneralSol(a, b, c) {
+        if (Math.abs(a) < 1e-6 && Math.abs(b) < 1e-6) return 'Không phải PT bậc nhất 2 ẩn (a = b = 0)';
+        if (Math.abs(a) < 1e-6) {
+          const yVal = +(c / b).toFixed(2);
+          return `Đường thẳng y = ${yVal} (song song Ox). Nghiệm TQ: (x; ${yVal}) với x ∈ ℝ.`;
+        }
+        if (Math.abs(b) < 1e-6) {
+          const xVal = +(c / a).toFixed(2);
+          return `Đường thẳng x = ${xVal} (song song Oy). Nghiệm TQ: (${xVal}; y) với y ∈ ℝ.`;
+        }
+        const m = +(-a / b).toFixed(2);
+        const k = +(c / b).toFixed(2);
+        const sign = k >= 0 ? `+ ${k}` : `- ${Math.abs(k)}`;
+        return `Đường thẳng y = ${m}x ${sign}. Nghiệm TQ: (x; ${m}x ${sign}) với x ∈ ℝ.`;
+      }
+
+      function drawInfiniteLine(a, b, c, color, label) {
+        if (Math.abs(a) < 1e-6 && Math.abs(b) < 1e-6) return;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        const xMin = -originX / scale - 2;
+        const xMax = (canvas.width - originX) / scale + 2;
+        if (Math.abs(b) > 1e-6) {
+          const y1 = (c - a * xMin) / b;
+          const y2 = (c - a * xMax) / b;
+          const s1 = toScreen(xMin, y1);
+          const s2 = toScreen(xMax, y2);
+          ctx.moveTo(s1.px, s1.py);
+          ctx.lineTo(s2.px, s2.py);
+        } else {
+          const xVal = c / a;
+          const s1 = toScreen(xVal, -30);
+          const s2 = toScreen(xVal, 30);
+          ctx.moveTo(s1.px, s1.py);
+          ctx.lineTo(s2.px, s2.py);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawHandle(pt, color, name) {
+        const s = toScreen(pt.x, pt.y);
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(s.px, s.py, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.fillText(`${name}(${+pt.x.toFixed(1)}; ${+pt.y.toFixed(1)})`, s.px + 10, s.py - 8);
+        ctx.restore();
+      }
+
+      function updateGraphReadouts() {
+        const g = state.g;
+        document.getElementById('d1EqBadge').textContent = `${g.a1}x + (${g.b1})y = ${g.c1}`;
+        document.getElementById('d2EqBadge').textContent = `${g.a2}x + (${g.b2})y = ${g.c2}`;
+        document.getElementById('d1GenSol').textContent = formatGeneralSol(g.a1, g.b1, g.c1);
+        document.getElementById('d2GenSol').textContent = formatGeneralSol(g.a2, g.b2, g.c2);
+
+        const det = g.a1 * g.b2 - g.a2 * g.b1;
+        const dx = g.c1 * g.b2 - g.c2 * g.b1;
+        const dy = g.a1 * g.c2 - g.a2 * g.c1;
+        const interEl = document.getElementById('intersectionReadout');
+
+        if (Math.abs(det) > 1e-7) {
+          const ix = +(dx / det).toFixed(2);
+          const iy = +(dy / det).toFixed(2);
+          interEl.innerHTML = `Hai đường thẳng <strong>cắt nhau</strong> tại <span class="text-amber-700 font-mono-code">M(${ix}; ${iy})</span> ⇒ Hệ có <strong>nghiệm duy nhất (${ix}; ${iy})</strong>.`;
+        } else if (Math.abs(dx) < 1e-7 && Math.abs(dy) < 1e-7) {
+          interEl.innerHTML = `Hai đường thẳng <strong>trùng nhau</strong> ⇒ Hệ có <strong>vô số nghiệm</strong>.`;
+        } else {
+          interEl.innerHTML = `Hai đường thẳng <strong>song song</strong> (không có điểm chung) ⇒ Hệ <strong>vô nghiệm</strong>.`;
+        }
+
+        // Probe check
+        const px = g.probe.x;
+        const py = g.probe.y;
+        const v1 = +(g.a1 * px + g.b1 * py).toFixed(2);
+        const v2 = +(g.a2 * px + g.b2 * py).toFixed(2);
+        const ok1 = Math.abs(v1 - g.c1) < 1e-5;
+        const ok2 = Math.abs(v2 - g.c2) < 1e-5;
+        document.getElementById('probeCoords').textContent = `(${px}; ${py})`;
+        document.getElementById('probeCheck1').innerHTML = `• Thay vào (1): ${g.a1}·(${px}) + (${g.b1})·(${py}) = <strong>${v1}</strong> ${ok1 ? '== ' + g.c1 + ' ✅ (Thuộc d₁)' : '≠ ' + g.c1 + ' (Không thuộc d₁)'}`;
+        document.getElementById('probeCheck2').innerHTML = `• Thay vào (2): ${g.a2}·(${px}) + (${g.b2})·(${py}) = <strong>${v2}</strong> ${ok2 ? '== ' + g.c2 + ' ✅ (Thuộc d₂)' : '≠ ' + g.c2 + ' (Không thuộc d₂)'}`;
+      }
+
+      function drawOxy() {
+        if (!canvas || !ctx) return;
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        // Dark blueprint background
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, w, h);
+
+        // Grid lines
+        ctx.lineWidth = 1;
+        const xStart = Math.floor(-originX / scale);
+        const xEnd = Math.ceil((w - originX) / scale);
+        const yStart = Math.floor(-(h - originY) / scale);
+        const yEnd = Math.ceil(originY / scale);
+
+        for (let i = xStart; i <= xEnd; i++) {
+          const px = originX + i * scale;
+          ctx.strokeStyle = i === 0 ? '#94a3b8' : '#1e293b';
+          ctx.lineWidth = i === 0 ? 2 : 1;
+          ctx.beginPath();
+          ctx.moveTo(px, 0);
+          ctx.lineTo(px, h);
+          ctx.stroke();
+          if (i !== 0 && i % 1 === 0) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px Inter, sans-serif';
+            ctx.fillText(String(i), px - 4, originY + 15);
+          }
+        }
+
+        for (let j = yStart; j <= yEnd; j++) {
+          const py = originY - j * scale;
+          ctx.strokeStyle = j === 0 ? '#94a3b8' : '#1e293b';
+          ctx.lineWidth = j === 0 ? 2 : 1;
+          ctx.beginPath();
+          ctx.moveTo(0, py);
+          ctx.lineTo(w, py);
+          ctx.stroke();
+          if (j !== 0 && j % 1 === 0) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px Inter, sans-serif';
+            ctx.fillText(String(j), originX + 6, py + 4);
+          }
+        }
+
+        // Axis labels
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.fillText('O', originX - 16, originY + 16);
+        ctx.fillText('x', w - 18, originY - 8);
+        ctx.fillText('y', originX + 10, 18);
+
+        // Lines d1 and d2
+        const g = state.g;
+        drawInfiniteLine(g.a1, g.b1, g.c1, '#10b981', 'd₁');
+        drawInfiniteLine(g.a2, g.b2, g.c2, '#3b82f6', 'd₂');
+
+        // Intersection point M
+        const det = g.a1 * g.b2 - g.a2 * g.b1;
+        if (Math.abs(det) > 1e-7) {
+          const ix = (g.c1 * g.b2 - g.c2 * g.b1) / det;
+          const iy = (g.a1 * g.c2 - g.a2 * g.c1) / det;
+          const sM = toScreen(ix, iy);
+          // Dashed projection lines to axes
+          ctx.save();
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(sM.px, sM.py);
+          ctx.lineTo(sM.px, originY);
+          ctx.moveTo(sM.px, sM.py);
+          ctx.lineTo(originX, sM.py);
+          ctx.stroke();
+          ctx.restore();
+
+          // Glow circle for M
+          ctx.save();
+          ctx.fillStyle = '#ef4444';
+          ctx.strokeStyle = '#fef08a';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(sM.px, sM.py, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#fde047';
+          ctx.font = 'bold 13px Inter, sans-serif';
+          ctx.fillText(`M(${+ix.toFixed(2)}; ${+iy.toFixed(2)})`, sM.px + 12, sM.py + 5);
+          ctx.restore();
+        }
+
+        // Draggable handles
+        drawHandle(g.p1A, '#10b981', 'A');
+        drawHandle(g.p1B, '#10b981', 'B');
+        drawHandle(g.p2C, '#3b82f6', 'C');
+        drawHandle(g.p2D, '#3b82f6', 'D');
+        drawHandle(g.probe, '#f59e0b', 'P');
+
+        updateGraphReadouts();
+      }
+
+      function resizeAndDrawOxy() {
+        if (!canvas) return;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width || 640;
+        canvas.height = rect.height || 460;
+        originX = Math.round(canvas.width * 0.45);
+        originY = Math.round(canvas.height * 0.55);
+        drawOxy();
+      }
+
+      window.addEventListener('resize', () => {
+        if (state.activeTab === 'tab-4') resizeAndDrawOxy();
+      });
+
+      // Mouse/Touch Drag on Canvas
+      function getPointerPos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+        return {
+          px: clientX - rect.left,
+          py: clientY - rect.top
+        };
+      }
+
+      function onPointerDown(evt) {
+        const pos = getPointerPos(evt);
+        const g = state.g;
+        const candidates = [
+          { key: 'probe', pt: g.probe },
+          { key: 'p1A', pt: g.p1A },
+          { key: 'p1B', pt: g.p1B },
+          { key: 'p2C', pt: g.p2C },
+          { key: 'p2D', pt: g.p2D }
+        ];
+        for (const item of candidates) {
+          const s = toScreen(item.pt.x, item.pt.y);
+          const dist = Math.hypot(pos.px - s.px, pos.py - s.py);
+          if (dist <= 18) {
+            g.dragging = item.key;
+            evt.preventDefault();
+            return;
+          }
+        }
+      }
+
+      function onPointerMove(evt) {
+        const g = state.g;
+        if (!g.dragging) return;
+        evt.preventDefault();
+        const pos = getPointerPos(evt);
+        const wPt = toWorld(pos.px, pos.py);
+        if (g.dragging === 'probe') {
+          g.probe = wPt;
+        } else if (g.dragging === 'p1A') {
+          if (wPt.x !== g.p1B.x || wPt.y !== g.p1B.y) {
+            g.p1A = wPt;
+            syncCoeffsFromPoints(1);
+          }
+        } else if (g.dragging === 'p1B') {
+          if (wPt.x !== g.p1A.x || wPt.y !== g.p1A.y) {
+            g.p1B = wPt;
+            syncCoeffsFromPoints(1);
+          }
+        } else if (g.dragging === 'p2C') {
+          if (wPt.x !== g.p2D.x || wPt.y !== g.p2D.y) {
+            g.p2C = wPt;
+            syncCoeffsFromPoints(2);
+          }
+        } else if (g.dragging === 'p2D') {
+          if (wPt.x !== g.p2C.x || wPt.y !== g.p2C.y) {
+            g.p2D = wPt;
+            syncCoeffsFromPoints(2);
+          }
+        }
+        drawOxy();
+      }
+
+      function onPointerUp() {
+        state.g.dragging = null;
+      }
+
+      canvas.addEventListener('mousedown', onPointerDown);
+      canvas.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('mouseup', onPointerUp);
+      canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+      canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp);
+
+      // Input Coefficient Listeners
+      ['g_a1', 'g_b1', 'g_c1', 'g_a2', 'g_b2', 'g_c2'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          state.g.a1 = parseFloat(document.getElementById('g_a1').value) || 0;
+          state.g.b1 = parseFloat(document.getElementById('g_b1').value) || 0;
+          state.g.c1 = parseFloat(document.getElementById('g_c1').value) || 0;
+          state.g.a2 = parseFloat(document.getElementById('g_a2').value) || 0;
+          state.g.b2 = parseFloat(document.getElementById('g_b2').value) || 0;
+          state.g.c2 = parseFloat(document.getElementById('g_c2').value) || 0;
+          syncPointsFromCoeffs();
+          drawOxy();
+        });
+      });
+
+      const graphPresets = {
+        vd5: { a1: 2, b1: -1, c1: 0, a2: 1, b2: 1, c2: 3, scale: 36 },
+        vd3a: { a1: 1, b1: 2, c1: 3, a2: 0, b2: 1, c2: -2, scale: 36 },
+        vd3bc: { a1: 0, b1: 1, c1: -2, a2: 1, b2: 0, c2: 3, scale: 36 },
+        lt3: { a1: 1, b1: -2, c1: 4, a2: 4, b2: 3, c2: 5, scale: 36 },
+        bai15: { a1: 5, b1: 4, c1: 8, a2: 3, b2: 5, c2: -3, scale: 32 },
+        bai14: { a1: 2, b1: 0, c1: -6, a2: 5, b2: 4, c2: 1, scale: 32 },
+        camquyt: { a1: 1, b1: 1, c1: 17, a2: 10, b2: 3, c2: 100, scale: 16 }
+      };
+
+      function applyGraphPreset(key) {
+        const p = graphPresets[key];
+        if (!p) return;
+        scale = p.scale;
+        state.g.a1 = p.a1; state.g.b1 = p.b1; state.g.c1 = p.c1;
+        state.g.a2 = p.a2; state.g.b2 = p.b2; state.g.c2 = p.c2;
+        document.getElementById('g_a1').value = String(p.a1);
+        document.getElementById('g_b1').value = String(p.b1);
+        document.getElementById('g_c1').value = String(p.c1);
+        document.getElementById('g_a2').value = String(p.a2);
+        document.getElementById('g_b2').value = String(p.b2);
+        document.getElementById('g_c2').value = String(p.c2);
+        syncPointsFromCoeffs();
+        resizeAndDrawOxy();
+      }
+
+      document.getElementById('graphPresetSelect').addEventListener('change', (e) => {
+        applyGraphPreset(e.target.value);
+      });
+
+      document.querySelectorAll('.load-graph-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-preset');
+          document.getElementById('graphPresetSelect').value = key;
+          switchTab('tab-4');
+          setTimeout(() => applyGraphPreset(key), 50);
+        });
+      });
+
+      document.getElementById('resetGraphBtn').addEventListener('click', () => {
+        applyGraphPreset(document.getElementById('graphPresetSelect').value);
+      });
+
+      syncPointsFromCoeffs();
+
+      // ================= TAB 5: TRỢ LÝ MTCT CASIO (580VN X & 880BTG) =================
+      const casioPresets = {
+        camquyt: { a1: 1, b1: 1, c1: 17, a2: 10, b2: 3, c2: 100 },
+        vd5: { a1: 2, b1: -1, c1: 0, a2: 1, b2: 1, c2: 3 },
+        lt3: { a1: 1, b1: -2, c1: 4, a2: 4, b2: 3, c2: 5 },
+        bai14: { a1: 2, b1: 0, c1: -6, a2: 5, b2: 4, c2: 1 },
+        bai15: { a1: 5, b1: 4, c1: 8, a2: 3, b2: 5, c2: -3 },
+        sgktr15: { a1: 2, b1: 3, c1: 4, a2: 5, b2: 6, c2: 7 }
+      };
+
+      function buildCasioSteps() {
+        const c = state.casio;
+        const det = c.a1 * c.b2 - c.a2 * c.b1;
+        const dx = c.c1 * c.b2 - c.c2 * c.b1;
+        const dy = c.a1 * c.c2 - c.a2 * c.c1;
+        let solText = '';
+        if (Math.abs(det) > 1e-7) {
+          const xVal = +(dx / det).toFixed(4);
+          const yVal = +(dy / det).toFixed(4);
+          solText = `x = ${xVal}  ;  y = ${yVal}`;
+        } else if (Math.abs(dx) < 1e-7 && Math.abs(dy) < 1e-7) {
+          solText = 'Vô số nghiệm (Infinite Sol)';
+        } else {
+          solText = 'Vô nghiệm (No Solution)';
+        }
+
+        const coeffKeys = `${c.a1} [=] ${c.b1} [=] ${c.c1} [=] ${c.a2} [=] ${c.b2} [=] ${c.c2} [=]`;
+
+        if (c.model === '580') {
+          document.getElementById('casioGuideTitle').textContent = 'Quy trình bấm trên Casio fx-580VN X (Màn hình Tiếng Việt)';
+          document.getElementById('calcModelLabel').textContent = 'fx-580VN X • CLASSWIZ';
+          return [
+            {
+              title: 'Bước 1: Mở chức năng Giải hệ phương trình bậc nhất 2 ẩn',
+              desc: 'Bấm phím [MENU] → bấm phím [9] (Hệ PT/Phương trình) → bấm [1] (Hệ phương trình) → bấm [2] (Số ẩn: 2).',
+              keys: ['MENU', '9', '1', '2'],
+              lcdMain: 'Hệ phương trình: Số ẩn? [2~4]\n→ Chọn 2:\n0x + 0y = 0\n0x + 0y = 0',
+              lcdBottom: 'Con trỏ ở hệ số a₁',
+              highlightKey: 'MENU'
+            },
+            {
+              title: 'Bước 2: Nhập các hệ số của phương trình thứ nhất',
+              desc: `Nhập lần lượt a₁ = ${c.a1}, b₁ = ${c.b1}, c₁ = ${c.c1} (mỗi số kết thúc bằng phím [=]).`,
+              keys: [String(c.a1), '=', String(c.b1), '=', String(c.c1), '='],
+              lcdMain: `${c.a1}x + ${c.b1}y = ${c.c1}\n0x + 0y = 0`,
+              lcdBottom: 'Chuyển xuống dòng 2',
+              highlightKey: '='
+            },
+            {
+              title: 'Bước 3: Nhập các hệ số của phương trình thứ hai',
+              desc: `Nhập tiếp a₂ = ${c.a2}, b₂ = ${c.b2}, c₂ = ${c.c2} rồi bấm [=].`,
+              keys: [String(c.a2), '=', String(c.b2), '=', String(c.c2), '='],
+              lcdMain: `${c.a1}x + ${c.b1}y = ${c.c1}\n${c.a2}x + ${c.b2}y = ${c.c2}`,
+              lcdBottom: `Đã nhập: ${coeffKeys}`,
+              highlightKey: '='
+            },
+            {
+              title: 'Bước 4: Đọc kết quả nghiệm (x; y) trên màn hình',
+              desc: 'Bấm phím [=] lần 1 để hiện giá trị x; bấm tiếp [=] (hoặc phím mũi tên xuống ▼) để hiện giá trị y.',
+              keys: ['=', '▼', '='],
+              lcdMain: `Hệ: { ${c.a1}x + (${c.b1})y = ${c.c1}\n    { ${c.a2}x + (${c.b2})y = ${c.c2}`,
+              lcdBottom: solText,
+              highlightKey: '='
+            }
+          ];
+        } else if (c.model === '880') {
+          document.getElementById('casioGuideTitle').textContent = 'Quy trình bấm trên Casio fx-880BTG (ClassWiz đời mới)';
+          document.getElementById('calcModelLabel').textContent = 'fx-880BTG • CLASSWIZ';
+          return [
+            {
+              title: 'Bước 1: Vào ứng dụng Equation (Phương trình)',
+              desc: 'Bấm phím [HOME] → di chuyển tới biểu tượng Equation (Phương trình) bấm [OK/EXE] → chọn Simul Equation (Hệ phương trình) → chọn 2 Unknowns (2 ẩn).',
+              keys: ['HOME', 'Equation', 'EXE', 'Simul Eq', '2 Unknowns'],
+              lcdMain: 'Simul Equation (2 Unknowns)\n0x + 0y = 0\n0x + 0y = 0',
+              lcdBottom: 'Sẵn sàng nhập a₁',
+              highlightKey: 'MENU'
+            },
+            {
+              title: 'Bước 2: Nhập hệ số phương trình thứ nhất bằng phím EXE',
+              desc: `Nhập a₁ = ${c.a1} [EXE], b₁ = ${c.b1} [EXE], c₁ = ${c.c1} [EXE].`,
+              keys: [String(c.a1), 'EXE', String(c.b1), 'EXE', String(c.c1), 'EXE'],
+              lcdMain: `${c.a1}x + ${c.b1}y = ${c.c1}\n0x + 0y = 0`,
+              lcdBottom: 'Đã lưu phương trình (1)',
+              highlightKey: '='
+            },
+            {
+              title: 'Bước 3: Nhập hệ số phương trình thứ hai bằng phím EXE',
+              desc: `Nhập a₂ = ${c.a2} [EXE], b₂ = ${c.b2} [EXE], c₂ = ${c.c2} [EXE].`,
+              keys: [String(c.a2), 'EXE', String(c.b2), 'EXE', String(c.c2), 'EXE'],
+              lcdMain: `${c.a1}x + ${c.b1}y = ${c.c1}\n${c.a2}x + ${c.b2}y = ${c.c2}`,
+              lcdBottom: 'Bấm EXE để giải hệ',
+              highlightKey: '='
+            },
+            {
+              title: 'Bước 4: Hiển thị nghiệm (x; y)',
+              desc: 'Bấm [EXE] để xem nghiệm x và bấm [▼] hoặc [EXE] để xem nghiệm y (bấm FORMAT nếu muốn đổi phân số ⇔ thập phân).',
+              keys: ['EXE', '▼'],
+              lcdMain: `Kết quả giải hệ phương trình:\n${c.a1}x + (${c.b1})y = ${c.c1}\n${c.a2}x + (${c.b2})y = ${c.c2}`,
+              lcdBottom: solText,
+              highlightKey: '='
+            }
+          ];
+        } else {
+          document.getElementById('casioGuideTitle').textContent = 'Quy trình bấm trên Casio fx-570VN PLUS (Theo SGK trang 15)';
+          document.getElementById('calcModelLabel').textContent = 'fx-570VN PLUS • SGK TR.15';
+          return [
+            {
+              title: 'Bước 1: Vào chế độ giải hệ phương trình (MODE 5 1)',
+              desc: 'Bấm các phím [MODE] [5] [1] (xem Màn hình sau bước 1 ở trang 15 SGK).',
+              keys: ['MODE', '5', '1'],
+              lcdMain: '   a   b   c\n1 [ 0   0   0 ]\n2 [ 0   0   0 ]',
+              lcdBottom: 'Con trỏ ở vị trí a₁',
+              highlightKey: 'MENU'
+            },
+            {
+              title: 'Bước 2: Nhập các hệ số của dòng 1',
+              desc: `Nhập a₁ = ${c.a1} [=] b₁ = ${c.b1} [=] c₁ = ${c.c1} [=].`,
+              keys: [String(c.a1), '=', String(c.b1), '=', String(c.c1), '='],
+              lcdMain: `   a    b    c\n1 [ ${c.a1}   ${c.b1}   ${c.c1} ]\n2 [ 0    0    0 ]`,
+              lcdBottom: 'Đã nhập dòng 1',
+              highlightKey: '='
+            },
+            {
+              title: 'Bước 3: Nhập các hệ số của dòng 2',
+              desc: `Nhập a₂ = ${c.a2} [=] b₂ = ${c.b2} [=] c₂ = ${c.c2} [=].`,
+              keys: [String(c.a2), '=', String(c.b2), '=', String(c.c2), '='],
+              lcdMain: `   a    b    c\n1 [ ${c.a1}   ${c.b1}   ${c.c1} ]\n2 [ ${c.a2}   ${c.b2}   ${c.c2} ]`,
+              lcdBottom: 'Màn hình sau bước 2',
+              highlightKey: '='
+            },
+            {
+              title: 'Bước 4: Đọc kết quả nghiệm (SGK trang 15)',
+              desc: 'Bấm [=] màn hình cho giá trị x; bấm tiếp [=] hoặc [▼] màn hình cho giá trị y.',
+              keys: ['=', '▼'],
+              lcdMain: 'Kết quả hiển thị trên LCD:',
+              lcdBottom: solText,
+              highlightKey: '='
+            }
+          ];
+        }
+      }
+
+      function renderCasioSim() {
+        const steps = buildCasioSteps();
+        const idx = Math.min(Math.max(state.casio.stepIndex, 0), steps.length - 1);
+        state.casio.stepIndex = idx;
+        const activeStep = steps[idx];
+
+        const container = document.getElementById('casioStepsContainer');
+        container.innerHTML = steps.map((st, i) => {
+          const isCurrent = i === idx;
+          return `
+            <div data-step-idx="${i}" class="casio-step-card p-3 rounded-xl border cursor-pointer transition ${
+              isCurrent
+                ? 'bg-white border-indigo-500 shadow-sm ring-2 ring-indigo-500/20'
+                : 'bg-white/60 border-slate-200 hover:bg-white'
+            }">
+              <div class="flex items-center justify-between">
+                <span class="font-bold ${isCurrent ? 'text-indigo-800' : 'text-slate-700'}">${st.title}</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${isCurrent ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}">
+                  ${isCurrent ? 'Đang xem' : 'Nhấn để xem'}
+                </span>
+              </div>
+              <p class="text-xs text-slate-600 mt-1">${st.desc}</p>
+            </div>
+          `;
+        }).join('');
+
+        container.querySelectorAll('.casio-step-card').forEach(card => {
+          card.addEventListener('click', () => {
+            state.casio.stepIndex = parseInt(card.getAttribute('data-step-idx'), 10) || 0;
+            playTone('click');
+            renderCasioSim();
+          });
+        });
+
+        document.getElementById('lcdStepCounter').textContent = `Bước ${idx + 1}/${steps.length}`;
+        document.getElementById('lcdMainContent').textContent = activeStep.lcdMain;
+        document.getElementById('lcdBottomResult').textContent = activeStep.lcdBottom;
+
+        const keySeqEl = document.getElementById('keySequenceDisplay');
+        keySeqEl.innerHTML = activeStep.keys.map(k => `<span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-amber-300 font-bold">${k}</span>`).join('<span>→</span>');
+
+        document.querySelectorAll('.casio-key').forEach(btn => {
+          btn.classList.toggle('active-step', btn.getAttribute('data-key') === activeStep.highlightKey);
+        });
+      }
+
+      document.querySelectorAll('.casio-model-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.casio.model = btn.getAttribute('data-model');
+          document.querySelectorAll('.casio-model-btn').forEach(b => {
+            const active = b.getAttribute('data-model') === state.casio.model;
+            b.className = active
+              ? 'casio-model-btn px-3 py-1.5 rounded-lg text-xs font-extrabold bg-indigo-600 text-white shadow-sm transition'
+              : 'casio-model-btn px-3 py-1.5 rounded-lg text-xs font-extrabold text-slate-700 hover:bg-white transition';
+          });
+          playTone('click');
+          renderCasioSim();
+        });
+      });
+
+      document.getElementById('casioPrevStepBtn').addEventListener('click', () => {
+        state.casio.stepIndex = Math.max(0, state.casio.stepIndex - 1);
+        playTone('click');
+        renderCasioSim();
+      });
+
+      document.getElementById('casioNextStepBtn').addEventListener('click', () => {
+        state.casio.stepIndex = Math.min(3, state.casio.stepIndex + 1);
+        playTone('click');
+        renderCasioSim();
+      });
+
+      document.getElementById('casioPresetSelect').addEventListener('change', (e) => {
+        const p = casioPresets[e.target.value];
+        if (!p) return;
+        state.casio.a1 = p.a1; state.casio.b1 = p.b1; state.casio.c1 = p.c1;
+        state.casio.a2 = p.a2; state.casio.b2 = p.b2; state.casio.c2 = p.c2;
+        document.getElementById('c_a1').value = String(p.a1);
+        document.getElementById('c_b1').value = String(p.b1);
+        document.getElementById('c_c1').value = String(p.c1);
+        document.getElementById('c_a2').value = String(p.a2);
+        document.getElementById('c_b2').value = String(p.b2);
+        document.getElementById('c_c2').value = String(p.c2);
+        state.casio.stepIndex = 3;
+        renderCasioSim();
+      });
+
+      ['c_a1', 'c_b1', 'c_c1', 'c_a2', 'c_b2', 'c_c2'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          state.casio.a1 = parseFloat(document.getElementById('c_a1').value) || 0;
+          state.casio.b1 = parseFloat(document.getElementById('c_b1').value) || 0;
+          state.casio.c1 = parseFloat(document.getElementById('c_c1').value) || 0;
+          state.casio.a2 = parseFloat(document.getElementById('c_a2').value) || 0;
+          state.casio.b2 = parseFloat(document.getElementById('c_b2').value) || 0;
+          state.casio.c2 = parseFloat(document.getElementById('c_c2').value) || 0;
+          renderCasioSim();
+        });
+      });
+
+      document.querySelectorAll('.casio-key').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.casio.stepIndex = (state.casio.stepIndex + 1) % 4;
+          playTone('click');
+          renderCasioSim();
+        });
+      });
+
+      renderCasioSim();
+
+      // ================= TAB 6: CHẤM ĐIỂM BÀI TẬP SGK (1.1 ĐẾN 1.5) =================
+      function setBadgeStatus(id, isOk) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (isOk) {
+          el.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800';
+          el.textContent = '✅ Chính xác';
+        } else {
+          el.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800';
+          el.textContent = '❌ Cần xem lại';
+        }
+      }
+
+      document.getElementById('gradeAllExercisesBtn').addEventListener('click', () => {
+        let correctCount = 0;
+
+        // 1.1: a, b, d checked; c unchecked
+        const ok11 =
+          document.getElementById('b11_a').checked &&
+          document.getElementById('b11_b').checked &&
+          !document.getElementById('b11_c').checked &&
+          document.getElementById('b11_d').checked;
+        setBadgeStatus('status_1_1', ok11);
+        if (ok11) correctCount++;
+
+        // 1.2: -3, -2, -1, 0, 1, 3 and gen = correct
+        const expected12 = [-3, -2, -1, 0, 1, 3];
+        const vals12 = [1, 2, 3, 4, 5, 6].map(i => parseFloat(document.getElementById(`b12_${i}`).value));
+        const ok12Table = expected12.every((v, idx) => Math.abs(vals12[idx] - v) < 1e-5);
+        const ok12 = ok12Table && document.getElementById('b12_gen').value === 'correct';
+        setBadgeStatus('status_1_2', ok12);
+        if (ok12) correctCount++;
+
+        // 1.3
+        const ok13 =
+          document.getElementById('b13_a').value === 'correct' &&
+          document.getElementById('b13_b').value === 'correct' &&
+          document.getElementById('b13_c').value === 'correct';
+        setBadgeStatus('status_1_3', ok13);
+        if (ok13) correctCount++;
+
+        // 1.4
+        const ok14 =
+          document.getElementById('b14_a').value === 'correct' &&
+          document.getElementById('b14_b').value === 'correct';
+        setBadgeStatus('status_1_4', ok14);
+        if (ok14) correctCount++;
+
+        // 1.5
+        const ok15 =
+          document.getElementById('b15_a').value === 'correct' &&
+          document.getElementById('b15_b').value === 'correct';
+        setBadgeStatus('status_1_5', ok15);
+        if (ok15) correctCount++;
+
+        document.querySelectorAll('.solution-box').forEach(box => box.classList.remove('hidden'));
+
+        if (correctCount === 5) {
+          playTone('success');
+          awardPoints('all_sgk_exercises', 50, 'Hoàn thành xuất sắc cả 5 bài tập SGK (1.1 – 1.5)!');
+        } else {
+          playTone('click');
+          showToast(`Bạn làm đúng ${correctCount}/5 bài tập SGK. Hãy xem lời giải chi tiết bên dưới!`, '📝');
+        }
+      });
+
+      document.getElementById('toggleAllSolutionsBtn').addEventListener('click', () => {
+        const boxes = document.querySelectorAll('.solution-box');
+        const anyHidden = Array.from(boxes).some(b => b.classList.contains('hidden'));
+        boxes.forEach(b => b.classList.toggle('hidden', !anyHidden));
+        playTone('click');
+      });
+    })();
+  </script>
+</body>
+</html>
