@@ -26,13 +26,17 @@ import { useApp } from '../context/AppContext';
 interface SidebarProps {
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
+  onResetStudentAssignments?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onResetStudentAssignments }) => {
   const { currentView, setCurrentView, currentRole } = useApp();
 
   const handleNav = (viewId: string) => {
     setCurrentView(viewId);
+    if (viewId === 'student_assignments' && onResetStudentAssignments) {
+      onResetStudentAssignments();
+    }
     if (onCloseMobile) onCloseMobile();
   };
 

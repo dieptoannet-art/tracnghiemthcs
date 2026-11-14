@@ -377,7 +377,9 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
           </div>
 
           <p className="text-xs text-slate-600 leading-relaxed">
-            Tệp <code>/src/data/supabase_schema.sql</code> đã cấu hình bảo vệ hồ sơ người dùng, phân quyền RLS và bảo vệ đáp án.
+            Để kích hoạt đồng bộ phân hệ <strong>Lớp học &amp; Bài được giao</strong> trên Supabase đã có <code>profiles</code> &amp; <code>questions</code>, hãy chạy lần lượt 2 file trong Supabase SQL Editor:
+            <br />
+            <strong>Bước 1:</strong> <code>src/data/01_bootstrap_assignment_tables.sql</code> ➔ <strong>Bước 2:</strong> <code>src/data/02_sync_classes_exams_assignments.sql</code>.
           </p>
 
           <div className="p-3 bg-white rounded-lg border font-mono text-[11px] text-slate-700 max-h-36 overflow-y-auto space-y-1">

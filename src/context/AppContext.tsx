@@ -40,6 +40,15 @@ import {
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 } from '../lib/supabase';
+import {
+  fetchStudentAssignmentsFromSupabase,
+  fetchTeacherWorkspaceFromSupabase,
+  syncCreateClassOnSupabase,
+  syncEnrollStudentOnSupabase,
+  syncJoinClassByInviteCode,
+  syncPublishExamAssignmentOnSupabase,
+  PublishExamAssignmentParams
+} from '../utils/supabaseAssignmentSync';
 
 interface AppContextType {
   // Mode & Auth
@@ -97,13 +106,18 @@ interface AppContextType {
   currentView: string;
   setCurrentView: (view: string) => void;
 
-  // Data Collections (Currently local / cached)
+  // Data Collections (Supabase when authenticated; browser demo when unauthenticated/unconfigured)
   questions: Question[];
   classes: ClassRoom[];
+  enrolledClassIds: string[] | null;
   matrices: ExamMatrix[];
   exams: Exam[];
   assignments: Assignment[];
   submissions: Submission[];
+  assignmentDataLoading: boolean;
+  assignmentDataError: string | null;
+  isUsingDemoAssignmentsData: boolean;
+  retryLoadAssignmentData: () => Promise<void>;
   geminiAssistants: GeminiAssistantConfig[];
   studyDocs: StudyDocument[];
   auditLogs: AuditLog[];
@@ -132,10 +146,26 @@ interface AppContextType {
   deleteMatrixDraft: (matrixId: string) => Promise<void>;
   createExam: (exam: Exam) => void;
   createAssignment: (asg: Assignment) => void;
+  publishExamAssignmentAsync: (
+    params: Omit<PublishExamAssignmentParams, 'teacherId' | 'teacherRole' | 'teacherName'>
+  ) => Promise<{ success: boolean; exam?: Exam; assignment?: Assignment; isDemo?: boolean; error?: string }>;
   submitExamSession: (submission: Submission) => void;
   gradeEssayQuestion: (submissionId: string, questionId: string, pointsAwarded: number, feedback: string) => void;
   addClassRoom: (cls: ClassRoom) => void;
   addStudentToClass: (classId: string, student: { id: string; code: string; fullName: string; email: string; gender: 'Nam' | 'Nữ' }) => void;
+  createClassRoomAsync: (params: {
+    name: string;
+    grade: Grade;
+    schoolYear?: string;
+  }) => Promise<{ success: boolean; classRoom?: ClassRoom; isDemo?: boolean; error?: string }>;
+  enrollStudentInClassAsync: (params: {
+    classId: string;
+    identifier: string;
+    demoFallback?: { code: string; fullName: string; gender: 'Nam' | 'Nữ' };
+  }) => Promise<{ success: boolean; isDemo?: boolean; error?: string }>;
+  joinClassByInviteCodeAsync: (
+    inviteCode: string
+  ) => Promise<{ success: boolean; className?: string; error?: string }>;
   addAuditLog: (action: string, target: string, details: string) => void;
   resetDemoData: () => void;
 }
@@ -178,6 +208,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
     return 'teacher';
   });
+
+  const currentRoleRef = useRef<UserRole>(currentRole);
+  useEffect(() => {
+    currentRoleRef.current = currentRole;
+  }, [currentRole]);
 
   // Supabase Auth & Verification States
   const [user, setUser] = useState<User | null>(null);
@@ -280,35 +315,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedPeriod, setSelectedPeriod] = useState<ExamPeriod>('mid1');
   const [currentView, setCurrentView] = useState<string>('dashboard');
 
+  const safeReadLocalArray = <T,>(key: string, fallback: T[]): { data: T[]; error: string | null } => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return { data: fallback, error: null };
+    }
+    try {
+      const saved = localStorage.getItem(key);
+      if (!saved) return { data: fallback, error: null };
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed)) {
+        return { data: fallback, error: 'Không thể đọc dữ liệu giao bài đã lưu trên trình duyệt.' };
+      }
+      return { data: parsed as T[], error: null };
+    } catch {
+      return { data: fallback, error: 'Không thể đọc dữ liệu giao bài đã lưu trên trình duyệt.' };
+    }
+  };
+
+  const [assignmentDataLoading, setAssignmentDataLoading] = useState<boolean>(false);
+  const [assignmentDataError, setAssignmentDataError] = useState<string | null>(() => {
+    const keys = ['taydo_classes', 'taydo_exams', 'taydo_assignments', 'taydo_submissions'];
+    for (const key of keys) {
+      const check = safeReadLocalArray(key, []);
+      if (check.error) return check.error;
+    }
+    return null;
+  });
+
   // Local storage collections for business logic
   const [questions, setQuestions] = useState<Question[]>(() => {
-    const saved = localStorage.getItem('taydo_questions');
-    return saved ? JSON.parse(saved) : INITIAL_QUESTIONS;
+    return safeReadLocalArray('taydo_questions', INITIAL_QUESTIONS).data;
   });
 
   const [classes, setClasses] = useState<ClassRoom[]>(() => {
-    const saved = localStorage.getItem('taydo_classes');
-    return saved ? JSON.parse(saved) : INITIAL_CLASSES;
+    return safeReadLocalArray('taydo_classes', INITIAL_CLASSES).data;
   });
 
   const [matrices, setMatrices] = useState<ExamMatrix[]>(() => {
-    const saved = localStorage.getItem('taydo_matrices');
-    return saved ? JSON.parse(saved) : INITIAL_MATRICES;
+    return safeReadLocalArray('taydo_matrices', INITIAL_MATRICES).data;
   });
 
   const [exams, setExams] = useState<Exam[]>(() => {
-    const saved = localStorage.getItem('taydo_exams');
-    return saved ? JSON.parse(saved) : INITIAL_EXAMS;
+    return safeReadLocalArray('taydo_exams', INITIAL_EXAMS).data;
   });
 
   const [assignments, setAssignments] = useState<Assignment[]>(() => {
-    const saved = localStorage.getItem('taydo_assignments');
-    return saved ? JSON.parse(saved) : INITIAL_ASSIGNMENTS;
+    return safeReadLocalArray('taydo_assignments', INITIAL_ASSIGNMENTS).data;
   });
 
   const [submissions, setSubmissions] = useState<Submission[]>(() => {
-    const saved = localStorage.getItem('taydo_submissions');
-    return saved ? JSON.parse(saved) : INITIAL_SUBMISSIONS;
+    return safeReadLocalArray('taydo_submissions', INITIAL_SUBMISSIONS).data;
   });
 
   const [geminiAssistants] = useState<GeminiAssistantConfig[]>(INITIAL_GEMINI_ASSISTANTS);
@@ -337,14 +393,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     yccdCatalogRef.current = yccdCatalog;
   }, [yccdCatalog]);
 
-  // Sync to local storage
+  const [enrolledClassIds, setEnrolledClassIds] = useState<string[] | null>(null);
+  const isAuthenticatedSupabase = Boolean(isSupabaseConfigured && user);
+  const isUsingDemoAssignmentsData = !isAuthenticatedSupabase;
+
+  const isUsingDemoRef = useRef<boolean>(isUsingDemoAssignmentsData);
   useEffect(() => {
+    isUsingDemoRef.current = isUsingDemoAssignmentsData;
+  }, [isUsingDemoAssignmentsData]);
+
+  // Sync to local storage ONLY in browser Demo mode (never overwrite demo storage with live Supabase payloads or vice versa)
+  useEffect(() => {
+    if (assignmentDataError) return;
     localStorage.setItem('taydo_questions', JSON.stringify(questions));
-  }, [questions]);
+  }, [questions, assignmentDataError]);
 
   useEffect(() => {
+    if (assignmentDataError || !isUsingDemoAssignmentsData) return;
     localStorage.setItem('taydo_classes', JSON.stringify(classes));
-  }, [classes]);
+  }, [classes, assignmentDataError, isUsingDemoAssignmentsData]);
 
   useEffect(() => {
     localStorage.setItem('taydo_matrices', JSON.stringify(matrices));
@@ -355,16 +422,106 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [yccdCatalog]);
 
   useEffect(() => {
+    if (assignmentDataError || !isUsingDemoAssignmentsData) return;
     localStorage.setItem('taydo_exams', JSON.stringify(exams));
-  }, [exams]);
+  }, [exams, assignmentDataError, isUsingDemoAssignmentsData]);
 
   useEffect(() => {
+    if (assignmentDataError || !isUsingDemoAssignmentsData) return;
     localStorage.setItem('taydo_assignments', JSON.stringify(assignments));
-  }, [assignments]);
+  }, [assignments, assignmentDataError, isUsingDemoAssignmentsData]);
 
   useEffect(() => {
+    if (assignmentDataError || !isUsingDemoAssignmentsData) return;
     localStorage.setItem('taydo_submissions', JSON.stringify(submissions));
-  }, [submissions]);
+  }, [submissions, assignmentDataError, isUsingDemoAssignmentsData]);
+
+  const loadAssignmentsForSession = useCallback(
+    async (explicitUser?: User | null, explicitRole?: UserRole) => {
+      const activeUser = explicitUser !== undefined ? explicitUser : userRef.current;
+      const activeRole = explicitRole || currentRoleRef.current;
+
+      setAssignmentDataLoading(true);
+      setAssignmentDataError(null);
+
+      try {
+        if (isSupabaseConfigured && activeUser) {
+          if (activeRole === 'student') {
+            const res = await fetchStudentAssignmentsFromSupabase(activeUser.id);
+            if (res.error || !res.data) {
+              setClasses([]);
+              setEnrolledClassIds([]);
+              setExams([]);
+              setAssignments([]);
+              setSubmissions([]);
+              setAssignmentDataError(
+                res.error || 'Không thể tải danh sách bài được giao từ Supabase.'
+              );
+              return;
+            }
+            setClasses(res.data.classes);
+            setEnrolledClassIds(res.data.enrolledClassIds);
+            setExams(res.data.exams);
+            setAssignments(res.data.assignments);
+            setSubmissions(res.data.submissions);
+            return;
+          }
+
+          const teacherRes = await fetchTeacherWorkspaceFromSupabase(activeUser.id, activeRole);
+          if (teacherRes.error || !teacherRes.data) {
+            setClasses([]);
+            setEnrolledClassIds(null);
+            setExams([]);
+            setAssignments([]);
+            setAssignmentDataError(
+              teacherRes.error || 'Không thể tải dữ liệu lớp và bài giao từ Supabase.'
+            );
+            return;
+          }
+          setClasses(teacherRes.data.classes);
+          setEnrolledClassIds(null);
+          setExams(teacherRes.data.exams);
+          setAssignments(teacherRes.data.assignments);
+          return;
+        }
+
+        // Demo / Local mode when Supabase is unconfigured or user has not signed in
+        const classesRes = safeReadLocalArray('taydo_classes', INITIAL_CLASSES);
+        const examsRes = safeReadLocalArray('taydo_exams', INITIAL_EXAMS);
+        const assignmentsRes = safeReadLocalArray('taydo_assignments', INITIAL_ASSIGNMENTS);
+        const submissionsRes = safeReadLocalArray('taydo_submissions', INITIAL_SUBMISSIONS);
+
+        const localError =
+          classesRes.error || examsRes.error || assignmentsRes.error || submissionsRes.error;
+        if (localError) {
+          setAssignmentDataError(localError);
+          return;
+        }
+
+        setEnrolledClassIds(null);
+        setClasses(classesRes.data);
+        setExams(examsRes.data);
+        setAssignments(assignmentsRes.data);
+        setSubmissions(submissionsRes.data);
+      } catch (err: any) {
+        if (isSupabaseConfigured && activeUser) {
+          setClasses([]);
+          setEnrolledClassIds([]);
+          setExams([]);
+          setAssignments([]);
+          setSubmissions([]);
+        }
+        setAssignmentDataError(err?.message || 'Đã xảy ra lỗi khi tải danh sách bài được giao.');
+      } finally {
+        setAssignmentDataLoading(false);
+      }
+    },
+    []
+  );
+
+  const retryLoadAssignmentData = useCallback(async () => {
+    await loadAssignmentsForSession(userRef.current, currentRoleRef.current);
+  }, [loadAssignmentsForSession]);
 
   // Protected Role Setter:
   // Nguồn vai trò lấy từ hồ sơ CSDL Supabase khi đã đăng nhập hoặc mặc định an toàn là 'student'.
@@ -525,6 +682,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loadProfile = useCallback(async (userId: string, currentUser?: User | null) => {
     try {
       const prof = await fetchUserProfile(userId);
+      const effectiveUser = currentUser || userRef.current;
       if (prof) {
         setUserProfile(prof);
         setCurrentRoleState(prof.role);
@@ -536,37 +694,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (prof.role !== 'student') {
           syncMatricesFromSupabase();
         }
+        await loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), prof.role);
       } else {
-        const effectiveUser = currentUser || userRef.current;
-        // Đọc vai trò được chọn từ user_metadata khi đăng ký (teacher hoặc student)
-        const userEmail = effectiveUser?.email?.toLowerCase() || '';
-        const isKnownTeacher = userEmail.includes('dieptoan') || userEmail.includes('giaovien');
-        const metaRole = (effectiveUser?.user_metadata?.role as UserRole) || (isKnownTeacher ? 'teacher' : 'student');
+        // Khi chưa đọc được bản ghi profiles từ DB, client luôn mặc định vai trò an toàn 'student'
+        // (không tự suy diễn hoặc cấp quyền giáo viên từ user_metadata hay email)
         const defaultProf: UserProfile = {
           id: userId,
           email: effectiveUser?.email || '',
-          fullName: effectiveUser?.user_metadata?.full_name || effectiveUser?.email?.split('@')[0] || (metaRole === 'teacher' ? 'Thầy Cô Giáo' : 'Học sinh'),
-          role: metaRole === 'teacher' ? 'teacher' : 'student',
+          fullName: effectiveUser?.user_metadata?.full_name || effectiveUser?.email?.split('@')[0] || 'Học sinh',
+          role: 'student',
           grade: effectiveUser?.user_metadata?.grade || '8',
-          schoolName: effectiveUser?.user_metadata?.school_name || 'Trường THCS Tây Đô',
-          subject: effectiveUser?.user_metadata?.subject || (metaRole === 'teacher' ? 'Tin học' : undefined)
+          studentCode: effectiveUser?.user_metadata?.student_code || undefined,
+          schoolName: effectiveUser?.user_metadata?.school_name || 'Trường THCS Tây Đô'
         };
         setUserProfile(defaultProf);
-        setCurrentRoleState(defaultProf.role);
+        setCurrentRoleState('student');
         setIsDemoMode(false);
         try {
           localStorage.setItem('taydo_active_profile', JSON.stringify(defaultProf));
         } catch {}
 
-        // Tự động đảm bảo bản ghi tồn tại trong bảng public.profiles để thỏa mãn RLS Supabase
+        // Tự động đảm bảo bản ghi tồn tại trong bảng public.profiles với role='student' để thỏa mãn RLS Supabase
         try {
           await supabase.from('profiles').upsert({
             id: userId,
             email: defaultProf.email,
             full_name: defaultProf.fullName,
-            role: defaultProf.role,
-            school_name: defaultProf.schoolName,
-            subject: defaultProf.subject
+            role: 'student',
+            grade: defaultProf.grade,
+            student_code: defaultProf.studentCode || null,
+            school_name: defaultProf.schoolName
           }, { onConflict: 'id', ignoreDuplicates: true });
         } catch (upsertErr) {
           console.warn('Lưu ý khi tạo hồ sơ ban đầu trên Supabase:', upsertErr);
@@ -574,11 +731,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (defaultProf.role !== 'student') {
           syncMatricesFromSupabase();
         }
+        await loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), defaultProf.role);
       }
     } catch (err) {
       console.warn('Lỗi khi nạp hồ sơ người dùng:', err);
     }
-  }, [syncMatricesFromSupabase]);
+  }, [syncMatricesFromSupabase, loadAssignmentsForSession]);
 
   const refreshProfile = useCallback(async () => {
     if (userRef.current) {
@@ -642,6 +800,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAuthVerified(false);
         setCurrentRoleState('student');
         setIsDemoMode(true);
+        await loadAssignmentsForSession(null, 'student');
       }
       setAuthLoading(false);
     });
@@ -731,19 +890,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuthLoading(true);
     setAuthError(null);
 
-    // 1. Nếu Supabase đã cấu hình, lưu trực tiếp vào Supabase Auth & CSDL profiles
+    // 1. Nếu Supabase đã cấu hình, mọi tài khoản tự đăng ký CHỈ nhận vai trò 'student'
+    // Quyền giáo viên mới do Quản trị viên cấp qua luồng tin cậy (Quản lý tài khoản)
     if (isSupabaseConfigured) {
       try {
+        const assignedCode = studentCode || `HS-${Date.now().toString().slice(-5)}`;
         const { data, error } = await supabase.auth.signUp({
           email,
           password: pass,
           options: {
             data: {
               full_name: fullName,
-              role: role,
-              grade: role === 'student' ? grade : undefined,
-              student_code: role === 'student' ? (studentCode || `HS-${Date.now().toString().slice(-5)}`) : undefined,
-              subject: role === 'teacher' ? (subject || 'Toán học') : undefined,
+              role: 'student',
+              grade: grade,
+              student_code: assignedCode,
               school_name: 'Trường THCS Tây Đô'
             }
           }
@@ -756,18 +916,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
 
         if (data.user) {
-          // Lưu trực tiếp vào bảng profiles trên Supabase để đảm bảo dữ liệu phân quyền luôn được ghi nhận
+          // Đảm bảo hồ sơ ban đầu trên bảng profiles luôn là 'student'
           try {
             await supabase.from('profiles').upsert({
               id: data.user.id,
               full_name: fullName,
               email: data.user.email || email,
-              role: role,
-              grade: role === 'student' ? grade : null,
-              student_code: role === 'student' ? (studentCode || `HS-${Date.now().toString().slice(-5)}`) : null,
-              subject: role === 'teacher' ? (subject || 'Toán học') : null,
+              role: 'student',
+              grade: grade,
+              student_code: assignedCode,
+              subject: null,
               school_name: 'Trường THCS Tây Đô'
-            });
+            }, { onConflict: 'id', ignoreDuplicates: true });
           } catch (profileErr) {
             console.warn('Lưu phụ trợ vào bảng profiles:', profileErr);
           }
@@ -785,7 +945,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addAuditLog(
           'Đăng ký tài khoản',
           email,
-          `Đăng ký tài khoản thành công cho ${fullName} với vai trò ${role === 'teacher' ? 'Giáo viên' : 'Học sinh'}`
+          `Đăng ký tài khoản thành công cho ${fullName} với vai trò Học sinh`
         );
         return { success: true };
       } catch (err: any) {
@@ -855,6 +1015,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUserProfile(null);
     setCurrentRoleState('student');
     setIsDemoMode(true);
+    await loadAssignmentsForSession(null, 'student');
     addAuditLog('Đăng xuất', 'Hệ thống', 'Người dùng đã đăng xuất khỏi phiên làm việc');
   };
 
@@ -1132,6 +1293,105 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog('Giao bài kiểm tra', asg.className, `Giao bài ${asg.examTitle} cho ${asg.className}`);
   };
 
+  const publishExamAssignmentAsync = async (
+    params: Omit<PublishExamAssignmentParams, 'teacherId' | 'teacherRole' | 'teacherName'>
+  ): Promise<{ success: boolean; exam?: Exam; assignment?: Assignment; isDemo?: boolean; error?: string }> => {
+    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+      return { success: false, error: 'Học sinh không có quyền tạo đề hoặc giao bài.' };
+    }
+
+    if (isSupabaseConfigured && user) {
+      const res = await syncPublishExamAssignmentOnSupabase({
+        ...params,
+        teacherId: user.id,
+        teacherRole: currentRole,
+        teacherName: userProfile?.fullName || 'Giáo viên'
+      });
+
+      if (!res.success || !res.exam || !res.assignment) {
+        return { success: false, error: res.error || 'Không thể giao bài lên Supabase.' };
+      }
+
+      setExams(prev => {
+        if (prev.some(e => e.id === res.exam!.id)) return prev;
+        return [res.exam!, ...prev];
+      });
+      setAssignments(prev => {
+        if (prev.some(a => a.id === res.assignment!.id)) return prev;
+        return [res.assignment!, ...prev];
+      });
+      addAuditLog(
+        'Giao bài kiểm tra (Supabase)',
+        res.assignment.className,
+        `Giao bài ${res.assignment.examTitle} (${params.assignmentSettings.roundLabel}) cho ${res.assignment.className}`
+      );
+      return { success: true, exam: res.exam, assignment: res.assignment, isDemo: false };
+    }
+
+    // Demo / local fallback ONLY when not authenticated on Supabase
+    const duplicateLocal = assignments.find(a => a.clientRequestId === params.publishRequestId);
+    if (duplicateLocal) {
+      const existingExamLocal = exams.find(e => e.id === duplicateLocal.examId);
+      return { success: true, exam: existingExamLocal, assignment: duplicateLocal, isDemo: true };
+    }
+
+    let resolvedExam = params.existingExam || null;
+    if (!resolvedExam && params.newExamDraft) {
+      if (params.newExamDraft.questions.length === 0) {
+        return { success: false, error: 'Vui lòng chọn ít nhất 1 câu hỏi vào đề.' };
+      }
+      resolvedExam = {
+        id: `exam-${Date.now()}`,
+        code: params.newExamDraft.code.trim().toUpperCase(),
+        title: params.newExamDraft.title.trim(),
+        grade: params.newExamDraft.grade,
+        subject: params.newExamDraft.subject,
+        period: params.newExamDraft.period,
+        durationMinutes: params.newExamDraft.durationMinutes,
+        questions: params.newExamDraft.questions,
+        questionCount: params.newExamDraft.questions.length,
+        totalPoints: params.newExamDraft.totalPoints,
+        createdAt: new Date().toISOString().split('T')[0],
+        author: userProfile?.fullName || 'GV. Diệp Thanh Toàn',
+        clientRequestId: params.examRequestId
+      };
+      setExams(prev => [resolvedExam!, ...prev]);
+    }
+
+    if (!resolvedExam) {
+      return { success: false, error: 'Không tìm thấy đề thi để giao.' };
+    }
+
+    const localAssignment: Assignment = {
+      id: `asg-${Date.now()}`,
+      examId: resolvedExam.id,
+      examTitle: resolvedExam.title,
+      classId: params.targetClass.id,
+      className: params.targetClass.name,
+      grade: resolvedExam.grade,
+      subject: resolvedExam.subject,
+      openTime: params.assignmentSettings.openTimeIso,
+      closeTime: params.assignmentSettings.closeTimeIso,
+      durationMinutes: params.assignmentSettings.durationMinutes,
+      attemptsAllowed: params.assignmentSettings.attemptsAllowed,
+      allowReview: params.assignmentSettings.allowReview,
+      showSolutionAfterSubmit: params.assignmentSettings.showSolutionAfterSubmit,
+      shuffleQuestions: params.assignmentSettings.shuffleQuestions,
+      shuffleOptions: params.assignmentSettings.shuffleOptions,
+      isComputerLabMode: params.assignmentSettings.isComputerLabMode,
+      status: 'active',
+      roundLabel: params.assignmentSettings.roundLabel,
+      clientRequestId: params.publishRequestId
+    };
+    setAssignments(prev => [localAssignment, ...prev]);
+    addAuditLog(
+      'Giao bài kiểm tra (Demo)',
+      localAssignment.className,
+      `Giao bài ${localAssignment.examTitle} (${params.assignmentSettings.roundLabel}) cho ${localAssignment.className}`
+    );
+    return { success: true, exam: resolvedExam, assignment: localAssignment, isDemo: true };
+  };
+
   const submitExamSession = (sub: Submission) => {
     setSubmissions(prev => {
       const existing = prev.findIndex(s => s.assignmentId === sub.assignmentId && s.studentId === sub.studentId);
@@ -1203,6 +1463,128 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog('Thêm học sinh', student.fullName, `Thêm vào lớp ${classId}`);
   };
 
+  const createClassRoomAsync = async (params: {
+    name: string;
+    grade: Grade;
+    schoolYear?: string;
+  }): Promise<{ success: boolean; classRoom?: ClassRoom; isDemo?: boolean; error?: string }> => {
+    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+      return { success: false, error: 'Chỉ Giáo viên hoặc Quản trị viên mới có quyền tạo lớp học.' };
+    }
+    const cleanName = params.name.trim();
+    if (!cleanName) {
+      return { success: false, error: 'Vui lòng nhập tên lớp học.' };
+    }
+    const inviteCode = `TAYDO-${cleanName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .toUpperCase()}-${new Date().getFullYear().toString().slice(-2)}${Math.floor(10 + Math.random() * 89)}`;
+
+    if (isSupabaseConfigured && user) {
+      const res = await syncCreateClassOnSupabase({
+        name: cleanName,
+        grade: params.grade,
+        teacherId: user.id,
+        teacherName: userProfile?.fullName || 'Giáo viên',
+        inviteCode,
+        schoolYear: params.schoolYear || '2025-2026'
+      });
+      if (!res.success || !res.classRoom) {
+        return { success: false, error: res.error || 'Không thể tạo lớp trên Supabase.' };
+      }
+      setClasses(prev => [res.classRoom!, ...prev]);
+      addAuditLog('Tạo lớp học (Supabase)', res.classRoom.name, `Tạo lớp ${res.classRoom.name} với mã mời ${res.classRoom.inviteCode}`);
+      return { success: true, classRoom: res.classRoom, isDemo: false };
+    }
+
+    const demoCls: ClassRoom = {
+      id: `cls-${Date.now()}`,
+      name: cleanName,
+      grade: params.grade,
+      teacherName: userProfile?.fullName || 'GV. Diệp Thanh Toàn',
+      studentCount: 0,
+      inviteCode,
+      students: []
+    };
+    setClasses(prev => [demoCls, ...prev]);
+    addAuditLog('Tạo lớp học (Demo)', demoCls.name, `Tạo lớp mẫu ${demoCls.name}`);
+    return { success: true, classRoom: demoCls, isDemo: true };
+  };
+
+  const enrollStudentInClassAsync = async (params: {
+    classId: string;
+    identifier: string;
+    demoFallback?: { code: string; fullName: string; gender: 'Nam' | 'Nữ' };
+  }): Promise<{ success: boolean; isDemo?: boolean; error?: string }> => {
+    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+      return { success: false, error: 'Chỉ Giáo viên hoặc Quản trị viên mới có quyền thêm học sinh vào lớp.' };
+    }
+
+    if (isSupabaseConfigured && user) {
+      const res = await syncEnrollStudentOnSupabase(params.classId, params.identifier);
+      if (!res.success || !res.student) {
+        return { success: false, error: res.error || 'Không thể thêm học sinh vào lớp trên Supabase.' };
+      }
+      setClasses(prev =>
+        prev.map(c => {
+          if (c.id !== params.classId) return c;
+          const exists = c.students.some(st => st.id === res.student!.id);
+          const nextStudents = exists ? c.students : [...c.students, res.student!];
+          return {
+            ...c,
+            studentCount: nextStudents.length,
+            students: nextStudents
+          };
+        })
+      );
+      addAuditLog('Thêm học sinh (Supabase)', res.student.fullName, `Liên kết vào lớp ${params.classId}`);
+      return { success: true, isDemo: false };
+    }
+
+    const fallback = params.demoFallback;
+    if (!fallback || !fallback.fullName.trim() || !fallback.code.trim()) {
+      return { success: false, error: 'Vui lòng nhập đầy đủ họ tên và mã học sinh.' };
+    }
+    const cleanCode = fallback.code.trim().toUpperCase();
+    const newStu = {
+      id: `stu-${Date.now()}`,
+      code: cleanCode,
+      fullName: fallback.fullName.trim(),
+      email: `${cleanCode.toLowerCase()}@taydo.edu.vn`,
+      gender: fallback.gender
+    };
+    setClasses(prev =>
+      prev.map(c => {
+        if (c.id !== params.classId) return c;
+        const nextStudents = [...c.students, newStu];
+        return { ...c, studentCount: nextStudents.length, students: nextStudents };
+      })
+    );
+    addAuditLog('Thêm học sinh (Demo)', newStu.fullName, `Thêm vào lớp mẫu ${params.classId}`);
+    return { success: true, isDemo: true };
+  };
+
+  const joinClassByInviteCodeAsync = async (
+    inviteCode: string
+  ): Promise<{ success: boolean; className?: string; error?: string }> => {
+    if (!isSupabaseConfigured || !user) {
+      return {
+        success: false,
+        error: 'Vui lòng đăng nhập tài khoản học sinh Supabase để tham gia lớp bằng mã mời.'
+      };
+    }
+    const res = await syncJoinClassByInviteCode(inviteCode);
+    if (!res.success) {
+      return { success: false, error: res.error || 'Không thể tham gia lớp học.' };
+    }
+    await loadAssignmentsForSession(user, currentRole);
+    addAuditLog('Tham gia lớp', res.className || inviteCode, 'Học sinh tham gia lớp bằng mã mời');
+    return { success: true, className: res.className };
+  };
+
   const resetDemoData = () => {
     if (currentRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép khôi phục dữ liệu gốc.');
@@ -1260,10 +1642,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentView,
         questions,
         classes,
+        enrolledClassIds,
         matrices,
         exams,
         assignments,
         submissions,
+        assignmentDataLoading,
+        assignmentDataError,
+        isUsingDemoAssignmentsData,
+        retryLoadAssignmentData,
         geminiAssistants,
         studyDocs,
         auditLogs,
@@ -1282,10 +1669,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteMatrixDraft,
         createExam,
         createAssignment,
+        publishExamAssignmentAsync,
         submitExamSession,
         gradeEssayQuestion,
         addClassRoom,
         addStudentToClass,
+        createClassRoomAsync,
+        enrollStudentInClassAsync,
+        joinClassByInviteCodeAsync,
         addAuditLog,
         resetDemoData
       }}

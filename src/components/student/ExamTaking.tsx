@@ -27,24 +27,49 @@ import {
   FileText
 } from 'lucide-react';
 
+import {
+  MISSING_OR_INVALID_EXAM_MESSAGE,
+  getExamDraftStorageKey,
+  validateAssignmentExamLink
+} from '../../utils/studentAssignments';
+
 interface ExamTakingProps {
   assignmentId?: string;
+  strictAssignmentMode?: boolean;
   onBackToDashboard?: () => void;
+  onBackToAssignments?: () => void;
 }
 
-export const ExamTaking: React.FC<ExamTakingProps> = ({ assignmentId, onBackToDashboard }) => {
+export const ExamTaking: React.FC<ExamTakingProps> = ({
+  assignmentId,
+  strictAssignmentMode = false,
+  onBackToDashboard,
+  onBackToAssignments
+}) => {
   const { assignments, exams, studentUser, submitExamSession } = useApp();
+  const isStrictMode = Boolean(assignmentId || strictAssignmentMode);
 
-  // Find target assignment or pick active one
+  // Strict lookup when launched from "Bài được giao"; preserve existing behavior for "Kiểm tra trực tuyến"
   const targetAssignment = useMemo(() => {
-    if (assignmentId) return assignments.find(a => a.id === assignmentId);
-    return assignments.find(a => a.status === 'active') || assignments[0];
-  }, [assignments, assignmentId]);
+    if (isStrictMode) {
+      if (!assignmentId) return null;
+      return assignments.find(a => a.id === assignmentId) || null;
+    }
+    return assignments.find(a => a.status === 'active') || assignments[0] || null;
+  }, [assignments, assignmentId, isStrictMode]);
+
+  const linkValidation = useMemo(() => {
+    if (!isStrictMode) return { valid: true, exam: null };
+    return validateAssignmentExamLink(targetAssignment, exams);
+  }, [isStrictMode, targetAssignment, exams]);
 
   const targetExam = useMemo(() => {
     if (!targetAssignment) return null;
-    return exams.find(e => e.id === targetAssignment.examId) || exams[0];
-  }, [targetAssignment, exams]);
+    if (isStrictMode) {
+      return linkValidation.valid ? linkValidation.exam : null;
+    }
+    return exams.find(e => e.id === targetAssignment.examId) || exams[0] || null;
+  }, [targetAssignment, exams, isStrictMode, linkValidation]);
 
   // Session state
   const [currentQIndex, setCurrentQIndex] = useState<number>(0);
@@ -144,25 +169,51 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({ assignmentId, onBackToDa
   const totalSeconds = (targetAssignment?.durationMinutes || 45) * 60;
   const [secondsLeft, setSecondsLeft] = useState<number>(totalSeconds);
 
-  // Restore answers from localStorage if refreshed
+  const isExamReady = Boolean(
+    targetAssignment &&
+      targetExam &&
+      Array.isArray(targetExam.questions) &&
+      targetExam.questions.length > 0 &&
+      (!isStrictMode || linkValidation.valid)
+  );
+
+  // Restore answers from localStorage (or reset cleanly when switching assignmentId)
   useEffect(() => {
-    if (!targetAssignment) return;
-    const storageKey = `exam_session_${targetAssignment.id}_${studentUser.id}`;
+    setCurrentQIndex(0);
+    setSubmittedResult(null);
+    setShowSubmitModal(false);
+    setTabSwitches(0);
+
+    if (!targetAssignment) {
+      setAnswers({});
+      setFlagged({});
+      setSecondsLeft(45 * 60);
+      return;
+    }
+
+    const defaultSeconds = (targetAssignment.durationMinutes || 45) * 60;
+    const storageKey = getExamDraftStorageKey(targetAssignment.id, studentUser.id);
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.answers) setAnswers(parsed.answers);
-        if (parsed.flagged) setFlagged(parsed.flagged);
-        if (parsed.secondsLeft) setSecondsLeft(parsed.secondsLeft);
+        setAnswers(parsed.answers || {});
+        setFlagged(parsed.flagged || {});
+        setSecondsLeft(typeof parsed.secondsLeft === 'number' ? parsed.secondsLeft : defaultSeconds);
+        return;
       } catch (e) {
         console.error('Error restoring session', e);
       }
     }
-  }, [targetAssignment, studentUser.id]);
+
+    setAnswers({});
+    setFlagged({});
+    setSecondsLeft(defaultSeconds);
+  }, [targetAssignment?.id, targetAssignment?.durationMinutes, studentUser.id]);
 
   // Track tab switches (warning only, per guidelines: does not auto-cancel exam)
   useEffect(() => {
+    if (!isExamReady) return;
     const handleVisibilityChange = () => {
       if (document.hidden && !submittedResult) {
         setTabSwitches(prev => prev + 1);
@@ -170,11 +221,11 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({ assignmentId, onBackToDa
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [submittedResult]);
+  }, [submittedResult, isExamReady]);
 
   // Countdown timer interval
   useEffect(() => {
-    if (submittedResult) return;
+    if (submittedResult || !isExamReady) return;
     const timer = setInterval(() => {
       setSecondsLeft(prev => {
         if (prev <= 1) {
@@ -186,17 +237,21 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({ assignmentId, onBackToDa
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [submittedResult]);
+  }, [submittedResult, isExamReady]);
 
   // Save session state to localStorage on answer update
-  const saveToStorage = (newAnswers: Record<string, any>, newFlagged: Record<string, boolean>) => {
+  const saveToStorage = (
+    newAnswers: Record<string, any>,
+    newFlagged: Record<string, boolean>,
+    overrideSecondsLeft?: number
+  ) => {
     if (!targetAssignment) return;
     setIsSavedLocally(false);
-    const storageKey = `exam_session_${targetAssignment.id}_${studentUser.id}`;
+    const storageKey = getExamDraftStorageKey(targetAssignment.id, studentUser.id);
     localStorage.setItem(storageKey, JSON.stringify({
       answers: newAnswers,
       flagged: newFlagged,
-      secondsLeft,
+      secondsLeft: typeof overrideSecondsLeft === 'number' ? overrideSecondsLeft : secondsLeft,
       timestamp: Date.now()
     }));
     setTimeout(() => setIsSavedLocally(true), 300);
@@ -456,7 +511,67 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({ assignmentId, onBackToDa
     }
   };
 
-  if (!targetAssignment || !targetExam) {
+  const summaryValidation = useMemo(() => {
+    if (!isStrictMode) return { valid: true, exam: null };
+    return validateAssignmentExamLink(targetAssignment, exams, { requireLoadedQuestions: false });
+  }, [isStrictMode, targetAssignment, exams]);
+
+  if (!isExamReady || !targetAssignment || !targetExam) {
+    if (isStrictMode) {
+      const isSyncedSummaryOnly = Boolean(
+        targetAssignment &&
+          summaryValidation.valid &&
+          summaryValidation.exam &&
+          summaryValidation.exam.questions.length === 0 &&
+          (summaryValidation.exam.questionCount ?? 0) > 0
+      );
+
+      if (isSyncedSummaryOnly && summaryValidation.exam && targetAssignment) {
+        return (
+          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center max-w-lg mx-auto space-y-4 shadow-xs font-serif">
+            <div className="w-12 h-12 rounded-full bg-[#EAF5FF] text-[#006BFF] flex items-center justify-center mx-auto">
+              <FileText className="w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-bold text-[#082B52]">
+              {summaryValidation.exam.title}
+            </h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Nhiệm vụ đã được đồng bộ từ Supabase ({summaryValidation.exam.questionCount} câu hỏi •{' '}
+              {targetAssignment.durationMinutes} phút). Luồng tải câu hỏi trực tuyến, đồng hồ đếm ngược và nộp bài về CSDL sẽ được kết nối ở bước tiếp theo.
+            </p>
+            <button
+              type="button"
+              onClick={onBackToAssignments || onBackToDashboard}
+              className="px-5 min-h-[44px] py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-colors"
+            >
+              {onBackToAssignments ? 'Quay lại Bài được giao' : 'Quay lại bảng điều khiển'}
+            </button>
+          </div>
+        );
+      }
+
+      return (
+        <div className="bg-white rounded-2xl border border-red-200 p-8 text-center max-w-lg mx-auto space-y-4 shadow-xs font-serif">
+          <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <h3 className="text-xl font-bold text-[#082B52]">
+            {linkValidation.error || MISSING_OR_INVALID_EXAM_MESSAGE}
+          </h3>
+          <p className="text-sm text-slate-600">
+            Dữ liệu đề thi của nhiệm vụ này đang bị thiếu hoặc không khớp. Hệ thống đã dừng mở bài để tránh hiển thị nhầm đề.
+          </p>
+          <button
+            type="button"
+            onClick={onBackToAssignments || onBackToDashboard}
+            className="px-5 min-h-[44px] py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-colors"
+          >
+            {onBackToAssignments ? 'Quay lại Bài được giao' : 'Quay lại bảng điều khiển'}
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center max-w-lg mx-auto space-y-4">
         <h3 className="text-xl font-bold text-[#082B52]">Không có bài kiểm tra khả dụng</h3>
@@ -639,13 +754,25 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({ assignmentId, onBackToDa
             </div>
           )}
 
-          <div className="text-center pt-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+            {onBackToAssignments && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmittedResult(null);
+                  onBackToAssignments();
+                }}
+                className="px-6 min-h-[44px] py-2.5 border border-[#DCE8F7] bg-[#F3F8FF] text-[#082B52] rounded-xl font-bold text-sm hover:bg-[#E4F0FF] transition-colors"
+              >
+                Quay lại Bài được giao
+              </button>
+            )}
             <button
               onClick={() => {
                 setSubmittedResult(null);
                 if (onBackToDashboard) onBackToDashboard();
               }}
-              className="px-6 py-2.5 bg-[#006BFF] text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
+              className="px-6 min-h-[44px] py-2.5 bg-[#006BFF] text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
             >
               Về trang chủ
             </button>
@@ -658,12 +785,30 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({ assignmentId, onBackToDa
           {/* Left Column: Exam questions (8 cols) */}
           <div className="lg:col-span-8 space-y-4">
             {/* Top Bar inside exam card */}
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-[#082B52] text-sm sm:text-base">
-                  {targetExam.title}
-                </h3>
-                <span className="text-xs text-slate-500">Mã đề: {targetExam.code}</span>
+            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {onBackToAssignments && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const hasWork = Object.keys(answers).length > 0 || Object.keys(flagged).length > 0 || secondsLeft < totalSeconds;
+                      if (hasWork) {
+                        saveToStorage(answers, flagged, secondsLeft);
+                      }
+                      onBackToAssignments();
+                    }}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-[#E4F0FF] text-xs font-bold text-[#082B52] shrink-0 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Bài được giao</span>
+                  </button>
+                )}
+                <div className="min-w-0">
+                  <h3 className="font-bold text-[#082B52] text-sm sm:text-base truncate">
+                    {targetExam.title}
+                  </h3>
+                  <span className="text-xs text-slate-500">Mã đề: {targetExam.code}</span>
+                </div>
               </div>
 
               {/* Auto-save status indicator */}

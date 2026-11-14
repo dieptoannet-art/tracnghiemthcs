@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -8,6 +8,7 @@ import { Dashboard } from './components/Dashboard';
 import { CoreKnowledgeView } from './components/student/CoreKnowledgeView';
 import { PracticeMode } from './components/student/PracticeMode';
 import { SemesterReview } from './components/student/SemesterReview';
+import { StudentAssignmentsView } from './components/student/StudentAssignmentsView';
 import { ExamTaking } from './components/student/ExamTaking';
 import { WrongQuestionsBook } from './components/student/WrongQuestionsBook';
 import { StudentResults } from './components/student/StudentResults';
@@ -40,6 +41,13 @@ const AppContent: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [supabaseModalOpen, setSupabaseModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentView !== 'student_assignments') {
+      setSelectedAssignmentId(null);
+    }
+  }, [currentView]);
 
   // ROUTE GUARD: Chặn truy cập trái quyền ở cấp độ Route
   const isTeacherRoute = currentView.startsWith('teacher_');
@@ -140,6 +148,26 @@ const AppContent: React.FC = () => {
       case 'student_semester_review':
         return <SemesterReview />;
       case 'student_assignments':
+        if (selectedAssignmentId) {
+          return (
+            <ExamTaking
+              assignmentId={selectedAssignmentId}
+              strictAssignmentMode={true}
+              onBackToAssignments={() => setSelectedAssignmentId(null)}
+              onBackToDashboard={() => {
+                setSelectedAssignmentId(null);
+                setCurrentView('dashboard');
+              }}
+            />
+          );
+        }
+        return (
+          <StudentAssignmentsView
+            onOpenAssignment={(asgId) => setSelectedAssignmentId(asgId)}
+            onViewResults={() => setCurrentView('student_results')}
+            onOpenSupabaseConfig={() => setSupabaseModalOpen(true)}
+          />
+        );
       case 'student_exam_taking':
         return <ExamTaking onBackToDashboard={() => setCurrentView('dashboard')} />;
       case 'student_wrong_book':
@@ -202,6 +230,7 @@ const AppContent: React.FC = () => {
         <Sidebar
           mobileOpen={mobileMenuOpen}
           onCloseMobile={() => setMobileMenuOpen(false)}
+          onResetStudentAssignments={() => setSelectedAssignmentId(null)}
         />
 
         {/* Content View Area */}

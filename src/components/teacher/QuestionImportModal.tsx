@@ -29,36 +29,30 @@ interface QuestionImportModalProps {
   onImportSuccess: (questions: any[]) => void;
 }
 
-const RLS_MIGRATION_SQL = `-- 1. CẤP QUYỀN THAO TÁC CƠ SỞ DỮ LIỆU CHO VAI TRÒ AUTHENTICATED
+const RLS_MIGRATION_SQL = `-- 1. CẤP QUYỀN THAO TÁC CƠ SỞ DỮ LIỆU CHO VAI TRÒ AUTHENTICATED (CHẶN ANON)
+REVOKE ALL ON TABLE public.questions FROM anon;
+REVOKE ALL ON TABLE public.protected_solutions FROM anon;
 GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.questions TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.protected_solutions TO authenticated;
 
--- 2. THIẾT LẬP CHÍNH SÁCH RLS CHO PHÉP GIÁO VIÊN & QUẢN TRỊ THÊM MỚI CÂU HỎI
+-- 2. THIẾT LẬP CHÍNH SÁCH RLS CHO PHÉP GIÁO VIÊN & QUẢN TRỊ THÊM/SỬA CÂU HỎI
 DROP POLICY IF EXISTS "Giáo viên và Quản trị được thêm câu hỏi" ON public.questions;
 CREATE POLICY "Giáo viên và Quản trị được thêm câu hỏi" ON public.questions
-  FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('teacher', 'admin', 'reviewer'))
-  );
+  FOR INSERT TO authenticated WITH CHECK (public.is_staff_role());
 
 DROP POLICY IF EXISTS "Giáo viên và Quản trị được sửa câu hỏi" ON public.questions;
 CREATE POLICY "Giáo viên và Quản trị được sửa câu hỏi" ON public.questions
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('teacher', 'admin', 'reviewer'))
-  );
+  FOR UPDATE TO authenticated USING (public.is_staff_role()) WITH CHECK (public.is_staff_role());
 
 -- 3. THIẾT LẬP CHÍNH SÁCH RLS CHO PHÉP LƯU ĐÁP ÁN BẢO VỆ
 DROP POLICY IF EXISTS "Giáo viên và Quản trị được thêm đáp án bảo vệ" ON public.protected_solutions;
 CREATE POLICY "Giáo viên và Quản trị được thêm đáp án bảo vệ" ON public.protected_solutions
-  FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('teacher', 'admin', 'reviewer'))
-  );
+  FOR INSERT TO authenticated WITH CHECK (public.is_staff_role());
 
 DROP POLICY IF EXISTS "Giáo viên và Quản trị được sửa đáp án bảo vệ" ON public.protected_solutions;
 CREATE POLICY "Giáo viên và Quản trị được sửa đáp án bảo vệ" ON public.protected_solutions
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('teacher', 'admin', 'reviewer'))
-  );`;
+  FOR UPDATE TO authenticated USING (public.is_staff_role()) WITH CHECK (public.is_staff_role());`;
 
 export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
   onClose,
@@ -161,7 +155,17 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
       points: q.points,
       options: q.options as any,
       correctAnswer: q.correctAnswer,
-      subItems: q.subItems as any,
+      subItems: Array.isArray(q.subItems)
+        ? (q.subItems.map((sub: any, idx: number) => {
+            const matchedAns =
+              q.subItemAnswers?.find((a: any) => a.id === sub.id || a.label === sub.label) ||
+              q.subItemAnswers?.[idx];
+            return {
+              ...sub,
+              isCorrect: matchedAns !== undefined ? Boolean(matchedAns.isCorrect) : sub.isCorrect
+            };
+          }) as any)
+        : undefined,
       sampleAnswer: q.sampleEssayAnswer,
       explanation: q.explanation,
       status: q.status
@@ -249,7 +253,25 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
           stem: String(q.stem || ''),
           points: Number(q.points) || 0.25,
           options: q.options || null,
-          sub_items: q.subItems || null,
+          sub_items: Array.isArray(q.subItems)
+            ? q.subItems.map((sub: any, idx: number) => {
+                const matchedAns =
+                  q.subItemAnswers?.find((a: any) => a.id === sub.id || a.label === sub.label) ||
+                  q.subItemAnswers?.[idx];
+                const resolvedIsCorrect =
+                  matchedAns !== undefined
+                    ? Boolean(matchedAns.isCorrect)
+                    : sub.isCorrect !== undefined
+                    ? Boolean(sub.isCorrect)
+                    : undefined;
+                return {
+                  id: sub.id || String.fromCharCode(97 + idx),
+                  text: sub.text || '',
+                  level: sub.level || 'know',
+                  ...(resolvedIsCorrect !== undefined ? { isCorrect: resolvedIsCorrect } : {})
+                };
+              })
+            : null,
           status: 'pending', // Mặc định ở trạng thái Chờ duyệt theo quy tắc
           author_id: validAuthorUuid,
           version: 1

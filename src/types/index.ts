@@ -216,11 +216,14 @@ export interface Exam {
   period: ExamPeriod;
   durationMinutes: number;
   questions: Question[];
+  questionCount?: number;
   totalPoints: number;
   shuffledCode?: string;
   lockedQuestionIds?: string[];
   createdAt: string;
   author: string;
+  authorId?: string;
+  clientRequestId?: string;
 }
 
 export interface Assignment {
@@ -241,6 +244,9 @@ export interface Assignment {
   shuffleOptions: boolean;
   isComputerLabMode: boolean; // Tự đăng xuất sau khi nộp
   status: 'active' | 'closed' | 'scheduled';
+  roundLabel?: string;
+  assignedBy?: string;
+  clientRequestId?: string;
 }
 
 export interface SubmissionAnswer {
@@ -281,6 +287,8 @@ export interface ClassRoom {
   name: string;
   grade: Grade;
   teacherName: string;
+  teacherId?: string;
+  schoolYear?: string;
   studentCount: number;
   inviteCode: string;
   students: {
@@ -288,7 +296,7 @@ export interface ClassRoom {
     code: string;
     fullName: string;
     email: string;
-    gender: 'Nam' | 'Nữ';
+    gender?: 'Nam' | 'Nữ';
   }[];
 }
 

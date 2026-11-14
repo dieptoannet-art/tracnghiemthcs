@@ -125,20 +125,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return;
       }
 
+      const effectiveRegisterRole = isSupabaseLiveConfigured ? 'student' : selectedRole;
       const res = await signUp(
         cleanEmail,
         cleanPass,
         fullName.trim(),
-        selectedRole,
-        selectedRole === 'student' ? grade : undefined,
-        selectedRole === 'student' ? studentCode.trim() : undefined,
-        selectedRole === 'teacher' ? teacherSubject : undefined
+        effectiveRegisterRole,
+        effectiveRegisterRole === 'student' ? grade : undefined,
+        effectiveRegisterRole === 'student' ? studentCode.trim() : undefined,
+        effectiveRegisterRole === 'teacher' ? teacherSubject : undefined
       );
 
       if (res.success) {
-        const roleLabel = selectedRole === 'teacher' ? 'Giáo viên' : 'Học sinh';
+        const roleLabel = effectiveRegisterRole === 'teacher' ? 'Giáo viên' : 'Học sinh';
         setSuccessMsg(
-          `Đăng ký tài khoản ${roleLabel} thành công! Hệ thống đã lưu thông tin lên Supabase và tự động thiết lập các menu ${roleLabel} cho bạn.`
+          isSupabaseLiveConfigured
+            ? `Đăng ký tài khoản Học sinh thành công! Nếu bạn là Giáo viên, vui lòng liên hệ Quản trị viên để được cấp quyền Giáo viên.`
+            : `Đăng ký tài khoản ${roleLabel} thành công! Hệ thống đã lưu thông tin và thiết lập các menu ${roleLabel} cho bạn.`
         );
         setTimeout(() => {
           handleClose();
@@ -208,7 +211,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }`}
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>Đăng ký (Chọn Giáo viên / Học sinh)</span>
+            <span>{isSupabaseLiveConfigured ? 'Đăng ký tài khoản' : 'Đăng ký (Chọn Giáo viên / Học sinh)'}</span>
           </button>
         </div>
 
@@ -276,25 +279,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                   {/* Option: Giáo viên */}
                   <div
-                    onClick={() => setSelectedRole('teacher')}
-                    className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                      selectedRole === 'teacher'
-                        ? 'border-[#006BFF] bg-blue-50/70 shadow-xs'
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    onClick={() => {
+                      if (!isSupabaseLiveConfigured) {
+                        setSelectedRole('teacher');
+                      }
+                    }}
+                    className={`p-3.5 rounded-xl border-2 transition-all flex flex-col justify-between ${
+                      isSupabaseLiveConfigured
+                        ? 'border-slate-200 bg-slate-50 opacity-75 cursor-not-allowed'
+                        : selectedRole === 'teacher'
+                        ? 'border-[#006BFF] bg-blue-50/70 shadow-xs cursor-pointer'
+                        : 'border-slate-200 hover:border-slate-300 bg-white cursor-pointer'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <div className={`p-2 rounded-lg ${selectedRole === 'teacher' ? 'bg-[#006BFF] text-white' : 'bg-slate-100 text-slate-600'}`}>
+                      <div className={`p-2 rounded-lg ${!isSupabaseLiveConfigured && selectedRole === 'teacher' ? 'bg-[#006BFF] text-white' : 'bg-slate-100 text-slate-600'}`}>
                         <Briefcase className="w-5 h-5" />
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${selectedRole === 'teacher' ? 'bg-[#006BFF] text-white' : 'bg-slate-100 text-slate-500'}`}>
-                        {selectedRole === 'teacher' ? 'Đang chọn' : 'Giáo viên'}
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${!isSupabaseLiveConfigured && selectedRole === 'teacher' ? 'bg-[#006BFF] text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        {isSupabaseLiveConfigured ? 'Quản trị cấp' : selectedRole === 'teacher' ? 'Đang chọn' : 'Giáo viên'}
                       </span>
                     </div>
                     <div>
                       <h4 className="font-bold text-xs text-[#082B52]">Giáo viên bộ môn</h4>
                       <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                        Ngân hàng câu hỏi, tạo đề thi, ma trận đặc tả, chấm bài & Gemini
+                        {isSupabaseLiveConfigured
+                          ? 'Đăng ký học sinh trước, sau đó Quản trị viên cấp quyền Giáo viên'
+                          : 'Ngân hàng câu hỏi, tạo đề thi, ma trận đặc tả, chấm bài'}
                       </p>
                     </div>
                   </div>
