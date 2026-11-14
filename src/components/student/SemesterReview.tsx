@@ -37,6 +37,10 @@ import {
   resetExamStructure
 } from '../../utils/examStructure';
 import { ExamStructureConfigModal } from '../teacher/ExamStructureConfigModal';
+import {
+  findMatchingPublishedOutlines,
+  mapSubjectNameToId
+} from '../../utils/studyMaterialsSync';
 
 export const SemesterReview: React.FC = () => {
   const {
@@ -45,7 +49,9 @@ export const SemesterReview: React.FC = () => {
     selectedSubject: contextSubject,
     setCurrentView,
     currentRole,
-    userProfile
+    userProfile,
+    studyDocs,
+    openStudyMaterialsWithIntent
   } = useApp();
 
   // 1. Bộ lọc kỳ thi, khối, môn
@@ -62,6 +68,46 @@ export const SemesterReview: React.FC = () => {
   useEffect(() => {
     setStructureConfig(getExamStructure(selectedSubject));
   }, [selectedSubject]);
+
+  // Liên kết tới đề cương ôn tập đã công bố trong Thư viện Tài liệu học tập
+  const mappedSubjectId = useMemo(
+    () => mapSubjectNameToId(selectedSubject),
+    [selectedSubject]
+  );
+
+  const matchingPublishedOutlines = useMemo(
+    () =>
+      findMatchingPublishedOutlines(
+        studyDocs,
+        selectedGrade as Grade,
+        mappedSubjectId,
+        selectedPeriod
+      ),
+    [studyDocs, selectedGrade, mappedSubjectId, selectedPeriod]
+  );
+
+  const [noOutlineNotice, setNoOutlineNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    setNoOutlineNotice(null);
+  }, [selectedPeriod, selectedGrade, selectedSubject]);
+
+  const handleOpenStudyOutline = () => {
+    if (matchingPublishedOutlines.length === 0) {
+      setNoOutlineNotice('Chưa có đề cương cho đợt này');
+      return;
+    }
+
+    setNoOutlineNotice(null);
+    openStudyMaterialsWithIntent({
+      grade: selectedGrade as Grade,
+      subject: mappedSubjectId,
+      materialType: 'de_cuong',
+      examTerm: selectedPeriod,
+      openMaterialId:
+        matchingPublishedOutlines.length === 1 ? matchingPublishedOutlines[0].id : undefined
+    });
+  };
 
   // Supabase question storage
   const [supabaseQuestions, setSupabaseQuestions] = useState<any[]>([]);
@@ -465,14 +511,30 @@ export const SemesterReview: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setCurrentView('student_practice')}
-            className="px-3.5 py-2 border border-[#DCE8F7] bg-white text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50 flex items-center space-x-1.5 transition-colors"
-          >
-            <BookOpen className="w-4 h-4 text-blue-600" />
-            <span>Luyện theo bài & chương</span>
-          </button>
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOpenStudyOutline}
+              className="px-3.5 py-2 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#006BFF] rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Xem đề cương</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentView('student_practice')}
+              className="px-3.5 py-2 border border-[#DCE8F7] bg-white text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50 flex items-center space-x-1.5 transition-colors"
+            >
+              <BookOpen className="w-4 h-4 text-blue-600" />
+              <span>Luyện theo bài & chương</span>
+            </button>
+          </div>
+          {noOutlineNotice && (
+            <span className="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg">
+              {noOutlineNotice}
+            </span>
+          )}
         </div>
       </div>
 
@@ -723,14 +785,32 @@ export const SemesterReview: React.FC = () => {
                 </p>
               </div>
 
-              <button
-                onClick={() => window.print()}
-                className="inline-flex items-center space-x-1.5 px-4 py-2 border border-[#DCE8F7] bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors"
-              >
-                <Printer className="w-4 h-4 text-blue-600" />
-                <span>In đề cương ôn tập</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleOpenStudyOutline}
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Xem đề cương</span>
+                </button>
+
+                <button
+                  onClick={() => window.print()}
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 border border-[#DCE8F7] bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors"
+                >
+                  <Printer className="w-4 h-4 text-blue-600" />
+                  <span>In đề cương ôn tập</span>
+                </button>
+              </div>
             </div>
+
+            {noOutlineNotice && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs font-semibold text-amber-900 flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>{noOutlineNotice}</span>
+              </div>
+            )}
 
             <div className="space-y-4 text-xs text-slate-700 leading-relaxed">
               <div className="p-4 bg-blue-50/70 rounded-xl border border-blue-200 space-y-2">

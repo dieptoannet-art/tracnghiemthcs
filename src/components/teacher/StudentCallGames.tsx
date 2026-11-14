@@ -17,7 +17,10 @@ import {
   loadCustomManualStudents,
   saveCustomManualStudents,
   mapClassStudentsToCandidates,
+  computeWheelTargetRotation,
+  parseManualStudentsText,
 } from './studentCallRules';
+import { GameCardArtwork } from './GameIllustrations';
 import './studentCallGames.css';
 import {
   Users,
@@ -27,36 +30,36 @@ import {
   Timer as TimerIcon,
   Volume2,
   VolumeX,
-  Sparkles,
   Edit3,
-  CheckCircle,
-  HelpCircle,
   Play,
   Pause,
-  Shuffle,
-  Award,
-  Layers,
-  Gift,
   Disc,
-  Mail,
-  CircleDot,
+  Gift,
+  Layers,
   Rocket,
   UserPlus,
-  ArrowRight,
   X,
-  Clock,
   Trash2,
   Star,
+  Maximize2,
+  Minimize2,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 
-// Web Audio API Sound Synthesizer (No external assets required)
+// Web Audio API Sound Synthesizer (No external audio files required)
 class SoundPlayer {
   private ctx: AudioContext | null = null;
-  public muted: boolean = false;
+  public muted = false;
 
   private init() {
     if (!this.ctx && typeof window !== 'undefined') {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
       }
@@ -74,15 +77,17 @@ class SoundPlayer {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(440, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.05);
-      gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+      osc.frequency.setValueAtTime(520, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(860, this.ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.07, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.045);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
       osc.start();
-      osc.stop(this.ctx.currentTime + 0.05);
-    } catch {}
+      osc.stop(this.ctx.currentTime + 0.045);
+    } catch {
+      // ignore audio context restrictions
+    }
   }
 
   playFanfare() {
@@ -90,22 +95,24 @@ class SoundPlayer {
     this.init();
     if (!this.ctx) return;
     try {
-      const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+      const notes = [523.25, 659.25, 783.99, 1046.5];
       notes.forEach((freq, i) => {
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.1);
-        gain.gain.setValueAtTime(0, this.ctx.currentTime + i * 0.1);
-        gain.gain.linearRampToValueAtTime(0.2, this.ctx.currentTime + i * 0.1 + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.1 + 0.4);
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.09);
+        gain.gain.setValueAtTime(0, this.ctx.currentTime + i * 0.09);
+        gain.gain.linearRampToValueAtTime(0.18, this.ctx.currentTime + i * 0.09 + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.09 + 0.38);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
-        osc.start(this.ctx.currentTime + i * 0.1);
-        osc.stop(this.ctx.currentTime + i * 0.1 + 0.45);
+        osc.start(this.ctx.currentTime + i * 0.09);
+        osc.stop(this.ctx.currentTime + i * 0.09 + 0.4);
       });
-    } catch {}
+    } catch {
+      // ignore audio errors
+    }
   }
 
   playBell() {
@@ -117,13 +124,15 @@ class SoundPlayer {
       const gain = this.ctx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(880, this.ctx.currentTime);
-      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.2);
+      gain.gain.setValueAtTime(0.22, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.0);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
       osc.start();
-      osc.stop(this.ctx.currentTime + 1.2);
-    } catch {}
+      osc.stop(this.ctx.currentTime + 1.0);
+    } catch {
+      // ignore audio errors
+    }
   }
 
   playTimerBeep() {
@@ -135,26 +144,61 @@ class SoundPlayer {
       const gain = this.ctx.createGain();
       osc.type = 'square';
       osc.frequency.setValueAtTime(700, this.ctx.currentTime);
-      gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
       osc.start();
-      osc.stop(this.ctx.currentTime + 0.1);
-    } catch {}
+      osc.stop(this.ctx.currentTime + 0.09);
+    } catch {
+      // ignore audio errors
+    }
   }
 }
 
 const sounds = new SoundPlayer();
 
+const WHEEL_SLICE_COLORS = [
+  '#1D4ED8',
+  '#059669',
+  '#D97706',
+  '#DC2626',
+  '#7C3AED',
+  '#0891B2',
+  '#DB2777',
+  '#2563EB',
+  '#15803D',
+  '#EA580C',
+];
+
+const CARD_PASTEL_STYLES: Record<CallGameMode, string> = {
+  wheel: 'bg-[#EEF5FF] border-[#C9DDFD] hover:border-[#006BFF]',
+  gift_box: 'bg-[#FFF3EE] border-[#FAD4C5] hover:border-[#EA580C]',
+  cards: 'bg-[#ECFDF5] border-[#BEEAD7] hover:border-[#059669]',
+  flying_envelope: 'bg-[#F3F0FF] border-[#D7CCF9] hover:border-[#7C3AED]',
+  rocket: 'bg-[#FFF8E6] border-[#F8DF9F] hover:border-[#D97706]',
+  magic_sphere: 'bg-[#ECFEFF] border-[#BAE6FD] hover:border-[#0891B2]',
+  call_pair: 'bg-[#FEF2F2] border-[#FECACA] hover:border-[#DC2626]',
+  call_trio: 'bg-[#F0FDF4] border-[#BBF7D0] hover:border-[#16A34A]',
+  speed_timer: 'bg-[#FFFBEB] border-[#FDE68A] hover:border-[#D97706]',
+  star_of_hope: 'bg-[#FEFCE8] border-[#FEF08A] hover:border-[#CA8A04]',
+};
+
+const formatClassDisplayName = (rawName: string) => {
+  const trimmed = (rawName || '').trim();
+  if (!trimmed) return 'Lớp học';
+  return trimmed.toLowerCase().startsWith('lớp') ? trimmed : `Lớp ${trimmed}`;
+};
+
 export const StudentCallGames: React.FC = () => {
   const { classes, user } = useApp();
   const teacherId = user?.id || 'gv_dieptoantoan';
 
-  // State: Source of students (Class or Manual List)
+  // Source of students (Class from AppContext/Supabase or Manual List)
   const [selectedSourceKey, setSelectedSourceKey] = useState<string>(() => {
     return classes[0]?.id || 'manual';
   });
+  const hasUserSelectedSourceRef = useRef(false);
 
   // Manual list state
   const [manualStudents, setManualStudents] = useState<StudentCandidate[]>(() => {
@@ -162,58 +206,94 @@ export const StudentCallGames: React.FC = () => {
   });
   const [showManualEditorModal, setShowManualEditorModal] = useState<boolean>(false);
   const [manualRawText, setManualRawText] = useState<string>('');
+  const [manualEditorError, setManualEditorError] = useState<string | null>(null);
 
-  // Selected Game Mode (1 of 10)
+  // Selected Game Mode & Library expansion
   const [selectedMode, setSelectedMode] = useState<CallGameMode>('wheel');
+  const [showAllGames, setShowAllGames] = useState<boolean>(false);
 
-  // Anti-duplicate rule toggle (Default: ON)
+  // Settings & Toggles
   const [antiDuplicate, setAntiDuplicate] = useState<boolean>(true);
-
-  // Sound Muted toggle
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Absent student IDs
+  // Absent, Called, History
   const [absentIds, setAbsentIds] = useState<Set<string>>(new Set());
-
-  // Called students in current session
   const [calledSessionIds, setCalledSessionIds] = useState<Set<string>>(new Set());
-
-  // Call history
   const [historyItems, setHistoryItems] = useState<CallHistoryItem[]>([]);
+  const [confirmClearHistory, setConfirmClearHistory] = useState<boolean>(false);
 
-  // Modals state
+  // Modals
   const [showAbsentModal, setShowAbsentModal] = useState<boolean>(false);
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
   const [showTimerModal, setShowTimerModal] = useState<boolean>(false);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState<boolean>(false);
 
-  // Selection result modal
+  // Turn Result & Note
   const [pickedResult, setPickedResult] = useState<StudentCandidate[] | null>(null);
+  const [lastResultHistoryId, setLastResultHistoryId] = useState<string | null>(null);
   const [resultScoreNote, setResultScoreNote] = useState<string>('');
 
-  // Running game animation state
+  // Active Animation State & Cleanup Refs
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const activeTurnRecordedRef = useRef<boolean>(false);
+  const rafRef = useRef<number | null>(null);
+  const timersRef = useRef<number[]>([]);
 
-  // Wheel animation states
+  // Wheel Animation States
   const wheelCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [wheelRotation, setWheelRotation] = useState<number>(0);
+  const wheelRotationRef = useRef<number>(0);
+  const [wheelSnapshotStudents, setWheelSnapshotStudents] = useState<StudentCandidate[] | null>(null);
 
-  // Card flip states
-  const [flippedCards, setFlippedCards] = useState<boolean[]>([]);
-  const [cardDeckStudents, setCardDeckStudents] = useState<StudentCandidate[]>([]);
-
-  // Mystery gift boxes states
+  // Game-specific visual states
+  const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false, false, false]);
+  const [cardDeckStudents, setCardDeckStudents] = useState<(StudentCandidate | null)[]>([null, null, null, null, null, null]);
   const [openedBoxIndex, setOpenedBoxIndex] = useState<number | null>(null);
-
-  // Rocket countdown state
+  const [shakingBoxIndex, setShakingBoxIndex] = useState<number | null>(null);
   const [rocketCountdown, setRocketCountdown] = useState<number | null>(null);
+  const [envelopeOpened, setEnvelopeOpened] = useState<boolean>(false);
+  const [rollingPreviewNames, setRollingPreviewNames] = useState<string[]>([]);
 
-  // Timer Widget state
+  // Timer Widget State
   const [timerSeconds, setTimerSeconds] = useState<number>(30);
   const [initialTimerSeconds, setInitialTimerSeconds] = useState<number>(30);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
 
-  // 1. Resolve active candidate list
+  const clearAllAnimations = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    timersRef.current.forEach(id => {
+      window.clearTimeout(id);
+      window.clearInterval(id);
+    });
+    timersRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearAllAnimations();
+    };
+  }, [clearAllAnimations]);
+
+  // Sync default class selection if Supabase classes arrive asynchronously
+  useEffect(() => {
+    if (selectedSourceKey === 'manual') {
+      if (!hasUserSelectedSourceRef.current && classes.length > 0) {
+        setSelectedSourceKey(classes[0].id);
+      }
+      return;
+    }
+    const exists = classes.some(c => c.id === selectedSourceKey);
+    if (!exists) {
+      setSelectedSourceKey(classes[0]?.id || 'manual');
+    }
+  }, [classes, selectedSourceKey]);
+
+  // Active class & student lists
   const activeClassRoom = useMemo(() => {
     if (selectedSourceKey === 'manual') return null;
     return classes.find(c => c.id === selectedSourceKey) || null;
@@ -231,89 +311,273 @@ export const StudentCallGames: React.FC = () => {
 
   const activeListName = useMemo(() => {
     if (selectedSourceKey === 'manual') return 'Danh sách nhập tay';
-    return activeClassRoom ? `Lớp ${activeClassRoom.name}` : 'Lớp học';
+    return activeClassRoom ? formatClassDisplayName(activeClassRoom.name) : 'Lớp học';
   }, [selectedSourceKey, activeClassRoom]);
 
-  // 2. Load cached absent IDs, session called IDs, and history when source changes
+  // Load cached absent IDs, session called IDs, and history when source changes
   useEffect(() => {
-    const loadedAbsent = loadAbsentIds(teacherId, selectedSourceKey);
-    setAbsentIds(new Set(loadedAbsent));
+    clearAllAnimations();
+    setIsPlaying(false);
+    setPickedResult(null);
+    setLastResultHistoryId(null);
+    setResultScoreNote('');
+    setWheelSnapshotStudents(null);
+    setOpenedBoxIndex(null);
+    setShakingBoxIndex(null);
+    setEnvelopeOpened(false);
+    setRocketCountdown(null);
+    setRollingPreviewNames([]);
+    setConfirmClearHistory(false);
 
-    const loadedCalled = loadCalledSessionIds(teacherId, selectedSourceKey);
-    setCalledSessionIds(new Set(loadedCalled));
+    setAbsentIds(new Set(loadAbsentIds(teacherId, selectedSourceKey)));
+    setCalledSessionIds(new Set(loadCalledSessionIds(teacherId, selectedSourceKey)));
+    setHistoryItems(loadCallHistory(teacherId, selectedSourceKey));
+  }, [teacherId, selectedSourceKey, clearAllAnimations]);
 
-    const loadedHistory = loadCallHistory(teacherId, selectedSourceKey);
-    setHistoryItems(loadedHistory);
-  }, [teacherId, selectedSourceKey]);
+  // Persist absent IDs
+  const updateAbsentIds = useCallback(
+    (newSet: Set<string>) => {
+      setAbsentIds(newSet);
+      saveAbsentIds(teacherId, selectedSourceKey, Array.from(newSet));
+    },
+    [teacherId, selectedSourceKey]
+  );
 
-  // 3. Save absent IDs when changed
-  const updateAbsentIds = useCallback((newSet: Set<string>) => {
-    setAbsentIds(newSet);
-    saveAbsentIds(teacherId, selectedSourceKey, Array.from(newSet));
-  }, [teacherId, selectedSourceKey]);
+  // Persist called IDs
+  const updateCalledSessionIds = useCallback(
+    (newSet: Set<string>) => {
+      setCalledSessionIds(newSet);
+      saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(newSet));
+    },
+    [teacherId, selectedSourceKey]
+  );
 
-  // 4. Save session called IDs when changed
-  const updateCalledSessionIds = useCallback((newSet: Set<string>) => {
-    setCalledSessionIds(newSet);
-    saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(newSet));
-  }, [teacherId, selectedSourceKey]);
+  // Real statistics strictly derived from current class/list
+  const currentStudentIdSet = useMemo(
+    () => new Set(allCurrentStudents.map(s => s.id)),
+    [allCurrentStudents]
+  );
 
-  // 5. Available pool calculation
-  const availableStudents = useMemo(() => {
-    return getAvailableStudents(allCurrentStudents, absentIds, calledSessionIds, antiDuplicate);
-  }, [allCurrentStudents, absentIds, calledSessionIds, antiDuplicate]);
+  const presentStudents = useMemo(
+    () => allCurrentStudents.filter(s => !absentIds.has(s.id)),
+    [allCurrentStudents, absentIds]
+  );
+
+  const absentInClassCount = useMemo(
+    () => allCurrentStudents.filter(s => absentIds.has(s.id)).length,
+    [allCurrentStudents, absentIds]
+  );
+
+  const calledInClassCount = useMemo(
+    () => Array.from(calledSessionIds).filter(id => currentStudentIdSet.has(id)).length,
+    [calledSessionIds, currentStudentIdSet]
+  );
+
+  const availableStudents = useMemo(
+    () => getAvailableStudents(allCurrentStudents, absentIds, calledSessionIds, antiDuplicate),
+    [allCurrentStudents, absentIds, calledSessionIds, antiDuplicate]
+  );
+
+  const currentModeMeta = useMemo(
+    () => CALL_GAME_MODES.find(m => m.id === selectedMode) || CALL_GAME_MODES[0],
+    [selectedMode]
+  );
+
+  // Determine exact eligibility issue (if any) for current game mode
+  const eligibilityIssue = useMemo<{
+    type: 'empty_class' | 'all_absent' | 'insufficient_present' | 'exhausted_session';
+    message: string;
+  } | null>(() => {
+    const needed = currentModeMeta.pickCount;
+
+    if (allCurrentStudents.length === 0) {
+      return {
+        type: 'empty_class',
+        message: `${activeListName} hiện chưa có học sinh nào (0 học sinh). Hãy nhập danh sách hoặc chọn lớp khác để bắt đầu.`,
+      };
+    }
+
+    if (presentStudents.length === 0) {
+      return {
+        type: 'all_absent',
+        message: `Tất cả ${allCurrentStudents.length} học sinh của ${activeListName} đang được đánh dấu vắng mặt.`,
+      };
+    }
+
+    if (presentStudents.length < needed) {
+      return {
+        type: 'insufficient_present',
+        message: `Trò chơi “${currentModeMeta.title}” cần ${needed} học sinh có mặt, nhưng lớp hiện chỉ có ${presentStudents.length} học sinh có mặt.`,
+      };
+    }
+
+    if (availableStudents.length < needed) {
+      if (availableStudents.length === 0) {
+        return {
+          type: 'exhausted_session',
+          message: `Tất cả học sinh có mặt đã được gọi trong phiên này. Hãy đặt lại phiên hoặc tắt chống trùng để tiếp tục.`,
+        };
+      }
+      return {
+        type: 'exhausted_session',
+        message: `Trò chơi “${currentModeMeta.title}” cần ${needed} học sinh, nhưng chỉ còn ${availableStudents.length} học sinh chưa gọi trong phiên.`,
+      };
+    }
+
+    return null;
+  }, [
+    allCurrentStudents.length,
+    presentStudents.length,
+    availableStudents.length,
+    currentModeMeta.pickCount,
+    currentModeMeta.title,
+    activeListName,
+  ]);
+
+  const canPlay = !isPlaying && eligibilityIssue === null;
 
   // Sound mute sync
   useEffect(() => {
     sounds.muted = isMuted;
   }, [isMuted]);
 
-  // Timer interval
+  // Countdown timer interval
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isTimerRunning && timerSeconds > 0) {
-      interval = setInterval(() => {
-        setTimerSeconds(prev => {
-          if (prev <= 4 && prev > 1) {
-            sounds.playTimerBeep();
-          } else if (prev === 1) {
-            sounds.playBell();
-            setIsTimerRunning(false);
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (!isTimerRunning) return;
+    if (timerSeconds <= 0) {
+      setIsTimerRunning(false);
+      return;
     }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+
+    const interval = window.setInterval(() => {
+      setTimerSeconds(prev => {
+        if (prev <= 4 && prev > 1) {
+          sounds.playTimerBeep();
+        } else if (prev === 1) {
+          sounds.playBell();
+          setIsTimerRunning(false);
+        }
+        return Math.max(0, prev - 1);
+      });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
   }, [isTimerRunning, timerSeconds]);
 
-  // Handle Wheel Canvas Drawing
+  // Fullscreen keyboard & browser sync
+  const hadNativeFullscreenRef = useRef(false);
+
   useEffect(() => {
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement && hadNativeFullscreenRef.current) {
+        hadNativeFullscreenRef.current = false;
+        setIsFullscreen(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        hadNativeFullscreenRef.current = false;
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isFullscreen]);
+
+  const handleToggleFullscreen = () => {
+    if (!isFullscreen) {
+      setIsFullscreen(true);
+      try {
+        if (stageContainerRef.current && stageContainerRef.current.requestFullscreen) {
+          stageContainerRef.current
+            .requestFullscreen()
+            .then(() => {
+              hadNativeFullscreenRef.current = true;
+            })
+            .catch(() => {
+              hadNativeFullscreenRef.current = false;
+            });
+        }
+      } catch {
+        hadNativeFullscreenRef.current = false;
+      }
+    } else {
+      hadNativeFullscreenRef.current = false;
+      setIsFullscreen(false);
+      try {
+        if (document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  // Determine students rendered on the wheel (freeze snapshot while spinning or displaying wheel result)
+  const wheelDisplayStudents = useMemo(() => {
+    if (wheelSnapshotStudents && wheelSnapshotStudents.length > 0) {
+      return wheelSnapshotStudents;
+    }
+    return availableStudents;
+  }, [wheelSnapshotStudents, availableStudents]);
+
+  // Draw Wheel Canvas (High-DPI sharp rendering, gold rim, studs, readable labels)
+  useEffect(() => {
+    if (selectedMode !== 'wheel') return;
     const canvas = wheelCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const width = canvas.width;
-    const height = canvas.height;
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = Math.min(centerX, centerY) - 10;
+    const logicalSize = isFullscreen ? 380 : 300;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas.width !== logicalSize * dpr || canvas.height !== logicalSize * dpr) {
+      canvas.width = logicalSize * dpr;
+      canvas.height = logicalSize * dpr;
+    }
 
-    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.scale(dpr, dpr);
 
-    // If available list is empty, draw placeholder
-    const listToDraw = availableStudents.length > 0 ? availableStudents : allCurrentStudents;
-    const totalSlices = Math.max(listToDraw.length, 1);
+    const centerX = logicalSize / 2;
+    const centerY = logicalSize / 2;
+    const outerRadius = logicalSize / 2 - 4;
+    const wheelRadius = outerRadius - 12;
+
+    ctx.clearRect(0, 0, logicalSize, logicalSize);
+
+    // Outer Gold Rim
+    const rimGrad = ctx.createRadialGradient(centerX, centerY, wheelRadius, centerX, centerY, outerRadius);
+    rimGrad.addColorStop(0, '#F59E0B');
+    rimGrad.addColorStop(0.5, '#FDE047');
+    rimGrad.addColorStop(1, '#B45309');
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = rimGrad;
+    ctx.fill();
+
+    // Decorative gold rim bulbs
+    const bulbCount = 18;
+    for (let b = 0; b < bulbCount; b++) {
+      const angle = (b * 2 * Math.PI) / bulbCount;
+      const bx = centerX + Math.cos(angle) * (wheelRadius + 6);
+      const by = centerY + Math.sin(angle) * (wheelRadius + 6);
+      ctx.beginPath();
+      ctx.arc(bx, by, 2.7, 0, 2 * Math.PI);
+      ctx.fillStyle = b % 2 === 0 ? '#FFFBEB' : '#F59E0B';
+      ctx.fill();
+    }
+
+    const listToDraw = wheelDisplayStudents;
+    const isEmptyWheel = listToDraw.length === 0;
+    const totalSlices = isEmptyWheel ? 8 : listToDraw.length;
     const sliceAngle = (2 * Math.PI) / totalSlices;
-
-    const colors = [
-      '#006BFF', '#22C55E', '#F59E0B', '#EF4444',
-      '#8B5CF6', '#06B6D4', '#EC4899', '#3B82F6',
-      '#10B981', '#F97316'
-    ];
 
     ctx.save();
     ctx.translate(centerX, centerY);
@@ -325,215 +589,359 @@ export const StudentCallGames: React.FC = () => {
 
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.arc(0, 0, radius, startAngle, endAngle);
+      ctx.arc(0, 0, wheelRadius, startAngle, endAngle);
       ctx.closePath();
 
-      ctx.fillStyle = colors[i % colors.length];
+      ctx.fillStyle = isEmptyWheel
+        ? i % 2 === 0
+          ? '#163A69'
+          : '#1E4A84'
+        : WHEEL_SLICE_COLORS[i % WHEEL_SLICE_COLORS.length];
       ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ffffff';
-      ctx.stroke();
 
-      // Text label
-      ctx.save();
-      ctx.rotate(startAngle + sliceAngle / 2);
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 13px "Times New Roman", Times, serif';
+      if (totalSlices > 1) {
+        ctx.lineWidth = totalSlices > 24 ? 1 : 2;
+        ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+        ctx.stroke();
+      }
 
-      const studentName = listToDraw[i]?.fullName || `Số ${i + 1}`;
-      const displayName = studentName.length > 14 ? studentName.slice(0, 12) + '…' : studentName;
-      ctx.fillText(displayName, radius - 18, 5);
-      ctx.restore();
+      if (!isEmptyWheel) {
+        ctx.save();
+        ctx.rotate(startAngle + sliceAngle / 2);
+        ctx.textAlign = totalSlices === 1 ? 'center' : 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+        ctx.shadowBlur = 3;
+
+        const fontSize =
+          totalSlices <= 6
+            ? isFullscreen
+              ? 15
+              : 13
+            : totalSlices <= 14
+            ? isFullscreen
+              ? 13.5
+              : 11.5
+            : totalSlices <= 24
+            ? 10.5
+            : 9;
+
+        ctx.font = `bold ${fontSize}px "Times New Roman", Times, serif`;
+
+        const rawName = listToDraw[i]?.fullName || '';
+        const maxChars = totalSlices <= 8 ? 16 : totalSlices <= 16 ? 14 : 11;
+        const displayName = rawName.length > maxChars ? `${rawName.slice(0, maxChars - 1)}…` : rawName;
+
+        const textX = totalSlices === 1 ? wheelRadius * 0.52 : wheelRadius - 14;
+        ctx.fillText(displayName, textX, 0);
+        ctx.restore();
+      }
     }
 
     ctx.restore();
 
-    // Center Hub
+    // Inner Gold Ring & Center Hub
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 28, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, isFullscreen ? 32 : 26, 0, 2 * Math.PI);
     ctx.fillStyle = '#082B52';
     ctx.fill();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = '#FBBF24';
     ctx.stroke();
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px "Times New Roman", Times, serif';
+    ctx.fillStyle = '#FEF3C7';
+    ctx.font = `bold ${isFullscreen ? 12 : 10}px "Times New Roman", Times, serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('TÂY ĐÔ', centerX, centerY + 4);
-  }, [availableStudents, allCurrentStudents, wheelRotation]);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TÂY ĐÔ', centerX, centerY);
 
-  // Trigger Call Action
-  const handleStartGame = (mode: CallGameMode = selectedMode) => {
-    if (isPlaying) return;
+    ctx.restore();
+  }, [selectedMode, wheelDisplayStudents, wheelRotation, isFullscreen]);
 
-    // Check availability
-    if (availableStudents.length === 0) {
-      if (antiDuplicate && calledSessionIds.size > 0) {
-        alert('Tất cả học sinh có mặt đã được gọi trong phiên này! Bạn có thể nhấn "Đặt lại phiên gọi" để bắt đầu vòng mới.');
-      } else {
-        alert('Không có học sinh khả dụng để gọi. Vui lòng kiểm tra lại danh sách hoặc danh sách vắng.');
-      }
-      return;
-    }
+  // Finalize a turn cleanly — guarantees history is recorded strictly once per turn
+  const finishSelection = useCallback(
+    (winners: StudentCandidate[], mode: CallGameMode, modeTitle: string) => {
+      if (activeTurnRecordedRef.current) return;
+      activeTurnRecordedRef.current = true;
 
-    const currentMeta = CALL_GAME_MODES.find(m => m.id === mode) || CALL_GAME_MODES[0];
-    const pickCount = currentMeta.pickCount;
+      setIsPlaying(false);
+      setPickedResult(winners);
+      setResultScoreNote('');
+      sounds.playFanfare();
 
+      // Update called session IDs
+      setCalledSessionIds(prev => {
+        const next = new Set(prev);
+        winners.forEach(w => next.add(w.id));
+        saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(next));
+        return next;
+      });
+
+      // Record single history entry
+      const entryId = `call-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const historyEntry: CallHistoryItem = {
+        id: entryId,
+        timestamp: Date.now(),
+        classId: selectedSourceKey,
+        className: activeListName,
+        mode,
+        modeName: modeTitle,
+        selectedStudents: winners,
+      };
+
+      setLastResultHistoryId(entryId);
+      setHistoryItems(prev => {
+        const next = [historyEntry, ...prev];
+        saveCallHistory(teacherId, selectedSourceKey, next);
+        return next;
+      });
+    },
+    [teacherId, selectedSourceKey, activeListName]
+  );
+
+  // Update optional score note on the just-completed history item without adding duplicates
+  const handleUpdateScoreNote = (note: string) => {
+    setResultScoreNote(note);
+    if (!lastResultHistoryId) return;
+    setHistoryItems(prev => {
+      const next = prev.map(item =>
+        item.id === lastResultHistoryId ? { ...item, scoreNote: note.trim() || undefined } : item
+      );
+      saveCallHistory(teacherId, selectedSourceKey, next);
+      return next;
+    });
+  };
+
+  // Start selected game (with optional clicked index for gift_box / cards)
+  const handleStartGame = (mode: CallGameMode = selectedMode, preferredVisualIndex?: number) => {
+    if (isPlaying || eligibilityIssue !== null) return;
+
+    const meta = CALL_GAME_MODES.find(m => m.id === mode) || CALL_GAME_MODES[0];
+    if (availableStudents.length < meta.pickCount) return;
+
+    clearAllAnimations();
+    activeTurnRecordedRef.current = false;
     setIsPlaying(true);
     setPickedResult(null);
+    setLastResultHistoryId(null);
     setResultScoreNote('');
+    setEnvelopeOpened(false);
+    setOpenedBoxIndex(null);
+    setShakingBoxIndex(null);
 
-    // Pre-determine winners
-    const winners = pickRandomStudents(availableStudents, pickCount);
+    const winners = pickRandomStudents(availableStudents, meta.pickCount);
 
     if (mode === 'wheel') {
-      // Rotate wheel
-      const spins = 5 + Math.floor(Math.random() * 3);
-      const targetDegrees = wheelRotation + spins * 360 + Math.floor(Math.random() * 360);
-      const duration = 3500;
+      // Snapshot current wheel pool so slice layout stays consistent during spin & winner reveal
+      const spinList = [...availableStudents];
+      setWheelSnapshotStudents(spinList);
+
+      const winnerIndex = Math.max(
+        0,
+        spinList.findIndex(s => s.id === winners[0].id)
+      );
+      const startDeg = wheelRotationRef.current;
+      const targetDeg = computeWheelTargetRotation(startDeg, winnerIndex, spinList.length, 6, 0.45);
+      const duration = 3400;
       const startTime = performance.now();
+      const sliceDeg = 360 / Math.max(spinList.length, 1);
+      let lastTickBucket = Math.floor(startDeg / sliceDeg);
 
       const animateWheel = (now: number) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        // Easing out cubic
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        const currentDeg = wheelRotation + (targetDegrees - wheelRotation) * easeOut;
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+        const currentDeg = startDeg + (targetDeg - startDeg) * easeOut;
+
+        wheelRotationRef.current = currentDeg;
         setWheelRotation(currentDeg);
 
-        if (Math.floor(currentDeg / 30) % 2 === 0) {
+        const bucket = Math.floor(currentDeg / sliceDeg);
+        if (bucket !== lastTickBucket) {
+          lastTickBucket = bucket;
           sounds.playTick();
         }
 
         if (progress < 1) {
-          requestAnimationFrame(animateWheel);
+          rafRef.current = requestAnimationFrame(animateWheel);
         } else {
-          finishSelection(winners, mode, currentMeta.title);
+          rafRef.current = null;
+          wheelRotationRef.current = targetDeg;
+          setWheelRotation(targetDeg);
+          finishSelection(winners, mode, meta.title);
         }
       };
-      requestAnimationFrame(animateWheel);
-    } else if (mode === 'cards') {
-      // Shuffle & card flip
-      const deck = pickRandomStudents(availableStudents, Math.min(6, availableStudents.length));
-      if (!deck.some(d => d.id === winners[0].id)) {
-        deck[0] = winners[0];
-      }
-      setCardDeckStudents(deck);
-      setFlippedCards(new Array(deck.length).fill(false));
 
-      setTimeout(() => {
+      rafRef.current = requestAnimationFrame(animateWheel);
+      return;
+    }
+
+    if (mode === 'gift_box') {
+      const targetBox =
+        typeof preferredVisualIndex === 'number'
+          ? preferredVisualIndex
+          : Math.floor(Math.random() * 6);
+      setShakingBoxIndex(targetBox);
+      sounds.playTick();
+
+      const t1 = window.setTimeout(() => {
+        setShakingBoxIndex(null);
+        setOpenedBoxIndex(targetBox);
         sounds.playTick();
-        const winIdx = deck.findIndex(d => d.id === winners[0].id);
-        const nextFlips = new Array(deck.length).fill(false);
-        nextFlips[winIdx] = true;
+
+        const t2 = window.setTimeout(() => {
+          finishSelection(winners, mode, meta.title);
+        }, 650);
+        timersRef.current.push(t2);
+      }, 900);
+      timersRef.current.push(t1);
+      return;
+    }
+
+    if (mode === 'cards') {
+      const deckSize = 6;
+      const poolSample = pickRandomStudents(
+        availableStudents,
+        Math.min(deckSize, availableStudents.length)
+      );
+      const deck: (StudentCandidate | null)[] = Array.from({ length: deckSize }, (_, idx) => {
+        return poolSample[idx % poolSample.length] || winners[0];
+      });
+      const winSlot =
+        typeof preferredVisualIndex === 'number'
+          ? preferredVisualIndex
+          : Math.floor(Math.random() * deckSize);
+      deck[winSlot] = winners[0];
+
+      setCardDeckStudents(deck);
+      setFlippedCards(new Array(deckSize).fill(false));
+      sounds.playTick();
+
+      const t1 = window.setTimeout(() => {
+        sounds.playTick();
+        const nextFlips = new Array(deckSize).fill(false);
+        nextFlips[winSlot] = true;
         setFlippedCards(nextFlips);
-        setTimeout(() => {
-          finishSelection(winners, mode, currentMeta.title);
-        }, 1200);
-      }, 1500);
-    } else if (mode === 'gift_box') {
-      setOpenedBoxIndex(null);
-      setTimeout(() => {
-        const randBox = Math.floor(Math.random() * 6);
-        setOpenedBoxIndex(randBox);
+
+        const t2 = window.setTimeout(() => {
+          finishSelection(winners, mode, meta.title);
+        }, 800);
+        timersRef.current.push(t2);
+      }, 900);
+      timersRef.current.push(t1);
+      return;
+    }
+
+    if (mode === 'flying_envelope') {
+      sounds.playTick();
+      const t1 = window.setTimeout(() => {
+        setEnvelopeOpened(true);
         sounds.playTick();
-        setTimeout(() => {
-          finishSelection(winners, mode, currentMeta.title);
-        }, 1200);
-      }, 1200);
-    } else if (mode === 'rocket') {
+        const t2 = window.setTimeout(() => {
+          finishSelection(winners, mode, meta.title);
+        }, 700);
+        timersRef.current.push(t2);
+      }, 850);
+      timersRef.current.push(t1);
+      return;
+    }
+
+    if (mode === 'rocket') {
       setRocketCountdown(3);
       sounds.playTick();
-      const interval = setInterval(() => {
+      const interval = window.setInterval(() => {
         setRocketCountdown(prev => {
           if (prev === null) return null;
           if (prev > 1) {
             sounds.playTick();
             return prev - 1;
           }
-          clearInterval(interval);
-          sounds.playFanfare();
-          setTimeout(() => {
+          window.clearInterval(interval);
+          const t1 = window.setTimeout(() => {
             setRocketCountdown(null);
-            finishSelection(winners, mode, currentMeta.title);
-          }, 1000);
+            finishSelection(winners, mode, meta.title);
+          }, 700);
+          timersRef.current.push(t1);
           return 0;
         });
-      }, 800);
-    } else if (mode === 'speed_timer') {
-      // Rapid shuffle then auto trigger 30s timer
-      let counter = 0;
-      const shuffleInterval = setInterval(() => {
+      }, 650);
+      timersRef.current.push(interval);
+      return;
+    }
+
+    if (mode === 'speed_timer') {
+      let step = 0;
+      const interval = window.setInterval(() => {
+        const preview = pickRandomStudents(availableStudents, 1);
+        setRollingPreviewNames(preview.map(p => p.fullName));
         sounds.playTick();
-        counter++;
-        if (counter > 14) {
-          clearInterval(shuffleInterval);
-          finishSelection(winners, mode, currentMeta.title);
-          // Auto start 30s timer
+        step++;
+        if (step >= 10) {
+          window.clearInterval(interval);
+          setRollingPreviewNames([]);
+          finishSelection(winners, mode, meta.title);
           setInitialTimerSeconds(30);
           setTimerSeconds(30);
           setIsTimerRunning(true);
         }
       }, 100);
-    } else {
-      // Generic dramatic pick with fanfare
-      let counter = 0;
-      const shuffleInterval = setInterval(() => {
-        sounds.playTick();
-        counter++;
-        if (counter > 12) {
-          clearInterval(shuffleInterval);
-          finishSelection(winners, mode, currentMeta.title);
-        }
-      }, 120);
+      timersRef.current.push(interval);
+      return;
     }
+
+    // magic_sphere, call_pair, call_trio, star_of_hope
+    let step = 0;
+    const interval = window.setInterval(() => {
+      const preview = pickRandomStudents(availableStudents, meta.pickCount);
+      setRollingPreviewNames(preview.map(p => p.fullName));
+      sounds.playTick();
+      step++;
+      if (step >= 11) {
+        window.clearInterval(interval);
+        setRollingPreviewNames([]);
+        finishSelection(winners, mode, meta.title);
+      }
+    }, 110);
+    timersRef.current.push(interval);
   };
 
-  const finishSelection = (
-    winners: StudentCandidate[],
-    mode: CallGameMode,
-    modeTitle: string
-  ) => {
-    setIsPlaying(false);
-    setPickedResult(winners);
-    sounds.playFanfare();
-
-    // 1. Add to session called IDs if antiDuplicate is on
-    const newCalled = new Set(calledSessionIds);
-    winners.forEach(w => newCalled.add(w.id));
-    updateCalledSessionIds(newCalled);
-
-    // 2. Add to history
-    const historyEntry: CallHistoryItem = {
-      id: `call-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      timestamp: Date.now(),
-      classId: selectedSourceKey,
-      className: activeListName,
-      mode,
-      modeName: modeTitle,
-      selectedStudents: winners,
-    };
-
-    const newHistory = [historyEntry, ...historyItems];
-    setHistoryItems(newHistory);
-    saveCallHistory(teacherId, selectedSourceKey, newHistory);
+  // Switch game mode cleanly
+  const handleSelectGameMode = (modeId: CallGameMode) => {
+    if (isPlaying) return;
+    setSelectedMode(modeId);
+    setPickedResult(null);
+    setLastResultHistoryId(null);
+    setResultScoreNote('');
+    setWheelSnapshotStudents(null);
+    setOpenedBoxIndex(null);
+    setShakingBoxIndex(null);
+    setEnvelopeOpened(false);
+    setFlippedCards([false, false, false, false, false, false]);
+    setRollingPreviewNames([]);
   };
 
-  // Reset Session
+  // Reset current session
   const handleResetSession = () => {
+    clearAllAnimations();
+    setIsPlaying(false);
     updateCalledSessionIds(new Set());
+    setPickedResult(null);
+    setLastResultHistoryId(null);
+    setResultScoreNote('');
+    setWheelSnapshotStudents(null);
+    setOpenedBoxIndex(null);
+    setFlippedCards([false, false, false, false, false, false]);
+    setEnvelopeOpened(false);
     setShowResetConfirmModal(false);
   };
 
-  // Clear All History
-  const handleClearHistory = () => {
-    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử gọi học sinh của danh sách này không?')) {
-      clearCallHistory(teacherId, selectedSourceKey);
-      setHistoryItems([]);
-      setShowHistoryModal(false);
-    }
+  // Clear history (inline confirm, no native window.confirm)
+  const handleClearHistoryConfirmed = () => {
+    clearCallHistory(teacherId, selectedSourceKey);
+    setHistoryItems([]);
+    setConfirmClearHistory(false);
+    setShowHistoryModal(false);
   };
 
   // Toggle Absent Student
@@ -545,211 +953,846 @@ export const StudentCallGames: React.FC = () => {
       nextSet.add(studentId);
     }
     updateAbsentIds(nextSet);
+    if (!isPlaying) {
+      setWheelSnapshotStudents(null);
+    }
   };
 
-  // Save manual students
+  // Open Manual Editor Modal
+  const openManualEditor = () => {
+    setManualEditorError(null);
+    setManualRawText(manualStudents.map(s => `${s.code} - ${s.fullName}`).join('\n'));
+    setShowManualEditorModal(true);
+  };
+
+  // Save manual list and switch source to 'manual'
   const handleSaveManualList = () => {
-    const lines = manualRawText.split('\n').map(l => l.trim()).filter(Boolean);
-    if (lines.length === 0) {
-      alert('Vui lòng nhập ít nhất 1 học sinh!');
+    const parsed = parseManualStudentsText(manualRawText);
+    if (parsed.length === 0) {
+      setManualEditorError('Vui lòng nhập ít nhất 1 học sinh hoặc nhấn “Xóa trắng danh sách”.');
       return;
     }
 
-    const parsed: StudentCandidate[] = lines.map((line, index) => {
-      const parts = line.split(/[-–—:]/).map(p => p.trim());
-      let code = `HS${String(index + 1).padStart(2, '0')}`;
-      let name = line;
-      if (parts.length >= 2) {
-        code = parts[0];
-        name = parts.slice(1).join(' ');
-      }
-      return {
-        id: `manual-${index + 1}-${Date.now()}`,
-        code,
-        fullName: name,
-        gender: index % 2 === 0 ? 'Nam' : 'Nữ',
-      };
-    });
-
+    hasUserSelectedSourceRef.current = true;
     setManualStudents(parsed);
     saveCustomManualStudents(teacherId, parsed);
+    saveCalledSessionIds(teacherId, 'manual', []);
+    saveAbsentIds(teacherId, 'manual', []);
+    if (selectedSourceKey === 'manual') {
+      setCalledSessionIds(new Set());
+      setAbsentIds(new Set());
+      setPickedResult(null);
+      setWheelSnapshotStudents(null);
+    } else {
+      setSelectedSourceKey('manual');
+    }
+    setManualEditorError(null);
     setShowManualEditorModal(false);
   };
 
-  return (
-    <div className="space-y-6 student-call-container pb-12">
-      {/* 1. TOP HEADER & CLASS SELECTOR */}
-      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
+  // Allow clearing manual list to empty cleanly
+  const handleClearManualList = () => {
+    hasUserSelectedSourceRef.current = true;
+    setManualStudents([]);
+    saveCustomManualStudents(teacherId, []);
+    saveCalledSessionIds(teacherId, 'manual', []);
+    saveAbsentIds(teacherId, 'manual', []);
+    if (selectedSourceKey === 'manual') {
+      setCalledSessionIds(new Set());
+      setAbsentIds(new Set());
+      setPickedResult(null);
+      setWheelSnapshotStudents(null);
+    } else {
+      setSelectedSourceKey('manual');
+    }
+    setManualRawText('');
+    setManualEditorError(null);
+    setShowManualEditorModal(false);
+  };
+
+  const displayedLibraryModes = showAllGames ? CALL_GAME_MODES : CALL_GAME_MODES.slice(0, 5);
+
+  // Reusable Play Stage renderer (shared between normal 65% column and Fullscreen presentation mode)
+  const renderPlayStage = () => {
+    return (
+      <div
+        ref={stageContainerRef}
+        className={
+          isFullscreen
+            ? 'fixed inset-0 z-50 bg-gradient-to-b from-[#061D3A] via-[#082B52] to-[#0B396E] text-white p-4 sm:p-6 flex flex-col justify-between overflow-y-auto student-call-container'
+            : 'bg-gradient-to-b from-[#072246] via-[#0A2E5C] to-[#08264C] text-white rounded-2xl border border-[#1B4A88] p-4 sm:p-5 shadow-md flex flex-col justify-between h-full relative overflow-hidden'
+        }
+      >
+        {/* Stage Top Header */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/15 shrink-0">
+          <div className="min-w-0">
             <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EBF3FC] text-[#006BFF] border border-[#DCE8F7]">
-                Phân hệ Giáo viên
+              <h3 className="text-lg sm:text-xl font-bold text-white truncate">
+                {currentModeMeta.title}
+              </h3>
+              <span className="text-xs font-semibold text-amber-300 whitespace-nowrap">
+                · {activeListName}
               </span>
-              <span className="text-xs font-semibold text-slate-500">THCS Tây Đô</span>
             </div>
-            <h2 className="text-2xl font-bold text-[#082B52] mt-1">
-              Trò chơi Gọi học sinh & Tương tác lớp học
-            </h2>
-            <p className="text-sm text-slate-600">
-              Công cụ gọi ngẫu nhiên công bằng, không trùng lặp, tích hợp 10 trò chơi sinh động và đồng hồ đếm ngược.
+            <p className="text-xs text-blue-200 truncate mt-0.5">
+              {currentModeMeta.shortDesc}
             </p>
           </div>
 
-          {/* Quick Tools */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={() => setIsMuted(prev => !prev)}
-              className="px-3 py-2 rounded-xl border border-[#DCE8F7] text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center space-x-1.5 transition-colors"
-              title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
-            >
-              {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-emerald-600" />}
-              <span>{isMuted ? 'Tắt âm' : 'Âm thanh'}</span>
-            </button>
-
-            <button
-              onClick={() => setShowTimerModal(true)}
-              className="px-3.5 py-2 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-xs"
-            >
-              <TimerIcon className="w-4 h-4 text-amber-600" />
-              <span>Đồng hồ đếm ngược</span>
-            </button>
-
-            <button
-              onClick={() => setShowHistoryModal(true)}
-              className="px-3.5 py-2 rounded-xl bg-[#EBF3FC] text-[#006BFF] border border-[#DCE8F7] hover:bg-blue-100 text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-xs"
-            >
-              <History className="w-4 h-4 text-[#006BFF]" />
-              <span>Lịch sử ({historyItems.length})</span>
-            </button>
-          </div>
-        </div>
-
-        {/* CONTROLS ROW */}
-        <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-          {/* Source Selector */}
-          <div className="md:col-span-5 flex items-center space-x-2">
-            <label className="text-xs font-bold text-slate-700 shrink-0">Chọn lớp:</label>
-            <select
-              value={selectedSourceKey}
-              onChange={e => setSelectedSourceKey(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[#DCE8F7] bg-white text-sm font-bold text-[#082B52] focus:ring-2 focus:ring-[#006BFF] focus:outline-hidden"
-            >
-              {classes.map(c => (
-                <option key={c.id} value={c.id}>
-                  Lớp {c.name} ({c.studentCount || c.students.length} học sinh)
-                </option>
-              ))}
-              <option value="manual">📋 Danh sách nhập tay ({manualStudents.length} bạn)</option>
-            </select>
-
-            {selectedSourceKey === 'manual' && (
+          <div className="flex items-center gap-2 shrink-0">
+            {(isTimerRunning || timerSeconds !== initialTimerSeconds || selectedMode === 'speed_timer') && (
               <button
-                onClick={() => {
-                  setManualRawText(manualStudents.map(s => `${s.code} - ${s.fullName}`).join('\n'));
-                  setShowManualEditorModal(true);
-                }}
-                className="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold shrink-0 flex items-center space-x-1"
-                title="Chỉnh sửa danh sách nhập tay"
+                type="button"
+                onClick={() => setShowTimerModal(true)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition-colors flex items-center space-x-1.5 cursor-pointer tabular-nums ${
+                  isTimerRunning
+                    ? 'bg-amber-400 text-[#082B52] border-amber-300'
+                    : 'bg-white/10 text-amber-200 border-white/20 hover:bg-white/20'
+                }`}
+                title="Mở điều khiển đồng hồ đếm ngược"
               >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Sửa</span>
+                <TimerIcon className="w-3.5 h-3.5" />
+                <span>
+                  {String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:
+                  {String(timerSeconds % 60).padStart(2, '0')}
+                </span>
+              </button>
+            )}
+
+            <span className="text-xs font-bold text-blue-100 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15 tabular-nums whitespace-nowrap">
+              Còn lại: {availableStudents.length}
+            </span>
+
+            {isFullscreen && (
+              <button
+                type="button"
+                onClick={handleToggleFullscreen}
+                className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#082B52] text-xs font-bold flex items-center space-x-1.5 shadow-md cursor-pointer whitespace-nowrap"
+              >
+                <Minimize2 className="w-4 h-4" />
+                <span>Thoát toàn màn hình</span>
               </button>
             )}
           </div>
+        </div>
 
-          {/* Stat Badges */}
-          <div className="md:col-span-7 flex flex-wrap items-center justify-start md:justify-end gap-2 text-xs">
-            <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold border border-slate-200">
-              Sĩ số: <b>{allCurrentStudents.length}</b>
-            </span>
+        {/* Center Stage Body */}
+        <div className="flex-1 flex flex-col items-center justify-center py-3 sm:py-4 gap-3.5">
+          {/* 1. VÒNG QUAY MAY MẮN */}
+          {selectedMode === 'wheel' && (
+            <div className="relative flex flex-col items-center">
+              {/* Fixed Top Pointer Needle */}
+              <div className="relative z-20 -mb-3.5 drop-shadow-lg" aria-hidden="true">
+                <svg width="34" height="28" viewBox="0 0 34 28">
+                  <polygon
+                    points="17,27 3,3 31,3"
+                    fill="#EF4444"
+                    stroke="#FDE047"
+                    strokeWidth="2.5"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
 
-            <button
-              onClick={() => setShowAbsentModal(true)}
-              className={`px-3 py-1.5 rounded-lg font-bold border transition-colors flex items-center space-x-1 ${
-                absentIds.size > 0
-                  ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
-                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-              }`}
+              <div className="rounded-full p-1.5 bg-[#061A36] shadow-[0_12px_36px_rgba(0,0,0,0.45)] border-2 border-amber-400/70">
+                <canvas
+                  ref={wheelCanvasRef}
+                  style={{
+                    width: isFullscreen ? 380 : 300,
+                    height: isFullscreen ? 380 : 300,
+                  }}
+                  className="rounded-full block max-w-[74vw] max-h-[74vw]"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 2. HỘP QUÀ BÍ MẬT */}
+          {selectedMode === 'gift_box' && (
+            <div className="w-full max-w-xl">
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                {[0, 1, 2, 3, 4, 5].map(idx => {
+                  const isOpened = openedBoxIndex === idx;
+                  const isShaking = shakingBoxIndex === idx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleStartGame('gift_box', idx)}
+                      disabled={!canPlay}
+                      className={`p-3.5 sm:p-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                        isOpened
+                          ? 'bg-amber-400/20 border-amber-300 glow-gold scale-105'
+                          : isShaking
+                          ? 'bg-white/15 border-amber-400 animate-rumble'
+                          : 'bg-white/10 border-white/20 hover:bg-white/15 hover:border-amber-300'
+                      }`}
+                    >
+                      <Gift
+                        className={`w-10 h-10 sm:w-12 sm:h-12 transition-transform ${
+                          isOpened ? 'text-amber-300 scale-110' : 'text-amber-200'
+                        }`}
+                      />
+                      <span className="text-xs font-bold text-white mt-2">
+                        {isOpened ? 'Đã mở!' : `Hộp quà ${idx + 1}`}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 3. THẺ BÀI LẬT MỞ */}
+          {selectedMode === 'cards' && (
+            <div className="w-full max-w-2xl">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[0, 1, 2, 3, 4, 5].map(idx => {
+                  const isFlipped = flippedCards[idx];
+                  const student = cardDeckStudents[idx];
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleStartGame('cards', idx)}
+                      disabled={!canPlay}
+                      className="h-28 sm:h-32 rounded-2xl perspective-1000 cursor-pointer text-left disabled:cursor-not-allowed"
+                    >
+                      <div
+                        className={`w-full h-full duration-700 transform-style-3d rounded-2xl border-2 relative transition-transform ${
+                          isFlipped ? 'rotate-y-180 border-amber-300' : 'border-blue-300/40'
+                        }`}
+                      >
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#103D7A] to-[#072144] flex flex-col items-center justify-center p-2 backface-hidden">
+                          <Layers className="w-7 h-7 text-amber-300 mb-1" />
+                          <span className="text-xs font-bold text-white">Thẻ số {idx + 1}</span>
+                          <span className="text-[11px] text-blue-200">Tây Đô</span>
+                        </div>
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-amber-50 to-amber-100 text-[#082B52] flex flex-col items-center justify-center p-2 backface-hidden rotate-y-180">
+                          <span className="text-[11px] font-bold text-[#006BFF]">
+                            {student?.code || ''}
+                          </span>
+                          <span className="text-sm font-bold text-center leading-tight mt-0.5">
+                            {student?.fullName || 'Học sinh'}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 4. BỨC THƯ BỒ CÂU */}
+          {selectedMode === 'flying_envelope' && (
+            <div className="w-full max-w-md bg-white/10 border border-white/20 rounded-3xl p-6 text-center flex flex-col items-center">
+              <div className={`transition-transform duration-500 ${isPlaying ? 'animate-floating scale-105' : ''}`}>
+                <GameCardArtwork mode="flying_envelope" className="w-28 h-28" />
+              </div>
+              <p className="text-sm font-bold text-amber-200 mt-2">
+                {isPlaying
+                  ? 'Chim bồ câu đang đưa lá thư tới...'
+                  : envelopeOpened && pickedResult?.[0]
+                  ? `Thư đã mở: ${pickedResult[0].fullName}`
+                  : 'Sẵn sàng mở bức thư chọn học sinh'}
+              </p>
+            </div>
+          )}
+
+          {/* 5. TÊN LỬA KHÔNG GIAN */}
+          {selectedMode === 'rocket' && (
+            <div className="w-full max-w-md bg-[#051833] border border-blue-400/30 rounded-3xl p-6 text-center flex flex-col items-center">
+              {rocketCountdown !== null ? (
+                <div className="h-28 flex items-center justify-center">
+                  <span className="text-6xl font-bold text-amber-300 tabular-nums animate-rumble">
+                    {rocketCountdown === 0 ? 'PHÓNG!' : rocketCountdown}
+                  </span>
+                </div>
+              ) : (
+                <div className={isPlaying ? 'animate-rumble' : 'animate-floating'}>
+                  <GameCardArtwork mode="rocket" className="w-28 h-28" />
+                </div>
+              )}
+              <p className="text-sm font-bold text-blue-100 mt-2">
+                {rocketCountdown !== null
+                  ? 'Đang chuẩn bị rời bệ phóng...'
+                  : 'Đếm ngược 3 - 2 - 1 để chọn học sinh lên bảng'}
+              </p>
+            </div>
+          )}
+
+          {/* 6. LỒNG CẦU BỐC THĂM */}
+          {selectedMode === 'magic_sphere' && (
+            <div className="w-full max-w-md bg-white/10 border border-white/20 rounded-3xl p-6 text-center flex flex-col items-center">
+              <div className={isPlaying ? 'animate-tumble' : ''}>
+                <GameCardArtwork mode="magic_sphere" className="w-28 h-28" />
+              </div>
+              <div className="mt-3 min-h-[28px] text-base font-bold text-amber-300">
+                {isPlaying && rollingPreviewNames[0]
+                  ? rollingPreviewNames[0]
+                  : 'Quay lồng cầu chọn ngẫu nhiên 1 học sinh'}
+              </div>
+            </div>
+          )}
+
+          {/* 7. CẶP ĐÔI ĐỐI ĐẦU (2 BẠN) */}
+          {selectedMode === 'call_pair' && (
+            <div className="w-full max-w-xl bg-white/10 border border-white/20 rounded-3xl p-5 flex items-center justify-around gap-3">
+              <div className="flex-1 bg-[#082B52]/90 border border-blue-300/30 rounded-2xl p-4 text-center min-h-[116px] flex flex-col items-center justify-center">
+                <Users className="w-7 h-7 text-blue-300 mb-1.5" />
+                <span className="text-xs text-blue-200 font-semibold">Bạn thứ 1</span>
+                <span className="text-base sm:text-lg font-bold text-white mt-1">
+                  {isPlaying && rollingPreviewNames[0]
+                    ? rollingPreviewNames[0]
+                    : pickedResult?.[0]?.fullName || 'Chờ bắt cặp'}
+                </span>
+              </div>
+
+              <div className="w-12 h-12 rounded-full bg-rose-600 border-2 border-amber-300 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-md">
+                VS
+              </div>
+
+              <div className="flex-1 bg-[#082B52]/90 border border-purple-300/30 rounded-2xl p-4 text-center min-h-[116px] flex flex-col items-center justify-center">
+                <Users className="w-7 h-7 text-purple-300 mb-1.5" />
+                <span className="text-xs text-purple-200 font-semibold">Bạn thứ 2</span>
+                <span className="text-base sm:text-lg font-bold text-white mt-1">
+                  {isPlaying && rollingPreviewNames[1]
+                    ? rollingPreviewNames[1]
+                    : pickedResult?.[1]?.fullName || 'Chờ bắt cặp'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* 8. NHÓM BA BẠN (3 BẠN) */}
+          {selectedMode === 'call_trio' && (
+            <div className="w-full max-w-2xl bg-white/10 border border-white/20 rounded-3xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[0, 1, 2].map(slot => (
+                <div
+                  key={slot}
+                  className="bg-[#082B52]/90 border border-emerald-300/30 rounded-2xl p-4 text-center min-h-[108px] flex flex-col items-center justify-center"
+                >
+                  <UserPlus className="w-6 h-6 text-emerald-300 mb-1" />
+                  <span className="text-xs text-emerald-200 font-semibold">Thành viên {slot + 1}</span>
+                  <span className="text-sm sm:text-base font-bold text-white mt-1">
+                    {isPlaying && rollingPreviewNames[slot]
+                      ? rollingPreviewNames[slot]
+                      : pickedResult?.[slot]?.fullName || 'Chờ chọn'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 9. CHIẾC NÓN TỐC ĐỘ */}
+          {selectedMode === 'speed_timer' && (
+            <div className="w-full max-w-md bg-white/10 border border-amber-300/40 rounded-3xl p-5 text-center flex flex-col items-center">
+              <div className="text-5xl font-mono font-bold text-amber-300 tabular-nums tracking-wider">
+                {String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:
+                {String(timerSeconds % 60).padStart(2, '0')}
+              </div>
+              <p className="text-sm font-bold text-white mt-2 min-h-[24px]">
+                {isPlaying && rollingPreviewNames[0]
+                  ? rollingPreviewNames[0]
+                  : 'Chọn ngẫu nhiên 1 học sinh và bật đồng hồ 30 giây'}
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsTimerRunning(prev => !prev)}
+                  className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold text-white cursor-pointer"
+                >
+                  {isTimerRunning ? 'Tạm dừng' : 'Chạy đồng hồ'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTimerRunning(false);
+                    setTimerSeconds(30);
+                    setInitialTimerSeconds(30);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold text-white cursor-pointer"
+                >
+                  Đặt 30s
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 10. NGÔI SAO HI VỌNG */}
+          {selectedMode === 'star_of_hope' && (
+            <div className="w-full max-w-md bg-amber-400/15 border border-amber-300/50 rounded-3xl p-6 text-center flex flex-col items-center glow-gold">
+              <div className={isPlaying ? 'animate-tumble' : 'animate-floating'}>
+                <GameCardArtwork mode="star_of_hope" className="w-28 h-28" />
+              </div>
+              <p className="text-base font-bold text-amber-200 mt-2 min-h-[24px]">
+                {isPlaying && rollingPreviewNames[0]
+                  ? rollingPreviewNames[0]
+                  : 'Trao Ngôi sao hi vọng (x2 điểm hoặc quyền trợ giúp)'}
+              </p>
+            </div>
+          )}
+
+          {/* Inline Result Banner (Visible in both normal & Fullscreen modes!) */}
+          {pickedResult && pickedResult.length > 0 && (
+            <div className="w-full max-w-xl bg-white text-[#082B52] rounded-2xl border-2 border-amber-400 p-4 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span className="text-xs font-bold uppercase tracking-wide text-[#006BFF]">
+                    Kết quả lượt gọi · {currentModeMeta.title}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickedResult(null);
+                    setWheelSnapshotStudents(null);
+                  }}
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 self-end sm:self-auto cursor-pointer"
+                >
+                  Đóng kết quả
+                </button>
+              </div>
+
+              <div className="py-2.5 space-y-2">
+                {pickedResult.map((student, idx) => (
+                  <div
+                    key={student.id}
+                    className="flex flex-wrap items-center justify-between gap-2 bg-[#F3F8FF] border border-[#DCE8F7] rounded-xl px-4 py-2.5"
+                  >
+                    <div>
+                      <span className="text-xs font-bold text-[#006BFF]">
+                        {pickedResult.length > 1 ? `Bạn #${idx + 1} · ` : ''}
+                        {student.code}
+                      </span>
+                      <div className="text-xl sm:text-2xl font-bold text-[#082B52] leading-tight">
+                        {student.fullName}
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-600">
+                      {activeListName}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-slate-100">
+                <input
+                  type="text"
+                  value={resultScoreNote}
+                  onChange={e => handleUpdateScoreNote(e.target.value)}
+                  placeholder="Ghi chú nhanh (VD: +2 điểm, trả lời tốt)..."
+                  className="flex-1 px-3 py-1.5 rounded-lg border border-[#DCE8F7] text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInitialTimerSeconds(30);
+                    setTimerSeconds(30);
+                    setIsTimerRunning(true);
+                    if (!isFullscreen) setShowTimerModal(true);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold flex items-center justify-center space-x-1 cursor-pointer whitespace-nowrap"
+                >
+                  <TimerIcon className="w-3.5 h-3.5" />
+                  <span>Đếm 30s</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Empty or Insufficient Students Notice */}
+          {eligibilityIssue && (
+            <div className="w-full max-w-xl bg-amber-50 text-[#082B52] border-2 border-amber-300 rounded-2xl p-3.5 sm:p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start space-x-2.5 text-xs sm:text-sm">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="font-semibold leading-snug">{eligibilityIssue.message}</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {eligibilityIssue.type === 'empty_class' && (
+                  <button
+                    type="button"
+                    onClick={openManualEditor}
+                    className="px-3.5 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-700 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Nhập danh sách</span>
+                  </button>
+                )}
+
+                {(eligibilityIssue.type === 'all_absent' || eligibilityIssue.type === 'insufficient_present') && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAbsentModal(true)}
+                    className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                  >
+                    <UserX className="w-3.5 h-3.5" />
+                    <span>Kiểm tra vắng mặt</span>
+                  </button>
+                )}
+
+                {eligibilityIssue.type === 'exhausted_session' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowResetConfirmModal(true)}
+                      className="px-3.5 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-700 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Đặt lại phiên</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAntiDuplicate(false)}
+                      className="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer whitespace-nowrap"
+                    >
+                      Tắt chống trùng
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Stage Bottom Primary Action Button */}
+        <div className="pt-2 flex flex-col items-center justify-center shrink-0">
+          <button
+            type="button"
+            onClick={() => handleStartGame(selectedMode)}
+            disabled={!canPlay}
+            className="px-9 py-3 rounded-2xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 hover:brightness-105 text-[#082B52] font-bold text-base sm:text-lg shadow-[0_6px_20px_rgba(245,158,11,0.4)] disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none flex items-center space-x-2.5 transition-transform active:scale-95 cursor-pointer whitespace-nowrap"
+          >
+            {selectedMode === 'wheel' ? (
+              <Disc className={`w-5 h-5 ${isPlaying ? 'animate-spin' : ''}`} />
+            ) : selectedMode === 'rocket' ? (
+              <Rocket className="w-5 h-5" />
+            ) : selectedMode === 'star_of_hope' ? (
+              <Star className="w-5 h-5 fill-[#082B52]" />
+            ) : (
+              <Sparkles className="w-5 h-5" />
+            )}
+            <span>{isPlaying ? currentModeMeta.playingLabel : currentModeMeta.actionLabel}</span>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4 student-call-container pb-10">
+      {/* 1. COMPACT TOP HEADER & TOOLBAR */}
+      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 sm:p-4 shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#082B52]">
+            Trò chơi gọi học sinh
+          </h2>
+          <span className="text-xs text-slate-500 font-semibold">
+            THCS Tây Đô · {activeListName} · {allCurrentStudents.length} học sinh
+          </span>
+        </div>
+
+        {/* Single unified action bar directly below heading */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-2.5 border-t border-slate-100">
+          {/* Chọn lớp */}
+          <div className="flex items-center space-x-2 flex-1 min-w-[210px] sm:max-w-xs">
+            <label htmlFor="class-source-select" className="text-xs font-bold text-[#082B52] whitespace-nowrap">
+              Chọn lớp:
+            </label>
+            <select
+              id="class-source-select"
+              value={selectedSourceKey}
+              onChange={e => {
+                hasUserSelectedSourceRef.current = true;
+                setSelectedSourceKey(e.target.value);
+              }}
+              disabled={isPlaying}
+              className="w-full px-3 py-2 rounded-xl border border-[#DCE8F7] bg-[#F8FBFF] text-xs sm:text-sm font-bold text-[#082B52] focus:ring-2 focus:ring-[#006BFF] focus:outline-hidden disabled:opacity-60"
             >
-              <UserX className="w-3.5 h-3.5" />
-              <span>Vắng mặt: <b>{absentIds.size}</b></span>
+              {classes.map(c => (
+                <option key={c.id} value={c.id}>
+                  {formatClassDisplayName(c.name)} ({c.students.length} học sinh)
+                </option>
+              ))}
+              <option value="manual">Danh sách nhập tay ({manualStudents.length} học sinh)</option>
+            </select>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Nhập danh sách */}
+            <button
+              type="button"
+              onClick={openManualEditor}
+              disabled={isPlaying}
+              className="px-3 py-2 rounded-xl border border-[#DCE8F7] bg-white hover:bg-[#F3F8FF] text-[#082B52] text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-[#006BFF]" />
+              <span>Nhập danh sách</span>
             </button>
 
-            <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#006BFF] font-semibold border border-blue-200">
-              Đã gọi: <b>{calledSessionIds.size}</b>
-            </span>
-
-            <span className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
-              Khả dụng: <b>{availableStudents.length}</b>
-            </span>
-
-            {/* Anti duplicate toggle */}
-            <label className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] cursor-pointer text-slate-700 select-none">
-              <input
-                type="checkbox"
-                checked={antiDuplicate}
-                onChange={e => setAntiDuplicate(e.target.checked)}
-                className="rounded-sm text-[#006BFF] focus:ring-blue-500 h-3.5 w-3.5"
-              />
-              <span className="font-bold text-[11px]">Chống trùng</span>
-            </label>
-
+            {/* Âm thanh */}
             <button
-              onClick={() => setShowResetConfirmModal(true)}
-              disabled={calledSessionIds.size === 0}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed font-semibold flex items-center space-x-1"
-              title="Đặt lại phiên gọi học sinh"
+              type="button"
+              onClick={() => setIsMuted(prev => !prev)}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                isMuted
+                  ? 'border-rose-200 bg-rose-50 text-rose-700'
+                  : 'border-[#DCE8F7] bg-white hover:bg-[#F3F8FF] text-[#082B52]'
+              }`}
+              title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Đặt lại phiên</span>
+              {isMuted ? (
+                <VolumeX className="w-3.5 h-3.5 text-rose-600" />
+              ) : (
+                <Volume2 className="w-3.5 h-3.5 text-emerald-600" />
+              )}
+              <span>{isMuted ? 'Âm thanh: Tắt' : 'Âm thanh'}</span>
+            </button>
+
+            {/* Đếm ngược */}
+            <button
+              type="button"
+              onClick={() => setShowTimerModal(true)}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer whitespace-nowrap tabular-nums ${
+                isTimerRunning
+                  ? 'bg-amber-400 border-amber-500 text-[#082B52]'
+                  : 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-900'
+              }`}
+            >
+              <TimerIcon className="w-3.5 h-3.5" />
+              <span>
+                {isTimerRunning
+                  ? `Đếm ngược (${timerSeconds}s)`
+                  : 'Đếm ngược'}
+              </span>
+            </button>
+
+            {/* Toàn màn hình */}
+            <button
+              type="button"
+              onClick={handleToggleFullscreen}
+              className="px-3 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-700 text-white text-xs font-bold flex items-center space-x-1.5 shadow-2xs transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>Toàn màn hình</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* 2. GAME MODES SELECTOR TABS (10 MODES) */}
-      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3 shadow-xs">
-        <div className="text-xs font-bold text-slate-500 px-2 py-1 uppercase tracking-wider mb-2 flex items-center justify-between">
-          <span>10 Chế độ trò chơi gọi học sinh</span>
-          <span className="text-[11px] text-[#006BFF] font-semibold">Tây Đô Smart EDU</span>
+      {/* 2. MAIN TWO-COLUMN WORKSPACE: LEFT 65% STAGE + RIGHT 35% STATS & HISTORY */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] gap-4 items-stretch">
+        {/* LEFT COLUMN (65%): ACTIVE GAME STAGE */}
+        <div className="min-w-0">{renderPlayStage()}</div>
+
+        {/* RIGHT COLUMN (35%): SESSION STATS, ANTI-DUPLICATE, HISTORY, RESET */}
+        <aside className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-col justify-between gap-3.5 min-w-0">
+          {/* Top Stats + Controls */}
+          <div className="space-y-3">
+            {/* 4 Real Session Counters */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7]">
+                <div className="text-xs font-semibold text-slate-500">Sĩ số</div>
+                <div className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+                  {allCurrentStudents.length}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200">
+                <div className="text-xs font-semibold text-[#006BFF]">Đã gọi</div>
+                <div className="text-xl font-bold text-[#006BFF] tabular-nums mt-0.5">
+                  {calledInClassCount}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200">
+                <div className="text-xs font-semibold text-emerald-700">Còn lại</div>
+                <div className="text-xl font-bold text-emerald-800 tabular-nums mt-0.5">
+                  {availableStudents.length}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAbsentModal(true)}
+                className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
+                  absentInClassCount > 0
+                    ? 'bg-rose-50 border-rose-200 hover:bg-rose-100'
+                    : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                }`}
+                title="Nhấp để điểm danh học sinh vắng mặt"
+              >
+                <div className="flex items-center justify-between text-xs font-semibold text-rose-700">
+                  <span>Vắng mặt</span>
+                  <span className="underline text-[11px]">Điểm danh</span>
+                </div>
+                <div className="text-xl font-bold text-rose-800 tabular-nums mt-0.5">
+                  {absentInClassCount}
+                </div>
+              </button>
+            </div>
+
+            {/* Anti-Duplicate Switch */}
+            <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-[#F8FBFF] border border-[#DCE8F7]">
+              <div>
+                <div className="text-xs font-bold text-[#082B52]">Chống trùng</div>
+                <div className="text-[11px] text-slate-500">
+                  Không gọi lại học sinh đã lên trong phiên
+                </div>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={antiDuplicate}
+                aria-label="Chống trùng"
+                onClick={() => {
+                  setAntiDuplicate(prev => !prev);
+                  if (!isPlaying) setWheelSnapshotStudents(null);
+                }}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer ${
+                  antiDuplicate ? 'bg-[#006BFF]' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    antiDuplicate ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Call History Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[#082B52] flex items-center space-x-1.5">
+                  <History className="w-4 h-4 text-[#006BFF]" />
+                  <span>Lịch sử lượt gọi ({historyItems.length})</span>
+                </h3>
+
+                <div className="flex items-center space-x-2">
+                  {historyItems.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowHistoryModal(true)}
+                      className="text-xs font-bold text-[#006BFF] hover:underline cursor-pointer"
+                    >
+                      Mở rộng
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="max-h-[196px] overflow-y-auto space-y-1.5 pr-1">
+                {historyItems.length === 0 ? (
+                  <div className="py-6 px-3 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-xs text-slate-500">
+                    Chưa có lượt gọi nào trong danh sách này.
+                  </div>
+                ) : (
+                  historyItems.slice(0, 12).map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50/70 text-xs flex items-start justify-between gap-2"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-bold text-[#082B52] truncate">
+                          #{historyItems.length - idx}. {item.selectedStudents.map(s => s.fullName).join(', ')}
+                        </div>
+                        <div className="text-[11px] text-slate-500 truncate">
+                          {item.modeName}
+                          {item.scoreNote ? ` · ${item.scoreNote}` : ''}
+                        </div>
+                      </div>
+                      <span className="text-[11px] text-slate-400 tabular-nums shrink-0">
+                        {new Date(item.timestamp).toLocaleTimeString('vi-VN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Reset Session Button */}
+          <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowResetConfirmModal(true)}
+              disabled={calledInClassCount === 0 && !pickedResult}
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#082B52] disabled:opacity-45 disabled:cursor-not-allowed text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Đặt lại phiên</span>
+            </button>
+          </div>
+        </aside>
+      </div>
+
+      {/* 3. BOTTOM SECTION: 10 GAME LIBRARY ("CHỌN TRÒ CHƠI") */}
+      <section className="bg-white rounded-2xl border border-[#DCE8F7] p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="text-lg font-bold text-[#082B52]">Chọn trò chơi</h3>
+            <p className="text-xs text-slate-500">
+              Chọn hình thức gọi học sinh phù hợp cho tiết dạy trình chiếu.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAllGames(prev => !prev)}
+            className="px-4 py-2 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-blue-100 text-[#006BFF] text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer whitespace-nowrap"
+          >
+            {showAllGames ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                <span>Thu gọn còn 5 trò</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                <span>Xem tất cả 10 trò</span>
+              </>
+            )}
+          </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-          {CALL_GAME_MODES.map(mode => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {displayedLibraryModes.map(mode => {
             const isSelected = selectedMode === mode.id;
             return (
               <button
                 key={mode.id}
-                onClick={() => {
-                  setSelectedMode(mode.id);
-                  setPickedResult(null);
-                }}
+                type="button"
+                onClick={() => handleSelectGameMode(mode.id)}
                 disabled={isPlaying}
-                className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+                  CARD_PASTEL_STYLES[mode.id]
+                } ${
                   isSelected
-                    ? 'border-[#006BFF] bg-[#006BFF] text-white shadow-md'
-                    : 'border-[#DCE8F7] bg-white text-slate-700 hover:bg-slate-50 hover:border-blue-300'
+                    ? 'border-2 border-[#006BFF] ring-2 ring-[#006BFF]/25 shadow-md'
+                    : 'shadow-2xs'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                    }`}
-                  >
+                <div className="flex items-center justify-between w-full">
+                  <div className="w-14 h-14 rounded-xl bg-white/85 border border-black/5 flex items-center justify-center p-1.5 shadow-2xs">
+                    <GameCardArtwork mode={mode.id} className="w-11 h-11" />
+                  </div>
+                  <span className="text-xs font-bold text-[#082B52]/75">
                     {mode.badge}
                   </span>
-                  {isSelected && <Sparkles className="w-3.5 h-3.5 text-amber-300" />}
                 </div>
 
-                <div className="mt-2.5">
-                  <h4 className="font-bold text-sm leading-snug">{mode.title}</h4>
-                  <p
-                    className={`text-[11px] line-clamp-1 mt-0.5 ${
-                      isSelected ? 'text-blue-100' : 'text-slate-500'
-                    }`}
-                  >
+                <div>
+                  <h4 className="font-bold text-sm sm:text-base text-[#082B52] leading-snug">
+                    {mode.title}
+                  </h4>
+                  <p className="text-xs text-slate-600 line-clamp-2 mt-0.5 leading-relaxed">
                     {mode.shortDesc}
                   </p>
                 </div>
@@ -757,508 +1800,111 @@ export const StudentCallGames: React.FC = () => {
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* 3. MAIN ARENA FOR SELECTED GAME */}
-      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-sm min-h-[460px] flex flex-col items-center justify-center relative overflow-hidden">
-        {/* Arena Header */}
-        <div className="absolute top-4 left-6 right-6 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-            <h3 className="font-bold text-[#082B52] text-lg">
-              {CALL_GAME_MODES.find(m => m.id === selectedMode)?.title}
-            </h3>
-          </div>
-
-          <div className="text-xs text-slate-500 font-semibold">
-            {availableStudents.length} học sinh sẵn sàng
-          </div>
-        </div>
-
-        {/* GAME CONTENT BY MODE */}
-        <div className="w-full flex flex-col items-center justify-center py-6">
-          {/* MODE 1: VÒNG QUAY MAY MẮN */}
-          {selectedMode === 'wheel' && (
-            <div className="relative flex flex-col items-center">
-              {/* Pointer Needle */}
-              <div className="absolute top-0 z-20 -mt-2">
-                <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[28px] border-t-rose-600 drop-shadow-md" />
-              </div>
-
-              {/* Canvas Wheel */}
-              <div className="relative rounded-full p-2 bg-gradient-to-b from-amber-300 to-amber-500 shadow-xl border-4 border-amber-600">
-                <canvas
-                  ref={wheelCanvasRef}
-                  width={340}
-                  height={340}
-                  className="rounded-full bg-slate-900"
-                />
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('wheel')}
-                  disabled={isPlaying || availableStudents.length === 0}
-                  className="px-8 py-3.5 bg-gradient-to-r from-[#006BFF] to-blue-700 text-white font-bold text-base rounded-2xl shadow-lg hover:from-blue-600 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-transform transform active:scale-95"
-                >
-                  <Disc className={`w-5 h-5 ${isPlaying ? 'animate-spin' : ''}`} />
-                  <span>{isPlaying ? 'Đang quay...' : 'QUAY NGAY'}</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 2: HỘP QUÀ BÍ MẬT */}
-          {selectedMode === 'gift_box' && (
-            <div className="w-full max-w-xl text-center">
-              <p className="text-sm text-slate-600 mb-6">
-                Chọn một chiếc hộp quà bên dưới hoặc bấm nút mở ngẫu nhiên để gọi học sinh!
-              </p>
-
-              <div className="grid grid-cols-3 gap-4">
-                {[0, 1, 2, 3, 4, 5].map(idx => {
-                  const isOpened = openedBoxIndex === idx;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => !isPlaying && handleStartGame('gift_box')}
-                      disabled={isPlaying || availableStudents.length === 0}
-                      className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center justify-center relative ${
-                        isOpened
-                          ? 'border-amber-400 bg-amber-50 shadow-lg scale-105 glow-gold'
-                          : 'border-[#DCE8F7] bg-slate-50 hover:bg-blue-50 hover:border-[#006BFF]'
-                      }`}
-                    >
-                      <Gift
-                        className={`w-12 h-12 transition-transform ${
-                          isOpened ? 'text-amber-500 scale-125' : 'text-[#006BFF] hover:scale-110'
-                        }`}
-                      />
-                      <span className="text-xs font-bold text-[#082B52] mt-2">Hộp số {idx + 1}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('gift_box')}
-                  disabled={isPlaying || availableStudents.length === 0}
-                  className="px-8 py-3 bg-[#006BFF] text-white font-bold text-sm rounded-xl hover:bg-blue-600 shadow-md disabled:opacity-50"
-                >
-                  {isPlaying ? 'Đang mở quà...' : 'MỞ HỘP NGẪU NHIÊN'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 3: THẺ BÀI LẬT MỞ */}
-          {selectedMode === 'cards' && (
-            <div className="w-full max-w-2xl text-center">
-              <p className="text-sm text-slate-600 mb-6">
-                Những lá bài ma thuật đang được xáo trộn. Thẻ bài được lật sẽ mang tên học sinh!
-              </p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {(cardDeckStudents.length > 0 ? cardDeckStudents : [1, 2, 3, 4, 5, 6]).map((item, idx) => {
-                  const isFlipped = flippedCards[idx];
-                  const student = typeof item === 'object' ? (item as StudentCandidate) : null;
-                  return (
-                    <div
-                      key={idx}
-                      className="h-36 rounded-2xl perspective-1000 cursor-pointer select-none"
-                    >
-                      <div
-                        className={`w-full h-full duration-700 transform-style-3d rounded-2xl shadow-md border-2 ${
-                          isFlipped ? 'rotate-y-180 border-amber-400 bg-amber-50' : 'border-[#082B52] bg-[#082B52]'
-                        }`}
-                      >
-                        {/* Front of card (facedown) */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-white backface-hidden">
-                          <Layers className="w-8 h-8 text-amber-300 mb-2" />
-                          <span className="text-xs font-bold tracking-wider">TÂY ĐÔ</span>
-                          <span className="text-[10px] text-slate-300">Thẻ #{idx + 1}</span>
-                        </div>
-
-                        {/* Back of card (faceup) */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center p-3 bg-gradient-to-b from-amber-50 to-amber-100 text-[#082B52] rounded-2xl backface-hidden rotate-y-180 border-2 border-amber-400">
-                          <Award className="w-8 h-8 text-amber-500 mb-1" />
-                          <span className="text-sm font-bold">{student?.fullName || 'Học sinh'}</span>
-                          <span className="text-[11px] font-semibold text-slate-600">{student?.code}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('cards')}
-                  disabled={isPlaying || availableStudents.length === 0}
-                  className="px-8 py-3 bg-[#006BFF] text-white font-bold text-sm rounded-xl hover:bg-blue-600 shadow-md disabled:opacity-50"
-                >
-                  {isPlaying ? 'Đang xáo bài...' : 'XÁO VÀ LẬT THẺ'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 4: BỨC THƯ BỒ CÂU */}
-          {selectedMode === 'flying_envelope' && (
-            <div className="w-full max-w-md text-center py-4">
-              <div className="p-8 rounded-3xl bg-gradient-to-b from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 shadow-sm flex flex-col items-center animate-floating">
-                <div className="w-20 h-20 rounded-full bg-white shadow-md flex items-center justify-center text-[#006BFF] mb-4 border border-blue-100">
-                  <Mail className="w-10 h-10" />
-                </div>
-                <h4 className="font-bold text-[#082B52] text-lg">Bức thư bồ câu may mắn</h4>
-                <p className="text-xs text-slate-600 mt-1 max-w-xs">
-                  Chim bồ câu mang lá thư niêm phong sáp đỏ tới lớp học, chuẩn bị mở tên học sinh.
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('flying_envelope')}
-                  disabled={isPlaying || availableStudents.length === 0}
-                  className="px-8 py-3 bg-[#006BFF] text-white font-bold text-sm rounded-xl hover:bg-blue-600 shadow-md disabled:opacity-50"
-                >
-                  {isPlaying ? 'Đang mở phong bì...' : 'MỞ BỨC THƯ'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 5: LỒNG CẦU BỐC THĂM */}
-          {selectedMode === 'magic_sphere' && (
-            <div className="w-full max-w-md text-center py-4">
-              <div className="p-8 rounded-full w-56 h-56 mx-auto bg-gradient-to-tr from-blue-900 to-[#006BFF] shadow-2xl flex flex-col items-center justify-center border-4 border-amber-300 relative overflow-hidden">
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
-                <CircleDot className={`w-16 h-16 text-amber-300 ${isPlaying ? 'animate-spin' : ''}`} />
-                <span className="text-xs font-bold text-white mt-2 tracking-widest uppercase">LỒNG CẦU</span>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('magic_sphere')}
-                  disabled={isPlaying || availableStudents.length === 0}
-                  className="px-8 py-3 bg-[#006BFF] text-white font-bold text-sm rounded-xl hover:bg-blue-600 shadow-md disabled:opacity-50"
-                >
-                  {isPlaying ? 'Lồng cầu đang quay...' : 'QUAY BỐC THĂM'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 6: TÊN LỬA KHÔNG GIAN */}
-          {selectedMode === 'rocket' && (
-            <div className="w-full max-w-md text-center py-4">
-              <div className="p-8 rounded-3xl bg-[#082B52] text-white shadow-xl flex flex-col items-center justify-center relative overflow-hidden">
-                <div className={`text-6xl font-black text-amber-400 mb-4 ${rocketCountdown !== null ? 'animate-ping' : ''}`}>
-                  {rocketCountdown !== null ? rocketCountdown : '🚀'}
-                </div>
-                <h4 className="font-bold text-lg">Bệ phóng phi thuyền Tây Đô</h4>
-                <p className="text-xs text-slate-300 mt-1">
-                  Đếm ngược 3... 2... 1... đưa học sinh bay lên bục giảng!
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('rocket')}
-                  disabled={isPlaying || availableStudents.length === 0}
-                  className="px-8 py-3 bg-gradient-to-r from-rose-500 to-amber-500 text-white font-bold text-sm rounded-xl hover:from-rose-600 hover:to-amber-600 shadow-md disabled:opacity-50 flex items-center space-x-2 mx-auto"
-                >
-                  <Rocket className="w-4 h-4" />
-                  <span>{isPlaying ? 'Đang phóng...' : 'PHÓNG TÊN LỬA'}</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 7: CẶP ĐÔI ĐỐI ĐẦU (2 BẠN) */}
-          {selectedMode === 'call_pair' && (
-            <div className="w-full max-w-md text-center py-4">
-              <div className="p-6 rounded-3xl bg-slate-50 border-2 border-[#DCE8F7] flex items-center justify-around">
-                <div className="w-24 h-24 rounded-2xl bg-blue-100 border border-blue-300 flex flex-col items-center justify-center">
-                  <Users className="w-8 h-8 text-[#006BFF]" />
-                  <span className="text-xs font-bold text-[#082B52] mt-1">Bạn #1</span>
-                </div>
-
-                <div className="w-10 h-10 rounded-full bg-rose-500 text-white font-black text-sm flex items-center justify-center shadow-md">
-                  VS
-                </div>
-
-                <div className="w-24 h-24 rounded-2xl bg-purple-100 border border-purple-300 flex flex-col items-center justify-center">
-                  <Users className="w-8 h-8 text-purple-600" />
-                  <span className="text-xs font-bold text-[#082B52] mt-1">Bạn #2</span>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('call_pair')}
-                  disabled={isPlaying || availableStudents.length < 2}
-                  className="px-8 py-3 bg-[#006BFF] text-white font-bold text-sm rounded-xl hover:bg-blue-600 shadow-md disabled:opacity-50"
-                >
-                  {isPlaying ? 'Đang bắt cặp...' : 'GỌI CẶP ĐÔI (2 BẠN)'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 8: NHÓM BA BẠN (3 BẠN) */}
-          {selectedMode === 'call_trio' && (
-            <div className="w-full max-w-lg text-center py-4">
-              <div className="grid grid-cols-3 gap-3">
-                {[1, 2, 3].map(i => (
-                  <div
-                    key={i}
-                    className="p-4 rounded-2xl bg-slate-50 border border-[#DCE8F7] flex flex-col items-center justify-center"
-                  >
-                    <UserPlus className="w-7 h-7 text-[#006BFF] mb-1" />
-                    <span className="text-xs font-bold text-[#082B52]">Thành viên #{i}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('call_trio')}
-                  disabled={isPlaying || availableStudents.length < 3}
-                  className="px-8 py-3 bg-[#006BFF] text-white font-bold text-sm rounded-xl hover:bg-blue-600 shadow-md disabled:opacity-50"
-                >
-                  {isPlaying ? 'Đang lập nhóm...' : 'GỌI NHÓM BA (3 BẠN)'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 9: CHIẾC NÓN TỐC ĐỘ */}
-          {selectedMode === 'speed_timer' && (
-            <div className="w-full max-w-md text-center py-4">
-              <div className="p-8 rounded-3xl bg-amber-50 border-2 border-amber-300 shadow-sm flex flex-col items-center">
-                <TimerIcon className={`w-14 h-14 text-amber-600 ${isPlaying ? 'animate-spin' : ''}`} />
-                <h4 className="font-bold text-[#082B52] text-lg mt-2">Thử thách 30 giây thần tốc</h4>
-                <p className="text-xs text-slate-600 mt-1 max-w-xs">
-                  Hệ thống chọn ngẫu nhiên 1 học sinh và ngay lập tức đếm ngược 30 giây để trả lời câu hỏi!
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('speed_timer')}
-                  disabled={isPlaying || availableStudents.length === 0}
-                  className="px-8 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md disabled:opacity-50 flex items-center space-x-2 mx-auto"
-                >
-                  <TimerIcon className="w-4 h-4" />
-                  <span>{isPlaying ? 'Đang chuẩn bị...' : 'BẮT ĐẦU TỐC ĐỘ (30s)'}</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE 10: NGÔI SAO HI VỌNG */}
-          {selectedMode === 'star_of_hope' && (
-            <div className="w-full max-w-md text-center py-4">
-              <div className="p-8 rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-200 border-2 border-amber-500 shadow-xl flex flex-col items-center glow-gold">
-                <Star className="w-16 h-16 text-amber-900 fill-amber-300 animate-pulse" />
-                <h4 className="font-black text-amber-950 text-xl mt-2">⭐ NGÔI SAO HI VỌNG ⭐</h4>
-                <p className="text-xs text-amber-900 font-semibold mt-1 max-w-xs">
-                  Học sinh được chọn nhận Ngôi sao hi vọng: Nhân đôi điểm số nếu đúng hoặc có 1 quyền trợ giúp!
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => handleStartGame('star_of_hope')}
-                  disabled={isPlaying || availableStudents.length === 0}
-                  className="px-8 py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-bold text-sm rounded-xl hover:from-amber-600 hover:to-yellow-700 shadow-lg disabled:opacity-50 flex items-center space-x-2 mx-auto"
-                >
-                  <Star className="w-4 h-4 fill-white" />
-                  <span>{isPlaying ? 'Đang trao sao...' : 'TRAO NGÔI SAO HI VỌNG'}</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 4. MODAL CHÚC MỪNG KẾT QUẢ GỌI HỌC SINH */}
-      {pickedResult && pickedResult.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl border-2 border-[#006BFF] p-6 sm:p-8 max-w-lg w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-center">
-            {/* Confetti icon */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-amber-200 text-amber-900 flex items-center justify-center mx-auto shadow-lg mb-4 border-2 border-white">
-              <Award className="w-9 h-9" />
-            </div>
-
-            <span className="text-xs font-bold uppercase tracking-wider text-[#006BFF] px-3 py-1 rounded-full bg-blue-50 border border-blue-200">
-              CHÚC MỪNG HỌC SINH ĐƯỢC GỌI
-            </span>
-
-            <div className="my-6 space-y-3">
-              {pickedResult.map((student, idx) => (
-                <div
-                  key={student.id}
-                  className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-[#DCE8F7] flex items-center justify-between shadow-xs"
-                >
-                  <div className="text-left">
-                    <span className="text-xs font-bold text-[#006BFF]">#{idx + 1} • {student.code}</span>
-                    <h3 className="text-xl font-bold text-[#082B52] leading-tight">
-                      {student.fullName}
-                    </h3>
-                    <span className="text-xs text-slate-500">Giới tính: {student.gender || 'Chưa rõ'}</span>
-                  </div>
-
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#006BFF] text-white">
-                    {activeListName}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Optional Note / Score */}
-            <div className="text-left space-y-1 mb-6">
-              <label className="text-xs font-bold text-slate-700">Ghi chú / Đánh giá nhanh (tùy chọn):</label>
-              <input
-                type="text"
-                value={resultScoreNote}
-                onChange={e => setResultScoreNote(e.target.value)}
-                placeholder="VD: Trả lời tốt (+2 điểm), Cần chú ý hơn..."
-                className="w-full px-3 py-2 rounded-xl border border-[#DCE8F7] text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
-              />
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              <button
-                onClick={() => {
-                  setPickedResult(null);
-                  setShowTimerModal(true);
-                  setInitialTimerSeconds(30);
-                  setTimerSeconds(30);
-                  setIsTimerRunning(true);
-                }}
-                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs flex items-center space-x-1.5"
-              >
-                <TimerIcon className="w-4 h-4" />
-                <span>Bật đồng hồ 30s</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setPickedResult(null);
-                  handleStartGame(selectedMode);
-                }}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center space-x-1.5"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Gọi bạn khác</span>
-              </button>
-
-              <button
-                onClick={() => setPickedResult(null)}
-                className="px-6 py-2.5 bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-xs"
-              >
-                Hoàn tất & Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 5. MODAL ĐIỂM DANH / VẮNG MẶT */}
+      {/* 4. MODAL ĐIỂM DANH / VẮNG MẶT */}
       {showAbsentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl border border-[#DCE8F7] p-6 max-w-md w-full shadow-2xl relative max-h-[85vh] flex flex-col">
+          <div className="bg-white rounded-3xl border border-[#DCE8F7] p-6 max-w-md w-full shadow-2xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2">
                 <UserX className="w-5 h-5 text-rose-500" />
                 <h3 className="font-bold text-[#082B52] text-lg">Điểm danh / Học sinh vắng mặt</h3>
               </div>
               <button
+                type="button"
                 onClick={() => setShowAbsentModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <p className="text-xs text-slate-600 my-3">
-              Tích chọn những bạn vắng mặt trong tiết học này. Những bạn bị đánh dấu vắng sẽ <strong>không bao giờ bị gọi</strong> trong các trò chơi.
+              Tích chọn học sinh vắng mặt. Những học sinh này sẽ không được gọi trong tất cả trò chơi (bao gồm gọi đơn, cặp đôi và nhóm ba).
             </p>
 
-            {/* Quick actions */}
             <div className="flex items-center justify-between text-xs font-semibold mb-2 px-1">
-              <span className="text-slate-500">Đang vắng: {absentIds.size} bạn</span>
-              {absentIds.size > 0 && (
+              <span className="text-slate-500">Đang vắng: {absentInClassCount} học sinh</span>
+              {absentInClassCount > 0 && (
                 <button
+                  type="button"
                   onClick={() => updateAbsentIds(new Set())}
-                  className="text-[#006BFF] hover:underline"
+                  className="text-[#006BFF] hover:underline cursor-pointer"
                 >
-                  Có mặt tất cả (Xóa vắng)
+                  Có mặt tất cả
                 </button>
               )}
             </div>
 
-            {/* List */}
             <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
-              {allCurrentStudents.map(student => {
-                const isAbsent = absentIds.has(student.id);
-                return (
-                  <label
-                    key={student.id}
-                    className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-colors ${
-                      isAbsent
-                        ? 'bg-rose-50 border-rose-200 text-rose-800 font-bold'
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <input
-                        type="checkbox"
-                        checked={isAbsent}
-                        onChange={() => handleToggleAbsent(student.id)}
-                        className="rounded-sm text-rose-600 focus:ring-rose-500 h-4 w-4"
-                      />
-                      <span>
-                        <b className="text-slate-900">{student.fullName}</b> ({student.code})
+              {allCurrentStudents.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-500">
+                  Danh sách lớp hiện đang trống.
+                </div>
+              ) : (
+                allCurrentStudents.map(student => {
+                  const isAbsent = absentIds.has(student.id);
+                  return (
+                    <label
+                      key={student.id}
+                      className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-colors ${
+                        isAbsent
+                          ? 'bg-rose-50 border-rose-200 text-rose-800 font-bold'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <input
+                          type="checkbox"
+                          checked={isAbsent}
+                          onChange={() => handleToggleAbsent(student.id)}
+                          className="rounded-sm text-rose-600 focus:ring-rose-500 h-4 w-4"
+                        />
+                        <span>
+                          <b className="text-slate-900">{student.fullName}</b> ({student.code})
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        {isAbsent ? 'Vắng' : 'Có mặt'}
                       </span>
-                    </div>
-
-                    <span className="text-[11px] font-semibold text-slate-400">
-                      {isAbsent ? 'Vắng' : 'Có mặt'}
-                    </span>
-                  </label>
-                );
-              })}
+                    </label>
+                  );
+                })
+              )}
             </div>
 
             <div className="mt-4 pt-3 border-t border-slate-100 text-right">
               <button
+                type="button"
                 onClick={() => setShowAbsentModal(false)}
-                className="px-5 py-2 bg-[#006BFF] text-white font-bold text-xs rounded-xl hover:bg-blue-600 shadow-xs"
+                className="px-5 py-2 bg-[#006BFF] text-white font-bold text-xs rounded-xl hover:bg-blue-600 shadow-xs cursor-pointer"
               >
-                Xác nhận & Đóng
+                Xong
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 6. MODAL LỊCH SỬ GỌI HỌC SINH */}
+      {/* 5. MODAL LỊCH SỬ ĐẦY ĐỦ */}
       {showHistoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl border border-[#DCE8F7] p-6 max-w-xl w-full shadow-2xl relative max-h-[85vh] flex flex-col">
+          <div className="bg-white rounded-3xl border border-[#DCE8F7] p-6 max-w-xl w-full shadow-2xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2">
                 <History className="w-5 h-5 text-[#006BFF]" />
-                <h3 className="font-bold text-[#082B52] text-lg">Lịch sử gọi học sinh ({activeListName})</h3>
+                <h3 className="font-bold text-[#082B52] text-lg">
+                  Lịch sử lượt gọi ({activeListName})
+                </h3>
               </div>
               <button
-                onClick={() => setShowHistoryModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                type="button"
+                onClick={() => {
+                  setConfirmClearHistory(false);
+                  setShowHistoryModal(false);
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1270,17 +1916,19 @@ export const StudentCallGames: React.FC = () => {
                 <p className="text-sm">Chưa có lượt gọi nào trong lịch sử.</p>
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto space-y-2.5 my-3 pr-1">
+              <div className="flex-1 overflow-y-auto space-y-2 my-3 pr-1">
                 {historyItems.map((item, idx) => (
                   <div
                     key={item.id}
-                    className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-start justify-between text-xs"
+                    className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-start justify-between text-xs gap-3"
                   >
                     <div>
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-bold text-[#006BFF]">#{historyItems.length - idx}</span>
-                        <span className="font-semibold text-slate-600">[{item.modeName}]</span>
-                        <span className="text-[11px] text-slate-400">
+                        <span className="font-bold text-[#006BFF] tabular-nums">
+                          #{historyItems.length - idx}
+                        </span>
+                        <span className="font-semibold text-slate-600">{item.modeName}</span>
+                        <span className="text-[11px] text-slate-400 tabular-nums">
                           {new Date(item.timestamp).toLocaleTimeString('vi-VN', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -1288,16 +1936,15 @@ export const StudentCallGames: React.FC = () => {
                           })}
                         </span>
                       </div>
-
                       <div className="font-bold text-[#082B52] text-sm">
                         {item.selectedStudents.map(s => s.fullName).join(', ')}
                       </div>
                       <div className="text-[11px] text-slate-500">
-                        {item.selectedStudents.map(s => s.code).join(' • ')}
+                        {item.selectedStudents.map(s => s.code).join(' · ')}
+                        {item.scoreNote ? ` · Ghi chú: ${item.scoreNote}` : ''}
                       </div>
                     </div>
-
-                    <span className="text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded-md font-semibold text-slate-600">
+                    <span className="text-[11px] font-semibold text-slate-500 shrink-0">
                       {item.className}
                     </span>
                   </div>
@@ -1305,19 +1952,44 @@ export const StudentCallGames: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-2 pt-3 border-t border-slate-100 flex items-center justify-between">
-              <button
-                onClick={handleClearHistory}
-                disabled={historyItems.length === 0}
-                className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl flex items-center space-x-1.5 disabled:opacity-40"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Xóa toàn bộ lịch sử</span>
-              </button>
+            <div className="mt-2 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              {confirmClearHistory ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-rose-700">Xác nhận xóa lịch sử?</span>
+                  <button
+                    type="button"
+                    onClick={handleClearHistoryConfirmed}
+                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg cursor-pointer"
+                  >
+                    Xóa ngay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmClearHistory(false)}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmClearHistory(true)}
+                  disabled={historyItems.length === 0}
+                  className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl flex items-center space-x-1.5 disabled:opacity-40 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Xóa lịch sử</span>
+                </button>
+              )}
 
               <button
-                onClick={() => setShowHistoryModal(false)}
-                className="px-5 py-2 bg-[#006BFF] text-white font-bold text-xs rounded-xl hover:bg-blue-600 shadow-xs"
+                type="button"
+                onClick={() => {
+                  setConfirmClearHistory(false);
+                  setShowHistoryModal(false);
+                }}
+                className="px-5 py-2 bg-[#006BFF] text-white font-bold text-xs rounded-xl hover:bg-blue-600 shadow-xs cursor-pointer"
               >
                 Đóng
               </button>
@@ -1326,40 +1998,40 @@ export const StudentCallGames: React.FC = () => {
         </div>
       )}
 
-      {/* 7. MODAL ĐỒNG HỒ ĐẾM NGƯỢC (TIMER) */}
+      {/* 6. MODAL ĐỒNG HỒ ĐẾM NGƯỢC */}
       {showTimerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl border border-[#DCE8F7] p-6 max-w-sm w-full shadow-2xl relative text-center">
+          <div className="bg-white rounded-3xl border border-[#DCE8F7] p-6 max-w-sm w-full shadow-2xl text-center">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center space-x-2">
                 <TimerIcon className="w-5 h-5 text-amber-500" />
                 <h3 className="font-bold text-[#082B52] text-lg">Đồng hồ đếm ngược</h3>
               </div>
               <button
+                type="button"
                 onClick={() => setShowTimerModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Giant Countdown Display */}
-            <div className="py-6 px-4 rounded-3xl bg-[#082B52] text-white font-mono text-6xl font-black tracking-widest shadow-inner my-2">
+            <div className="py-6 px-4 rounded-3xl bg-[#082B52] text-white font-mono text-6xl font-bold tracking-widest tabular-nums shadow-inner my-2">
               {String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:
               {String(timerSeconds % 60).padStart(2, '0')}
             </div>
 
-            {/* Presets */}
             <div className="grid grid-cols-4 gap-2 my-4">
               {[15, 30, 45, 60].map(sec => (
                 <button
                   key={sec}
+                  type="button"
                   onClick={() => {
                     setIsTimerRunning(false);
                     setInitialTimerSeconds(sec);
                     setTimerSeconds(sec);
                   }}
-                  className={`py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                  className={`py-2 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
                     initialTimerSeconds === sec
                       ? 'bg-[#006BFF] text-white border-blue-600'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
@@ -1370,11 +2042,11 @@ export const StudentCallGames: React.FC = () => {
               ))}
             </div>
 
-            {/* Controls */}
             <div className="flex items-center justify-center gap-3 mt-4">
               <button
+                type="button"
                 onClick={() => setIsTimerRunning(prev => !prev)}
-                className={`px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-md flex items-center space-x-1.5 ${
+                className={`px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-md flex items-center space-x-1.5 cursor-pointer ${
                   isTimerRunning ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-600 hover:bg-emerald-700'
                 }`}
               >
@@ -1383,11 +2055,12 @@ export const StudentCallGames: React.FC = () => {
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   setIsTimerRunning(false);
                   setTimerSeconds(initialTimerSeconds);
                 }}
-                className="px-4 py-2.5 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center space-x-1"
+                className="px-4 py-2.5 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center space-x-1 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Đặt lại</span>
@@ -1397,27 +2070,29 @@ export const StudentCallGames: React.FC = () => {
         </div>
       )}
 
-      {/* 8. MODAL XÁC NHẬN ĐẶT LẠI PHIÊN GỌI */}
+      {/* 7. MODAL XÁC NHẬN ĐẶT LẠI PHIÊN */}
       {showResetConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl border border-amber-200 p-6 max-w-sm w-full shadow-2xl relative text-center">
+          <div className="bg-white rounded-3xl border border-amber-200 p-6 max-w-sm w-full shadow-2xl text-center">
             <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
               <RotateCcw className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-[#082B52] text-lg">Đặt lại phiên gọi học sinh?</h3>
-            <p className="text-xs text-slate-600 my-2">
-              Thao tác này sẽ xóa danh sách {calledSessionIds.size} bạn đã được gọi trong phiên này để tất cả các bạn có thể được gọi lại từ đầu.
+            <h3 className="font-bold text-[#082B52] text-lg">Đặt lại phiên gọi?</h3>
+            <p className="text-xs text-slate-600 my-2 leading-relaxed">
+              Thao tác này sẽ đưa {calledInClassCount} học sinh đã gọi trong phiên này quay lại danh sách chờ gọi (giữ nguyên danh sách vắng mặt).
             </p>
             <div className="flex items-center justify-center gap-2.5 mt-5">
               <button
+                type="button"
                 onClick={() => setShowResetConfirmModal(false)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
               >
                 Hủy bỏ
               </button>
               <button
+                type="button"
                 onClick={handleResetSession}
-                className="px-5 py-2 rounded-xl bg-[#006BFF] text-white text-xs font-bold hover:bg-blue-600 shadow-xs"
+                className="px-5 py-2 rounded-xl bg-[#006BFF] text-white text-xs font-bold hover:bg-blue-600 shadow-xs cursor-pointer"
               >
                 Xác nhận đặt lại
               </button>
@@ -1426,48 +2101,68 @@ export const StudentCallGames: React.FC = () => {
         </div>
       )}
 
-      {/* 9. MODAL CHỈNH SỬA DANH SÁCH NHẬP TAY */}
+      {/* 8. MODAL NHẬP DANH SÁCH HỌC SINH */}
       {showManualEditorModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl border border-[#DCE8F7] p-6 max-w-lg w-full shadow-2xl relative">
+          <div className="bg-white rounded-3xl border border-[#DCE8F7] p-6 max-w-lg w-full shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2">
                 <Edit3 className="w-5 h-5 text-[#006BFF]" />
                 <h3 className="font-bold text-[#082B52] text-lg">Nhập danh sách học sinh</h3>
               </div>
               <button
+                type="button"
                 onClick={() => setShowManualEditorModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 my-3">
-              Mỗi dòng là một học sinh. Định dạng hỗ trợ: <code>Mã - Họ và tên</code> hoặc chỉ cần nhập <code>Họ và tên</code>.
+            <p className="text-xs text-slate-600 my-3 leading-relaxed">
+              Mỗi dòng là một học sinh. Hỗ trợ nhập <code>Mã - Họ và tên</code> hoặc chỉ nhập <code>Họ và tên</code>. Khi lưu, hệ thống sẽ chuyển sang dùng danh sách này ngay.
             </p>
 
             <textarea
-              rows={10}
+              rows={9}
               value={manualRawText}
-              onChange={e => setManualRawText(e.target.value)}
+              onChange={e => {
+                setManualRawText(e.target.value);
+                setManualEditorError(null);
+              }}
               placeholder="HT01 - Nguyễn Văn An&#10;HT02 - Trần Thị Bình&#10;HT03 - Lê Minh Châu"
               className="w-full p-3 rounded-xl border border-[#DCE8F7] text-xs font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
             />
 
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+            {manualEditorError && (
+              <p className="text-xs font-bold text-rose-600 mt-2">{manualEditorError}</p>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-100">
               <button
-                onClick={() => setShowManualEditorModal(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50"
+                type="button"
+                onClick={handleClearManualList}
+                className="px-3.5 py-2 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl cursor-pointer"
               >
-                Hủy bỏ
+                Xóa trắng danh sách
               </button>
-              <button
-                onClick={handleSaveManualList}
-                className="px-5 py-2 bg-[#006BFF] text-white text-xs font-bold rounded-xl hover:bg-blue-600 shadow-xs"
-              >
-                Lưu danh sách
-              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowManualEditorModal(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveManualList}
+                  className="px-5 py-2 bg-[#006BFF] text-white text-xs font-bold rounded-xl hover:bg-blue-600 shadow-xs cursor-pointer"
+                >
+                  Lưu danh sách
+                </button>
+              </div>
             </div>
           </div>
         </div>

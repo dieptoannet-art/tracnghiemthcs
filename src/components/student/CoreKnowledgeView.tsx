@@ -11,7 +11,14 @@ import {
   AlertCircle,
   Sparkles,
   Info,
-  Play
+  Play,
+  Download,
+  ClipboardList,
+  Award,
+  Compass,
+  GraduationCap,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import {
   CoreKnowledgeLesson,
@@ -29,11 +36,17 @@ import {
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import { mountLessonHistoryBridge } from '../../lib/lessonHistoryBridge';
+import { Grade } from '../../types';
+import {
+  findMatchingPublishedWorksheetsByLesson,
+  mapCatalogSubjectCodeToId,
+  triggerMaterialDownload
+} from '../../utils/studyMaterialsSync';
 
 const RECENT_VIEW_KEY = 'taydo_last_viewed_core_lesson';
 
 export const CoreKnowledgeView: React.FC = () => {
-  const { user } = useApp();
+  const { user, studyDocs, openStudyMaterialsWithIntent } = useApp();
 
   // 1. Bộ chọn 5 cấp phụ thuộc: Khối lớp -> Môn học -> Tập sách -> Chương/Chủ đề -> Bài học
   // Mặc định ban đầu: Khối 6, Môn Toán, Tập 1, Chương I, Bài 1
@@ -156,6 +169,42 @@ export const CoreKnowledgeView: React.FC = () => {
     return getCoreKnowledgeLessonById(selectedLessonId);
   }, [selectedLessonId]);
 
+  // Phiếu bài tập đã công bố gắn trực tiếp với ID bài học đang chọn / đang xem
+  const worksheetsForSelectedLesson = useMemo(
+    () => findMatchingPublishedWorksheetsByLesson(studyDocs, currentSelectedLesson?.id),
+    [studyDocs, currentSelectedLesson?.id]
+  );
+
+  const worksheetsForActiveLesson = useMemo(
+    () => findMatchingPublishedWorksheetsByLesson(studyDocs, activeLesson?.id),
+    [studyDocs, activeLesson?.id]
+  );
+
+  const [worksheetDownloadError, setWorksheetDownloadError] = useState<string | null>(null);
+
+  const handleDownloadLessonWorksheet = async (
+    lesson: CoreKnowledgeLesson,
+    worksheets: ReturnType<typeof findMatchingPublishedWorksheetsByLesson>
+  ) => {
+    if (worksheets.length === 0) return;
+    setWorksheetDownloadError(null);
+    if (worksheets.length === 1) {
+      const res = await triggerMaterialDownload(worksheets[0]);
+      if (!res.success) {
+        setWorksheetDownloadError(res.error || 'Không thể tải phiếu bài tập.');
+      }
+      return;
+    }
+
+    openStudyMaterialsWithIntent({
+      grade: String(lesson.grade) as Grade,
+      subject: mapCatalogSubjectCodeToId(lesson.subjectCode),
+      materialType: 'phieu_bai_tap',
+      chapterKey: `${lesson.volume}_${lesson.chapterLabel}`,
+      lessonId: lesson.id
+    });
+  };
+
   // ==========================================
   // QUY TẮC RESET PHỤ THUỘC KHI ĐỔI CẤP CHỌN
   // ==========================================
@@ -263,25 +312,70 @@ export const CoreKnowledgeView: React.FC = () => {
     return `${baseLabel} ${statusBadge}`;
   };
 
-  // Mở bài học vào khung iframe
-  const handleStartLearning = () => {
-    if (!currentSelectedLesson) return;
+  // Mở rộng danh sách "Bài học trong chương" khi chương có > 3 mục
+  const [showAllChapterLessons, setShowAllChapterLessons] = useState<boolean>(false);
 
-    // Không mở bài khác thay thế khi chưa có học liệu
-    if (currentSelectedLesson.status !== 'ready') {
+  // Thu gọn danh sách khi người dùng đổi khối, môn, tập hoặc chương
+  useEffect(() => {
+    setShowAllChapterLessons(false);
+  }, [selectedGrade, selectedSubjectCode, selectedVolume, selectedGroupKey]);
+
+  // Sắp xếp bài học trong chương: ưu tiên bài 'ready' trước, giữ nguyên thứ tự danh mục (sortOrder)
+  const orderedChapterLessons = useMemo(() => {
+    return [...availableLessons].sort((a, b) => {
+      const rankA = a.status === 'ready' ? 0 : 1;
+      const rankB = b.status === 'ready' ? 0 : 1;
+      if (rankA !== rankB) return rankA - rankB;
+      return a.sortOrder - b.sortOrder;
+    });
+  }, [availableLessons]);
+
+  const hasAnyReadyLessonInChapter = useMemo(
+    () => orderedChapterLessons.some(l => l.status === 'ready'),
+    [orderedChapterLessons]
+  );
+
+  const displayedChapterLessons = useMemo(
+    () =>
+      showAllChapterLessons
+        ? orderedChapterLessons
+        : orderedChapterLessons.slice(0, 3),
+    [orderedChapterLessons, showAllChapterLessons]
+  );
+
+  // Mở bài học cụ thể vào khung iframe, đồng bộ bộ chọn và lưu lịch sử gần đây
+  const openLessonInViewer = (lesson: CoreKnowledgeLesson) => {
+    if (!lesson || lesson.status !== 'ready') {
       return;
     }
 
-    setActiveLesson(currentSelectedLesson);
+    const vols = getVolumesByGradeAndSubject(lesson.grade, lesson.subjectCode);
+    const groupKey = `${lesson.volume}_${lesson.chapterLabel}`;
+    const breadcrumbParts: string[] = [
+      `Lớp ${lesson.grade}`,
+      lesson.subjectName
+    ];
+    if (vols.length > 1 && lesson.volume) {
+      breadcrumbParts.push(`Tập ${lesson.volume}`);
+    }
+    breadcrumbParts.push(lesson.chapterLabel, lesson.lessonLabel);
+
+    setSelectedGrade(lesson.grade);
+    setSelectedSubjectCode(lesson.subjectCode);
+    setSelectedVolume(lesson.volume);
+    setSelectedGroupKey(groupKey);
+    setSelectedLessonId(lesson.id);
+
+    setActiveLesson(lesson);
     setIsIframeLoading(true);
     setIframeError(false);
 
     // Ghi nhận lịch sử xem gần đây (không chấm điểm / không tích hoàn thành)
     try {
       const recentData = {
-        lessonId: currentSelectedLesson.id,
-        lessonTitle: `${currentSelectedLesson.chapterLabel} • ${currentSelectedLesson.lessonLabel}`,
-        breadcrumb: currentBreadcrumb,
+        lessonId: lesson.id,
+        lessonTitle: `${lesson.chapterLabel} • ${lesson.lessonLabel}`,
+        breadcrumb: breadcrumbParts.join(' / '),
         viewedAt: new Date().toISOString()
       };
       localStorage.setItem(RECENT_VIEW_KEY, JSON.stringify(recentData));
@@ -289,6 +383,16 @@ export const CoreKnowledgeView: React.FC = () => {
     } catch {
       // ignore storage error
     }
+
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Mở bài học đang chọn từ bộ lọc phía trên
+  const handleStartLearning = () => {
+    if (!currentSelectedLesson) return;
+    openLessonInViewer(currentSelectedLesson);
   };
 
   // Quay lại bộ chọn bài (giữ nguyên tất cả lựa chọn hiện tại trong phiên)
@@ -453,8 +557,22 @@ export const CoreKnowledgeView: React.FC = () => {
               </div>
             </div>
 
-            {/* Các tiện ích: Trạng thái đồng bộ Supabase, Toàn màn hình & Mở tab mới */}
+            {/* Các tiện ích: Phiếu bài tập (nếu có), Trạng thái đồng bộ Supabase, Toàn màn hình & Mở tab mới */}
             <div className="flex items-center space-x-2 shrink-0">
+              {worksheetsForActiveLesson.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDownloadLessonWorksheet(activeLesson, worksheetsForActiveLesson)
+                  }
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+                  title="Tải phiếu bài tập đã công bố của bài học này"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Tải phiếu bài tập</span>
+                </button>
+              )}
+
               {SUPPORTED_BRIDGE_LESSON_IDS.has(activeLesson.id) && (
                 <>
                   {bridgeStatus === 'connected' && (
@@ -525,7 +643,7 @@ export const CoreKnowledgeView: React.FC = () => {
                     Không thể hiển thị học liệu trong khung nhúng
                   </h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Tệp bài học tại <code>{activeLesson.htmlUrl}</code> chưa sẵn sàng hoặc trình duyệt chặn nhúng.
+                    Nội dung học liệu cho bài học này chưa sẵn sàng hoặc trình duyệt đang chặn nhúng.
                   </p>
                   <div className="pt-2 flex justify-center gap-2">
                     <a
@@ -834,9 +952,6 @@ export const CoreKnowledgeView: React.FC = () => {
                     <h4 className="text-base font-bold text-[#082B52]">
                       {currentSelectedLesson.chapterLabel} • {currentSelectedLesson.lessonLabel}
                     </h4>
-                    <p className="text-xs text-slate-500">
-                      Tệp bài học: <code>{currentSelectedLesson.htmlUrl}</code>
-                    </p>
                   </div>
 
                   {/* Huy hiệu trạng thái */}
@@ -888,16 +1003,37 @@ export const CoreKnowledgeView: React.FC = () => {
                 )}
               </div>
 
-              <button
-                type="button"
-                onClick={handleStartLearning}
-                disabled={!isReadyToStart}
-                className="px-6 py-2.5 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <Play className="w-4 h-4 fill-white" />
-                <span>Vào học</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2.5">
+                {currentSelectedLesson && worksheetsForSelectedLesson.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleDownloadLessonWorksheet(
+                        currentSelectedLesson,
+                        worksheetsForSelectedLesson
+                      )
+                    }
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Tải phiếu bài tập</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleStartLearning}
+                  disabled={!isReadyToStart}
+                  className="px-6 py-2.5 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>Vào học</span>
+                </button>
+              </div>
             </div>
+            {worksheetDownloadError && (
+              <p className="text-xs font-semibold text-rose-600">{worksheetDownloadError}</p>
+            )}
           </div>
 
           {/* Card: Lịch sử bài học vừa truy cập gần đây */}
@@ -925,14 +1061,7 @@ export const CoreKnowledgeView: React.FC = () => {
                 onClick={() => {
                   const lesson = getCoreKnowledgeLessonById(recentView.lessonId);
                   if (lesson && lesson.status === 'ready') {
-                    setSelectedGrade(lesson.grade);
-                    setSelectedSubjectCode(lesson.subjectCode);
-                    setSelectedVolume(lesson.volume);
-                    setSelectedGroupKey(`${lesson.volume}_${lesson.chapterLabel}`);
-                    setSelectedLessonId(lesson.id);
-                    setActiveLesson(lesson);
-                    setIsIframeLoading(true);
-                    setIframeError(false);
+                    openLessonInViewer(lesson);
                   }
                 }}
                 className="px-3.5 py-1.5 border border-[#DCE8F7] hover:border-blue-400 text-[#006BFF] bg-blue-50/50 hover:bg-blue-50 rounded-xl font-bold transition-colors cursor-pointer shrink-0"
@@ -942,46 +1071,167 @@ export const CoreKnowledgeView: React.FC = () => {
             </div>
           )}
 
-          {/* Thông tin quy định danh mục & tích hợp học liệu */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
-              <h5 className="font-bold text-[#082B52] flex items-center space-x-1.5">
-                <Info className="w-4 h-4 text-[#006BFF]" />
-                <span>Quy tắc vận hành & Tích hợp Lịch sử Supabase (Toán 6–9, Tin học 6–9, KHTN 6–9):</span>
-              </h5>
-              <div className="flex items-center space-x-2">
-                <a
-                  href="/tich-hop/01_lich_su_supabase.sql"
-                  download="01_lich_su_supabase.sql"
-                  className="inline-flex items-center space-x-1 px-3 py-1 bg-white hover:bg-blue-50 text-[#006BFF] border border-[#DCE8F7] hover:border-blue-400 rounded-lg text-[11px] font-bold shadow-2xs transition-colors"
-                  title="Tải tệp SQL migration để chạy trong Supabase SQL Editor"
-                >
-                  <span>⬇ Tải 01_lich_su_supabase.sql</span>
-                </a>
+          {/* Khu vực "Bài học trong chương" (thay thế khung thông tin kỹ thuật cũ) */}
+          <section className="bg-white rounded-2xl border border-[#DCE8F7] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+              <div className="space-y-0.5">
+                <div className="flex items-center space-x-2">
+                  <BookOpen className="w-5 h-5 text-[#006BFF]" />
+                  <h3 className="text-lg font-bold text-[#082B52]">Bài học trong chương</h3>
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-[#006BFF]">
+                  {currentSelectedGroup
+                    ? currentSelectedGroup.chapterLabel
+                    : `Chưa chọn ${groupLabelPrompt.toLowerCase()}`}
+                </p>
               </div>
+
+              {currentSelectedGroup && orderedChapterLessons.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllChapterLessons(prev => !prev)}
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-blue-100 text-[#006BFF] text-xs font-bold transition-colors cursor-pointer self-start sm:self-auto shrink-0"
+                >
+                  {showAllChapterLessons ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      <span>Thu gọn</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      <span>Xem tất cả ({orderedChapterLessons.length})</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
-            <ul className="list-disc list-inside space-y-1.5 text-[11px] text-slate-600 pl-1 leading-relaxed">
-              <li>
-                <strong>Nguồn danh mục chuẩn:</strong> Toàn bộ 553 mục thuộc sách giáo khoa Kết nối tri thức với cuộc sống (Toán 6, 7, 8, 9 Tập 1 &amp; Tập 2; Tin học 6, 7, 8, 9; Khoa học tự nhiên 6, 7, 8, 9).
-              </li>
-              <li>
-                <strong>Cầu nối lịch sử học tập:</strong> Tự động kích hoạt khi học sinh đăng nhập bằng tài khoản Supabase Auth. Dữ liệu tiến độ, câu trả lời, gợi ý và điểm số được lưu vào bảng <code>edu_lesson_attempts</code> thông qua RPC <code>edu_save_lesson_attempt</code>. Nếu chưa đăng nhập, bài học hoạt động độc lập và lưu cục bộ trên trình duyệt.
-              </li>
-              <li>
-                <strong>Cấu trúc học liệu:</strong> <code>public/lessons/lop-&#123;khối&#125;/&#123;môn&#125;/&#123;chương-hoặc-chủ-đề&#125;/&#123;bài&#125;/index.html</code> (mỗi bài có thư mục độc lập chứa index.html và tài nguyên).
-              </li>
-              <li>
-                <strong>Đường dẫn truy cập web:</strong> <code>/lessons/lop-8/toan/chuong-04/bai-15/index.html</code> (tuyệt đối không chứa tiền tố <code>/public</code>).
-              </li>
-              <li>
-                <strong>Học liệu sẵn sàng trực tiếp:</strong> Hệ thống tự động đối chiếu các tệp HTML có sẵn trong <code>public/lessons/</code> qua <code>availableLessonPaths.json</code> (Toán 8 hiện sẵn sàng 58/75 mục; 17 mục chưa tải lên giữ trạng thái “Đang cập nhật”). Khi chép các tệp còn lại vào đúng thư mục và build lại, nút “Vào học” sẽ tự động kích hoạt.
-              </li>
-              <li>
-                <strong>Bảo toàn nguyên bản:</strong> Giữ nguyên 100% mã nguồn HTML, KaTeX toán học, CSS, tương tác JavaScript thông qua iframe độc lập cùng origin.
-              </li>
-            </ul>
-          </div>
+            {!currentSelectedGroup ? (
+              <p className="text-xs sm:text-sm text-slate-600 font-semibold">
+                Hãy chọn Khối lớp, Môn học{hasMultipleVolumes ? ', Tập sách' : ''} và {groupLabelPrompt} ở phía trên để xem danh sách bài học.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {!hasAnyReadyLessonInChapter && (
+                  <p className="text-xs sm:text-sm font-bold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+                    Chương này đang bổ sung học liệu
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {displayedChapterLessons.map((lesson, idx) => {
+                    const isReady = lesson.status === 'ready';
+
+                    // Nền thẻ xoay vòng 3 tông: xanh dương nhạt, xanh ngọc nhạt, vàng nhạt
+                    const cardToneClass =
+                      idx % 3 === 0
+                        ? 'bg-[#EEF6FF] border-[#CFE3FF]'
+                        : idx % 3 === 1
+                          ? 'bg-[#ECFDF5] border-[#BFEFD9]'
+                          : 'bg-[#FFFBEB] border-[#FDE68A]';
+
+                    const iconToneClass =
+                      idx % 3 === 0
+                        ? 'bg-white text-[#006BFF] border-blue-200'
+                        : idx % 3 === 1
+                          ? 'bg-white text-emerald-700 border-emerald-200'
+                          : 'bg-white text-amber-700 border-amber-200';
+
+                    const renderLessonTypeIcon = () => {
+                      switch (lesson.itemType) {
+                        case 'practice':
+                          return <ClipboardList className="w-6 h-6" />;
+                        case 'chapter_review':
+                          return <Award className="w-6 h-6" />;
+                        case 'activity':
+                          return <Compass className="w-6 h-6" />;
+                        case 'year_review':
+                          return <GraduationCap className="w-6 h-6" />;
+                        default:
+                          return <BookOpen className="w-6 h-6" />;
+                      }
+                    };
+
+                    const getItemTypeLabel = () => {
+                      switch (lesson.itemType) {
+                        case 'practice':
+                          return 'Luyện tập chung';
+                        case 'chapter_review':
+                          return 'Bài tập cuối chương';
+                        case 'activity':
+                          return 'Thực hành trải nghiệm';
+                        case 'year_review':
+                          return 'Ôn tập cuối năm';
+                        default:
+                          return 'Bài học';
+                      }
+                    };
+
+                    return (
+                      <div
+                        key={lesson.id}
+                        className={`rounded-2xl border p-4 sm:p-5 shadow-2xs flex flex-col justify-between space-y-4 transition-all hover:shadow-md ${cardToneClass}`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div
+                              className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${iconToneClass}`}
+                            >
+                              {renderLessonTypeIcon()}
+                            </div>
+
+                            {isReady ? (
+                              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold shrink-0">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Sẵn sàng</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold shrink-0">
+                                <Clock className="w-3.5 h-3.5 text-amber-700" />
+                                <span>Đang cập nhật</span>
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="text-[11px] font-bold text-[#082B52]/70 uppercase tracking-wide">
+                              {getItemTypeLabel()}
+                            </div>
+                            <h4 className="text-sm sm:text-base font-bold text-[#082B52] leading-snug">
+                              {lesson.lessonLabel}
+                            </h4>
+                            {lesson.sourcePage ? (
+                              <p className="text-xs font-bold text-slate-600">
+                                Trang SGK {lesson.sourcePage}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-black/5 flex items-center justify-between gap-2 mt-auto">
+                          <span className="text-[11px] font-bold text-slate-500">
+                            {isReady ? 'Học liệu HTML trực tuyến' : 'Chưa có học liệu'}
+                          </span>
+
+                          {isReady && (
+                            <button
+                              type="button"
+                              onClick={() => openLessonInViewer(lesson)}
+                              className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
+                            >
+                              <Play className="w-3.5 h-3.5 fill-white" />
+                              <span>Vào học</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </section>
         </div>
       )}
     </div>

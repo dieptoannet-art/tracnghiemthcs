@@ -549,22 +549,120 @@ export async function syncJoinClassByInviteCode(
   }
 }
 
+export interface NewExamDraftInput {
+  code: string;
+  title: string;
+  grade: Grade;
+  subject: SubjectId;
+  period: ExamPeriod;
+  durationMinutes: number;
+  questions: Question[];
+  lockedQuestionIds?: string[];
+  totalPoints: number;
+}
+
+export interface SaveExamDraftParams {
+  teacherId: string;
+  teacherRole: UserRole;
+  teacherName: string;
+  newExamDraft: NewExamDraftInput;
+  examRequestId: string;
+}
+
+export async function syncSaveExamOnSupabase(
+  params: SaveExamDraftParams
+): Promise<{ success: boolean; exam?: Exam; error?: string }> {
+  const { teacherId, teacherRole, teacherName, newExamDraft, examRequestId } = params;
+
+  if (teacherRole !== 'teacher' && teacherRole !== 'admin') {
+    return { success: false, error: 'Chỉ tài khoản Giáo viên hoặc Quản trị viên mới có quyền lưu đề kiểm tra.' };
+  }
+  if (!newExamDraft.questions || newExamDraft.questions.length === 0) {
+    return { success: false, error: 'Vui lòng chọn ít nhất 1 câu hỏi cho đề kiểm tra.' };
+  }
+
+  try {
+    const validUuidQIds = newExamDraft.questions.map(q => q.id).filter(id => isValidUuid(id));
+    const publicQuestions = newExamDraft.questions.map(stripQuestionAnswersForExam);
+    const protectedKeys = extractProtectedExamKeys(newExamDraft.questions);
+
+    let insertedExamRow: any = null;
+    const { data: exData, error: exErr } = await supabase
+      .from('exams')
+      .insert({
+        code: newExamDraft.code.trim().toUpperCase(),
+        title: newExamDraft.title.trim(),
+        grade: newExamDraft.grade,
+        subject: newExamDraft.subject,
+        period: newExamDraft.period,
+        duration_minutes: newExamDraft.durationMinutes,
+        total_points: newExamDraft.totalPoints,
+        question_ids: validUuidQIds,
+        question_count: newExamDraft.questions.length,
+        public_questions: publicQuestions,
+        author_id: teacherId,
+        client_request_id: examRequestId
+      })
+      .select('id, code, title, matrix_id, grade, subject, period, duration_minutes, total_points, question_count, author_id, created_at, client_request_id')
+      .single();
+
+    if (exErr) {
+      if (exErr.code === '23505') {
+        const { data: existingRow, error: fetchExistingErr } = await supabase
+          .from('exams')
+          .select('id, code, title, matrix_id, grade, subject, period, duration_minutes, total_points, question_count, author_id, created_at, client_request_id')
+          .eq('client_request_id', examRequestId)
+          .maybeSingle();
+        if (fetchExistingErr || !existingRow) {
+          return { success: false, error: formatSupabaseErrorMessage(exErr, 'Không thể tạo đề thi trên Supabase.') };
+        }
+        insertedExamRow = existingRow;
+      } else {
+        return { success: false, error: formatSupabaseErrorMessage(exErr, 'Không thể tạo đề thi trên Supabase.') };
+      }
+    } else {
+      insertedExamRow = exData;
+    }
+
+    const { error: keysErr } = await supabase.from('exam_protected_keys').upsert(
+      {
+        exam_id: insertedExamRow.id,
+        keys: protectedKeys,
+        updated_by: teacherId
+      },
+      { onConflict: 'exam_id' }
+    );
+    if (keysErr) {
+      return {
+        success: false,
+        error: formatSupabaseErrorMessage(keysErr, 'Không thể lưu khóa đáp án bảo vệ của đề thi trên Supabase.')
+      };
+    }
+
+    const resolvedExam: Exam = {
+      ...mapExamSummaryRow(insertedExamRow),
+      author: teacherName,
+      questions: newExamDraft.questions,
+      lockedQuestionIds: newExamDraft.lockedQuestionIds,
+      questionCount: newExamDraft.questions.length
+    };
+
+    return { success: true, exam: resolvedExam };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: formatSupabaseErrorMessage(err, 'Lỗi kết nối khi lưu đề kiểm tra lên Supabase.')
+    };
+  }
+}
+
 export interface PublishExamAssignmentParams {
   teacherId: string;
   teacherRole: UserRole;
   teacherName: string;
   targetClass: ClassRoom;
   existingExam?: Exam | null;
-  newExamDraft?: {
-    code: string;
-    title: string;
-    grade: Grade;
-    subject: SubjectId;
-    period: ExamPeriod;
-    durationMinutes: number;
-    questions: Question[];
-    totalPoints: number;
-  };
+  newExamDraft?: NewExamDraftInput;
   assignmentSettings: {
     openTimeIso: string;
     closeTimeIso: string;
@@ -624,75 +722,17 @@ export async function syncPublishExamAssignmentOnSupabase(
         return { success: false, error: 'Bạn không có quyền giao đề thi của giáo viên khác.' };
       }
     } else if (newExamDraft) {
-      if (!newExamDraft.questions || newExamDraft.questions.length === 0) {
-        return { success: false, error: 'Vui lòng chọn ít nhất 1 câu hỏi cho đề kiểm tra.' };
+      const saveRes = await syncSaveExamOnSupabase({
+        teacherId,
+        teacherRole,
+        teacherName,
+        newExamDraft,
+        examRequestId
+      });
+      if (!saveRes.success || !saveRes.exam) {
+        return { success: false, error: saveRes.error || 'Không thể lưu đề kiểm tra trên Supabase.' };
       }
-
-      const validUuidQIds = newExamDraft.questions.map(q => q.id).filter(id => isValidUuid(id));
-      const publicQuestions = newExamDraft.questions.map(stripQuestionAnswersForExam);
-      const protectedKeys = extractProtectedExamKeys(newExamDraft.questions);
-
-      let insertedExamRow: any = null;
-      const { data: exData, error: exErr } = await supabase
-        .from('exams')
-        .insert({
-          code: newExamDraft.code.trim().toUpperCase(),
-          title: newExamDraft.title.trim(),
-          grade: newExamDraft.grade,
-          subject: newExamDraft.subject,
-          period: newExamDraft.period,
-          duration_minutes: newExamDraft.durationMinutes,
-          total_points: newExamDraft.totalPoints,
-          question_ids: validUuidQIds,
-          question_count: newExamDraft.questions.length,
-          public_questions: publicQuestions,
-          author_id: teacherId,
-          client_request_id: examRequestId
-        })
-        .select('id, code, title, matrix_id, grade, subject, period, duration_minutes, total_points, question_count, author_id, created_at, client_request_id')
-        .single();
-
-      if (exErr) {
-        // Idempotent recovery: if a prior attempt with same client_request_id already succeeded on server
-        if (exErr.code === '23505') {
-          const { data: existingRow, error: fetchExistingErr } = await supabase
-            .from('exams')
-            .select('id, code, title, matrix_id, grade, subject, period, duration_minutes, total_points, question_count, author_id, created_at, client_request_id')
-            .eq('client_request_id', examRequestId)
-            .maybeSingle();
-          if (fetchExistingErr || !existingRow) {
-            return { success: false, error: formatSupabaseErrorMessage(exErr, 'Không thể tạo đề thi trên Supabase.') };
-          }
-          insertedExamRow = existingRow;
-        } else {
-          return { success: false, error: formatSupabaseErrorMessage(exErr, 'Không thể tạo đề thi trên Supabase.') };
-        }
-      } else {
-        insertedExamRow = exData;
-      }
-
-      // Store protected answer keys in teacher/admin-only table
-      const { error: keysErr } = await supabase.from('exam_protected_keys').upsert(
-        {
-          exam_id: insertedExamRow.id,
-          keys: protectedKeys,
-          updated_by: teacherId
-        },
-        { onConflict: 'exam_id' }
-      );
-      if (keysErr) {
-        return {
-          success: false,
-          error: formatSupabaseErrorMessage(keysErr, 'Không thể lưu khóa đáp án bảo vệ của đề thi trên Supabase.')
-        };
-      }
-
-      resolvedExam = {
-        ...mapExamSummaryRow(insertedExamRow),
-        author: teacherName,
-        questions: newExamDraft.questions,
-        questionCount: newExamDraft.questions.length
-      };
+      resolvedExam = saveRes.exam;
     } else {
       return { success: false, error: 'Chưa có đề kiểm tra để giao cho lớp.' };
     }

@@ -319,15 +319,53 @@ export interface AuditLog {
   details: string;
 }
 
+export type StudyMaterialType =
+  | 'de_cuong'
+  | 'phieu_bai_tap'
+  | 'de_tham_khao'
+  | 'so_tay'
+  | 'tep_thuc_hanh';
+
+export type StudyMaterialStatus = 'draft' | 'published';
+
 export interface StudyDocument {
   id: string;
   title: string;
+  topic?: string;
   grade: Grade;
   subject: SubjectId;
-  type: 'de_cuong' | 'bai_giang' | 'cong_thuc' | 'de_mau';
+  materialType: StudyMaterialType;
+  examTerm?: ExamPeriod | null;
+  lessonId?: string | null;
+  chapterKey?: string | null;
+  chapterLabel?: string | null;
+  lessonLabel?: string | null;
   author: string;
-  downloadUrl?: string;
-  size: string;
-  uploadedDate: string;
+  authorId?: string;
   description: string;
+  usageInstructions?: string | null;
+  fileName?: string | null;
+  fileFormat?: string | null;
+  fileUrl?: string | null;
+  storagePath?: string | null;
+  fileSizeBytes?: number | null;
+  status: StudyMaterialStatus;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+  answerKeyFileName?: string | null;
+  answerKeyFileUrl?: string | null;
+  answerKeyStoragePath?: string | null;
+  isAnswerKeyPublished?: boolean;
 }
+
+export interface StudyMaterialNavIntent {
+  grade?: Grade | 'all';
+  subject?: SubjectId | 'all';
+  materialType?: StudyMaterialType | 'all';
+  examTerm?: ExamPeriod | 'all';
+  chapterKey?: string | 'all';
+  lessonId?: string | 'all';
+  searchQuery?: string;
+  openMaterialId?: string;
+}
+

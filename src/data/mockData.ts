@@ -1101,35 +1101,55 @@ export const INITIAL_STUDY_DOCS: StudyDocument[] = [
   {
     id: 'doc-01',
     title: 'Đề cương ôn tập Giữa học kỳ I - Toán 8 (Tóm tắt kiến thức & Bài tập mẫu)',
+    topic: 'Đa thức nhiều biến, 7 hằng đẳng thức đáng nhớ & Tứ giác',
     grade: '8',
     subject: 'math',
-    type: 'de_cuong',
+    materialType: 'de_cuong',
+    examTerm: 'mid1',
     author: 'Tổ Toán - THCS Tây Đô',
-    size: '1.4 MB',
-    uploadedDate: '2026-10-10',
-    description: 'Hệ thống toàn bộ công thức 7 hằng đẳng thức đáng nhớ, quy tắc nhân chia đa thức và các dấu hiệu nhận biết tứ giác đặc biệt.'
+    description: 'Hệ thống toàn bộ công thức 7 hằng đẳng thức đáng nhớ, quy tắc nhân chia đa thức và các dấu hiệu nhận biết tứ giác đặc biệt.',
+    fileName: null,
+    fileFormat: null,
+    fileUrl: null,
+    storagePath: null,
+    fileSizeBytes: null,
+    status: 'draft',
+    updatedAt: null
   },
   {
     id: 'doc-02',
     title: 'Sổ tay công thức và hàm bảng tính Tin học 8 (Hàm IF, SUMIF, COUNTIF)',
+    topic: 'Bảng tính Excel & Hàm điều kiện',
     grade: '8',
     subject: 'informatics',
-    type: 'cong_thuc',
+    materialType: 'so_tay',
     author: 'Thầy Diệp Thanh Toàn',
-    size: '850 KB',
-    uploadedDate: '2026-10-12',
-    description: 'Cẩm nang ví dụ minh họa từng bước xử lý bảng tính Excel trong bài thực hành Tin học 8.'
+    description: 'Cẩm nang ví dụ minh họa từng bước xử lý bảng tính Excel trong bài thực hành Tin học 8.',
+    fileName: null,
+    fileFormat: null,
+    fileUrl: null,
+    storagePath: null,
+    fileSizeBytes: null,
+    status: 'draft',
+    updatedAt: null
   },
   {
     id: 'doc-03',
     title: 'Đề thi tham khảo Giữa học kỳ I Toán 8 có đáp án và hướng dẫn chấm chi tiết',
+    topic: 'Kiểm tra Giữa học kỳ I Toán 8',
     grade: '8',
     subject: 'math',
-    type: 'de_mau',
+    materialType: 'de_tham_khao',
+    examTerm: 'mid1',
     author: 'Trường THCS Tây Đô',
-    size: '2.1 MB',
-    uploadedDate: '2026-10-14',
-    description: 'Bộ đề thi chuẩn cấu trúc phòng GD&ĐT giúp học sinh tự luyện và bấm giờ trước kỳ thi.'
+    description: 'Bộ đề thi chuẩn cấu trúc phòng GD&ĐT giúp học sinh tự luyện và bấm giờ trước kỳ thi.',
+    fileName: null,
+    fileFormat: null,
+    fileUrl: null,
+    storagePath: null,
+    fileSizeBytes: null,
+    status: 'draft',
+    updatedAt: null
   }
 ];
 

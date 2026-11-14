@@ -14,6 +14,7 @@ import {
   GeminiAssistantConfig,
   AuditLog,
   StudyDocument,
+  StudyMaterialNavIntent,
   SubmissionAnswer,
   UserProfile,
   SupabaseConnectionState,
@@ -47,8 +48,20 @@ import {
   syncEnrollStudentOnSupabase,
   syncJoinClassByInviteCode,
   syncPublishExamAssignmentOnSupabase,
-  PublishExamAssignmentParams
+  syncSaveExamOnSupabase,
+  PublishExamAssignmentParams,
+  SaveExamDraftParams
 } from '../utils/supabaseAssignmentSync';
+import {
+  LOCAL_STUDY_MATERIALS_KEY,
+  SaveStudyMaterialPayload,
+  deleteStudyMaterialFromSupabase,
+  fetchStudyMaterialsFromSupabase,
+  hasValidAttachedFile,
+  inferFileFormat,
+  normalizeLegacyStudyDocument,
+  saveStudyMaterialToSupabase
+} from '../utils/studyMaterialsSync';
 
 interface AppContextType {
   // Mode & Auth
@@ -120,6 +133,16 @@ interface AppContextType {
   retryLoadAssignmentData: () => Promise<void>;
   geminiAssistants: GeminiAssistantConfig[];
   studyDocs: StudyDocument[];
+  studyDocsLoading: boolean;
+  studyDocsError: string | null;
+  retryLoadStudyDocs: () => Promise<void>;
+  studyMaterialNavIntent: StudyMaterialNavIntent | null;
+  openStudyMaterialsWithIntent: (intent: StudyMaterialNavIntent) => void;
+  clearStudyMaterialNavIntent: () => void;
+  saveStudyMaterialAsync: (
+    payload: Omit<SaveStudyMaterialPayload, 'author' | 'authorId'> & { author?: string }
+  ) => Promise<{ success: boolean; material?: StudyDocument; isDemo?: boolean; error?: string }>;
+  deleteStudyMaterialAsync: (id: string) => Promise<{ success: boolean; error?: string }>;
   auditLogs: AuditLog[];
   yccdCatalog: YccdItem[];
   pendingMatrixPrompt: string;
@@ -145,6 +168,9 @@ interface AppContextType {
   saveMatrixDraft: (matrix: ExamMatrix) => Promise<{ savedToSupabase: boolean; error?: string }>;
   deleteMatrixDraft: (matrixId: string) => Promise<void>;
   createExam: (exam: Exam) => void;
+  saveExamAsync: (
+    params: Omit<SaveExamDraftParams, 'teacherId' | 'teacherRole' | 'teacherName'>
+  ) => Promise<{ success: boolean; exam?: Exam; isDemo?: boolean; error?: string }>;
   createAssignment: (asg: Assignment) => void;
   publishExamAssignmentAsync: (
     params: Omit<PublishExamAssignmentParams, 'teacherId' | 'teacherRole' | 'teacherName'>
@@ -368,7 +394,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [geminiAssistants] = useState<GeminiAssistantConfig[]>(INITIAL_GEMINI_ASSISTANTS);
-  const [studyDocs] = useState<StudyDocument[]>(INITIAL_STUDY_DOCS);
+  const [studyDocs, setStudyDocs] = useState<StudyDocument[]>(() => {
+    const res = safeReadLocalArray<any>(LOCAL_STUDY_MATERIALS_KEY, INITIAL_STUDY_DOCS);
+    return res.data.map(normalizeLegacyStudyDocument);
+  });
+  const [studyDocsLoading, setStudyDocsLoading] = useState<boolean>(false);
+  const [studyDocsError, setStudyDocsError] = useState<string | null>(() => {
+    const res = safeReadLocalArray<any>(LOCAL_STUDY_MATERIALS_KEY, INITIAL_STUDY_DOCS);
+    return res.error ? 'Không thể đọc dữ liệu thư viện tài liệu học tập trên trình duyệt.' : null;
+  });
+  const [studyMaterialNavIntent, setStudyMaterialNavIntent] = useState<StudyMaterialNavIntent | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [pendingMatrixPrompt, setPendingMatrixPrompt] = useState<string>('');
 
@@ -522,6 +557,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const retryLoadAssignmentData = useCallback(async () => {
     await loadAssignmentsForSession(userRef.current, currentRoleRef.current);
   }, [loadAssignmentsForSession]);
+
+  const loadStudyMaterialsForSession = useCallback(
+    async (explicitUser?: User | null, explicitRole?: UserRole) => {
+      const activeUser = explicitUser !== undefined ? explicitUser : userRef.current;
+      const activeRole = explicitRole || currentRoleRef.current;
+
+      setStudyDocsLoading(true);
+      setStudyDocsError(null);
+
+      try {
+        if (isSupabaseConfigured && activeUser) {
+          const canManage = activeRole === 'teacher' || activeRole === 'admin' || activeRole === 'reviewer';
+          const res = await fetchStudyMaterialsFromSupabase(canManage);
+          if (res.error || !res.data) {
+            setStudyDocs([]);
+            setStudyDocsError(res.error || 'Không thể tải danh sách tài liệu học tập từ Supabase.');
+            return;
+          }
+          setStudyDocs(res.data);
+          return;
+        }
+
+        const localRes = safeReadLocalArray<any>(LOCAL_STUDY_MATERIALS_KEY, INITIAL_STUDY_DOCS);
+        if (localRes.error) {
+          setStudyDocs([]);
+          setStudyDocsError('Không thể đọc danh sách tài liệu học tập đã lưu trên trình duyệt.');
+          return;
+        }
+        setStudyDocs(localRes.data.map(normalizeLegacyStudyDocument));
+      } catch (err: any) {
+        setStudyDocsError(err?.message || 'Đã xảy ra lỗi khi tải thư viện tài liệu học tập.');
+      } finally {
+        setStudyDocsLoading(false);
+      }
+    },
+    []
+  );
+
+  const retryLoadStudyDocs = useCallback(async () => {
+    await loadStudyMaterialsForSession(userRef.current, currentRoleRef.current);
+  }, [loadStudyMaterialsForSession]);
+
+  const openStudyMaterialsWithIntent = useCallback((intent: StudyMaterialNavIntent) => {
+    setStudyMaterialNavIntent(intent);
+    setCurrentView('student_study_materials');
+  }, []);
+
+  const clearStudyMaterialNavIntent = useCallback(() => {
+    setStudyMaterialNavIntent(null);
+  }, []);
 
   // Protected Role Setter:
   // Nguồn vai trò lấy từ hồ sơ CSDL Supabase khi đã đăng nhập hoặc mặc định an toàn là 'student'.
@@ -694,7 +779,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (prof.role !== 'student') {
           syncMatricesFromSupabase();
         }
-        await loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), prof.role);
+        await Promise.all([
+          loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), prof.role),
+          loadStudyMaterialsForSession(effectiveUser || ({ id: userId } as User), prof.role)
+        ]);
       } else {
         // Khi chưa đọc được bản ghi profiles từ DB, client luôn mặc định vai trò an toàn 'student'
         // (không tự suy diễn hoặc cấp quyền giáo viên từ user_metadata hay email)
@@ -731,12 +819,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (defaultProf.role !== 'student') {
           syncMatricesFromSupabase();
         }
-        await loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), defaultProf.role);
+        await Promise.all([
+          loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), defaultProf.role),
+          loadStudyMaterialsForSession(effectiveUser || ({ id: userId } as User), defaultProf.role)
+        ]);
       }
     } catch (err) {
       console.warn('Lỗi khi nạp hồ sơ người dùng:', err);
     }
-  }, [syncMatricesFromSupabase, loadAssignmentsForSession]);
+  }, [syncMatricesFromSupabase, loadAssignmentsForSession, loadStudyMaterialsForSession]);
 
   const refreshProfile = useCallback(async () => {
     if (userRef.current) {
@@ -800,7 +891,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAuthVerified(false);
         setCurrentRoleState('student');
         setIsDemoMode(true);
-        await loadAssignmentsForSession(null, 'student');
+        await Promise.all([
+          loadAssignmentsForSession(null, 'student'),
+          loadStudyMaterialsForSession(null, 'student')
+        ]);
       }
       setAuthLoading(false);
     });
@@ -1015,7 +1109,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUserProfile(null);
     setCurrentRoleState('student');
     setIsDemoMode(true);
-    await loadAssignmentsForSession(null, 'student');
+    await Promise.all([
+      loadAssignmentsForSession(null, 'student'),
+      loadStudyMaterialsForSession(null, 'student')
+    ]);
     addAuditLog('Đăng xuất', 'Hệ thống', 'Người dùng đã đăng xuất khỏi phiên làm việc');
   };
 
@@ -1282,6 +1379,68 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     setExams(prev => [exam, ...prev]);
     addAuditLog('Tạo đề kiểm tra', exam.code, `Tạo mã đề ${exam.code} với ${exam.questions.length} câu`);
+  };
+
+  const saveExamAsync = async (
+    params: Omit<SaveExamDraftParams, 'teacherId' | 'teacherRole' | 'teacherName'>
+  ): Promise<{ success: boolean; exam?: Exam; isDemo?: boolean; error?: string }> => {
+    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+      return { success: false, error: 'Học sinh không có quyền tạo hoặc lưu đề kiểm tra.' };
+    }
+    if (!params.newExamDraft.questions || params.newExamDraft.questions.length === 0) {
+      return { success: false, error: 'Vui lòng chọn ít nhất 1 câu hỏi vào đề.' };
+    }
+
+    if (isSupabaseConfigured && user) {
+      const res = await syncSaveExamOnSupabase({
+        ...params,
+        teacherId: user.id,
+        teacherRole: currentRole,
+        teacherName: userProfile?.fullName || 'Giáo viên'
+      });
+      if (!res.success || !res.exam) {
+        return { success: false, error: res.error || 'Không thể lưu đề kiểm tra lên Supabase.' };
+      }
+      setExams(prev => {
+        if (prev.some(e => e.id === res.exam!.id)) return prev;
+        return [res.exam!, ...prev];
+      });
+      addAuditLog(
+        'Lưu đề kiểm tra (Supabase)',
+        res.exam.code,
+        `Lưu đề ${res.exam.title} (Khối ${res.exam.grade}, ${res.exam.subject}) gồm ${res.exam.questionCount ?? res.exam.questions.length} câu`
+      );
+      return { success: true, exam: res.exam, isDemo: false };
+    }
+
+    const existingDemo = exams.find(e => e.clientRequestId && e.clientRequestId === params.examRequestId);
+    if (existingDemo) {
+      return { success: true, exam: existingDemo, isDemo: true };
+    }
+
+    const demoExam: Exam = {
+      id: `exam-${Date.now()}`,
+      code: params.newExamDraft.code.trim().toUpperCase(),
+      title: params.newExamDraft.title.trim(),
+      grade: params.newExamDraft.grade,
+      subject: params.newExamDraft.subject,
+      period: params.newExamDraft.period,
+      durationMinutes: params.newExamDraft.durationMinutes,
+      questions: params.newExamDraft.questions,
+      lockedQuestionIds: params.newExamDraft.lockedQuestionIds,
+      questionCount: params.newExamDraft.questions.length,
+      totalPoints: params.newExamDraft.totalPoints,
+      createdAt: new Date().toISOString().split('T')[0],
+      author: userProfile?.fullName || 'GV. Diệp Thanh Toàn',
+      clientRequestId: params.examRequestId
+    };
+    setExams(prev => [demoExam, ...prev]);
+    addAuditLog(
+      'Lưu đề kiểm tra (Demo)',
+      demoExam.code,
+      `Lưu đề ${demoExam.title} (Khối ${demoExam.grade}, ${demoExam.subject}) gồm ${demoExam.questions.length} câu`
+    );
+    return { success: true, exam: demoExam, isDemo: true };
   };
 
   const createAssignment = (asg: Assignment) => {
@@ -1585,6 +1744,189 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, className: res.className };
   };
 
+  const saveStudyMaterialAsync = async (
+    payload: Omit<SaveStudyMaterialPayload, 'author' | 'authorId'> & { author?: string }
+  ): Promise<{ success: boolean; material?: StudyDocument; isDemo?: boolean; error?: string }> => {
+    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+      return { success: false, error: 'Chỉ Giáo viên hoặc Quản trị viên mới có quyền quản lý tài liệu.' };
+    }
+
+    const cleanTitle = payload.title.trim();
+    if (!cleanTitle) {
+      return { success: false, error: 'Vui lòng nhập tên tài liệu.' };
+    }
+
+    const existingDoc =
+      payload.existingMaterial ||
+      (payload.id ? studyDocs.find(d => d.id === payload.id) || null : null);
+
+    const hasIncomingFile = Boolean(
+      payload.selectedFile ||
+      (payload.externalFileUrl && payload.externalFileUrl.trim()) ||
+      hasValidAttachedFile(existingDoc)
+    );
+
+    if (payload.status === 'published' && !hasIncomingFile) {
+      return {
+        success: false,
+        error: 'Vui lòng tải lên tệp tài liệu (PDF, Excel...) hoặc nhập đường dẫn tệp hợp lệ trước khi công bố cho học sinh.'
+      };
+    }
+
+    const authorName = payload.author?.trim() || userProfile?.fullName || 'GV. Diệp Thanh Toàn';
+
+    if (isSupabaseConfigured && user) {
+      const res = await saveStudyMaterialToSupabase({
+        ...payload,
+        title: cleanTitle,
+        author: authorName,
+        authorId: user.id,
+        existingMaterial: existingDoc
+      });
+
+      if (!res.success || !res.material) {
+        return { success: false, error: res.error || 'Không thể lưu tài liệu lên Supabase.' };
+      }
+
+      setStudyDocs(prev => {
+        const idx = prev.findIndex(item => item.id === res.material!.id);
+        if (idx >= 0) {
+          return prev.map((item, i) => (i === idx ? res.material! : item));
+        }
+        return [res.material!, ...prev];
+      });
+
+      addAuditLog(
+        res.material.status === 'published' ? 'Công bố tài liệu học tập' : 'Lưu nháp tài liệu học tập',
+        res.material.title,
+        `Lưu tài liệu (${res.material.materialType}) lên Supabase`
+      );
+      return { success: true, material: res.material, isDemo: false };
+    }
+
+    // Local / Demo mode fallback (preserve ID and links)
+    let fileName = existingDoc?.fileName ?? null;
+    let fileFormat = existingDoc?.fileFormat ?? null;
+    let fileUrl = existingDoc?.fileUrl ?? null;
+    let fileSizeBytes = existingDoc?.fileSizeBytes ?? null;
+
+    if (payload.selectedFile) {
+      const f = payload.selectedFile;
+      fileName = f.name;
+      fileFormat = inferFileFormat(f.name, f.type);
+      fileSizeBytes = f.size;
+
+      if (f.size <= 3 * 1024 * 1024) {
+        fileUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => reject(new Error('Không thể đọc tệp vừa chọn.'));
+          reader.readAsDataURL(f);
+        });
+      } else {
+        fileUrl = URL.createObjectURL(f);
+      }
+    } else if (payload.externalFileUrl !== undefined) {
+      const trimmedUrl = (payload.externalFileUrl || '').trim();
+      if (trimmedUrl) {
+        fileUrl = trimmedUrl;
+        if (!fileName || trimmedUrl !== existingDoc?.fileUrl) {
+          const seg = trimmedUrl.split('?')[0].split('/').pop() || 'tai-lieu';
+          fileName = decodeURIComponent(seg);
+          fileFormat = inferFileFormat(fileName);
+          fileSizeBytes = null;
+        }
+      }
+    }
+
+    const preservedId = existingDoc?.id || payload.id || `doc-${Date.now()}`;
+    const nowIso = new Date().toISOString();
+    const isLinkedToTerm = payload.materialType === 'de_cuong' || payload.materialType === 'de_tham_khao';
+    const isLinkedToLesson = payload.materialType === 'phieu_bai_tap' || payload.materialType === 'tep_thuc_hanh';
+
+    const savedLocal: StudyDocument = {
+      id: preservedId,
+      title: cleanTitle,
+      topic: payload.topic?.trim() || undefined,
+      grade: payload.grade,
+      subject: payload.subject,
+      materialType: payload.materialType,
+      examTerm: isLinkedToTerm ? (payload.examTerm || null) : null,
+      lessonId: isLinkedToLesson ? (payload.lessonId || null) : null,
+      chapterKey: isLinkedToLesson ? (payload.chapterKey || null) : null,
+      chapterLabel: isLinkedToLesson ? (payload.chapterLabel || null) : null,
+      lessonLabel: isLinkedToLesson ? (payload.lessonLabel || null) : null,
+      author: authorName,
+      authorId: userProfile?.id,
+      description: payload.description.trim(),
+      usageInstructions: payload.usageInstructions?.trim() || null,
+      fileName,
+      fileFormat,
+      fileUrl,
+      storagePath: null,
+      fileSizeBytes,
+      status: payload.status,
+      updatedAt: nowIso,
+      createdAt: existingDoc?.createdAt || nowIso
+    };
+
+    const nextList = (() => {
+      const idx = studyDocs.findIndex(item => item.id === savedLocal.id);
+      if (idx >= 0) {
+        return studyDocs.map((item, i) => (i === idx ? savedLocal : item));
+      }
+      return [savedLocal, ...studyDocs];
+    })();
+
+    setStudyDocs(nextList);
+    try {
+      // Do not persist ephemeral blob: URLs across reloads
+      const persistable = nextList.map(item =>
+        item.fileUrl && item.fileUrl.startsWith('blob:')
+          ? { ...item, fileUrl: null }
+          : item
+      );
+      localStorage.setItem(LOCAL_STUDY_MATERIALS_KEY, JSON.stringify(persistable));
+    } catch {
+      // Ignore quota error for oversized files in demo mode
+    }
+
+    addAuditLog(
+      savedLocal.status === 'published' ? 'Công bố tài liệu (Cục bộ)' : 'Lưu nháp tài liệu (Cục bộ)',
+      savedLocal.title,
+      `Lưu tài liệu ID ${savedLocal.id}`
+    );
+
+    return { success: true, material: savedLocal, isDemo: true };
+  };
+
+  const deleteStudyMaterialAsync = async (
+    id: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+      return { success: false, error: 'Chỉ Giáo viên hoặc Quản trị viên mới có quyền xóa tài liệu.' };
+    }
+    const target = studyDocs.find(d => d.id === id);
+    if (!target) return { success: false, error: 'Không tìm thấy tài liệu cần xóa.' };
+
+    if (isSupabaseConfigured && user) {
+      const res = await deleteStudyMaterialFromSupabase(target);
+      if (!res.success) {
+        return { success: false, error: res.error || 'Không thể xóa tài liệu trên Supabase.' };
+      }
+    }
+
+    const nextList = studyDocs.filter(d => d.id !== id);
+    setStudyDocs(nextList);
+    if (!isSupabaseConfigured || !user) {
+      try {
+        localStorage.setItem(LOCAL_STUDY_MATERIALS_KEY, JSON.stringify(nextList));
+      } catch {}
+    }
+    addAuditLog('Xóa tài liệu học tập', target.title, `Đã xóa tài liệu ID ${target.id}`);
+    return { success: true };
+  };
+
   const resetDemoData = () => {
     if (currentRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép khôi phục dữ liệu gốc.');
@@ -1595,12 +1937,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem('taydo_exams');
     localStorage.removeItem('taydo_assignments');
     localStorage.removeItem('taydo_submissions');
+    localStorage.removeItem(LOCAL_STUDY_MATERIALS_KEY);
     setQuestions(INITIAL_QUESTIONS);
     setClasses(INITIAL_CLASSES);
     setMatrices(INITIAL_MATRICES);
     setExams(INITIAL_EXAMS);
     setAssignments(INITIAL_ASSIGNMENTS);
     setSubmissions(INITIAL_SUBMISSIONS);
+    setStudyDocs(INITIAL_STUDY_DOCS);
   };
 
   return (
@@ -1653,6 +1997,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         retryLoadAssignmentData,
         geminiAssistants,
         studyDocs,
+        studyDocsLoading,
+        studyDocsError,
+        retryLoadStudyDocs,
+        studyMaterialNavIntent,
+        openStudyMaterialsWithIntent,
+        clearStudyMaterialNavIntent,
+        saveStudyMaterialAsync,
+        deleteStudyMaterialAsync,
         auditLogs,
         yccdCatalog,
         pendingMatrixPrompt,
@@ -1668,6 +2020,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         saveMatrixDraft,
         deleteMatrixDraft,
         createExam,
+        saveExamAsync,
         createAssignment,
         publishExamAssignmentAsync,
         submitExamSession,

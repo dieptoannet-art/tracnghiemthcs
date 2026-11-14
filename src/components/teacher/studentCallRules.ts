@@ -24,6 +24,8 @@ export interface CallGameMeta {
   id: CallGameMode;
   title: string;
   shortDesc: string;
+  actionLabel: string;
+  playingLabel: string;
   iconName: string;
   badge: string;
   pickCount: number;
@@ -33,81 +35,101 @@ export const CALL_GAME_MODES: CallGameMeta[] = [
   {
     id: 'wheel',
     title: 'Vòng quay may mắn',
-    shortDesc: 'Vòng quay phân đoạn xoay tròn sôi động, dừng lại ở học sinh may mắn',
+    shortDesc: 'Vòng quay nhiều màu viền vàng, kim chỉ dừng đúng tên học sinh',
+    actionLabel: 'Quay ngay',
+    playingLabel: 'Đang quay...',
     iconName: 'Disc',
-    badge: 'Cổ điển',
+    badge: '1 bạn',
     pickCount: 1,
   },
   {
     id: 'gift_box',
     title: 'Hộp quà bí mật',
-    shortDesc: 'Mở chiếc hộp quà bí ẩn để khám phá học sinh được trao nhiệm vụ',
+    shortDesc: 'Mở hộp quà bí ẩn để khám phá học sinh được trao nhiệm vụ',
+    actionLabel: 'Mở hộp quà',
+    playingLabel: 'Đang mở quà...',
     iconName: 'Gift',
-    badge: 'Hào hứng',
+    badge: '1 bạn',
     pickCount: 1,
   },
   {
     id: 'cards',
     title: 'Thẻ bài lật mở',
-    shortDesc: 'Bộ thẻ bài 3D úp ngược lấp lánh, lật trúng học sinh trả lời bài',
+    shortDesc: 'Bộ thẻ bài úp ngược lật mở ngẫu nhiên tên học sinh',
+    actionLabel: 'Xáo & lật thẻ',
+    playingLabel: 'Đang lật thẻ...',
     iconName: 'Layers',
-    badge: 'Bất ngờ',
+    badge: '1 bạn',
     pickCount: 1,
   },
   {
     id: 'flying_envelope',
     title: 'Bức thư bồ câu',
-    shortDesc: 'Phong bì thư bay đến và mở ra lá thăm mang tên học sinh được chọn',
+    shortDesc: 'Bồ câu đưa thư niêm phong mở ra tên học sinh may mắn',
+    actionLabel: 'Mở bức thư',
+    playingLabel: 'Đang mở thư...',
     iconName: 'Mail',
-    badge: 'Thơ mộng',
-    pickCount: 1,
-  },
-  {
-    id: 'magic_sphere',
-    title: 'Lồng cầu bốc thăm',
-    shortDesc: 'Lồng quay xáo trộn quả bóng may mắn, bóng rơi ra tên học sinh',
-    iconName: 'CircleDot',
-    badge: 'Công bằng',
+    badge: '1 bạn',
     pickCount: 1,
   },
   {
     id: 'rocket',
     title: 'Tên lửa không gian',
-    shortDesc: 'Đếm ngược phóng tên lửa xuyên vũ trụ đưa học sinh lên bảng',
+    shortDesc: 'Đếm ngược 3-2-1 phóng tên lửa đưa học sinh lên bảng',
+    actionLabel: 'Phóng tên lửa',
+    playingLabel: 'Đang phóng...',
     iconName: 'Rocket',
-    badge: 'Kịch tính',
+    badge: '1 bạn',
+    pickCount: 1,
+  },
+  {
+    id: 'magic_sphere',
+    title: 'Lồng cầu bốc thăm',
+    shortDesc: 'Lồng quay xáo trộn quả cầu may mắn chọn tên học sinh',
+    actionLabel: 'Quay lồng cầu',
+    playingLabel: 'Đang bốc thăm...',
+    iconName: 'CircleDot',
+    badge: '1 bạn',
     pickCount: 1,
   },
   {
     id: 'call_pair',
     title: 'Cặp đôi đối đầu',
-    shortDesc: 'Gọi ngẫu nhiên 2 học sinh cùng lúc để tranh luận hoặc vấn đáp đôi',
+    shortDesc: 'Gọi ngẫu nhiên 2 học sinh cùng lúc để vấn đáp hoặc thi đua',
+    actionLabel: 'Gọi cặp đôi',
+    playingLabel: 'Đang chọn cặp...',
     iconName: 'Users',
-    badge: '2 Bạn',
+    badge: '2 bạn',
     pickCount: 2,
   },
   {
     id: 'call_trio',
     title: 'Nhóm ba bạn',
-    shortDesc: 'Gọi ngẫu nhiên 3 học sinh cùng lúc cho bài tập nhóm hoặc phân vai',
+    shortDesc: 'Gọi ngẫu nhiên 3 học sinh cùng lúc cho hoạt động nhóm',
+    actionLabel: 'Gọi nhóm ba',
+    playingLabel: 'Đang lập nhóm...',
     iconName: 'UserPlus',
-    badge: '3 Bạn',
+    badge: '3 bạn',
     pickCount: 3,
   },
   {
     id: 'speed_timer',
     title: 'Chiếc nón tốc độ',
-    shortDesc: 'Gọi học sinh và lập tức kích hoạt đồng hồ đếm ngược trả lời nhanh',
+    shortDesc: 'Chọn học sinh và tự động bật đồng hồ đếm ngược 30 giây',
+    actionLabel: 'Quay tốc độ (30s)',
+    playingLabel: 'Đang chọn...',
     iconName: 'Timer',
-    badge: 'Nhanh tay',
+    badge: '30 giây',
     pickCount: 1,
   },
   {
     id: 'star_of_hope',
     title: 'Ngôi sao hi vọng',
-    shortDesc: 'Học sinh nhận Ngôi sao hi vọng được x2 điểm hoặc quyền chọn trợ giúp',
+    shortDesc: 'Trao Ngôi sao hi vọng nhân đôi điểm hoặc quyền trợ giúp',
+    actionLabel: 'Trao ngôi sao',
+    playingLabel: 'Đang trao sao...',
     iconName: 'Sparkles',
-    badge: 'Đặc biệt',
+    badge: 'x2 điểm',
     pickCount: 1,
   },
 ];
@@ -269,3 +291,69 @@ export function mapClassStudentsToCandidates(classRoom: ClassRoom): StudentCandi
     gender: s.gender,
   }));
 }
+
+/**
+ * Tính góc xoay mục tiêu (độ) sao cho lát cắt của winnerIndex dừng chính xác
+ * dưới kim chỉ cố định ở đỉnh 12 giờ (góc 270 độ trong hệ tọa độ Canvas).
+ */
+export function computeWheelTargetRotation(
+  currentRotationDeg: number,
+  winnerIndex: number,
+  totalSlices: number,
+  spins = 6,
+  jitterFactor = 0.45
+): number {
+  const safeTotal = Math.max(totalSlices, 1);
+  const safeIndex = ((winnerIndex % safeTotal) + safeTotal) % safeTotal;
+  const sliceDeg = 360 / safeTotal;
+  const centerDeg = (safeIndex + 0.5) * sliceDeg;
+  const clampedJitter = Math.min(Math.max(jitterFactor, 0), 0.6);
+  const safeOffset = (Math.random() - 0.5) * sliceDeg * clampedJitter;
+  const desiredMod = (((270 - (centerDeg + safeOffset)) % 360) + 360) % 360;
+  const currentMod = ((currentRotationDeg % 360) + 360) % 360;
+  const deltaMod = (((desiredMod - currentMod) % 360) + 360) % 360;
+  return currentRotationDeg + spins * 360 + deltaMod;
+}
+
+/**
+ * Xác định chỉ số lát cắt đang nằm dưới kim chỉ tại đỉnh 12 giờ (270 độ)
+ */
+export function getWheelSliceIndexAtPointer(
+  rotationDeg: number,
+  totalSlices: number
+): number {
+  const safeTotal = Math.max(totalSlices, 1);
+  const sliceDeg = 360 / safeTotal;
+  const localDeg = (((270 - rotationDeg) % 360) + 360) % 360;
+  return Math.floor(localDeg / sliceDeg) % safeTotal;
+}
+
+/**
+ * Phân tích văn bản danh sách học sinh nhập tay (hỗ trợ "Mã - Họ tên" hoặc chỉ "Họ tên")
+ */
+export function parseManualStudentsText(rawText: string): StudentCandidate[] {
+  const lines = rawText
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  return lines.map((line, index) => {
+    const tabParts = line.split('\t').map(p => p.trim()).filter(Boolean);
+    const sepParts = tabParts.length >= 2 ? tabParts : line.split(/[-–—:]/).map(p => p.trim());
+    let code = `HS${String(index + 1).padStart(2, '0')}`;
+    let fullName = line;
+
+    if (sepParts.length >= 2 && sepParts[0].length <= 16) {
+      code = sepParts[0];
+      fullName = sepParts.slice(1).join(' ');
+    }
+
+    return {
+      id: `manual-${index + 1}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      code,
+      fullName: fullName || line,
+      gender: index % 2 === 0 ? 'Nam' : 'Nữ',
+    };
+  });
+}
+
