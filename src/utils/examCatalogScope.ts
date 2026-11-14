@@ -16,6 +16,8 @@ import { buildYccdTree } from './matrixCalculations';
 import { normalizeGrade, normalizeSubjectToKey, stripVietnameseAccents } from './yccdCsvParser';
 import { isQuestionInSubject } from '../components/teacher/QuestionBank';
 
+import { CANONICAL_SUBJECT_CATALOG } from './subjectCatalog';
+
 export const EXAM_GRADES: Grade[] = ['6', '7', '8', '9'];
 
 export interface ExamSubjectOption {
@@ -24,16 +26,11 @@ export interface ExamSubjectOption {
   shortCode: string;
 }
 
-export const EXAM_SUBJECT_OPTIONS: ExamSubjectOption[] = [
-  { id: 'math', name: 'Toán', shortCode: 'TOAN' },
-  { id: 'informatics', name: 'Tin học', shortCode: 'TIN' },
-  { id: 'science', name: 'Khoa học tự nhiên', shortCode: 'KHTN' },
-  { id: 'literature', name: 'Ngữ văn', shortCode: 'VAN' },
-  { id: 'english', name: 'Tiếng Anh', shortCode: 'ANH' },
-  { id: 'history_geo', name: 'Lịch sử và Địa lí', shortCode: 'LSDL' },
-  { id: 'technology', name: 'Công nghệ', shortCode: 'CN' },
-  { id: 'civics', name: 'Giáo dục công dân', shortCode: 'GDCD' }
-];
+export const EXAM_SUBJECT_OPTIONS: ExamSubjectOption[] = CANONICAL_SUBJECT_CATALOG.map(s => ({
+  id: s.id,
+  name: s.name,
+  shortCode: s.shortCode
+}));
 
 export const EXAM_PERIOD_META: Array<{ id: ExamPeriod; label: string; shortCode: string }> = [
   { id: 'mid1', label: 'Giữa kỳ I', shortCode: 'GK1' },

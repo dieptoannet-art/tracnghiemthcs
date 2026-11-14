@@ -7,7 +7,7 @@
       "destination": "/lessons/:path*"
     },
     {
-      "source": "/((?!lessons/).*)",
+      "source": "/((?!api/|lessons/).*)",
       "destination": "/index.html"
     }
   ]

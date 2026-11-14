@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Grade } from '../../types';
+import { getSubjectDisplayName } from '../../utils/subjectCatalog';
 import {
   Users,
   Plus,
@@ -11,15 +12,22 @@ import {
   Cloud,
   MonitorSmartphone,
   CheckCircle2,
-  Info
+  Info,
+  Layers,
+  ArrowRight
 } from 'lucide-react';
 
 export const ClassManagement: React.FC = () => {
   const {
     classes,
     submissions,
+    teachingAssignments,
+    classRoles,
+    teachingSchemaWarning,
+    user,
     userProfile,
     currentRole,
+    setCurrentView,
     isUsingDemoAssignmentsData,
     assignmentDataLoading,
     assignmentDataError,
@@ -29,18 +37,55 @@ export const ClassManagement: React.FC = () => {
     openAuthModal
   } = useApp();
 
-  const [selectedClassId, setSelectedClassId] = useState<string>(classes[0]?.id || '');
+  // Scope classes to teacher's active complete teaching assignments OR explicit classRoles when on Supabase
+  const scopedClasses = useMemo(() => {
+    if (isUsingDemoAssignmentsData || currentRole === 'admin') {
+      return classes;
+    }
+    if (!user?.id) return [];
+
+    // Allow legacy classes.teacher_id ONLY when Step 04 schema tables are absent
+    if (teachingSchemaWarning && teachingAssignments.length === 0 && classRoles.length === 0) {
+      return classes.filter(c => !c.teacherId || c.teacherId === user.id);
+    }
+
+    const activeClassIds = new Set<string>();
+    for (const ta of teachingAssignments) {
+      if (
+        ta.teacherId === user.id &&
+        ta.status === 'active' &&
+        !ta.needsSubjectCompletion &&
+        Boolean(ta.subject)
+      ) {
+        const cls = classes.find(c => c.id === ta.classId);
+        if (!cls?.schoolYear || ta.schoolYear === cls.schoolYear) {
+          activeClassIds.add(ta.classId);
+        }
+      }
+    }
+    for (const cr of classRoles) {
+      if (cr.teacherId === user.id && cr.status === 'active') {
+        const cls = classes.find(c => c.id === cr.classId);
+        if (!cls?.schoolYear || cr.schoolYear === cls.schoolYear) {
+          activeClassIds.add(cr.classId);
+        }
+      }
+    }
+    return classes.filter(c => activeClassIds.has(c.id));
+  }, [classes, teachingAssignments, classRoles, teachingSchemaWarning, isUsingDemoAssignmentsData, currentRole, user?.id]);
+
+  const [selectedClassId, setSelectedClassId] = useState<string>(scopedClasses[0]?.id || '');
   const [showAddClassModal, setShowAddClassModal] = useState<boolean>(false);
   const [showAddStudentModal, setShowAddStudentModal] = useState<boolean>(false);
 
-  // New Class Form
+  // New Class Form (Admin or Demo mode)
   const [newClassName, setNewClassName] = useState('');
   const [newClassGrade, setNewClassGrade] = useState<Grade>('8');
   const [newSchoolYear, setNewSchoolYear] = useState('2025-2026');
   const [isCreatingClass, setIsCreatingClass] = useState(false);
   const [createClassError, setCreateClassError] = useState<string | null>(null);
 
-  // Enroll Student Form
+  // Enroll Student Form (Admin or Demo mode)
   const [studentIdentifier, setStudentIdentifier] = useState('');
   const [studentName, setStudentName] = useState('');
   const [studentCode, setStudentCode] = useState('');
@@ -52,18 +97,43 @@ export const ClassManagement: React.FC = () => {
   const [actionBanner, setActionBanner] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    if (classes.length === 0) {
+    if (scopedClasses.length === 0) {
       setSelectedClassId('');
       return;
     }
-    if (!classes.some(c => c.id === selectedClassId)) {
-      setSelectedClassId(classes[0].id);
+    if (!scopedClasses.some(c => c.id === selectedClassId)) {
+      setSelectedClassId(scopedClasses[0].id);
     }
-  }, [classes, selectedClassId]);
+  }, [scopedClasses, selectedClassId]);
 
-  const activeClass = classes.find(c => c.id === selectedClassId) || classes[0] || null;
+  const activeClass = scopedClasses.find(c => c.id === selectedClassId) || scopedClasses[0] || null;
   const teacherDisplayName =
-    userProfile?.fullName || (currentRole === 'admin' ? 'Quản trị viên' : 'GV. Diệp Thanh Toàn');
+    userProfile?.fullName || (currentRole === 'admin' ? 'Quản trị viên' : 'Giáo viên');
+
+  const activeClassTeacherSubjects = useMemo(() => {
+    if (!activeClass || !user?.id) return [];
+    return teachingAssignments.filter(
+      ta =>
+        ta.classId === activeClass.id &&
+        ta.status === 'active' &&
+        (currentRole === 'admin' || ta.teacherId === user.id)
+    );
+  }, [activeClass, teachingAssignments, user?.id, currentRole]);
+
+  const activeClassExplicitRoles = useMemo(() => {
+    if (!activeClass || !user?.id) return [];
+    return classRoles.filter(
+      cr =>
+        cr.classId === activeClass.id &&
+        cr.status === 'active' &&
+        (currentRole === 'admin' || cr.teacherId === user.id)
+    );
+  }, [activeClass, classRoles, user?.id, currentRole]);
+
+  const canManageStructure = isUsingDemoAssignmentsData || currentRole === 'admin';
+  const canEnrollStudentInActiveClass =
+    canManageStructure ||
+    (!isUsingDemoAssignmentsData && activeClassExplicitRoles.some(cr => cr.teacherId === user?.id));
 
   const handleOpenAddClass = () => {
     setCreateClassError(null);
@@ -144,7 +214,7 @@ export const ClassManagement: React.FC = () => {
         type: 'success',
         text: res.isDemo
           ? `Đã thêm học sinh vào lớp ${activeClass.name} (Chế độ Demo cục bộ).`
-          : `Đã ghi nhận học sinh vào lớp ${activeClass.name} trên Supabase. Học sinh sẽ thấy bài giao khi đăng nhập.`
+          : `Đã ghi nhận học sinh vào lớp ${activeClass.name} trên Supabase.`
       });
     } finally {
       setIsEnrollingStudent(false);
@@ -156,20 +226,22 @@ export const ClassManagement: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-2xl font-bold text-[#082B52]">Quản lý Lớp học & Danh sách học sinh</h2>
+          <h2 className="text-2xl font-bold text-[#082B52]">Lớp &amp; phân công giảng dạy của tôi</h2>
           <p className="text-sm text-slate-600">
-            Giáo viên phụ trách: <b>{teacherDisplayName}</b> • Trường THCS Tây Đô
+            Tài khoản: <b>{teacherDisplayName}</b> · Trường THCS Tây Đô
           </p>
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+          <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs">
             {isUsingDemoAssignmentsData ? (
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1.5 font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-md">
                 <MonitorSmartphone className="w-3.5 h-3.5" />
-                <span>Chế độ Demo cục bộ ({classes.length} lớp mẫu trên trình duyệt)</span>
+                <span>Chế độ Demo cục bộ ({scopedClasses.length} lớp mẫu)</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1.5 font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
                 <Cloud className="w-3.5 h-3.5" />
-                <span>Đã kết nối đồng bộ Supabase ({classes.length} lớp học)</span>
+                <span>
+                  Đồng bộ Supabase ({scopedClasses.length} lớp được phân công)
+                </span>
               </span>
             )}
           </div>
@@ -189,14 +261,28 @@ export const ClassManagement: React.FC = () => {
             <span>Làm mới</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleOpenAddClass}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tạo lớp mới</span>
-          </button>
+          {currentRole === 'admin' && !isUsingDemoAssignmentsData && (
+            <button
+              type="button"
+              onClick={() => setCurrentView('admin_accounts')}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#082B52] text-white rounded-xl text-xs font-bold hover:bg-[#0d3a6d]"
+            >
+              <Layers className="w-4 h-4" />
+              <span>Mở Quản lý lớp &amp; tài khoản</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {canManageStructure && (
+            <button
+              type="button"
+              onClick={handleOpenAddClass}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tạo lớp mới</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -208,7 +294,7 @@ export const ClassManagement: React.FC = () => {
             <div>
               <p className="font-bold">Đang dùng dữ liệu mẫu (Demo cục bộ)</p>
               <p className="text-amber-800 mt-0.5">
-                Lớp học và học sinh tạo ở chế độ này chỉ lưu trên trình duyệt hiện tại. Để giao bài cho học sinh đăng nhập từ thiết bị khác, hãy đăng nhập tài khoản Giáo viên Supabase.
+                Lớp học và học sinh tạo ở chế độ này chỉ lưu trên trình duyệt hiện tại. Hãy đăng nhập tài khoản Supabase để làm việc với lớp và phân công thật.
               </p>
             </div>
           </div>
@@ -219,6 +305,16 @@ export const ClassManagement: React.FC = () => {
           >
             Đăng nhập Supabase
           </button>
+        </div>
+      )}
+
+      {/* Teacher Scoped Notice */}
+      {!isUsingDemoAssignmentsData && currentRole === 'teacher' && (
+        <div className="bg-[#F3F8FF] border border-[#CBE2FB] rounded-2xl p-3.5 flex items-start gap-2.5 text-xs text-[#12345B]">
+          <Info className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
+          <span>
+            Bạn nhìn thấy các lớp theo <strong>phân công dạy môn đang hoạt động</strong> hoặc <strong>vai trò phụ trách / chủ nhiệm lớp (class_roles)</strong>. Quyền dạy môn chỉ dùng để giao bài và chấm điểm môn đó; chỉ Quản trị viên hoặc giáo viên có vai trò <code>class_roles</code> mới được cập nhật danh sách học sinh.
+          </span>
         </div>
       )}
 
@@ -270,35 +366,43 @@ export const ClassManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Loading State when no classes loaded yet */}
-      {assignmentDataLoading && classes.length === 0 ? (
+      {/* Loading / Empty / Scoped Classes */}
+      {assignmentDataLoading && scopedClasses.length === 0 ? (
         <div className="bg-white rounded-2xl border border-[#DCE8F7] p-10 text-center space-y-2 shadow-xs">
           <RefreshCw className="w-7 h-7 text-[#006BFF] animate-spin mx-auto" />
-          <p className="text-sm font-bold text-[#082B52]">Đang tải danh sách lớp học...</p>
+          <p className="text-sm font-bold text-[#082B52]">Đang tải danh sách lớp và phân công...</p>
         </div>
-      ) : classes.length === 0 ? (
+      ) : scopedClasses.length === 0 ? (
         <div className="bg-white rounded-2xl border border-[#DCE8F7] p-10 text-center space-y-3 shadow-xs">
           <div className="w-12 h-12 rounded-2xl bg-[#F3F8FF] border border-[#DCE8F7] text-[#1769C2] flex items-center justify-center mx-auto">
             <Users className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-[#082B52]">Bạn chưa có lớp học nào</h3>
+          <h3 className="text-lg font-bold text-[#082B52]">
+            {currentRole === 'teacher' && !isUsingDemoAssignmentsData
+              ? 'Bạn chưa được phân công giảng dạy lớp nào'
+              : 'Chưa có lớp học nào'}
+          </h3>
           <p className="text-sm text-slate-600 max-w-md mx-auto">
-            Hãy tạo lớp học mới để thêm học sinh và giao bài kiểm tra cho lớp của bạn.
+            {currentRole === 'teacher' && !isUsingDemoAssignmentsData
+              ? 'Hãy liên hệ Quản trị viên để được phân công lớp – môn giảng dạy trong mục Quản lý lớp & tài khoản.'
+              : 'Hãy tạo lớp học mới để thêm học sinh và giao bài kiểm tra.'}
           </p>
-          <button
-            type="button"
-            onClick={handleOpenAddClass}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tạo lớp đầu tiên</span>
-          </button>
+          {canManageStructure && (
+            <button
+              type="button"
+              onClick={handleOpenAddClass}
+              className="inline-flex items-center space-x-2 px-4 py-2.5 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tạo lớp đầu tiên</span>
+            </button>
+          )}
         </div>
       ) : (
         <>
           {/* Class tabs */}
           <div className="flex items-center gap-3 overflow-x-auto pb-1">
-            {classes.map(c => (
+            {scopedClasses.map(c => (
               <button
                 key={c.id}
                 type="button"
@@ -317,34 +421,80 @@ export const ClassManagement: React.FC = () => {
           {/* Active Class Info & Roster */}
           {activeClass && (
             <div className="space-y-4">
-              <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-xl font-bold text-[#082B52]">
-                    {activeClass.name} - Khối {activeClass.grade}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Giáo viên phụ trách: {activeClass.teacherName}
-                    {activeClass.schoolYear ? ` • Năm học ${activeClass.schoolYear}` : ''}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-xs font-mono text-[#006BFF] flex items-center space-x-2">
-                    <Key className="w-4 h-4" />
-                    <span>
-                      Mã mời vào lớp: <b>{activeClass.inviteCode}</b>
-                    </span>
+              <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-[#082B52]">
+                      {activeClass.name} · Khối {activeClass.grade}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Năm học: <b>{activeClass.schoolYear || '2025-2026'}</b>
+                      {activeClass.classCode ? ` · Mã lớp: ${activeClass.classCode}` : ''}
+                    </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleOpenAddStudent}
-                    className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>Thêm học sinh</span>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-xs font-mono text-[#006BFF] flex items-center space-x-2">
+                      <Key className="w-4 h-4" />
+                      <span>
+                        Mã mời: <b>{activeClass.inviteCode}</b>
+                      </span>
+                    </div>
+
+                    {canEnrollStudentInActiveClass && (
+                      <button
+                        type="button"
+                        onClick={handleOpenAddStudent}
+                        className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        <span>Thêm học sinh</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {/* Assigned subjects for this class */}
+                {activeClassTeacherSubjects.length > 0 && (
+                  <div className="pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="font-bold text-[#082B52]">
+                      {currentRole === 'admin' ? 'Phân công môn tại lớp:' : 'Môn bạn phụ trách:'}
+                    </span>
+                    {activeClassTeacherSubjects.map(ta => (
+                      <span
+                        key={ta.id}
+                        className={`px-2.5 py-0.5 rounded-md border font-semibold ${
+                          ta.needsSubjectCompletion || !ta.subject
+                            ? 'bg-amber-50 border-amber-300 text-amber-900'
+                            : 'bg-[#F3F8FF] border-[#CBE2FB] text-[#082B52]'
+                        }`}
+                      >
+                        {ta.subject
+                          ? getSubjectDisplayName(ta.subject)
+                          : 'Chờ Quản trị viên bổ sung môn'}
+                        {currentRole === 'admin' && ta.teacherName ? ` (${ta.teacherName})` : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Explicit class management / homeroom roles */}
+                {activeClassExplicitRoles.length > 0 && (
+                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="font-bold text-emerald-900">
+                      Vai trò phụ trách lớp (class_roles):
+                    </span>
+                    {activeClassExplicitRoles.map(cr => (
+                      <span
+                        key={cr.id}
+                        className="px-2.5 py-0.5 rounded-md border bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold"
+                      >
+                        {cr.roleLabel}
+                        {currentRole === 'admin' && cr.teacherName ? ` (${cr.teacherName})` : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Student Roster Table */}
@@ -377,7 +527,7 @@ export const ClassManagement: React.FC = () => {
 
                         return (
                           <tr key={st.id} className="hover:bg-slate-50">
-                            <td className="py-3 px-4 text-center text-xs text-slate-400">{idx + 1}</td>
+                            <td className="py-3 px-4 text-center text-xs text-slate-400 tabular-nums">{idx + 1}</td>
                             <td className="py-3 px-4 font-mono font-bold text-[#006BFF] text-xs">
                               {st.code || '—'}
                             </td>
@@ -386,11 +536,11 @@ export const ClassManagement: React.FC = () => {
                             <td className="py-3 px-4 text-xs text-slate-500">{st.email || '—'}</td>
                             <td className="py-3 px-4 text-center">
                               {stuSubmittedCount > 0 ? (
-                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                <span className="text-xs font-semibold text-emerald-700">
                                   Đã nộp {stuSubmittedCount} bài
                                 </span>
                               ) : (
-                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#1769C2]">
+                                <span className="text-xs font-semibold text-[#1769C2]">
                                   Thành viên lớp
                                 </span>
                               )}
@@ -401,7 +551,7 @@ export const ClassManagement: React.FC = () => {
                       {activeClass.students.length === 0 && (
                         <tr>
                           <td colSpan={6} className="py-8 text-center text-xs text-slate-400">
-                            Chưa có học sinh nào trong lớp. Hãy nhấp &quot;Thêm học sinh&quot; (theo Email / Mã HS) hoặc gửi mã mời <b>{activeClass.inviteCode}</b> để học sinh tự tham gia lớp.
+                            Chưa có học sinh nào trong lớp.
                           </td>
                         </tr>
                       )}
@@ -414,7 +564,7 @@ export const ClassManagement: React.FC = () => {
         </>
       )}
 
-      {/* Modal Add Class */}
+      {/* Modal Add Class (Admin / Demo) */}
       {showAddClassModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <form
@@ -490,7 +640,7 @@ export const ClassManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Add Student */}
+      {/* Modal Add Student (Admin / Demo) */}
       {showAddStudentModal && activeClass && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <form
@@ -510,7 +660,7 @@ export const ClassManagement: React.FC = () => {
             {!isUsingDemoAssignmentsData ? (
               <div className="space-y-3">
                 <div className="p-3 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] text-xs text-[#12345B] leading-relaxed">
-                  Hệ thống liên kết học sinh bằng khóa định danh ổn định (<b>Email tài khoản</b> hoặc <b>Mã học sinh</b> đã đăng ký trong <code>profiles</code>), không ghép theo họ tên để tránh nhầm lớp.
+                  Hệ thống liên kết học sinh bằng khóa định danh ổn định (<b>Email tài khoản</b> hoặc <b>Mã học sinh</b> đã đăng ký trong <code>profiles</code>).
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -525,10 +675,6 @@ export const ClassManagement: React.FC = () => {
                     required
                   />
                 </div>
-                <p className="text-[11px] text-slate-500">
-                  Mẹo: Học sinh cũng có thể tự vào lớp sau khi đăng nhập bằng cách nhập mã mời{' '}
-                  <b className="text-[#006BFF] font-mono">{activeClass.inviteCode}</b> tại mục <b>Bài được giao</b>.
-                </p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -597,4 +743,3 @@ export const ClassManagement: React.FC = () => {
     </div>
   );
 };
-

@@ -150,6 +150,13 @@ export const StudentResults: React.FC = () => {
               </button>
             </div>
 
+            {selectedSubmission.teacherFeedback && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
+                <span className="font-bold">Nhận xét của giáo viên: </span>
+                <span>{selectedSubmission.teacherFeedback}</span>
+              </div>
+            )}
+
             <div className="space-y-4 text-xs">
               {Object.entries(selectedSubmission.answers).map(([qId, ans], idx) => {
                 const qData = questions.find(q => q.id === qId);

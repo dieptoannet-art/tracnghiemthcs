@@ -18,7 +18,9 @@ import {
   SubmissionAnswer,
   UserProfile,
   SupabaseConnectionState,
-  YccdItem
+  YccdItem,
+  TeachingAssignment,
+  ClassRoleAssignment
 } from '../types';
 import yccdCatalogSeed from '../data/yccdCatalogSeed.json';
 import { mergeYccdCatalog, normalizeYccdItem } from '../utils/yccdCsvParser';
@@ -36,7 +38,7 @@ import {
 import {
   supabase,
   isSupabaseConfigured,
-  fetchUserProfile,
+  fetchUserProfileDetailed,
   testSupabaseConnection,
   SUPABASE_URL,
   SUPABASE_ANON_KEY
@@ -87,13 +89,16 @@ interface AppContextType {
 
   user: User | null;
   userProfile: UserProfile | null;
+  profileStatus: 'idle' | 'loading' | 'loaded' | 'not_found' | 'error';
+  profileError: string | null;
+  retryLoadProfile: () => Promise<void>;
   authLoading: boolean;
   authError: string | null;
   authModalOpen: boolean;
   setAuthModalOpen: (open: boolean) => void;
-  authModalMode: 'login' | 'register';
-  setAuthModalMode: (mode: 'login' | 'register') => void;
-  openAuthModal: (mode?: 'login' | 'register') => void;
+  authModalMode: 'login' | 'register' | 'forgot_password' | 'set_password';
+  setAuthModalMode: (mode: 'login' | 'register' | 'forgot_password' | 'set_password') => void;
+  openAuthModal: (mode?: 'login' | 'register' | 'forgot_password' | 'set_password') => void;
   signIn: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (
     email: string,
@@ -104,6 +109,8 @@ interface AppContextType {
     studentCode?: string,
     subject?: string
   ) => Promise<{ success: boolean; error?: string }>;
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePasswordForRecovery: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 
@@ -126,9 +133,12 @@ interface AppContextType {
   matrices: ExamMatrix[];
   exams: Exam[];
   assignments: Assignment[];
+  teachingAssignments: TeachingAssignment[];
+  classRoles: ClassRoleAssignment[];
   submissions: Submission[];
   assignmentDataLoading: boolean;
   assignmentDataError: string | null;
+  teachingSchemaWarning: string | null;
   isUsingDemoAssignmentsData: boolean;
   retryLoadAssignmentData: () => Promise<void>;
   geminiAssistants: GeminiAssistantConfig[];
@@ -202,38 +212,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Mode & Auth States
   const [isDemoMode, setIsDemoMode] = useState<boolean>(!isSupabaseConfigured);
 
-  // Khôi phục hồ sơ đã lưu hoặc mặc định tài khoản Giáo viên GV. Diệp Thanh Toàn
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem('taydo_active_profile');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.fullName && parsed.fullName.includes('Diệp Thanh Toàn')) {
-          parsed.fullName = 'GV. Diệp Thanh Toàn';
-        }
-        return parsed;
-      }
-    } catch {}
-    return {
-      id: 'teacher-dieptoan',
-      email: 'dieptoan.net@gmail.com',
-      fullName: 'GV. Diệp Thanh Toàn',
-      role: 'teacher',
-      subject: 'Tin học',
-      schoolName: 'Trường THCS Tây Đô'
-    };
-  });
-
-  const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
-    try {
-      const saved = localStorage.getItem('taydo_active_profile');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.role) return parsed.role;
-      }
-    } catch {}
-    return 'teacher';
-  });
+  // Vai trò luôn mặc định an toàn là 'student' cho đến khi xác thực phiên Supabase và đọc từ public.profiles.
+  // Tuyệt đối không suy diễn vai trò từ localStorage, tên hiển thị "GV." hay user_metadata.
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [currentRole, setCurrentRoleState] = useState<UserRole>('student');
+  const [profileStatus, setProfileStatus] = useState<'idle' | 'loading' | 'loaded' | 'not_found' | 'error'>('idle');
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const currentRoleRef = useRef<UserRole>(currentRole);
   useEffect(() => {
@@ -242,12 +226,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Supabase Auth & Verification States
   const [user, setUser] = useState<User | null>(null);
-  const [authLoading, setAuthLoading] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState<boolean>(isSupabaseConfigured);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot_password' | 'set_password'>('login');
 
-  const openAuthModal = useCallback((mode: 'login' | 'register' = 'login') => {
+  const openAuthModal = useCallback((mode: 'login' | 'register' | 'forgot_password' | 'set_password' = 'login') => {
     setAuthModalMode(mode);
     setAuthModalOpen(true);
   }, []);
@@ -336,10 +320,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     isConnected: isSupabaseConfigured
   });
 
+  const resolveInitialViewFromUrl = (): string => {
+    if (typeof window === 'undefined') return 'dashboard';
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qView = params.get('view');
+      if (qView && qView.trim()) return qView.trim();
+
+      const rawPath = window.location.pathname.replace(/\/+$/, '').toLowerCase();
+      if (rawPath === '/admin' || rawPath === '/admin/accounts') return 'admin_accounts';
+      if (rawPath === '/admin/approval') return 'admin_approval';
+      if (rawPath === '/admin/settings') return 'admin_settings';
+      if (rawPath === '/teacher/classes') return 'teacher_classes';
+      if (rawPath === '/teacher/create-exam') return 'teacher_create_exam';
+      if (rawPath === '/student/assignments') return 'student_assignments';
+
+      const hash = window.location.hash.replace(/^#\/?/, '').trim();
+      if (
+        hash &&
+        !hash.includes('access_token=') &&
+        !hash.includes('refresh_token=') &&
+        !hash.includes('type=')
+      ) {
+        return hash;
+      }
+    } catch {}
+    return 'dashboard';
+  };
+
   const [selectedGrade, setSelectedGrade] = useState<Grade>('8');
   const [selectedSubject, setSelectedSubject] = useState<SubjectId>('math');
   const [selectedPeriod, setSelectedPeriod] = useState<ExamPeriod>('mid1');
-  const [currentView, setCurrentView] = useState<string>('dashboard');
+  const [currentView, setCurrentViewState] = useState<string>(resolveInitialViewFromUrl);
+
+  const setCurrentView = useCallback((view: string) => {
+    setCurrentViewState(view);
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        if (view === 'dashboard') {
+          url.searchParams.delete('view');
+        } else {
+          url.searchParams.set('view', view);
+        }
+        window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handlePopState = () => {
+      setCurrentViewState(resolveInitialViewFromUrl());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const safeReadLocalArray = <T,>(key: string, fallback: T[]): { data: T[]; error: string | null } => {
     if (typeof window === 'undefined' || !window.localStorage) {
@@ -388,6 +424,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [assignments, setAssignments] = useState<Assignment[]>(() => {
     return safeReadLocalArray('taydo_assignments', INITIAL_ASSIGNMENTS).data;
   });
+
+  const [teachingAssignments, setTeachingAssignments] = useState<TeachingAssignment[]>([]);
+  const [classRoles, setClassRoles] = useState<ClassRoleAssignment[]>([]);
+  const [teachingSchemaWarning, setTeachingSchemaWarning] = useState<string | null>(null);
 
   const [submissions, setSubmissions] = useState<Submission[]>(() => {
     return safeReadLocalArray('taydo_submissions', INITIAL_SUBMISSIONS).data;
@@ -488,6 +528,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               setEnrolledClassIds([]);
               setExams([]);
               setAssignments([]);
+              setTeachingAssignments([]);
+              setClassRoles([]);
+              setTeachingSchemaWarning(null);
               setSubmissions([]);
               setAssignmentDataError(
                 res.error || 'Không thể tải danh sách bài được giao từ Supabase.'
@@ -498,6 +541,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setEnrolledClassIds(res.data.enrolledClassIds);
             setExams(res.data.exams);
             setAssignments(res.data.assignments);
+            setTeachingAssignments([]);
+            setClassRoles([]);
+            setTeachingSchemaWarning(null);
             setSubmissions(res.data.submissions);
             return;
           }
@@ -508,6 +554,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setEnrolledClassIds(null);
             setExams([]);
             setAssignments([]);
+            setTeachingAssignments([]);
+            setClassRoles([]);
+            setTeachingSchemaWarning(null);
+            setSubmissions([]);
             setAssignmentDataError(
               teacherRes.error || 'Không thể tải dữ liệu lớp và bài giao từ Supabase.'
             );
@@ -517,6 +567,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setEnrolledClassIds(null);
           setExams(teacherRes.data.exams);
           setAssignments(teacherRes.data.assignments);
+          setTeachingAssignments(teacherRes.data.teachingAssignments);
+          setClassRoles(teacherRes.data.classRoles || []);
+          setTeachingSchemaWarning(teacherRes.data.teachingSchemaWarning);
+          setSubmissions(teacherRes.data.submissions);
           return;
         }
 
@@ -537,6 +591,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setClasses(classesRes.data);
         setExams(examsRes.data);
         setAssignments(assignmentsRes.data);
+        setTeachingAssignments(
+          classesRes.data.map(c => ({
+            id: `demo-ta-${c.id}`,
+            schoolYear: c.schoolYear || '2025-2026',
+            teacherId: c.teacherId || 'demo-teacher',
+            teacherName: c.teacherName,
+            classId: c.id,
+            classCode: c.classCode || c.name.replace(/\s+/g, '').toUpperCase(),
+            className: c.name,
+            grade: c.grade,
+            subject: 'math',
+            subjectLabel: 'Toán',
+            status: 'active',
+            needsSubjectCompletion: false
+          }))
+        );
+        setClassRoles(
+          classesRes.data.map(c => ({
+            id: `demo-cr-${c.id}`,
+            schoolYear: c.schoolYear || '2025-2026',
+            classId: c.id,
+            classCode: c.classCode || c.name.replace(/\s+/g, '').toUpperCase(),
+            className: c.name,
+            grade: c.grade,
+            teacherId: c.teacherId || 'demo-teacher',
+            roleType: 'homeroom',
+            roleLabel: 'Chủ nhiệm lớp',
+            status: 'active'
+          }))
+        );
+        setTeachingSchemaWarning(null);
         setSubmissions(submissionsRes.data);
       } catch (err: any) {
         if (isSupabaseConfigured && activeUser) {
@@ -544,6 +629,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setEnrolledClassIds([]);
           setExams([]);
           setAssignments([]);
+          setTeachingAssignments([]);
+          setClassRoles([]);
           setSubmissions([]);
         }
         setAssignmentDataError(err?.message || 'Đã xảy ra lỗi khi tải danh sách bài được giao.');
@@ -609,31 +696,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   // Protected Role Setter:
-  // Nguồn vai trò lấy từ hồ sơ CSDL Supabase khi đã đăng nhập hoặc mặc định an toàn là 'student'.
-  // Tuyệt đối không mặc định là Quản trị và không cho phép tự nâng quyền!
-  const setCurrentRole = useCallback((newRole: UserRole) => {
-    // Nếu người dùng đã đăng nhập, vai trò bắt buộc theo hồ sơ cơ sở dữ liệu, không thể tự đổi ở client
+  // Khi đã bật Supabase, vai trò CHỈ lấy từ bảng public.profiles trong cơ sở dữ liệu.
+  // Tuyệt đối không cho client tự chuyển hoặc tự nâng quyền.
+  const setCurrentRole = useCallback((_newRole: UserRole) => {
     if (user && userProfile) {
-      console.warn('Không thể tự thay đổi vai trò. Vai trò được bảo vệ theo hồ sơ CSDL:', userProfile.role);
+      console.warn('Vai trò tài khoản được lấy cố định từ public.profiles:', userProfile.role);
       setCurrentRoleState(userProfile.role);
       return;
     }
-
-    // Chặn tự nâng quyền: Tài khoản ở vai trò Học sinh KHÔNG ĐƯỢC tự nâng lên Giáo viên hoặc Quản trị
-    if (currentRole === 'student' && newRole !== 'student') {
-      console.warn('Từ chối thao tác: Học sinh không được phép tự nâng quyền thành Giáo viên hoặc Quản trị viên.');
+    if (isSupabaseConfigured) {
+      console.warn('Không thể đổi vai trò ở trình duyệt khi chưa xác thực phiên Supabase.');
+      setCurrentRoleState('student');
       return;
     }
-
-    // Chỉ cho phép chuyển vai trò nếu tài khoản hiện tại có quyền Quản trị viên (để xem thử góc nhìn)
-    if (currentRole === 'admin') {
-      setCurrentRoleState(newRole);
-      return;
-    }
-
-    // Mặc định luôn giữ vai trò Học sinh an toàn
     setCurrentRoleState('student');
-  }, [user, userProfile, currentRole]);
+  }, [user, userProfile]);
 
   // Giữ ref cho user để tránh làm biến đổi loadProfile reference gây re-render vô tận
   const userRef = useRef<User | null>(user);
@@ -763,19 +840,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-  // Load and refresh user profile from Supabase
+  // Load and refresh user profile from Supabase (strictly from public.profiles; never disguise errors)
   const loadProfile = useCallback(async (userId: string, currentUser?: User | null) => {
+    setProfileStatus('loading');
+    setProfileError(null);
+
     try {
-      const prof = await fetchUserProfile(userId);
+      const result = await fetchUserProfileDetailed(userId);
       const effectiveUser = currentUser || userRef.current;
-      if (prof) {
+
+      if (result.status === 'found' && result.profile) {
+        const prof = result.profile;
         setUserProfile(prof);
         setCurrentRoleState(prof.role);
+        setProfileStatus('loaded');
+        setProfileError(null);
         setIsDemoMode(false);
-        setDbVerified(true); // Đã truy vấn thành công bảng CSDL profiles
-        try {
-          localStorage.setItem('taydo_active_profile', JSON.stringify(prof));
-        } catch {}
+        setDbVerified(true);
+
         if (prof.role !== 'student') {
           syncMatricesFromSupabase();
         }
@@ -783,49 +865,77 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), prof.role),
           loadStudyMaterialsForSession(effectiveUser || ({ id: userId } as User), prof.role)
         ]);
-      } else {
-        // Khi chưa đọc được bản ghi profiles từ DB, client luôn mặc định vai trò an toàn 'student'
-        // (không tự suy diễn hoặc cấp quyền giáo viên từ user_metadata hay email)
-        const defaultProf: UserProfile = {
+        return;
+      }
+
+      if (result.status === 'error') {
+        // Không che giấu lỗi DB / RLS bằng hồ sơ giả
+        setUserProfile(null);
+        setCurrentRoleState('student');
+        setProfileStatus('error');
+        setProfileError(result.error || 'Không thể tải hồ sơ và vai trò tài khoản từ bảng public.profiles.');
+        setIsDemoMode(false);
+        return;
+      }
+
+      // result.status === 'not_found': chỉ tạo hồ sơ ban đầu với role='student', sau đó đọc lại từ CSDL để xác nhận
+      const fallbackName =
+        (typeof effectiveUser?.user_metadata?.full_name === 'string' && effectiveUser.user_metadata.full_name.trim()) ||
+        effectiveUser?.email?.split('@')[0] ||
+        'Học sinh';
+      const fallbackGrade = ['6', '7', '8', '9'].includes(String(effectiveUser?.user_metadata?.grade))
+        ? String(effectiveUser?.user_metadata?.grade)
+        : '8';
+
+      const { error: upsertErr } = await supabase.from('profiles').upsert(
+        {
           id: userId,
           email: effectiveUser?.email || '',
-          fullName: effectiveUser?.user_metadata?.full_name || effectiveUser?.email?.split('@')[0] || 'Học sinh',
+          full_name: fallbackName,
           role: 'student',
-          grade: effectiveUser?.user_metadata?.grade || '8',
-          studentCode: effectiveUser?.user_metadata?.student_code || undefined,
-          schoolName: effectiveUser?.user_metadata?.school_name || 'Trường THCS Tây Đô'
-        };
-        setUserProfile(defaultProf);
-        setCurrentRoleState('student');
-        setIsDemoMode(false);
-        try {
-          localStorage.setItem('taydo_active_profile', JSON.stringify(defaultProf));
-        } catch {}
+          grade: fallbackGrade,
+          student_code: effectiveUser?.user_metadata?.student_code || null,
+          school_name: 'Trường THCS Tây Đô'
+        },
+        { onConflict: 'id', ignoreDuplicates: true }
+      );
 
-        // Tự động đảm bảo bản ghi tồn tại trong bảng public.profiles với role='student' để thỏa mãn RLS Supabase
-        try {
-          await supabase.from('profiles').upsert({
-            id: userId,
-            email: defaultProf.email,
-            full_name: defaultProf.fullName,
-            role: 'student',
-            grade: defaultProf.grade,
-            student_code: defaultProf.studentCode || null,
-            school_name: defaultProf.schoolName
-          }, { onConflict: 'id', ignoreDuplicates: true });
-        } catch (upsertErr) {
-          console.warn('Lưu ý khi tạo hồ sơ ban đầu trên Supabase:', upsertErr);
-        }
-        if (defaultProf.role !== 'student') {
-          syncMatricesFromSupabase();
-        }
-        await Promise.all([
-          loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), defaultProf.role),
-          loadStudyMaterialsForSession(effectiveUser || ({ id: userId } as User), defaultProf.role)
-        ]);
+      if (upsertErr) {
+        setUserProfile(null);
+        setCurrentRoleState('student');
+        setProfileStatus('error');
+        setProfileError(
+          `Tài khoản chưa có hồ sơ trên public.profiles và không thể khởi tạo mặc định: ${upsertErr.message}`
+        );
+        return;
       }
-    } catch (err) {
-      console.warn('Lỗi khi nạp hồ sơ người dùng:', err);
+
+      const recheck = await fetchUserProfileDetailed(userId);
+      if (recheck.status === 'found' && recheck.profile) {
+        const verifiedProf = recheck.profile;
+        setUserProfile(verifiedProf);
+        setCurrentRoleState(verifiedProf.role);
+        setProfileStatus('loaded');
+        setProfileError(null);
+        setIsDemoMode(false);
+        setDbVerified(true);
+        await Promise.all([
+          loadAssignmentsForSession(effectiveUser || ({ id: userId } as User), verifiedProf.role),
+          loadStudyMaterialsForSession(effectiveUser || ({ id: userId } as User), verifiedProf.role)
+        ]);
+      } else {
+        setUserProfile(null);
+        setCurrentRoleState('student');
+        setProfileStatus('error');
+        setProfileError(
+          recheck.error || 'Không tìm thấy bản ghi hồ sơ trong bảng public.profiles sau khi khởi tạo.'
+        );
+      }
+    } catch (err: any) {
+      setUserProfile(null);
+      setCurrentRoleState('student');
+      setProfileStatus('error');
+      setProfileError(err?.message || 'Lỗi không xác định khi tải hồ sơ người dùng.');
     }
   }, [syncMatricesFromSupabase, loadAssignmentsForSession, loadStudyMaterialsForSession]);
 
@@ -835,22 +945,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [loadProfile]);
 
+  const retryLoadProfile = refreshProfile;
+
   // Initialize session, verify Supabase and listen to Auth state changes (chạy một lần khi mount)
   useEffect(() => {
-    // 0. Tự động kiểm tra và xác thực kết nối Supabase CSDL ngay khi khởi chạy
     verifySupabase();
 
     if (!isSupabaseConfigured) {
       setIsDemoMode(true);
+      setAuthLoading(false);
       return;
     }
 
     syncYccdCatalogFromSupabase();
 
+    const hashParams = typeof window !== 'undefined' ? window.location.hash : '';
+    const isInviteOrRecoveryLink =
+      hashParams.includes('type=recovery') || hashParams.includes('type=invite');
+
     let isMounted = true;
     setAuthLoading(true);
 
-    // 1. Restore existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!isMounted) return;
       if (error) {
@@ -862,11 +977,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (session?.user) {
         setUser(session.user);
-        setAuthVerified(true); // Đã có phiên xác thực Auth thực tế
+        setAuthVerified(true);
+        if (isInviteOrRecoveryLink) {
+          setAuthModalMode('set_password');
+          setAuthModalOpen(true);
+        }
         loadProfile(session.user.id, session.user).finally(() => {
           if (isMounted) setAuthLoading(false);
         });
       } else {
+        setUser(null);
+        setUserProfile(null);
+        setCurrentRoleState('student');
+        setProfileStatus('idle');
+        setProfileError(null);
         setAuthLoading(false);
       }
     }).catch(err => {
@@ -876,9 +1000,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
-    // 2. Listen to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
+
+      if (event === 'PASSWORD_RECOVERY') {
+        if (session?.user) {
+          setUser(session.user);
+          setAuthVerified(true);
+          await loadProfile(session.user.id, session.user);
+        }
+        setAuthModalMode('set_password');
+        setAuthModalOpen(true);
+        setAuthLoading(false);
+        return;
+      }
 
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
@@ -890,6 +1025,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUserProfile(null);
         setAuthVerified(false);
         setCurrentRoleState('student');
+        setProfileStatus('idle');
+        setProfileError(null);
         setIsDemoMode(true);
         await Promise.all([
           loadAssignmentsForSession(null, 'student'),
@@ -1094,6 +1231,73 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const requestPasswordReset = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      return { success: false, error: 'Vui lòng nhập Email đăng nhập cần khôi phục mật khẩu.' };
+    }
+    if (!isSupabaseConfigured) {
+      return {
+        success: false,
+        error: 'Chức năng gửi email đặt lại mật khẩu chỉ hoạt động khi đã kết nối Supabase Auth.'
+      };
+    }
+
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        ...(redirectTo ? { redirectTo } : {})
+      });
+      setAuthLoading(false);
+      if (error) {
+        const lower = error.message.toLowerCase();
+        if (lower.includes('smtp') || lower.includes('mail') || lower.includes('rate limit') || lower.includes('sending')) {
+          return {
+            success: false,
+            error:
+              `Không thể gửi email đặt lại mật khẩu (${error.message}). ` +
+              'Vui lòng kiểm tra cấu hình Authentication → SMTP Settings & URL Configuration (Redirect URLs) trong Supabase Dashboard.'
+          };
+        }
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      setAuthLoading(false);
+      return { success: false, error: err?.message || 'Lỗi mạng khi gửi yêu cầu đặt lại mật khẩu.' };
+    }
+  };
+
+  const updatePasswordForRecovery = async (newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured) {
+      return { success: false, error: 'Chưa cấu hình Supabase Auth.' };
+    }
+    if (newPassword.trim().length < 6) {
+      return { success: false, error: 'Mật khẩu mới cần tối thiểu 6 ký tự.' };
+    }
+
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const { data, error } = await supabase.auth.updateUser({ password: newPassword.trim() });
+      if (error) {
+        setAuthLoading(false);
+        return { success: false, error: error.message };
+      }
+      if (data.user) {
+        setUser(data.user);
+        await loadProfile(data.user.id, data.user);
+      }
+      setAuthLoading(false);
+      return { success: true };
+    } catch (err: any) {
+      setAuthLoading(false);
+      return { success: false, error: err?.message || 'Không thể cập nhật mật khẩu mới.' };
+    }
+  };
+
   const signOut = async () => {
     if (isSupabaseConfigured && user) {
       try {
@@ -1108,7 +1312,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(null);
     setUserProfile(null);
     setCurrentRoleState('student');
+    setProfileStatus('idle');
+    setProfileError(null);
     setIsDemoMode(true);
+    setCurrentView('dashboard');
     await Promise.all([
       loadAssignmentsForSession(null, 'student'),
       loadStudyMaterialsForSession(null, 'student')
@@ -1120,14 +1327,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const studentUser = {
     id: userProfile?.id || (user ? user.id : 'stu-01'),
     code: userProfile?.studentCode || 'HS80101',
-    fullName: userProfile?.fullName || (currentRole === 'teacher' ? 'Thầy Diệp Thanh Toàn' : 'Nguyễn Văn An'),
+    fullName: userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : 'Học sinh'),
     className: userProfile?.grade ? `Lớp ${userProfile.grade}A1` : 'Lớp 8A1',
     school: userProfile?.schoolName || 'Trường THCS Tây Đô'
   };
 
   // Actions
   const addAuditLog = (action: string, target: string, details: string) => {
-    const actorName = userProfile?.fullName || (currentRole === 'teacher' ? 'Thầy Diệp Thanh Toàn' : currentRole === 'admin' ? 'Quản trị viên' : studentUser.fullName);
+    const actorName = userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : currentRole === 'admin' ? 'Quản trị viên' : studentUser.fullName);
     const newLog: AuditLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toLocaleString('vi-VN'),
@@ -1304,7 +1511,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...matrix,
       updatedAt: new Date().toISOString(),
       authorId: user?.id || userProfile?.id,
-      authorName: userProfile?.fullName || matrix.authorName || 'GV. Diệp Thanh Toàn'
+      authorName: userProfile?.fullName || matrix.authorName || 'Giáo viên'
     };
 
     setMatrices(prev => {
@@ -1431,7 +1638,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       questionCount: params.newExamDraft.questions.length,
       totalPoints: params.newExamDraft.totalPoints,
       createdAt: new Date().toISOString().split('T')[0],
-      author: userProfile?.fullName || 'GV. Diệp Thanh Toàn',
+      author: userProfile?.fullName || 'Giáo viên',
       clientRequestId: params.examRequestId
     };
     setExams(prev => [demoExam, ...prev]);
@@ -1462,6 +1669,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isSupabaseConfigured && user) {
       const res = await syncPublishExamAssignmentOnSupabase({
         ...params,
+        teachingAssignments,
+        teachingSchemaReady: !teachingSchemaWarning,
         teacherId: user.id,
         teacherRole: currentRole,
         teacherName: userProfile?.fullName || 'Giáo viên'
@@ -1511,7 +1720,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         questionCount: params.newExamDraft.questions.length,
         totalPoints: params.newExamDraft.totalPoints,
         createdAt: new Date().toISOString().split('T')[0],
-        author: userProfile?.fullName || 'GV. Diệp Thanh Toàn',
+        author: userProfile?.fullName || 'Giáo viên',
         clientRequestId: params.examRequestId
       };
       setExams(prev => [resolvedExam!, ...prev]);
@@ -1569,25 +1778,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Truy cập trái quyền: Học sinh không được phép chấm bài tự luận.');
       return;
     }
+    const nowIso = new Date().toISOString();
     setSubmissions(prev =>
       prev.map(sub => {
         if (sub.id !== submissionId) return sub;
         const currentAns = sub.answers[questionId];
         if (!currentAns) return sub;
 
+        const maxScore = sub.maxScore || 10;
+        const clampedPts = Math.max(0, pointsAwarded);
         const updatedAns: SubmissionAnswer = {
           ...currentAns,
-          pointsAwarded,
+          pointsAwarded: clampedPts,
           teacherFeedback: feedback
         };
 
         const newAnswers = { ...sub.answers, [questionId]: updatedAns };
+        const nextGradingDetails = {
+          ...(sub.gradingDetails || {}),
+          [questionId]: {
+            pointsAwarded: clampedPts,
+            teacherFeedback: feedback,
+            gradedBy: user?.id,
+            gradedAt: nowIso
+          }
+        };
+
         const total = Object.values(newAnswers).reduce((sum, a) => sum + (a.pointsAwarded || 0), 0);
 
         return {
           ...sub,
           answers: newAnswers,
-          score: Math.min(10, total),
+          gradingDetails: nextGradingDetails,
+          teacherFeedback: feedback,
+          gradedBy: user?.id,
+          gradedAt: nowIso,
+          score: Math.min(maxScore, Math.max(0, total)),
           status: 'graded'
         };
       })
@@ -1663,7 +1889,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `cls-${Date.now()}`,
       name: cleanName,
       grade: params.grade,
-      teacherName: userProfile?.fullName || 'GV. Diệp Thanh Toàn',
+      teacherName: userProfile?.fullName || 'Giáo viên',
       studentCount: 0,
       inviteCode,
       students: []
@@ -1773,7 +1999,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    const authorName = payload.author?.trim() || userProfile?.fullName || 'GV. Diệp Thanh Toàn';
+    const authorName = payload.author?.trim() || userProfile?.fullName || 'Giáo viên';
 
     if (isSupabaseConfigured && user) {
       const res = await saveStudyMaterialToSupabase({
@@ -1965,6 +2191,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSupabaseConfig,
         user,
         userProfile,
+        profileStatus,
+        profileError,
+        retryLoadProfile,
         authLoading,
         authError,
         authModalOpen,
@@ -1974,6 +2203,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         openAuthModal,
         signIn,
         signUp,
+        requestPasswordReset,
+        updatePasswordForRecovery,
         signOut,
         refreshProfile,
         selectedGrade,
@@ -1990,9 +2221,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         matrices,
         exams,
         assignments,
+        teachingAssignments,
+        classRoles,
         submissions,
         assignmentDataLoading,
         assignmentDataError,
+        teachingSchemaWarning,
         isUsingDemoAssignmentsData,
         retryLoadAssignmentData,
         geminiAssistants,

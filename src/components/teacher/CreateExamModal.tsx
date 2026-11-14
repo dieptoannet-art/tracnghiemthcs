@@ -12,6 +12,7 @@ import {
 } from '../../types';
 import { generateRequestUuid, isValidUuid } from '../../utils/supabaseAssignmentSync';
 import { formatAssignmentDeadline } from '../../utils/studentAssignments';
+import { resolveCanonicalSubject } from '../../utils/subjectCatalog';
 import {
   EXAM_GRADES,
   EXAM_PERIOD_META,
@@ -99,6 +100,8 @@ export const CreateExamModal: React.FC = () => {
     exams,
     classes,
     assignments,
+    teachingAssignments,
+    teachingSchemaWarning,
     selectedGrade: contextGrade,
     selectedSubject: contextSubject,
     selectedPeriod: contextPeriod,
@@ -696,16 +699,6 @@ export const CreateExamModal: React.FC = () => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (classes.length === 0) {
-      setTargetClassId('');
-      return;
-    }
-    if (!classes.some(c => c.id === targetClassId)) {
-      setTargetClassId(classes[0].id);
-    }
-  }, [classes, targetClassId]);
-
   const assignableExams = useMemo(() => {
     if (isUsingDemoAssignmentsData) return exams;
     return exams.filter(ex => {
@@ -727,7 +720,70 @@ export const CreateExamModal: React.FC = () => {
 
   const selectedSavedExam: Exam | null =
     assignableExams.find(e => e.id === selectedExistingExamId) || null;
-  const selectedClass = classes.find(c => c.id === targetClassId) || null;
+
+  const isSelectedExamAssigned = useMemo(() => {
+    if (!selectedSavedExam) return false;
+    return assignments.some(a => a.examId === selectedSavedExam.id);
+  }, [selectedSavedExam, assignments]);
+
+  // Lọc Lớp nhận bài theo phân công giảng dạy (Lớp – Môn) đang hoạt động của giáo viên
+  const eligibleClasses = useMemo(() => {
+    if (isUsingDemoAssignmentsData || currentRole === 'admin') {
+      return classes;
+    }
+    if (!selectedSavedExam || !user?.id) {
+      return [];
+    }
+    if (teachingSchemaWarning && teachingAssignments.length === 0) {
+      return classes.filter(c => !c.teacherId || c.teacherId === user.id);
+    }
+    const resolvedTarget = resolveCanonicalSubject(selectedSavedExam.subject);
+    const targetSubj =
+      resolvedTarget.ok && resolvedTarget.subjectId
+        ? resolvedTarget.subjectId
+        : String(selectedSavedExam.subject || '').trim().toLowerCase();
+
+    return classes.filter(cls =>
+      teachingAssignments.some(ta => {
+        if (
+          ta.teacherId !== user.id ||
+          ta.classId !== cls.id ||
+          ta.status !== 'active' ||
+          ta.needsSubjectCompletion ||
+          !ta.subject ||
+          (cls.schoolYear && ta.schoolYear !== cls.schoolYear)
+        ) {
+          return false;
+        }
+        const resolvedTa = resolveCanonicalSubject(ta.subject);
+        const taSubj =
+          resolvedTa.ok && resolvedTa.subjectId
+            ? resolvedTa.subjectId
+            : String(ta.subject).trim().toLowerCase();
+        return taSubj === targetSubj;
+      })
+    );
+  }, [
+    classes,
+    teachingAssignments,
+    teachingSchemaWarning,
+    selectedSavedExam,
+    isUsingDemoAssignmentsData,
+    currentRole,
+    user?.id
+  ]);
+
+  useEffect(() => {
+    if (eligibleClasses.length === 0) {
+      setTargetClassId('');
+      return;
+    }
+    if (!eligibleClasses.some(c => c.id === targetClassId)) {
+      setTargetClassId(eligibleClasses[0].id);
+    }
+  }, [eligibleClasses, targetClassId]);
+
+  const selectedClass = eligibleClasses.find(c => c.id === targetClassId) || null;
 
   const classAssignments = useMemo(() => {
     if (!targetClassId) return [];
@@ -811,6 +867,10 @@ export const CreateExamModal: React.FC = () => {
     }
     if (closeDate.getTime() <= openDate.getTime()) {
       setActionError('Hạn nộp bài phải sau thời gian mở đề.');
+      return;
+    }
+    if (closeDate.getTime() <= Date.now()) {
+      setActionError('Hạn nộp bài phải lớn hơn thời điểm hiện tại.');
       return;
     }
 
@@ -1751,20 +1811,30 @@ export const CreateExamModal: React.FC = () => {
                     Chưa có đề kiểm tra nào được lưu. Hãy hoàn tất soạn đề ở Bước 1 và bấm &quot;Lưu đề &amp; Sang bước giao bài&quot;.
                   </div>
                 ) : (
-                  <select
-                    id="saved-exam-select"
-                    value={selectedExistingExamId}
-                    onChange={e => setSelectedExistingExamId(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl font-semibold text-[#082B52]"
-                  >
-                    {assignableExams.map(ex => (
-                      <option key={ex.id} value={ex.id}>
-                        [{ex.code}] {ex.title} — Khối {ex.grade} •{' '}
-                        {getSubjectOption(ex.subject).name} ({ex.questionCount ?? ex.questions.length} câu,{' '}
-                        {ex.durationMinutes} phút)
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <select
+                      id="saved-exam-select"
+                      value={selectedExistingExamId}
+                      onChange={e => setSelectedExistingExamId(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl font-semibold text-[#082B52]"
+                    >
+                      {assignableExams.map(ex => (
+                        <option key={ex.id} value={ex.id}>
+                          [{ex.code}] {ex.title} — Khối {ex.grade} •{' '}
+                          {getSubjectOption(ex.subject).name} ({ex.questionCount ?? ex.questions.length} câu,{' '}
+                          {ex.durationMinutes} phút)
+                        </option>
+                      ))}
+                    </select>
+                    {isSelectedExamAssigned && (
+                      <p className="mt-1.5 text-[11px] text-amber-800 flex items-center gap-1">
+                        <Lock className="w-3 h-3 shrink-0" />
+                        <span>
+                          Đề thi này đã có lượt giao bài nên môn học và tác giả đề được khóa ở tầng CSDL để giữ toàn vẹn dữ liệu.
+                        </span>
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -1777,30 +1847,50 @@ export const CreateExamModal: React.FC = () => {
                   >
                     Lớp nhận bài:
                   </label>
-                  {classes.length === 0 ? (
-                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between gap-2">
-                      <span>Chưa có lớp nào.</span>
-                      <button
-                        type="button"
-                        onClick={() => setCurrentView('teacher_classes')}
-                        className="font-bold underline text-[#006BFF] shrink-0"
-                      >
-                        Tạo lớp ngay
-                      </button>
+                  {eligibleClasses.length === 0 ? (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
+                      {currentRole === 'admin' ? (
+                        <div className="flex items-center justify-between gap-2">
+                          <span>Chưa có lớp học nào.</span>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentView('admin_accounts')}
+                            className="font-bold underline text-[#006BFF] shrink-0"
+                          >
+                            Mở Quản lý lớp &amp; tài khoản
+                          </button>
+                        </div>
+                      ) : selectedSavedExam ? (
+                        <p className="leading-relaxed">
+                          Bạn chưa có phân công giảng dạy đang hoạt động cho môn{' '}
+                          <strong>{getSubjectOption(selectedSavedExam.subject).name}</strong> (hoặc phân công cũ đang chờ Quản trị viên bổ sung môn).
+                        </p>
+                      ) : (
+                        <p>Hãy chọn một đề đã lưu ở trên để hiển thị lớp nhận bài phù hợp.</p>
+                      )}
                     </div>
                   ) : (
-                    <select
-                      id="target-class-select"
-                      value={targetClassId}
-                      onChange={e => setTargetClassId(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl font-semibold text-[#082B52]"
-                    >
-                      {classes.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} ({c.studentCount} HS) - Khối {c.grade}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="space-y-1">
+                      <select
+                        id="target-class-select"
+                        value={targetClassId}
+                        onChange={e => setTargetClassId(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl font-semibold text-[#082B52]"
+                      >
+                        {eligibleClasses.map(c => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} ({c.studentCount} HS) - Khối {c.grade}
+                            {c.schoolYear ? ` · ${c.schoolYear}` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {!isUsingDemoAssignmentsData && currentRole === 'teacher' && selectedSavedExam && (
+                        <p className="text-[11px] text-slate-500">
+                          Chỉ hiển thị lớp bạn đang được phân công dạy môn{' '}
+                          <strong>{getSubjectOption(selectedSavedExam.subject).name}</strong>.
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 

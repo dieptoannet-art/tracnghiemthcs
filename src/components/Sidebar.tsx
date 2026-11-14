@@ -157,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
                 className={navItemClass('teacher_classes')}
               >
                 <Users className="w-4 h-4 shrink-0" />
-                <span>Lớp học & học sinh</span>
+                <span>Lớp &amp; phân công của tôi</span>
               </button>
 
               <button
@@ -224,7 +224,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
                   className={navItemClass('admin_accounts')}
                 >
                   <UserCheck className="w-4 h-4 shrink-0" />
-                  <span>Tài khoản & phân quyền</span>
+                  <span>Quản lý lớp &amp; tài khoản</span>
                 </button>
               )}
 

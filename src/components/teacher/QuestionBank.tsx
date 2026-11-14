@@ -662,7 +662,7 @@ export const QuestionBank: React.FC = () => {
 
             {(user || userProfile) && (
               <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
-                Tài khoản: <b>{userProfile?.fullName || user?.email || 'Thầy Diệp Thanh Toàn'}</b> ({userProfile?.role === 'admin' ? 'Quản trị viên' : userProfile?.role === 'teacher' ? 'Giáo viên' : 'Học sinh'})
+                Tài khoản: <b>{userProfile?.fullName || user?.email || 'Giáo viên'}</b> ({userProfile?.role === 'admin' ? 'Quản trị viên' : userProfile?.role === 'teacher' ? 'Giáo viên' : 'Học sinh'})
               </span>
             )}
           </div>

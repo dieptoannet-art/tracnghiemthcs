@@ -113,8 +113,8 @@ export const Dashboard: React.FC<DashboardProps> = () => {
     },
     {
       id: 'teacher_classes',
-      title: 'Lớp học & học sinh',
-      description: 'Quản lý lớp học, danh sách học sinh và theo dõi quá trình học tập.',
+      title: 'Lớp & phân công của tôi',
+      description: 'Xem các lớp học, môn được phân công giảng dạy và danh sách học sinh theo phạm vi phụ trách.',
       viewId: 'teacher_classes',
       isTeacher: true,
       icon: <IconClasses className="w-28 h-24 sm:w-32 sm:h-28" />
@@ -214,54 +214,51 @@ export const Dashboard: React.FC<DashboardProps> = () => {
         </div>
       </div>
 
-      {/* 3. DÀNH CHO GIÁO VIÊN (7 thẻ giới thiệu chức năng) */}
-      <div className="space-y-5 pt-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#0F2D52]">
-            Dành cho giáo viên
-          </h2>
-          {currentRole === 'student' && (
-            <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-              Yêu cầu tài khoản Giáo viên
-            </span>
-          )}
-        </div>
+      {/* 3. DÀNH CHO GIÁO VIÊN - Ẩn khi vai trò là học sinh */}
+      {currentRole !== 'student' && (
+        <div className="space-y-5 pt-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0F2D52]">
+              Dành cho giáo viên
+            </h2>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {teacherFeatures.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => handleCardClick(item.viewId)}
-              className="bg-white rounded-2xl border border-[#CFDCED] overflow-hidden hover:border-[#1769C2] hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between group"
-            >
-              {/* Top Illustration Area */}
-              <div className="h-36 sm:h-40 bg-[#F0F7FF] border-b border-[#E2EEFB] flex items-center justify-center p-2 group-hover:bg-[#EAF3FD] transition-colors">
-                <div className="group-hover:scale-105 transition-transform duration-200">
-                  {item.icon}
-                </div>
-              </div>
-
-              {/* Bottom Information */}
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-2">
-                <div>
-                  <h3 className="text-lg font-bold text-[#0F2D52] group-hover:text-[#1769C2] transition-colors leading-snug">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-slate-600 mt-1.5 leading-relaxed min-h-[44px]">
-                    {item.description}
-                  </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {teacherFeatures.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => handleCardClick(item.viewId)}
+                className="bg-white rounded-2xl border border-[#CFDCED] overflow-hidden hover:border-[#1769C2] hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between group"
+              >
+                {/* Top Illustration Area */}
+                <div className="h-36 sm:h-40 bg-[#F0F7FF] border-b border-[#E2EEFB] flex items-center justify-center p-2 group-hover:bg-[#EAF3FD] transition-colors">
+                  <div className="group-hover:scale-105 transition-transform duration-200">
+                    {item.icon}
+                  </div>
                 </div>
 
-                <div className="flex justify-end pt-2 text-[#1769C2]">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
-                    <ArrowRight className="w-5 h-5" />
+                {/* Bottom Information */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-2">
+                  <div>
+                    <h3 className="text-lg font-bold text-[#0F2D52] group-hover:text-[#1769C2] transition-colors leading-snug">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-1.5 leading-relaxed min-h-[44px]">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end pt-2 text-[#1769C2]">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

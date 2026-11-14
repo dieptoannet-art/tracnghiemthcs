@@ -1,15 +1,27 @@
 import { supabase } from '../lib/supabase';
 import {
   Assignment,
+  ClassRoleAssignment,
+  ClassRoleType,
   ClassRoom,
   Exam,
   ExamPeriod,
   Grade,
   Question,
+  QuestionGradingDetail,
   SubjectId,
   Submission,
+  SubmissionAnswer,
+  TeachingAssignment,
   UserRole
 } from '../types';
+import { getSubjectDisplayName, resolveCanonicalSubject } from './subjectCatalog';
+
+function normalizeSubjectKey(raw?: string | null): string {
+  const res = resolveCanonicalSubject(raw);
+  if (res.ok && res.subjectId) return res.subjectId;
+  return String(raw || '').trim().toLowerCase();
+}
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -164,7 +176,7 @@ function mapAssignmentRow(
     classId: String(row.class_id),
     className: linkedClass?.name || row.class_name || 'Lớp học',
     grade: (linkedExam?.grade || linkedClass?.grade || '8') as Grade,
-    subject: (linkedExam?.subject || 'math') as SubjectId,
+    subject: (row.subject_code || linkedExam?.subject || 'math') as SubjectId,
     openTime: String(row.open_time || ''),
     closeTime: String(row.close_time || ''),
     durationMinutes: Number(row.duration_minutes ?? linkedExam?.durationMinutes ?? 45),
@@ -263,7 +275,14 @@ export function mapStudentAssignedSummariesPayload(
       answers: {},
       score: Number(row.score ?? 0),
       maxScore: Number(row.max_score ?? exm?.totalPoints ?? 10),
-      tabSwitchCount: Number(row.tab_switch_count ?? 0)
+      tabSwitchCount: Number(row.tab_switch_count ?? 0),
+      teacherFeedback: row.teacher_feedback ? String(row.teacher_feedback) : undefined,
+      gradingDetails:
+        row.grading_details && typeof row.grading_details === 'object'
+          ? (row.grading_details as Record<string, QuestionGradingDetail>)
+          : undefined,
+      gradedBy: row.graded_by ? String(row.graded_by) : undefined,
+      gradedAt: row.graded_at ? String(row.graded_at) : undefined
     };
   });
 
@@ -317,6 +336,54 @@ export interface TeacherWorkspaceFetchResult {
   classes: ClassRoom[];
   exams: Exam[];
   assignments: Assignment[];
+  teachingAssignments: TeachingAssignment[];
+  classRoles: ClassRoleAssignment[];
+  submissions: Submission[];
+  teachingSchemaWarning: string | null;
+}
+
+function isMissingSchemaErr(err: any): boolean {
+  if (!err) return false;
+  const code = String(err.code || '');
+  const msg = String(err.message || '');
+  return (
+    code === '42703' ||
+    code === '42P01' ||
+    code === '42883' ||
+    code === 'PGRST202' ||
+    code === 'PGRST204' ||
+    code === 'PGRST205' ||
+    msg.includes('schema cache') ||
+    msg.includes('Could not find') ||
+    msg.includes('does not exist')
+  );
+}
+
+function hydrateSubmissionAnswersWithGradingDetails(
+  rawAnswers: unknown,
+  rawDetails: unknown
+): Record<string, SubmissionAnswer> {
+  const answersObj =
+    rawAnswers && typeof rawAnswers === 'object' ? { ...(rawAnswers as Record<string, any>) } : {};
+  const detailsObj =
+    rawDetails && typeof rawDetails === 'object'
+      ? (rawDetails as Record<string, QuestionGradingDetail>)
+      : {};
+
+  for (const [qId, detail] of Object.entries(detailsObj)) {
+    if (!detail || typeof detail !== 'object') continue;
+    const prev = answersObj[qId];
+    if (prev && typeof prev === 'object') {
+      answersObj[qId] = {
+        ...prev,
+        pointsAwarded:
+          detail.pointsAwarded !== undefined ? Number(detail.pointsAwarded) : prev.pointsAwarded,
+        teacherFeedback:
+          detail.teacherFeedback !== undefined ? String(detail.teacherFeedback) : prev.teacherFeedback
+      };
+    }
+  }
+  return answersObj;
 }
 
 export async function fetchTeacherWorkspaceFromSupabase(
@@ -326,17 +393,35 @@ export async function fetchTeacherWorkspaceFromSupabase(
   if (!userId) return { error: 'Chưa xác thực tài khoản giáo viên.' };
 
   try {
-    let classesQuery = supabase
+    // RLS on public.classes automatically scopes classes to active teaching_assignments OR active class_roles
+    // (or legacy teacher_id prior to Step 05 cutover).
+    let classesRes: { data: any[] | null; error: any } = await supabase
       .from('classes')
-      .select('id, name, grade, school_year, teacher_id, teacher_name, invite_code, created_at')
+      .select('id, name, class_code, grade, school_year, teacher_id, teacher_name, invite_code, created_at')
       .order('created_at', { ascending: false });
 
-    if (role !== 'admin') {
-      classesQuery = classesQuery.eq('teacher_id', userId);
+    if (classesRes.error && isMissingSchemaErr(classesRes.error)) {
+      classesRes = await supabase
+        .from('classes')
+        .select('id, name, grade, school_year, teacher_id, teacher_name, invite_code, created_at')
+        .order('created_at', { ascending: false });
     }
 
-    const [classesRes, examsRes, assignmentsRes] = await Promise.all([
-      classesQuery,
+    let taQuery = supabase
+      .from('teaching_assignments')
+      .select('id, school_year, teacher_id, class_id, subject, status, needs_subject_completion, notes, started_at, ended_at');
+    if (role !== 'admin') {
+      taQuery = taQuery.eq('teacher_id', userId);
+    }
+
+    let crQuery = supabase
+      .from('class_roles')
+      .select('id, school_year, class_id, teacher_id, role_type, status, notes, granted_at, ended_at');
+    if (role !== 'admin') {
+      crQuery = crQuery.eq('teacher_id', userId);
+    }
+
+    const [examsRes, initialAssignmentsRes, taRes, crRes, initialSubmissionsRes] = await Promise.all([
       supabase
         .from('exams')
         .select('id, code, title, matrix_id, grade, subject, period, duration_minutes, total_points, question_count, author_id, created_at, client_request_id')
@@ -344,15 +429,48 @@ export async function fetchTeacherWorkspaceFromSupabase(
       supabase
         .from('assignments')
         .select(
+          'id, exam_id, class_id, subject_code, open_time, close_time, duration_minutes, attempts_allowed, allow_review, show_solution_after_submit, shuffle_questions, shuffle_options, is_computer_lab_mode, status, round_label, assigned_by, client_request_id, created_at'
+        )
+        .order('created_at', { ascending: false }),
+      taQuery,
+      crQuery,
+      supabase
+        .from('submissions')
+        .select(
+          'id, assignment_id, student_id, start_time, submitted_at, time_spent_seconds, status, answers, score, max_score, tab_switch_count, teacher_feedback, grading_details, graded_by, graded_at'
+        )
+        .order('submitted_at', { ascending: false })
+        .limit(200)
+    ]);
+
+    let assignmentsRes: { data: any[] | null; error: any } = initialAssignmentsRes;
+    if (assignmentsRes.error && isMissingSchemaErr(assignmentsRes.error)) {
+      assignmentsRes = await supabase
+        .from('assignments')
+        .select(
           'id, exam_id, class_id, open_time, close_time, duration_minutes, attempts_allowed, allow_review, show_solution_after_submit, shuffle_questions, shuffle_options, is_computer_lab_mode, status, round_label, assigned_by, client_request_id, created_at'
         )
-        .order('created_at', { ascending: false })
-    ]);
+        .order('created_at', { ascending: false });
+    }
+
+    let submissionsRes: { data: any[] | null; error: any } = initialSubmissionsRes;
+    if (submissionsRes.error && isMissingSchemaErr(submissionsRes.error)) {
+      submissionsRes = await supabase
+        .from('submissions')
+        .select('id, assignment_id, student_id, start_time, submitted_at, time_spent_seconds, status, answers, score, max_score, tab_switch_count')
+        .order('submitted_at', { ascending: false })
+        .limit(200);
+    }
 
     const firstError = classesRes.error || examsRes.error || assignmentsRes.error;
     if (firstError) {
       return { error: formatSupabaseErrorMessage(firstError, 'Không thể tải dữ liệu lớp và giao bài từ Supabase.') };
     }
+
+    const teachingSchemaMissing = Boolean(taRes.error && isMissingSchemaErr(taRes.error));
+    const teachingSchemaWarning = teachingSchemaMissing
+      ? 'CSDL Supabase chưa chạy migration bước 4 (src/data/04_teaching_assignments_and_codes.sql). Đang dùng phạm vi lớp học cũ.'
+      : null;
 
     const classRows = classesRes.data || [];
     const classIds = classRows.map((c: any) => String(c.id));
@@ -403,6 +521,7 @@ export async function fetchTeacherWorkspaceFromSupabase(
       return {
         id: String(row.id),
         name: String(row.name),
+        classCode: row.class_code ? String(row.class_code) : undefined,
         grade: (row.grade as Grade) || '8',
         teacherName: String(row.teacher_name || 'Giáo viên'),
         teacherId: row.teacher_id ? String(row.teacher_id) : undefined,
@@ -419,12 +538,97 @@ export async function fetchTeacherWorkspaceFromSupabase(
     const mappedAssignments: Assignment[] = (assignmentsRes.data || []).map((row: any) =>
       mapAssignmentRow(row, examById, classById)
     );
+    const asgById = new Map<string, Assignment>(mappedAssignments.map(a => [a.id, a]));
+
+    const mappedTeachingAssignments: TeachingAssignment[] = !taRes.error && Array.isArray(taRes.data)
+      ? taRes.data.map((row: any) => {
+          const cls = classById.get(String(row.class_id));
+          const subj = row.subject ? String(row.subject) : null;
+          return {
+            id: String(row.id),
+            schoolYear: String(row.school_year || cls?.schoolYear || '2025-2026'),
+            teacherId: String(row.teacher_id),
+            classId: String(row.class_id),
+            classCode: cls?.classCode || null,
+            className: cls?.name || 'Lớp học',
+            grade: cls?.grade || '8',
+            subject: subj,
+            subjectLabel: getSubjectDisplayName(subj),
+            status: row.status === 'ended' ? 'ended' : 'active',
+            needsSubjectCompletion: Boolean(row.needs_subject_completion || !subj),
+            notes: row.notes ? String(row.notes) : null,
+            startedAt: row.started_at ? String(row.started_at) : undefined,
+            endedAt: row.ended_at ? String(row.ended_at) : null
+          };
+        })
+      : [];
+
+    const mappedClassRoles: ClassRoleAssignment[] = !crRes.error && Array.isArray(crRes.data)
+      ? crRes.data.map((row: any) => {
+          const cls = classById.get(String(row.class_id));
+          const roleType: ClassRoleType = row.role_type === 'class_manager' ? 'class_manager' : 'homeroom';
+          return {
+            id: String(row.id),
+            schoolYear: String(row.school_year || cls?.schoolYear || '2025-2026'),
+            classId: String(row.class_id),
+            classCode: cls?.classCode || null,
+            className: cls?.name || 'Lớp học',
+            grade: cls?.grade || '8',
+            teacherId: String(row.teacher_id),
+            roleType,
+            roleLabel: roleType === 'homeroom' ? 'Chủ nhiệm lớp' : 'Quản lý danh sách lớp',
+            status: row.status === 'ended' ? 'ended' : 'active',
+            notes: row.notes ? String(row.notes) : null,
+            grantedAt: row.granted_at ? String(row.granted_at) : undefined,
+            endedAt: row.ended_at ? String(row.ended_at) : null
+          };
+        })
+      : [];
+
+    const mappedSubmissions: Submission[] = !submissionsRes.error && Array.isArray(submissionsRes.data)
+      ? submissionsRes.data.map((row: any) => {
+          const asg = asgById.get(String(row.assignment_id));
+          const exm = asg ? examById.get(asg.examId) : undefined;
+          const stu = profileMap.get(String(row.student_id));
+          const gradingDetails =
+            row.grading_details && typeof row.grading_details === 'object'
+              ? (row.grading_details as Record<string, QuestionGradingDetail>)
+              : undefined;
+          return {
+            id: String(row.id),
+            assignmentId: String(row.assignment_id),
+            examId: asg?.examId || exm?.id || '',
+            examTitle: asg?.examTitle || exm?.title || 'Bài kiểm tra',
+            studentId: String(row.student_id),
+            studentName: String(stu?.full_name || stu?.student_code || 'Học sinh'),
+            studentClass: asg?.className || '',
+            grade: (asg?.grade || exm?.grade || '8') as Grade,
+            subject: (asg?.subject || exm?.subject || 'math') as SubjectId,
+            startTime: row.start_time ? String(row.start_time) : '',
+            submittedAt: row.submitted_at ? String(row.submitted_at) : '',
+            timeSpentSeconds: Number(row.time_spent_seconds ?? 0),
+            status: (row.status as 'in_progress' | 'submitted' | 'graded') || 'submitted',
+            answers: hydrateSubmissionAnswersWithGradingDetails(row.answers, gradingDetails),
+            score: Number(row.score ?? 0),
+            maxScore: Number(row.max_score ?? exm?.totalPoints ?? 10),
+            tabSwitchCount: Number(row.tab_switch_count ?? 0),
+            teacherFeedback: row.teacher_feedback ? String(row.teacher_feedback) : undefined,
+            gradingDetails,
+            gradedBy: row.graded_by ? String(row.graded_by) : undefined,
+            gradedAt: row.graded_at ? String(row.graded_at) : undefined
+          };
+        })
+      : [];
 
     return {
       data: {
         classes: mappedClasses,
         exams: mappedExams,
-        assignments: mappedAssignments
+        assignments: mappedAssignments,
+        teachingAssignments: mappedTeachingAssignments,
+        classRoles: mappedClassRoles,
+        submissions: mappedSubmissions,
+        teachingSchemaWarning
       }
     };
   } catch (err: any) {
@@ -586,6 +790,7 @@ export async function syncSaveExamOnSupabase(
     const publicQuestions = newExamDraft.questions.map(stripQuestionAnswersForExam);
     const protectedKeys = extractProtectedExamKeys(newExamDraft.questions);
 
+    const canonicalSubject = normalizeSubjectKey(newExamDraft.subject) || newExamDraft.subject;
     let insertedExamRow: any = null;
     const { data: exData, error: exErr } = await supabase
       .from('exams')
@@ -593,7 +798,7 @@ export async function syncSaveExamOnSupabase(
         code: newExamDraft.code.trim().toUpperCase(),
         title: newExamDraft.title.trim(),
         grade: newExamDraft.grade,
-        subject: newExamDraft.subject,
+        subject: canonicalSubject,
         period: newExamDraft.period,
         duration_minutes: newExamDraft.durationMinutes,
         total_points: newExamDraft.totalPoints,
@@ -663,6 +868,8 @@ export interface PublishExamAssignmentParams {
   targetClass: ClassRoom;
   existingExam?: Exam | null;
   newExamDraft?: NewExamDraftInput;
+  teachingAssignments?: TeachingAssignment[];
+  teachingSchemaReady?: boolean;
   assignmentSettings: {
     openTimeIso: string;
     closeTimeIso: string;
@@ -694,6 +901,8 @@ export async function syncPublishExamAssignmentOnSupabase(
     targetClass,
     existingExam,
     newExamDraft,
+    teachingAssignments,
+    teachingSchemaReady,
     assignmentSettings,
     publishRequestId,
     examRequestId
@@ -704,10 +913,54 @@ export async function syncPublishExamAssignmentOnSupabase(
     return { success: false, error: 'Chỉ tài khoản Giáo viên hoặc Quản trị viên mới có quyền giao bài.' };
   }
   if (!isValidUuid(targetClass.id)) {
-    return { success: false, error: 'Lớp học chưa được đồng bộ trên Supabase. Vui lòng tạo lớp trên tài khoản Supabase trước.' };
+    return { success: false, error: 'Lớp học chưa được đồng bộ trên Supabase. Vui lòng liên hệ Quản trị viên tạo lớp.' };
   }
-  if (teacherRole !== 'admin' && targetClass.teacherId && targetClass.teacherId !== teacherId) {
-    return { success: false, error: 'Bạn không phải giáo viên phụ trách lớp học này.' };
+
+  const targetSubject = existingExam?.subject || newExamDraft?.subject;
+  const normalizedTargetSubject = normalizeSubjectKey(targetSubject);
+
+  const nowMs = Date.now();
+  const openMs = Date.parse(assignmentSettings.openTimeIso);
+  const closeMs = Date.parse(assignmentSettings.closeTimeIso);
+  if (Number.isNaN(openMs) || Number.isNaN(closeMs)) {
+    return { success: false, error: 'Thời gian mở đề hoặc hạn nộp bài không hợp lệ.' };
+  }
+  if (closeMs <= openMs) {
+    return { success: false, error: 'Hạn nộp bài (close_time) phải lớn hơn thời gian mở đề (open_time).' };
+  }
+  if (closeMs <= nowMs) {
+    return { success: false, error: 'Hạn nộp bài phải lớn hơn thời điểm hiện tại.' };
+  }
+  if (!Number.isFinite(assignmentSettings.durationMinutes) || assignmentSettings.durationMinutes < 1) {
+    return { success: false, error: 'Thời lượng làm bài phải từ 1 phút trở lên.' };
+  }
+  if (!Number.isFinite(assignmentSettings.attemptsAllowed) || assignmentSettings.attemptsAllowed < 1) {
+    return { success: false, error: 'Số lượt làm bài cho phép phải từ 1 trở lên.' };
+  }
+
+  if (teacherRole !== 'admin') {
+    const enforceMatrix =
+      teachingSchemaReady !== false || (Array.isArray(teachingAssignments) && teachingAssignments.length > 0);
+    if (enforceMatrix && normalizedTargetSubject) {
+      const hasActiveScope = (teachingAssignments || []).some(
+        ta =>
+          ta.teacherId === teacherId &&
+          ta.classId === targetClass.id &&
+          ta.status === 'active' &&
+          !ta.needsSubjectCompletion &&
+          ta.subject &&
+          normalizeSubjectKey(ta.subject) === normalizedTargetSubject &&
+          (!targetClass.schoolYear || ta.schoolYear === targetClass.schoolYear)
+      );
+      if (!hasActiveScope) {
+        return {
+          success: false,
+          error: `Bạn không có phân công giảng dạy đang hoạt động cho môn "${getSubjectDisplayName(normalizedTargetSubject)}" tại lớp ${targetClass.name}.`
+        };
+      }
+    } else if (!targetClass.teacherId || targetClass.teacherId !== teacherId) {
+      return { success: false, error: 'Bạn không phải giáo viên được phân công cho lớp học này.' };
+    }
   }
 
   let resolvedExam: Exam | null = existingExam ? { ...existingExam } : null;
@@ -737,18 +990,43 @@ export async function syncPublishExamAssignmentOnSupabase(
       return { success: false, error: 'Chưa có đề kiểm tra để giao cho lớp.' };
     }
 
-    // 3. Insert Assignment with idempotency key client_request_id
-    const nowMs = Date.now();
-    const openMs = Date.parse(assignmentSettings.openTimeIso);
+    // 3. Call hardened RPC `publish_exam_assignment` first (enforces teaching_assignments & idempotency at DB level);
+    //    fallback to direct insert if RPC from migration 04/05 isn't deployed yet.
     const derivedStatus: 'active' | 'scheduled' =
-      !Number.isNaN(openMs) && openMs > nowMs + 60_000 ? 'scheduled' : 'active';
+      openMs > nowMs + 60_000 ? 'scheduled' : 'active';
 
     let insertedAsgRow: any = null;
-    const { data: asgData, error: asgErr } = await supabase
-      .from('assignments')
-      .insert({
+    const rpcRes = await supabase.rpc('publish_exam_assignment', {
+      p_exam_id: resolvedExam.id,
+      p_class_id: targetClass.id,
+      p_open_time: assignmentSettings.openTimeIso,
+      p_close_time: assignmentSettings.closeTimeIso,
+      p_duration_minutes: assignmentSettings.durationMinutes,
+      p_attempts_allowed: assignmentSettings.attemptsAllowed,
+      p_allow_review: assignmentSettings.allowReview,
+      p_show_solution_after_submit: assignmentSettings.showSolutionAfterSubmit,
+      p_shuffle_questions: assignmentSettings.shuffleQuestions,
+      p_shuffle_options: assignmentSettings.shuffleOptions,
+      p_is_computer_lab_mode: assignmentSettings.isComputerLabMode,
+      p_status: derivedStatus,
+      p_round_label: assignmentSettings.roundLabel.trim() || 'Đợt 1',
+      p_client_request_id: publishRequestId
+    });
+
+    if (!rpcRes.error && rpcRes.data) {
+      insertedAsgRow = rpcRes.data;
+    } else if (rpcRes.error && !isMissingSchemaErr(rpcRes.error)) {
+      return {
+        success: false,
+        error: formatSupabaseErrorMessage(rpcRes.error, 'Không thể giao bài trên Supabase.')
+      };
+    } else {
+      // Fallback insert when RPC is not yet deployed
+      const fallbackSubjectCode = normalizeSubjectKey(resolvedExam.subject) || resolvedExam.subject;
+      const baseInsertPayload: Record<string, any> = {
         exam_id: resolvedExam.id,
         class_id: targetClass.id,
+        subject_code: fallbackSubjectCode,
         open_time: assignmentSettings.openTimeIso,
         close_time: assignmentSettings.closeTimeIso,
         duration_minutes: assignmentSettings.durationMinutes,
@@ -762,30 +1040,66 @@ export async function syncPublishExamAssignmentOnSupabase(
         round_label: assignmentSettings.roundLabel.trim() || 'Đợt 1',
         assigned_by: teacherId,
         client_request_id: publishRequestId
-      })
-      .select(
-        'id, exam_id, class_id, open_time, close_time, duration_minutes, attempts_allowed, allow_review, show_solution_after_submit, shuffle_questions, shuffle_options, is_computer_lab_mode, status, round_label, assigned_by, client_request_id'
-      )
-      .single();
+      };
 
-    if (asgErr) {
-      if (asgErr.code === '23505') {
-        const { data: existingAsg, error: fetchAsgErr } = await supabase
+      let insertFallback = await supabase
+        .from('assignments')
+        .insert(baseInsertPayload)
+        .select(
+          'id, exam_id, class_id, open_time, close_time, duration_minutes, attempts_allowed, allow_review, show_solution_after_submit, shuffle_questions, shuffle_options, is_computer_lab_mode, status, round_label, assigned_by, client_request_id'
+        )
+        .single();
+
+      if (insertFallback.error && isMissingSchemaErr(insertFallback.error)) {
+        const { subject_code: _omit, ...legacyInsertPayload } = baseInsertPayload;
+        insertFallback = await supabase
           .from('assignments')
+          .insert(legacyInsertPayload)
           .select(
             'id, exam_id, class_id, open_time, close_time, duration_minutes, attempts_allowed, allow_review, show_solution_after_submit, shuffle_questions, shuffle_options, is_computer_lab_mode, status, round_label, assigned_by, client_request_id'
           )
-          .eq('client_request_id', publishRequestId)
-          .maybeSingle();
-        if (fetchAsgErr || !existingAsg) {
-          return { success: false, error: formatSupabaseErrorMessage(asgErr, 'Lượt giao bài này đã tồn tại hoặc không thể lưu lên Supabase.') };
-        }
-        insertedAsgRow = existingAsg;
-      } else {
-        return { success: false, error: formatSupabaseErrorMessage(asgErr, 'Không thể lưu lượt giao bài lên Supabase.') };
+          .single();
       }
-    } else {
-      insertedAsgRow = asgData;
+
+      if (insertFallback.error) {
+        if (insertFallback.error.code === '23505') {
+          const { data: existingAsg, error: fetchAsgErr } = await supabase
+            .from('assignments')
+            .select(
+              'id, exam_id, class_id, open_time, close_time, duration_minutes, attempts_allowed, allow_review, show_solution_after_submit, shuffle_questions, shuffle_options, is_computer_lab_mode, status, round_label, assigned_by, client_request_id'
+            )
+            .eq('client_request_id', publishRequestId)
+            .maybeSingle();
+          if (fetchAsgErr || !existingAsg) {
+            return {
+              success: false,
+              error: formatSupabaseErrorMessage(
+                insertFallback.error,
+                'Lượt giao bài này đã tồn tại hoặc không thể lưu lên Supabase.'
+              )
+            };
+          }
+          if (
+            String(existingAsg.assigned_by || '') !== teacherId ||
+            String(existingAsg.exam_id || '') !== resolvedExam.id ||
+            String(existingAsg.class_id || '') !== targetClass.id
+          ) {
+            return {
+              success: false,
+              error:
+                'Mã yêu cầu giao bài (client_request_id) đã được dùng cho một lượt giao bài, lớp học hoặc người giao khác (xung đột 409).'
+            };
+          }
+          insertedAsgRow = existingAsg;
+        } else {
+          return {
+            success: false,
+            error: formatSupabaseErrorMessage(insertFallback.error, 'Không thể lưu lượt giao bài lên Supabase.')
+          };
+        }
+      } else {
+        insertedAsgRow = insertFallback.data;
+      }
     }
 
     const examById = new Map([[resolvedExam.id, resolvedExam]]);
@@ -801,6 +1115,38 @@ export async function syncPublishExamAssignmentOnSupabase(
     return {
       success: false,
       error: formatSupabaseErrorMessage(err, 'Lỗi kết nối khi phát hành và giao bài lên Supabase.')
+    };
+  }
+}
+
+export async function syncGradeSubmissionViaRpc(params: {
+  submissionId: string;
+  questionId: string;
+  pointsAwarded: number;
+  feedback: string;
+  score?: number;
+}): Promise<{ success: boolean; submission?: any; error?: string }> {
+  try {
+    const { data, error } = await supabase.rpc('grade_submission', {
+      p_submission_id: params.submissionId,
+      p_question_id: params.questionId,
+      p_points_awarded: params.pointsAwarded,
+      p_teacher_feedback: params.feedback,
+      p_score: params.score ?? null
+    });
+
+    if (error || !data) {
+      return {
+        success: false,
+        error: formatSupabaseErrorMessage(error, 'Không thể lưu điểm chấm bài qua Supabase RPC.')
+      };
+    }
+
+    return { success: true, submission: data };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: formatSupabaseErrorMessage(err, 'Lỗi kết nối khi lưu điểm chấm bài.')
     };
   }
 }

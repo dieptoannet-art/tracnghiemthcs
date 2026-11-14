@@ -281,12 +281,23 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
   }
 }
 
+export interface DetailedProfileResult {
+  status: 'found' | 'not_found' | 'error';
+  profile: UserProfile | null;
+  error?: string;
+}
+
 /**
- * Fetch profile from public.profiles table by user ID
- * Handles schema cache missing table and network fetch errors gracefully.
+ * Fetch profile from public.profiles table by user ID with explicit error state.
  */
-export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
-  if (!isSupabaseConfigured || !userId) return null;
+export async function fetchUserProfileDetailed(userId: string): Promise<DetailedProfileResult> {
+  if (!isSupabaseConfigured || !userId) {
+    return {
+      status: 'error',
+      profile: null,
+      error: 'Chưa cấu hình Supabase hoặc thiếu ID tài khoản.'
+    };
+  }
 
   try {
     const { data, error } = await supabase
@@ -305,35 +316,79 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
         error.code === '42P01';
 
       if (isMissingTable) {
-        console.warn('Bảng profiles chưa có trong schema cache Supabase. Hệ thống sử dụng hồ sơ mặc định an toàn.');
-      } else if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || error.code === 'FetchError') {
-        console.warn('Không thể kết nối mạng tới Supabase khi nạp hồ sơ. Hệ thống dùng hồ sơ mặc định.');
-      } else {
-        console.warn('Thông báo khi tải hồ sơ Supabase:', msg);
+        return {
+          status: 'error',
+          profile: null,
+          error: 'Bảng public.profiles chưa tồn tại trong CSDL Supabase. Vui lòng chạy đầy đủ SQL migration.'
+        };
       }
-      return null;
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || error.code === 'FetchError') {
+        return {
+          status: 'error',
+          profile: null,
+          error: 'Không thể kết nối mạng tới Supabase khi nạp hồ sơ và vai trò tài khoản.'
+        };
+      }
+      if (error.code === '42501' || msg.toLowerCase().includes('row-level security') || msg.toLowerCase().includes('permission denied')) {
+        return {
+          status: 'error',
+          profile: null,
+          error: `Không đủ quyền đọc bảng public.profiles (RLS): ${msg}`
+        };
+      }
+      return {
+        status: 'error',
+        profile: null,
+        error: `Lỗi tải hồ sơ người dùng từ Supabase: ${msg}`
+      };
     }
 
-    if (!data) return null;
+    if (!data) {
+      return {
+        status: 'not_found',
+        profile: null
+      };
+    }
+
+    const validRoles: UserRole[] = ['student', 'teacher', 'admin', 'reviewer'];
+    const dbRole = validRoles.includes(data.role as UserRole) ? (data.role as UserRole) : 'student';
 
     return {
-      id: data.id,
-      email: data.email,
-      fullName: data.full_name || 'Người dùng',
-      role: (data.role as UserRole) || 'student',
-      grade: data.grade,
-      studentCode: data.student_code,
-      schoolName: data.school_name || 'Trường THCS Tây Đô',
-      subject: data.subject,
-      createdAt: data.created_at,
+      status: 'found',
+      profile: {
+        id: data.id,
+        email: data.email,
+        fullName: data.full_name || 'Người dùng',
+        role: dbRole,
+        grade: data.grade,
+        studentCode: data.student_code,
+        teacherCode: data.teacher_code || undefined,
+        schoolName: data.school_name || 'Trường THCS Tây Đô',
+        subject: data.subject,
+        createdAt: data.created_at,
+      }
     };
   } catch (err: any) {
     const errMsg = err?.message || String(err);
     if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
-      console.warn('Không thể kết nối mạng tới Supabase khi tải hồ sơ (ngoại lệ mạng).');
-    } else {
-      console.warn('Ngoại lệ khi tải hồ sơ:', errMsg);
+      return {
+        status: 'error',
+        profile: null,
+        error: 'Không thể kết nối mạng tới Supabase khi nạp hồ sơ tài khoản.'
+      };
     }
-    return null;
+    return {
+      status: 'error',
+      profile: null,
+      error: `Ngoại lệ khi nạp hồ sơ tài khoản: ${errMsg}`
+    };
   }
+}
+
+/**
+ * Fetch profile from public.profiles table by user ID
+ */
+export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
+  const res = await fetchUserProfileDetailed(userId);
+  return res.profile;
 }

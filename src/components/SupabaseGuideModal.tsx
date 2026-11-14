@@ -377,15 +377,16 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
           </div>
 
           <p className="text-xs text-slate-600 leading-relaxed">
-            Để kích hoạt đồng bộ phân hệ <strong>Lớp học &amp; Bài được giao</strong> trên Supabase đã có <code>profiles</code> &amp; <code>questions</code>, hãy chạy lần lượt 2 file trong Supabase SQL Editor:
+            Để kích hoạt đồng bộ <strong>Lớp học, Phân công nhiều giáo viên, Tài khoản / phân quyền &amp; Phân quyền chặt theo môn học</strong> trên Supabase đã có <code>profiles</code> &amp; <code>questions</code>, hãy chạy đúng thứ tự 5 bước trong Supabase SQL Editor:
             <br />
-            <strong>Bước 1:</strong> <code>src/data/01_bootstrap_assignment_tables.sql</code> ➔ <strong>Bước 2:</strong> <code>src/data/02_sync_classes_exams_assignments.sql</code>.
+            <strong>Bước 1:</strong> <code>src/data/01_bootstrap_assignment_tables.sql</code> ➔ <strong>Bước 2:</strong> <code>src/data/02_sync_classes_exams_assignments.sql</code> ➔ <strong>Bước 3:</strong> <code>src/data/03_admin_accounts_rbac.sql</code> ➔ <strong>Bước 4:</strong> <code>src/data/04_teaching_assignments_and_codes.sql</code> ➔ <em>(Bổ sung danh sách &quot;Thiếu môn&quot; &amp; gán <code>class_roles</code> nếu cần)</em> ➔ <strong>Bước 5:</strong> <code>src/data/05_enable_subject_rls_and_hardening.sql</code>.
           </p>
 
-          <div className="p-3 bg-white rounded-lg border font-mono text-[11px] text-slate-700 max-h-36 overflow-y-auto space-y-1">
-            <p className="text-slate-500 font-bold">-- 1. Cấp quyền Quản trị viên (Admin) cho tài khoản:</p>
-            <p className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">UPDATE public.profiles SET role = 'admin' WHERE email = 'dieptoan.net@gmail.com';</p>
-            <p className="text-slate-500 font-bold mt-2">-- 2. Cấp quyền RLS INSERT cho bảng questions & protected_solutions:</p>
+          <div className="p-3 bg-white rounded-lg border font-mono text-[11px] text-slate-700 max-h-40 overflow-y-auto space-y-1">
+            <p className="text-slate-500 font-bold">-- 1. Kiểm tra Auth UUID quản trị viên đầu tiên &amp; cấp quyền Admin (chạy 1 lần trong SQL Editor):</p>
+            <p className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded">SELECT id, email FROM auth.users ORDER BY created_at ASC;</p>
+            <p className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">UPDATE public.profiles SET role = 'admin', updated_at = NOW() WHERE id = '&lt;AUTH_USER_UUID&gt;'::uuid;</p>
+            <p className="text-slate-500 font-bold mt-2">-- 2. Cấp quyền RLS INSERT cho bảng questions &amp; protected_solutions:</p>
             <p className="text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded">GRANT SELECT, INSERT, UPDATE, DELETE ON public.questions TO authenticated;</p>
             <p className="text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded">GRANT SELECT, INSERT, UPDATE, DELETE ON public.protected_solutions TO authenticated;</p>
           </div>

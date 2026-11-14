@@ -15,6 +15,7 @@ export interface UserProfile {
   role: UserRole;
   grade?: Grade;
   studentCode?: string;
+  teacherCode?: string;
   schoolName?: string;
   subject?: string;
   createdAt?: string;
@@ -262,6 +263,13 @@ export interface SubmissionAnswer {
   teacherFeedback?: string;
 }
 
+export interface QuestionGradingDetail {
+  pointsAwarded?: number;
+  teacherFeedback?: string;
+  gradedBy?: string;
+  gradedAt?: string;
+}
+
 export interface Submission {
   id: string;
   assignmentId: string;
@@ -280,11 +288,16 @@ export interface Submission {
   score: number;
   maxScore: number;
   tabSwitchCount: number;
+  teacherFeedback?: string | null;
+  gradingDetails?: Record<string, QuestionGradingDetail>;
+  gradedBy?: string | null;
+  gradedAt?: string | null;
 }
 
 export interface ClassRoom {
   id: string;
   name: string;
+  classCode?: string;
   grade: Grade;
   teacherName: string;
   teacherId?: string;
@@ -298,6 +311,89 @@ export interface ClassRoom {
     email: string;
     gender?: 'Nam' | 'Nữ';
   }[];
+}
+
+export interface TeachingAssignment {
+  id: string;
+  schoolYear: string;
+  teacherId: string;
+  teacherCode?: string | null;
+  teacherName?: string;
+  teacherEmail?: string;
+  classId: string;
+  classCode?: string | null;
+  className?: string;
+  grade?: Grade | string;
+  subject: SubjectId | string | null;
+  subjectLabel?: string;
+  status: 'active' | 'ended';
+  needsSubjectCompletion: boolean;
+  notes?: string | null;
+  startedAt?: string;
+  endedAt?: string | null;
+}
+
+export type ClassRoleType = 'homeroom' | 'class_manager';
+
+export interface ClassRoleAssignment {
+  id: string;
+  schoolYear: string;
+  classId: string;
+  classCode?: string | null;
+  className?: string;
+  grade?: Grade | string;
+  teacherId: string;
+  teacherCode?: string | null;
+  teacherName?: string;
+  teacherEmail?: string;
+  roleType: ClassRoleType;
+  roleLabel?: string;
+  status: 'active' | 'ended';
+  notes?: string | null;
+  grantedAt?: string;
+  endedAt?: string | null;
+}
+
+export interface CutoverMissingSubjectItem {
+  teachingAssignmentId: string;
+  schoolYear: string;
+  classId: string;
+  classCode?: string | null;
+  className: string;
+  grade: string;
+  teacherId: string;
+  teacherCode?: string | null;
+  teacherName: string;
+  teacherEmail: string;
+  affectedAssignmentsCount: number;
+  affectedSubmissionsCount: number;
+  notes?: string | null;
+}
+
+export interface CutoverImpactedClassItem {
+  classId: string;
+  className: string;
+  classCode?: string | null;
+  grade: string;
+  schoolYear: string;
+  legacyTeacherId?: string | null;
+  legacyTeacherName?: string | null;
+  legacyTeacherCode?: string | null;
+  missingSubjectCount: number;
+  completedSubjectCount: number;
+  explicitClassRoleCount: number;
+  totalAssignmentsCount: number;
+  totalSubmissionsCount: number;
+  unmappedAssignmentsCount: number;
+  impactReason: string;
+}
+
+export interface CutoverReadinessReport {
+  readyForCutover: boolean;
+  missingSubjectCount: number;
+  impactedClassCount: number;
+  missingSubjectItems: CutoverMissingSubjectItem[];
+  impactedClasses: CutoverImpactedClassItem[];
 }
 
 export interface GeminiAssistantConfig {
