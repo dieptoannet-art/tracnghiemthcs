@@ -210,51 +210,129 @@ export function cryptoFisherYatesShuffle<T>(items: readonly T[]): T[] {
 
 /**
  * Compute 3D pedestal positions for `count` gift boxes on the stage.
+ * Adapts box scale and row/column spacing so boxes remain large, balanced,
+ * and never overflow the stage or shrink too small for 1..50 students.
  */
-function computeStageBoxCoordinates(
+export function computeStageBoxCoordinates(
   index: number,
   totalInPage: number,
   gameMode: GiftBoxGameMode
 ): { x: number; y: number; z: number; scale: number } {
   if (gameMode === 'GIANT_BOX' || totalInPage <= 1) {
-    return { x: 0, y: -0.35, z: 0.45, scale: 1.55 };
+    return { x: 0, y: -0.45, z: 0.35, scale: 1.48 };
+  }
+
+  if (totalInPage === 2) {
+    const x = (index === 0 ? -1 : 1) * 1.45;
+    return { x, y: -0.25, z: 0.2, scale: 1.12 };
+  }
+
+  if (totalInPage <= 4) {
+    const cols = totalInPage;
+    const x = (index - (cols - 1) / 2) * 1.65;
+    return { x, y: -0.2, z: 0.15, scale: 1.02 };
   }
 
   if (totalInPage <= 6) {
     const cols = 3;
     const row = Math.floor(index / cols);
     const col = index % cols;
-    const x = (col - 1) * 1.95;
-    const y = row === 0 ? 0.35 : -0.65;
-    const z = row === 0 ? -0.55 : 0.45;
+    const x = (col - 1) * 1.85;
+    const y = row === 0 ? 0.22 : -0.68;
+    const z = row === 0 ? -0.45 : 0.42;
     return { x, y, z, scale: 0.92 };
   }
 
-  if (totalInPage <= 12) {
+  if (totalInPage <= 8) {
     const cols = 4;
     const row = Math.floor(index / cols);
     const col = index % cols;
-    const x = (col - (cols - 1) / 2) * 1.58;
-    const y = 0.55 - row * 0.72;
-    const z = -0.75 + row * 0.65;
-    return { x, y, z, scale: 0.78 };
+    const x = (col - 1.5) * 1.56;
+    const y = row === 0 ? 0.22 : -0.68;
+    const z = row === 0 ? -0.45 : 0.42;
+    return { x, y, z, scale: 0.84 };
   }
 
-  // 13..20 boxes per page view
-  const cols = 5;
+  if (totalInPage <= 10) {
+    const cols = 5;
+    const row = Math.floor(index / cols);
+    const col = index % cols;
+    const x = (col - 2) * 1.36;
+    const y = row === 0 ? 0.24 : -0.66;
+    const z = row === 0 ? -0.45 : 0.42;
+    return { x, y, z, scale: 0.8 };
+  }
+
+  // 11..12 boxes per page view (3 rows x 4 cols)
+  const cols = 4;
   const row = Math.floor(index / cols);
   const col = index % cols;
-  const x = (col - (cols - 1) / 2) * 1.32;
-  const y = 0.75 - row * 0.62;
-  const z = -0.85 + row * 0.52;
-  return { x, y, z, scale: 0.66 };
+  const x = (col - (cols - 1) / 2) * 1.54;
+  const y = 0.48 - row * 0.68;
+  const z = -0.68 + row * 0.58;
+  return { x, y, z, scale: 0.76 };
+}
+
+export interface GiftBoxCameraFraming {
+  overviewDistance: number;
+  overviewLookY: number;
+  focusCamY: number;
+  focusCamZ: number;
+  focusLookY: number;
+  focusLookZ: number;
+}
+
+/**
+ * Compute aspect-ratio-safe camera framing so that:
+ * 1. In overview mode (`camFocusBlend = 0`), all boxes on the stage pedestal fit horizontally and vertically
+ *    without clipping on 16:9, 16:10, 4:3, tablet, or mobile viewports.
+ * 2. In close-up opening mode (`camFocusBlend = 1`), the center box (`y = -0.42`), lifted lid (`y ≈ +1.88`),
+ *    and rising 3D hologram name card (`y ≈ +1.76`, width `2.24`) remain 100% inside the camera frustum.
+ */
+export function computeGiftBoxCameraFraming(params: {
+  aspectRatio: number;
+  boxesInPageCount: number;
+  gameMode: GiftBoxGameMode;
+}): GiftBoxCameraFraming {
+  const safeAspect = Math.max(0.5, Math.min(params.aspectRatio || 1.77, 3.5));
+
+  // Overview stage span: wider when showing 8-12 boxes, compact for GIANT_BOX
+  const isSingleGiant = params.gameMode === 'GIANT_BOX' || params.boxesInPageCount <= 1;
+  const halfWidthNeeded = isSingleGiant ? 2.2 : params.boxesInPageCount <= 6 ? 3.3 : 3.9;
+  const halfHeightNeeded = isSingleGiant ? 2.1 : 2.35;
+
+  // FOV = 42 deg => tan(21 deg) ≈ 0.38386
+  const tanHalfFov = Math.tan((42 * Math.PI) / 360);
+  const distForHeight = halfHeightNeeded / tanHalfFov;
+  const distForWidth = halfWidthNeeded / (tanHalfFov * safeAspect);
+
+  const overviewDistance = Math.min(Math.max(Math.max(distForHeight, distForWidth) + 0.55, 6.4), 12.8);
+  const overviewLookY = isSingleGiant ? -0.02 : -0.08;
+
+  // Close-up opening stage span at centerStageZ = 1.25:
+  // Vertical range needed: from bottom of box (-1.15) to top of lifted lid & rising card (+2.15) -> center Y ≈ 0.42, halfHeight ≈ 1.75
+  // Horizontal range needed: card width + particles -> halfWidth ≈ 1.65
+  const focusHalfHeight = 1.78;
+  const focusHalfWidth = 1.68;
+  const focusDeltaZHeight = focusHalfHeight / tanHalfFov;
+  const focusDeltaZWidth = focusHalfWidth / (tanHalfFov * safeAspect);
+  const focusDeltaZ = Math.max(focusDeltaZHeight, focusDeltaZWidth, 3.95);
+
+  return {
+    overviewDistance,
+    overviewLookY,
+    focusCamY: 0.72,
+    focusCamZ: 1.25 + focusDeltaZ,
+    focusLookY: 0.36,
+    focusLookZ: 1.05,
+  };
 }
 
 /**
  * Build 3D Gift Box items for the selected `GiftBoxGameMode` (Section IV):
  * - `LUCKY_BOXES`: Creates `luckyBoxCount` (default 8, 6..12) presentation boxes.
  * - `ONE_BOX_PER_STUDENT`: Creates 1 box per eligible student, shuffled fairly via `cryptoFisherYatesShuffle`
- *   and grouped into pages of up to 15 boxes so 40–50 students remain large and easy to click.
+ *   and grouped into pages (adaptive 10-12 boxes per stage area) so 1–50 students remain large and easy to click.
  * - `GIANT_BOX`: Creates 1 giant centerpiece gift box.
  */
 export function buildGiftBox3DItems(params: {

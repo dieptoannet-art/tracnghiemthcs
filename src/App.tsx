@@ -24,6 +24,7 @@ import { GeminiAssistantView } from './components/teacher/GeminiAssistantView';
 import { QuestionImportModal } from './components/teacher/QuestionImportModal';
 import { StudentCallGames } from './components/teacher/StudentCallGames';
 import { TeacherLectures } from './components/teacher/TeacherLectures';
+import { SmartMathLabView } from './components/math-lab/SmartMathLabView';
 
 // Admin views
 import { AccountManagement } from './components/admin/AccountManagement';
@@ -275,6 +276,8 @@ const AppContent: React.FC = () => {
         return <StudentResults />;
       case 'student_study_materials':
         return <StudyMaterials />;
+      case 'math_lab':
+        return <SmartMathLabView />;
 
       // Teacher views
       case 'teacher_lectures':

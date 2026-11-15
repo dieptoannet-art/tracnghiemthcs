@@ -12,7 +12,9 @@ import {
   GiftBoxQualityPreset,
   GiftBox3DItem,
   GiftBox3DTurnPlan,
+  GiftBoxCameraFraming,
   buildGiftBox3DItems,
+  computeGiftBoxCameraFraming,
   createFairGiftBoxTurnPlan,
   evaluateGiftBoxCinematicTimeline,
   GiftBoxTurnDeduplicator,
@@ -43,6 +45,7 @@ import {
   UserCheck,
   Volume1,
   Layers,
+  LogOut,
 } from 'lucide-react';
 
 export interface MysteryGiftBox3DGameProps {
@@ -63,6 +66,7 @@ export interface MysteryGiftBox3DGameProps {
   userRole?: string;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  onCloseGame?: () => void;
   isMuted: boolean;
   onToggleMute?: () => void;
   onOpenAbsentModal?: () => void;
@@ -373,6 +377,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
   teacherId = 'teacher',
   isFullscreen = false,
   onToggleFullscreen,
+  onCloseGame,
   isMuted,
   onToggleMute,
   onOpenAbsentModal,
@@ -392,6 +397,14 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
   const [shuffleSeed, setShuffleSeed] = useState<number>(0);
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
 
+  // Presentation vs Management Mode (Section V) & Fullscreen Sync
+  const [isPresentationMode, setIsPresentationMode] = useState<boolean>(true);
+  const [showSidePanel, setShowSidePanel] = useState<boolean>(false);
+  const [managementTab, setManagementTab] = useState<'ROSTER' | 'HISTORY' | 'SETTINGS'>('ROSTER');
+  const [localFullscreen, setLocalFullscreen] = useState<boolean>(false);
+  const [demoStudentCount, setDemoStudentCount] = useState<number | null>(null);
+  const [demoCalledIds, setDemoCalledIds] = useState<Set<string>>(new Set());
+
   // Search, Modals & Winner Reveal
   const [studentSearchQuery, setStudentSearchQuery] = useState<string>('');
   const [showWinnerOverlay, setShowWinnerOverlay] = useState<boolean>(false);
@@ -408,6 +421,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
   const [turnRecords, setTurnRecords] = useState<GiftBox3DTurnRecord[]>([]);
 
   // Three.js & Anti-Stall Refs
+  const giftStudioRootRef = useRef<HTMLDivElement | null>(null);
   const mountContainerRef = useRef<HTMLDivElement | null>(null);
   const soundEngineRef = useRef<GiftBox3DSoundEngine>(new GiftBox3DSoundEngine());
   const deduplicatorRef = useRef<GiftBoxTurnDeduplicator>(new GiftBoxTurnDeduplicator());
@@ -418,12 +432,22 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
   const lastSoundPhaseRef = useRef<GiftBoxAnimationSubPhase>('READY');
   const watchdogTimerRef = useRef<number | null>(null);
 
-  // Camera orbit & focus interpolation
+  // Camera orbit & responsive aspect-ratio framing refs
   const userOrbitRef = useRef<{ azimuth: number; elevation: number; distance: number }>({
     azimuth: 0,
     elevation: 0.16,
-    distance: 7.6,
+    distance: 7.4,
   });
+  const cameraFramingRef = useRef<GiftBoxCameraFraming>(
+    computeGiftBoxCameraFraming({
+      aspectRatio: 16 / 9,
+      boxesInPageCount: 8,
+      gameMode: 'LUCKY_BOXES',
+    })
+  );
+  const boxesInPageCountRef = useRef<number>(8);
+  const gameModeRef = useRef<GiftBoxGameMode>('LUCKY_BOXES');
+
   const currentCamRef = useRef<{
     x: number;
     y: number;
@@ -434,7 +458,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
   }>({
     x: 0,
     y: 1.25,
-    z: 7.6,
+    z: 7.4,
     lookX: 0,
     lookY: 0,
     lookZ: 0,
@@ -452,23 +476,93 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     centerSpotlight: THREE.PointLight;
   } | null>(null);
 
+  const effectiveFullscreen = Boolean(isFullscreen || localFullscreen);
+
+  // Synchronize native browser fullscreen state (including Esc key exit)
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      const isDocFs = Boolean(document.fullscreenElement);
+      setLocalFullscreen(isDocFs);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  const handleToggleStudioFullscreen = useCallback(() => {
+    if (onToggleFullscreen) {
+      onToggleFullscreen();
+      return;
+    }
+    const rootEl = giftStudioRootRef.current;
+    if (!rootEl) return;
+    if (!document.fullscreenElement) {
+      rootEl.requestFullscreen?.().catch(() => {});
+      setLocalFullscreen(true);
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+      setLocalFullscreen(false);
+    }
+  }, [onToggleFullscreen]);
+
   // Run unit tests once on mount
   const unitTestReport = useMemo(() => runMysteryGiftBox3DUnitTests(), []);
 
-  // Build full roster
+  // Optional 1-50 Student Simulator for instant classroom size verification
+  const simulatedRoster = useMemo<StudentCandidate[] | null>(() => {
+    if (demoStudentCount === null || demoStudentCount < 1) return null;
+    const sampleLastNames = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Huỳnh', 'Võ', 'Đặng', 'Bùi', 'Đỗ'];
+    const sampleMidNames = ['Minh', 'Gia', 'Ngọc', 'Phương', 'Thanh', 'Quốc', 'Tuấn', 'Bảo', 'ánh', 'Hoài'];
+    const sampleFirstNames = ['An', 'Bình', 'Châu', 'Dũng', 'Hà', 'Khánh', 'Linh', 'My', 'Nam', 'Phúc', 'Quân', 'Trang', 'Vy', 'Yến'];
+    return Array.from({ length: demoStudentCount }, (_, i) => {
+      const ln = sampleLastNames[i % sampleLastNames.length];
+      const mn = sampleMidNames[Math.floor(i / 2) % sampleMidNames.length];
+      const fn = sampleFirstNames[i % sampleFirstNames.length];
+      return {
+        id: `demo_a03_${demoStudentCount}_${i + 1}`,
+        code: `HS${String(i + 1).padStart(2, '0')}`,
+        fullName: `${ln} ${mn} ${fn} ${i + 1}`,
+      };
+    });
+  }, [demoStudentCount]);
+
+  // Build full roster & effective available candidates (supports both real class and 1-50 demo mode)
   const fullRoster = useMemo(
-    () => (allCandidates.length > 0 ? allCandidates : availableCandidates),
-    [allCandidates, availableCandidates]
+    () =>
+      simulatedRoster
+        ? simulatedRoster
+        : allCandidates.length > 0
+        ? allCandidates
+        : availableCandidates,
+    [simulatedRoster, allCandidates, availableCandidates]
   );
+
+  const effectiveCalledIds = useMemo(
+    () => (simulatedRoster ? demoCalledIds : calledSessionIds),
+    [simulatedRoster, demoCalledIds, calledSessionIds]
+  );
+
+  const effectiveAvailableCandidates = useMemo(() => {
+    if (!simulatedRoster) return availableCandidates;
+    if (!antiDuplicate) return simulatedRoster;
+    return simulatedRoster.filter((s) => !demoCalledIds.has(s.id));
+  }, [simulatedRoster, availableCandidates, antiDuplicate, demoCalledIds]);
+
+  // Adaptive page size for ONE_BOX_PER_STUDENT (1-10: 10, 11-25: 10, 26-50: 10 large boxes per area)
+  const adaptivePageSize = useMemo(() => {
+    const count = effectiveAvailableCandidates.length;
+    if (count <= 10) return 10;
+    if (count <= 24) return 8;
+    return 10;
+  }, [effectiveAvailableCandidates.length]);
 
   // Build 3D Gift Box Items for the current mode & eligible students
   const allBoxes = useMemo(() => {
     const rawBoxes = buildGiftBox3DItems({
       gameMode,
-      eligibleStudents: availableCandidates,
+      eligibleStudents: effectiveAvailableCandidates,
       fullRosterStudents: fullRoster,
       luckyBoxCount,
-      pageSize: 12,
+      pageSize: adaptivePageSize,
     });
     return rawBoxes.map((b) => ({
       ...b,
@@ -476,9 +570,10 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     }));
   }, [
     gameMode,
-    availableCandidates,
+    effectiveAvailableCandidates,
     fullRoster,
     luckyBoxCount,
+    adaptivePageSize,
     openedBoxIdsInSession,
     shuffleSeed,
   ]);
@@ -499,29 +594,45 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     [allBoxes, currentPage]
   );
 
+  // Keep camera framing ref synchronized with current page box count, gameMode, and container size
+  useEffect(() => {
+    boxesInPageCountRef.current = Math.max(1, currentPageBoxes.length);
+    gameModeRef.current = gameMode;
+    const container = mountContainerRef.current;
+    const w = container?.clientWidth || 960;
+    const h = container?.clientHeight || 540;
+    const nextFraming = computeGiftBoxCameraFraming({
+      aspectRatio: w / h,
+      boxesInPageCount: Math.max(1, currentPageBoxes.length),
+      gameMode,
+    });
+    cameraFramingRef.current = nextFraming;
+    userOrbitRef.current.distance = nextFraming.overviewDistance;
+  }, [currentPageBoxes.length, gameMode, isPresentationMode, showSidePanel, effectiveFullscreen]);
+
   // Reset opened box visual flags when all LUCKY_BOXES on stage have been opened while students remain
   useEffect(() => {
     if (
       gameMode === 'LUCKY_BOXES' &&
-      availableCandidates.length > 0 &&
+      effectiveAvailableCandidates.length > 0 &&
       allBoxes.length > 0 &&
       allBoxes.every((b) => b.isOpened)
     ) {
       setOpenedBoxIdsInSession(new Set());
     }
-  }, [gameMode, availableCandidates.length, allBoxes]);
+  }, [gameMode, effectiveAvailableCandidates.length, allBoxes]);
 
-  // Filtered roster for right-side student management & search
+  // Filtered roster for management drawer student list & search
   const filteredRosterList = useMemo(() => {
-    const eligibleSet = new Set(availableCandidates.map((s) => s.id));
+    const eligibleSet = new Set(effectiveAvailableCandidates.map((s) => s.id));
     const q = studentSearchQuery.trim().toLowerCase();
     return fullRoster
       .map((student, idx) => ({
         sttNumber: idx + 1,
         formattedStt: String(idx + 1).padStart(2, '0'),
         student,
-        isAbsent: absentIds.has(student.id),
-        isCalled: calledSessionIds.has(student.id),
+        isAbsent: !simulatedRoster && absentIds.has(student.id),
+        isCalled: effectiveCalledIds.has(student.id),
         isEligibleNow: eligibleSet.has(student.id),
       }))
       .filter((item) => {
@@ -532,7 +643,14 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
           item.student.code?.toLowerCase().includes(q)
         );
       });
-  }, [fullRoster, availableCandidates, absentIds, calledSessionIds, studentSearchQuery]);
+  }, [
+    fullRoster,
+    effectiveAvailableCandidates,
+    simulatedRoster,
+    absentIds,
+    effectiveCalledIds,
+    studentSearchQuery,
+  ]);
 
   // LocalStorage persistence for turn records
   const localRecordsKey = useMemo(
@@ -576,12 +694,12 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
       boxState === 'SAVING';
     if (isBusy) return;
 
-    if (availableCandidates.length === 0) {
+    if (effectiveAvailableCandidates.length === 0) {
       setBoxState('FINISHED');
     } else if (boxState === 'FINISHED' || boxState === 'SETUP') {
       setBoxState('READY');
     }
-  }, [availableCandidates.length, boxState]);
+  }, [effectiveAvailableCandidates.length, boxState]);
 
   // Cancel active speech synthesis
   const stopVietnameseSpeech = useCallback(() => {
@@ -720,12 +838,22 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
       soundEngineRef.current.playRevealCelebration(isMuted);
       speakWinnerAnnouncement(plan.selectedStudent.fullName);
 
-      onPick(plan.selectedStudent, {
-        bonusPoints: 1,
-        note: `Mở Hộp quà 3D #${String(plan.boxIndex + 1).padStart(2, '0')} (${plan.gameMode})`,
-        sessionId,
-        studentNumber: plan.studentSttNumber,
-      });
+      if (simulatedRoster) {
+        if (antiDuplicate) {
+          setDemoCalledIds((prev) => {
+            const next = new Set(prev);
+            next.add(plan.selectedStudent.id);
+            return next;
+          });
+        }
+      } else {
+        onPick(plan.selectedStudent, {
+          bonusPoints: 1,
+          note: `Mở Hộp quà 3D #${String(plan.boxIndex + 1).padStart(2, '0')} (${plan.gameMode})`,
+          sessionId,
+          studentNumber: plan.studentSttNumber,
+        });
+      }
 
       setBoxState('SAVING');
       const newRecord: GiftBox3DTurnRecord = {
@@ -750,7 +878,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
       const optimistic = [newRecord, ...turnRecords];
       persistLocalTurnRecords(optimistic);
 
-      const syncStatus = await saveTurnToSupabase(newRecord);
+      const syncStatus = simulatedRoster ? 'saved' : await saveTurnToSupabase(newRecord);
       setTurnRecords((prev) => {
         const updated = prev.map((item) =>
           item.turnId === newRecord.turnId ? { ...item, saveStatus: syncStatus } : item
@@ -769,13 +897,14 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     [
       isMuted,
       speakWinnerAnnouncement,
+      simulatedRoster,
+      antiDuplicate,
       onPick,
       sessionId,
       turnRecords,
       selectedSourceKey,
       resolvedClassName,
       teacherId,
-      antiDuplicate,
       persistLocalTurnRecords,
       saveTurnToSupabase,
       localRecordsKey,
@@ -793,7 +922,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
         boxState === 'SAVING';
       if (isBusy || activeTurnIdRef.current) return;
 
-      if (availableCandidates.length === 0) {
+      if (effectiveAvailableCandidates.length === 0) {
         setBoxState('FINISHED');
         return;
       }
@@ -808,7 +937,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
         const plan = createFairGiftBoxTurnPlan({
           boxes: candidateBoxes,
           targetBoxIndex: targetBoxIndexInPage,
-          eligibleStudents: availableCandidates,
+          eligibleStudents: effectiveAvailableCandidates,
           fullRosterStudents: fullRoster,
           gameMode,
           speedMode,
@@ -859,7 +988,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     },
     [
       boxState,
-      availableCandidates,
+      effectiveAvailableCandidates,
       stopVietnameseSpeech,
       currentPageBoxes,
       allBoxes,
@@ -872,7 +1001,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     ]
   );
 
-  // Initialize Three.js WebGL 3D Stage (Sections II, III, XV)
+  // Initialize Three.js WebGL 3D Stage (Sections II, III, VIII, XV)
   useEffect(() => {
     const container = mountContainerRef.current;
     if (!container) return;
@@ -909,8 +1038,14 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
         ? 1.5
         : Math.min(window.devicePixelRatio || 1, 2);
 
+    const initW = Math.max(container.clientWidth || 800, 280);
+    const initH = Math.max(container.clientHeight || 520, 240);
+
     renderer.setPixelRatio(maxDpr);
-    renderer.setSize(container.clientWidth || 800, container.clientHeight || 560);
+    renderer.setSize(initW, initH, false);
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -922,22 +1057,24 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#071B38');
-    scene.fog = new THREE.FogExp2('#071B38', 0.024);
+    scene.fog = new THREE.FogExp2('#071B38', 0.022);
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     const roomEnv = new RoomEnvironment();
     const envTarget = pmremGenerator.fromScene(roomEnv, 0.04);
     scene.environment = envTarget.texture;
 
-    const camera = new THREE.PerspectiveCamera(
-      42,
-      (container.clientWidth || 800) / (container.clientHeight || 560),
-      0.1,
-      100
-    );
+    const camera = new THREE.PerspectiveCamera(42, initW / initH, 0.1, 100);
+
+    // Update initial framing for container aspect ratio
+    cameraFramingRef.current = computeGiftBoxCameraFraming({
+      aspectRatio: initW / initH,
+      boxesInPageCount: boxesInPageCountRef.current,
+      gameMode: gameModeRef.current,
+    });
 
     // Studio Cinematic Lighting
-    const ambientLight = new THREE.AmbientLight('#1478D4', 0.9);
+    const ambientLight = new THREE.AmbientLight('#1478D4', 0.92);
     scene.add(ambientLight);
 
     const keyLight = new THREE.DirectionalLight('#FFFBEB', 2.3);
@@ -1023,15 +1160,24 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
 
     const handleResize = () => {
       if (!mountContainerRef.current || !threeSceneRef.current) return;
-      const w = mountContainerRef.current.clientWidth || 800;
-      const h = mountContainerRef.current.clientHeight || 560;
-      threeSceneRef.current.camera.aspect = w / h;
+      const w = Math.max(mountContainerRef.current.clientWidth || 800, 280);
+      const h = Math.max(mountContainerRef.current.clientHeight || 520, 240);
+      const aspect = w / h;
+      threeSceneRef.current.camera.aspect = aspect;
       threeSceneRef.current.camera.updateProjectionMatrix();
-      threeSceneRef.current.renderer.setSize(w, h);
+      threeSceneRef.current.renderer.setSize(w, h, false);
+
+      // Update camera framing dynamically without touching student_id or active turn state
+      cameraFramingRef.current = computeGiftBoxCameraFraming({
+        aspectRatio: aspect,
+        boxesInPageCount: boxesInPageCountRef.current,
+        gameMode: gameModeRef.current,
+      });
     };
 
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
+    window.addEventListener('resize', handleResize);
 
     let rafId = 0;
     let afterDrawTime = performance.now();
@@ -1155,17 +1301,20 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
       // Pulse floor ring
       refs.stageRingMesh.rotation.z = now * 0.0005;
 
-      // Camera interpolation between user orbit overview and center-stage closeup
+      // Aspect-ratio aware camera interpolation between overview and center-stage closeup (Section VIII)
       const orbit = userOrbitRef.current;
+      const framing = cameraFramingRef.current;
+      const effectiveOverviewDist = Math.max(orbit.distance, framing.overviewDistance);
+
       const overviewCamX =
-        orbit.distance * Math.sin(orbit.azimuth) * Math.cos(orbit.elevation);
-      const overviewCamY = orbit.distance * Math.sin(orbit.elevation) + 0.35;
+        effectiveOverviewDist * Math.sin(orbit.azimuth) * Math.cos(orbit.elevation);
+      const overviewCamY = effectiveOverviewDist * Math.sin(orbit.elevation) + 0.32;
       const overviewCamZ =
-        orbit.distance * Math.cos(orbit.azimuth) * Math.cos(orbit.elevation);
+        effectiveOverviewDist * Math.cos(orbit.azimuth) * Math.cos(orbit.elevation);
 
       const focusCamX = 0;
-      const focusCamY = 0.85;
-      const focusCamZ = 4.65;
+      const focusCamY = framing.focusCamY;
+      const focusCamZ = framing.focusCamZ;
 
       const desiredCamX =
         overviewCamX + (focusCamX - overviewCamX) * camFocusBlend;
@@ -1174,15 +1323,16 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
       const desiredCamZ =
         overviewCamZ + (focusCamZ - overviewCamZ) * camFocusBlend;
 
-      const desiredLookY = 0.05 + 0.25 * camFocusBlend;
-      const desiredLookZ = 0 + 1.05 * camFocusBlend;
+      const desiredLookY =
+        framing.overviewLookY + (framing.focusLookY - framing.overviewLookY) * camFocusBlend;
+      const desiredLookZ = 0 + framing.focusLookZ * camFocusBlend;
 
       const cur = currentCamRef.current;
-      cur.x += (desiredCamX - cur.x) * 0.1;
-      cur.y += (desiredCamY - cur.y) * 0.1;
-      cur.z += (desiredCamZ - cur.z) * 0.1;
-      cur.lookY += (desiredLookY - cur.lookY) * 0.1;
-      cur.lookZ += (desiredLookZ - cur.lookZ) * 0.1;
+      cur.x += (desiredCamX - cur.x) * 0.12;
+      cur.y += (desiredCamY - cur.y) * 0.12;
+      cur.z += (desiredCamZ - cur.z) * 0.12;
+      cur.lookY += (desiredLookY - cur.lookY) * 0.12;
+      cur.lookZ += (desiredLookZ - cur.lookZ) * 0.12;
 
       refs.camera.position.set(cur.x, cur.y, cur.z);
       refs.camera.lookAt(0, cur.lookY, cur.lookZ);
@@ -1196,6 +1346,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     return () => {
       cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
       envTarget.dispose();
       pmremGenerator.dispose();
       scene.traverse((obj) => {
@@ -1544,7 +1695,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     }
   };
 
-  // Keyboard shortcuts: Space = Open Box, R = Reset, M = Mute, F = Fullscreen
+  // Keyboard shortcuts: Space = Open Box, R = Reset, M = Mute, F = Fullscreen, Esc = Close Modal/Panel/Fullscreen
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -1569,13 +1720,37 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
         onToggleMute?.();
       } else if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
-        onToggleFullscreen?.();
+        handleToggleStudioFullscreen();
+      } else if (e.key === 'Escape') {
+        if (showWinnerOverlay) {
+          setShowWinnerOverlay(false);
+        } else if (showResetModal) {
+          setShowResetModal(false);
+        } else if (showVerifyModal) {
+          setShowVerifyModal(false);
+        } else if (showSidePanel && isPresentationMode) {
+          setShowSidePanel(false);
+        } else if (effectiveFullscreen && !document.fullscreenElement && isFullscreen && onToggleFullscreen) {
+          onToggleFullscreen();
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [startOpenGiftBoxTurn, onToggleMute, onToggleFullscreen]);
+  }, [
+    startOpenGiftBoxTurn,
+    onToggleMute,
+    handleToggleStudioFullscreen,
+    showWinnerOverlay,
+    showResetModal,
+    showVerifyModal,
+    showSidePanel,
+    isPresentationMode,
+    effectiveFullscreen,
+    isFullscreen,
+    onToggleFullscreen,
+  ]);
 
   const isOpeningNow =
     boxState === 'SELECTING' ||
@@ -1599,40 +1774,75 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
     COMPLETED: 'HOÀN TẤT LƯỢT MỞ QUÀ',
   };
 
+  const handleResetCurrentSession = useCallback(() => {
+    if (simulatedRoster) {
+      setDemoCalledIds(new Set());
+    } else {
+      onResetSession?.();
+    }
+    setOpenedBoxIdsInSession(new Set());
+    setActiveWinnerPlan(null);
+    setShowWinnerOverlay(false);
+    setShowResetModal(false);
+    setShuffleSeed((s) => s + 1);
+    setBoxState('READY');
+    setSubPhase('READY');
+  }, [simulatedRoster, onResetSession]);
+
   return (
     <div
+      ref={giftStudioRootRef}
       style={{ fontFamily: '"Times New Roman", Times, serif' }}
-      className="w-full bg-gradient-to-b from-[#071B38] via-[#0B234A] to-[#06152D] text-white rounded-3xl border-2 border-[#F5C45E]/50 shadow-2xl overflow-hidden flex flex-col"
+      className={
+        effectiveFullscreen
+          ? 'fixed inset-0 z-50 w-screen h-dvh bg-[#071B38] text-white overflow-hidden flex flex-col select-none'
+          : 'relative w-full h-[calc(100dvh-132px)] min-h-[560px] max-h-[calc(100dvh-96px)] bg-gradient-to-b from-[#071B38] via-[#0B234A] to-[#06152D] text-white rounded-2xl border-2 border-[#F5C45E]/50 shadow-2xl overflow-hidden flex flex-col select-none'
+      }
     >
-      {/* Top Broadcast Header */}
-      <div className="px-4 sm:px-6 py-3 bg-[#06162E] border-b border-[#F5C45E]/30 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F5C45E] to-amber-600 text-slate-950 flex items-center justify-center font-black text-base shadow-md">
+      {/* 1. COMPACT HEADER (8–10% HEIGHT, SHRINK-0, NO OVERFLOW) */}
+      <header className="shrink-0 min-h-[48px] px-3 sm:px-5 py-2 bg-[#06162E]/95 border-b border-[#F5C45E]/30 flex flex-wrap items-center justify-between gap-2 z-20">
+        {/* Left: Game Identity + Active Class + Remaining Student Counter */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#F5C45E] to-amber-600 text-slate-950 flex items-center justify-center font-black text-xs sm:text-sm shadow-md shrink-0">
             A03
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-black tracking-wide text-[#F5C45E] uppercase">
-                EDU MYSTERY GIFT SHOW – HỘP QUÀ BÍ MẬT 3D
+              <h3 className="text-sm sm:text-base font-black tracking-wide text-[#F5C45E] uppercase truncate">
+                A03 – Hộp quà bí mật
               </h3>
-              <span className="px-2 py-0.5 rounded bg-[#1478D4]/30 border border-[#40D8FF]/50 text-[11px] font-bold text-[#40D8FF]">
-                WebGL 3D 2.0
+              {demoStudentCount !== null && (
+                <span className="px-1.5 py-0.5 rounded bg-[#F5C45E] text-slate-950 text-[10px] font-black uppercase shrink-0">
+                  Thử {demoStudentCount} HS
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] sm:text-xs text-slate-200">
+              <span className="truncate max-w-[140px] sm:max-w-[200px]">
+                Lớp: <strong className="text-white">{resolvedClassName}</strong>
+              </span>
+              <span aria-hidden="true">·</span>
+              <span className="whitespace-nowrap">
+                Còn trong lượt:{' '}
+                <strong className="text-emerald-400 tabular-nums">
+                  {effectiveAvailableCandidates.length}
+                </strong>
+                /<span className="tabular-nums">{fullRoster.length}</span> HS
+              </span>
+              <span aria-hidden="true" className="hidden sm:inline">
+                ·
+              </span>
+              <span className="hidden sm:inline whitespace-nowrap">
+                Đã mở: <strong className="text-[#F5C45E] tabular-nums">{effectiveCalledIds.size}</strong>
               </span>
             </div>
-            <p className="text-xs text-slate-200">
-              Lớp: <strong className="text-white">{resolvedClassName}</strong> · Chưa gọi:{' '}
-              <strong className="text-emerald-400 tabular-nums">
-                {availableCandidates.length}
-              </strong>
-              /<span className="tabular-nums">{fullRoster.length}</span> HS · Đã gọi:{' '}
-              <strong className="text-[#F5C45E] tabular-nums">{calledSessionIds.size}</strong>
-            </p>
           </div>
         </div>
 
-        {/* 3 Gift Box Modes Switcher + Session Controls (Section IV & VIII) */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center bg-[#0B254D] border border-[#40D8FF]/30 rounded-xl p-0.5 text-xs font-bold">
+        {/* Center/Right: 3 Box Modes + Non-Repeat + Presentation/Management + Settings + Fullscreen + Exit */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
+          {/* 3 Gift Box Modes Switcher */}
+          <div className="flex items-center bg-[#0B254D] border border-[#40D8FF]/30 rounded-xl p-0.5 text-[11px] sm:text-xs font-bold shrink-0">
             <button
               type="button"
               disabled={isOpeningNow}
@@ -1640,13 +1850,14 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
                 setGameMode('LUCKY_BOXES');
                 setCurrentPage(0);
               }}
-              className={`px-2.5 py-1 rounded-lg transition-colors ${
+              className={`px-2 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
                 gameMode === 'LUCKY_BOXES'
                   ? 'bg-[#F5C45E] text-slate-950 font-black'
                   : 'text-slate-200 hover:text-white'
               }`}
+              title="Chế độ Hộp quà may mắn (6–12 hộp)"
             >
-              1. Hộp quà may mắn
+              Hộp may mắn
             </button>
             <button
               type="button"
@@ -1656,13 +1867,14 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
                 setCurrentPage(0);
                 setShuffleSeed((s) => s + 1);
               }}
-              className={`px-2.5 py-1 rounded-lg transition-colors ${
+              className={`px-2 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
                 gameMode === 'ONE_BOX_PER_STUDENT'
                   ? 'bg-[#F5C45E] text-slate-950 font-black'
                   : 'text-slate-200 hover:text-white'
               }`}
+              title="Chế độ Mỗi học sinh một hộp (Hỗ trợ 1–50 HS)"
             >
-              2. Mỗi HS một hộp ({availableCandidates.length})
+              Mỗi HS 1 hộp ({effectiveAvailableCandidates.length})
             </button>
             <button
               type="button"
@@ -1671,192 +1883,198 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
                 setGameMode('GIANT_BOX');
                 setCurrentPage(0);
               }}
-              className={`px-2.5 py-1 rounded-lg transition-colors ${
+              className={`px-2 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
                 gameMode === 'GIANT_BOX'
                   ? 'bg-[#F5C45E] text-slate-950 font-black'
                   : 'text-slate-200 hover:text-white'
               }`}
+              title="Chế độ Hộp quà khổng lồ (Tối ưu trình chiếu lớp đông)"
             >
-              3. Hộp khổng lồ
+              Hộp khổng lồ
             </button>
           </div>
 
+          {/* Non-Repeat Status Toggle */}
           <button
             type="button"
             onClick={onToggleAntiDuplicate}
             disabled={isOpeningNow}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition-all flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer ${
               antiDuplicate
                 ? 'bg-emerald-500/20 border-emerald-400/60 text-emerald-200'
                 : 'bg-slate-800 border-slate-600 text-slate-300'
             }`}
+            title="Bật/tắt chế độ Không lặp học sinh trong phiên"
           >
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>{antiDuplicate ? 'Không lặp: BẬT' : 'Cho phép lặp'}</span>
+            <UserCheck className="w-3.5 h-3.5 shrink-0" />
+            <span>{antiDuplicate ? 'Không lặp' : 'Cho lặp'}</span>
           </button>
 
+          {/* Presentation vs Management Mode Switcher (Section V) */}
+          <div className="hidden md:flex items-center bg-[#0B254D] border border-[#40D8FF]/30 rounded-xl p-0.5 text-[11px] sm:text-xs font-bold shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setIsPresentationMode(true);
+                setShowSidePanel(false);
+              }}
+              className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                isPresentationMode && !showSidePanel
+                  ? 'bg-[#40D8FF] text-slate-950 font-black'
+                  : 'text-slate-200 hover:text-white'
+              }`}
+              title="Chế độ Trình chiếu: Ưu tiên tối đa sân khấu 3D cho máy chiếu/TV"
+            >
+              Trình chiếu
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsPresentationMode(false);
+                setShowSidePanel(true);
+              }}
+              className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                !isPresentationMode || showSidePanel
+                  ? 'bg-[#40D8FF] text-slate-950 font-black'
+                  : 'text-slate-200 hover:text-white'
+              }`}
+              title="Chế độ Quản lý: Mở danh sách học sinh, lịch sử và cài đặt"
+            >
+              Quản lý
+            </button>
+          </div>
+
+          {/* Settings / Management Drawer Button */}
           <button
             type="button"
-            onClick={() => setShowResetModal(true)}
-            disabled={isOpeningNow}
-            className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-xs font-bold text-rose-200 flex items-center gap-1.5"
+            onClick={() => setShowSidePanel((v) => !v)}
+            className={`px-2.5 py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+              showSidePanel
+                ? 'bg-[#1478D4] border-[#40D8FF] text-white'
+                : 'bg-[#0B254D] hover:bg-[#13366E] border-[#40D8FF]/30 text-[#F5C45E]'
+            }`}
+            title="Mở/đóng bảng Cài đặt, Danh sách học sinh và Lịch sử"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Đặt lại phiên</span>
+            <Sliders className="w-3.5 h-3.5 shrink-0" />
+            <span>{showSidePanel ? 'Đóng cài đặt' : 'Cài đặt'}</span>
           </button>
 
+          {/* Audio Mute Button */}
           <button
             type="button"
             onClick={onToggleMute}
-            className="p-2 rounded-xl bg-[#0B254D] hover:bg-[#13366E] border border-[#40D8FF]/30 text-[#F5C45E]"
+            className="p-1.5 sm:p-2 rounded-xl bg-[#0B254D] hover:bg-[#13366E] border border-[#40D8FF]/30 text-[#F5C45E] shrink-0 cursor-pointer"
             title="Bật/tắt âm thanh (Phím M)"
           >
-            {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4" />}
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 text-rose-400" />
+            ) : (
+              <Volume2 className="w-4 h-4" />
+            )}
           </button>
 
-          {onToggleFullscreen && (
+          {/* Fullscreen Button */}
+          <button
+            type="button"
+            onClick={handleToggleStudioFullscreen}
+            className="px-2.5 py-1.5 rounded-xl bg-[#1478D4] hover:bg-blue-500 border border-[#40D8FF]/50 text-white text-[11px] sm:text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer"
+            title="Toàn màn hình (Phím F)"
+          >
+            {effectiveFullscreen ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Thu nhỏ</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Toàn màn hình</span>
+              </>
+            )}
+          </button>
+
+          {/* Exit Button */}
+          {(effectiveFullscreen || onCloseGame) && (
             <button
               type="button"
-              onClick={onToggleFullscreen}
-              className="p-2 rounded-xl bg-[#0B254D] hover:bg-[#13366E] border border-[#40D8FF]/30 text-[#40D8FF]"
-              title="Toàn màn hình (Phím F)"
+              onClick={() => {
+                if (effectiveFullscreen) {
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen?.().catch(() => {});
+                  }
+                  setLocalFullscreen(false);
+                  if (isFullscreen && onToggleFullscreen) {
+                    onToggleFullscreen();
+                  }
+                } else if (onCloseGame) {
+                  onCloseGame();
+                }
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 border border-rose-400/50 text-rose-200 text-[11px] sm:text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer"
+              title="Thoát chế độ toàn màn hình hoặc trở về thư viện"
             >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              <span>Thoát</span>
             </button>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* Main 3-Column Stage Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-[600px]">
-        {/* LEFT COLUMN (lg:col-span-3): Session History & Supabase Sync Status */}
-        <div className="order-3 lg:order-1 lg:col-span-3 bg-[#06152D] border-t lg:border-t-0 lg:border-r border-[#F5C45E]/25 flex flex-col max-h-[580px] lg:max-h-none">
-          <div className="px-4 py-3 bg-[#091E40] border-b border-[#40D8FF]/20 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-black text-[#F5C45E] uppercase">
-              <History className="w-4 h-4" />
-              <span>Lịch sử mở quà ({turnRecords.length})</span>
-            </div>
-            {onOpenHistoryModal && (
-              <button
-                type="button"
-                onClick={onOpenHistoryModal}
-                className="text-[11px] font-bold text-[#40D8FF] hover:underline"
-              >
-                Xem tất cả
-              </button>
-            )}
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {turnRecords.length === 0 ? (
-              <div className="text-center py-12 px-3 text-slate-400 text-xs space-y-2">
-                <Gift className="w-8 h-8 mx-auto text-[#F5C45E]/60" />
-                <p className="font-bold text-slate-200">Chưa mở hộp quà nào trong phiên</p>
-                <p>Nhấn trực tiếp vào hộp quà 3D trên sân khấu hoặc bấm nút MỞ HỘP NGẪU NHIÊN.</p>
+      {/* 2. MAIN WORKSPACE: 3D STAGE (LARGEST AREA) + CONTROLLED MANAGEMENT DRAWER */}
+      <div className="relative flex-1 min-h-0 min-w-0 flex flex-row overflow-hidden">
+        {/* CENTER 3D STAGE COLUMN (flex-1 min-h-0 min-w-0 guarantees zero overflow) */}
+        <div className="relative flex-1 min-h-0 min-w-0 flex flex-col justify-between bg-[radial-gradient(ellipse_at_center,_#10316B_0%,_#071B38_65%,_#041024_100%)] overflow-hidden">
+          {/* Floating Compact Stage HUD (Does not push canvas height down) */}
+          <div className="absolute top-2.5 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+            <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+              <div className="px-3 py-1 rounded-xl bg-[#06162E]/90 border border-[#F5C45E]/50 shadow-md flex items-center gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isOpeningNow
+                      ? 'bg-[#F5C45E]'
+                      : boxState === 'FINISHED'
+                      ? 'bg-rose-400'
+                      : 'bg-emerald-400'
+                  }`}
+                />
+                <span className="text-[11px] sm:text-xs font-black tracking-wider text-[#F5C45E] uppercase">
+                  {subPhaseViLabel[subPhase]}
+                </span>
               </div>
-            ) : (
-              turnRecords.map((rec) => (
-                <div
-                  key={rec.turnId}
-                  className="p-3 rounded-2xl bg-[#0B234A]/85 border border-[#40D8FF]/25 space-y-1.5 text-xs"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="px-2 py-0.5 rounded bg-[#F5C45E]/20 border border-[#F5C45E]/40 text-[#F5C45E] font-black tabular-nums">
-                      Lượt #{rec.turnIndex} · Hộp #{String(rec.boxDisplayNumber).padStart(2, '0')}
-                    </span>
-                    <span className="text-[11px] text-slate-400 tabular-nums">
-                      {new Date(rec.selectedAt).toLocaleTimeString('vi-VN')}
-                    </span>
-                  </div>
-                  <p className="text-sm font-black text-white">
-                    #{rec.formattedStt} – {rec.studentName}
-                  </p>
-                  {rec.note && <p className="text-xs text-[#F5C45E] italic">“{rec.note}”</p>}
-                  <div className="flex items-center justify-between pt-1 border-t border-[#40D8FF]/15 text-[11px]">
-                    <span
-                      className={`flex items-center gap-1 font-bold ${
-                        rec.saveStatus === 'saved'
-                          ? 'text-emerald-400'
-                          : rec.saveStatus === 'pending'
-                          ? 'text-amber-300'
-                          : 'text-rose-400'
-                      }`}
-                    >
-                      <CheckCircle2 className="w-3 h-3" />
-                      {rec.saveStatus === 'saved'
-                        ? 'Đã lưu Supabase'
-                        : rec.saveStatus === 'pending'
-                        ? 'Đang lưu...'
-                        : 'Lưu cục bộ (Lỗi mạng)'}
-                    </span>
-                    {rec.saveStatus === 'failed' && (
-                      <button
-                        type="button"
-                        onClick={() => handleRetrySaveTurn(rec.turnId)}
-                        className="px-2 py-0.5 rounded bg-rose-500/30 hover:bg-rose-500/50 text-rose-200 font-bold flex items-center gap-1"
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        Thử lưu lại
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
 
-          <div className="p-3 border-t border-[#40D8FF]/20 bg-[#051226]">
-            <button
-              type="button"
-              onClick={() => setShowVerifyModal(true)}
-              className="w-full py-2 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5"
-            >
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Kiểm định RNG & Xáo trộn ({unitTestReport.totalChecks} test OK)</span>
-            </button>
-          </div>
-        </div>
-
-        {/* CENTER COLUMN (lg:col-span-6): 3D WebGL Gift Show Stage */}
-        <div className="order-1 lg:order-2 lg:col-span-6 relative flex flex-col justify-between bg-gradient-to-b from-[#071B38] via-[#0D2B59] to-[#06152D] overflow-hidden">
-          {/* Top HUD: Cinematic SubPhase Status + Mode Explanation + Camera Reset */}
-          <div className="relative z-10 px-4 pt-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="px-3.5 py-1.5 rounded-xl bg-[#06162E]/95 border border-[#F5C45E]/50 shadow-lg flex items-center gap-2">
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isOpeningNow
-                    ? 'bg-[#F5C45E] animate-ping'
-                    : boxState === 'FINISHED'
-                    ? 'bg-rose-400'
-                    : 'bg-emerald-400'
-                }`}
-              />
-              <span className="text-xs font-black tracking-wider text-[#F5C45E] uppercase">
-                {subPhaseViLabel[subPhase]}
+              <span className="hidden xl:inline-block px-2.5 py-1 rounded-xl bg-[#06162E]/80 border border-[#40D8FF]/25 text-[11px] text-slate-200">
+                {gameMode === 'LUCKY_BOXES'
+                  ? `Hộp quà may mắn (${allBoxes.length} hộp): Nhấn trực tiếp vào hộp quà 3D hoặc bấm MỞ HỘP`
+                  : gameMode === 'ONE_BOX_PER_STUDENT'
+                  ? `Mỗi học sinh 1 hộp (${allBoxes.length} hộp đã xáo trộn công bằng Fisher-Yates)`
+                  : 'Hộp quà khổng lồ: 1 hộp trung tâm tối ưu trình chiếu lớp đông 1–50 HS'}
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 pointer-events-auto">
+              {/* Pagination Switcher for ONE_BOX_PER_STUDENT (11–50 students) */}
               {gameMode === 'ONE_BOX_PER_STUDENT' && totalPages > 1 && (
-                <div className="flex items-center gap-1 bg-[#06162E]/95 border border-[#40D8FF]/40 rounded-xl px-2 py-1 text-xs font-bold">
+                <div className="flex items-center gap-1 bg-[#06162E]/95 border border-[#40D8FF]/45 rounded-xl px-2 py-1 text-[11px] sm:text-xs font-bold shadow-md">
                   <button
                     type="button"
                     disabled={currentPage === 0 || isOpeningNow}
                     onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-                    className="p-1 rounded hover:bg-white/10 disabled:opacity-40"
+                    className="p-0.5 rounded hover:bg-white/10 disabled:opacity-40 cursor-pointer"
+                    title="Khu vực hộp trước"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <ChevronLeft className="w-3.5 h-3.5 text-[#40D8FF]" />
                   </button>
-                  <span className="text-[#40D8FF] tabular-nums">
+                  <span className="text-[#40D8FF] tabular-nums px-1">
                     Khu vực {currentPage + 1}/{totalPages}
                   </span>
                   <button
                     type="button"
                     disabled={currentPage >= totalPages - 1 || isOpeningNow}
                     onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
-                    className="p-1 rounded hover:bg-white/10 disabled:opacity-40"
+                    className="p-0.5 rounded hover:bg-white/10 disabled:opacity-40 cursor-pointer"
+                    title="Khu vực hộp tiếp theo"
                   >
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <ChevronRight className="w-3.5 h-3.5 text-[#40D8FF]" />
                   </button>
                 </div>
               )}
@@ -1864,34 +2082,30 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  userOrbitRef.current = { azimuth: 0, elevation: 0.16, distance: 7.6 };
+                  userOrbitRef.current = {
+                    azimuth: 0,
+                    elevation: 0.16,
+                    distance: cameraFramingRef.current.overviewDistance,
+                  };
                 }}
-                className="px-2.5 py-1.5 rounded-xl bg-[#06162E]/95 hover:bg-[#0D2B59] border border-[#40D8FF]/30 text-xs font-bold text-[#40D8FF] flex items-center gap-1 shadow-lg"
-                title="Đặt lại góc nhìn 3D"
+                className="px-2.5 py-1 rounded-xl bg-[#06162E]/90 hover:bg-[#0D2B59] border border-[#40D8FF]/35 text-[11px] sm:text-xs font-bold text-[#40D8FF] flex items-center gap-1 shadow-md cursor-pointer"
+                title="Đặt lại góc nhìn camera 3D chuẩn"
               >
                 <Camera className="w-3.5 h-3.5" />
-                <span>Góc nhìn chuẩn</span>
+                <span className="hidden sm:inline">Góc nhìn chuẩn</span>
               </button>
             </div>
           </div>
 
-          {/* Mode Rule Transparency Banner (Section IV) */}
-          <div className="mx-4 mt-2 px-3 py-1.5 rounded-xl bg-[#06162E]/85 border border-[#40D8FF]/25 text-[11px] text-slate-200 flex items-center justify-between gap-2">
-            <span>
-              {gameMode === 'LUCKY_BOXES'
-                ? 'Chế độ Hộp quà may mắn: Nhấn chọn bất kỳ hộp nào trên sân khấu — mọi học sinh hợp lệ đều có xác suất trúng ngang nhau.'
-                : gameMode === 'ONE_BOX_PER_STUDENT'
-                ? 'Chế độ Mỗi học sinh một hộp: Các hộp đã được xáo trộn công bằng Fisher-Yates; mỗi hộp gắn cố định với 1 học sinh.'
-                : 'Chế độ Hộp quà khổng lồ: Nhấn MỞ HỘP để chọn ngẫu nhiên học sinh, mở nắp công bố rồi đóng lại cho lượt tiếp theo.'}
-            </span>
-          </div>
-
-          {/* 3D WebGL Stage Viewport */}
+          {/* 3D WebGL Stage Viewport (flex-1 min-h-0 fills 100% of available center space) */}
           <div
             onPointerDown={handleStagePointerDown}
             onPointerMove={handleStagePointerMove}
             onPointerUp={handleStagePointerUp}
-            className="relative w-full h-[410px] sm:h-[460px] lg:h-[490px] cursor-pointer select-none"
+            onPointerLeave={() => {
+              isDraggingRef.current = false;
+            }}
+            className="relative flex-1 min-h-0 min-w-0 w-full h-full cursor-pointer select-none overflow-hidden"
             title="Nhấn trực tiếp vào hộp quà 3D để mở hoặc kéo chuột để xoay góc nhìn sân khấu"
           >
             {webglSupported ? (
@@ -1903,57 +2117,65 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
                   Trình duyệt không bật WebGL 3D
                 </p>
                 <p className="text-xs text-slate-200 max-w-md">
-                  Thầy/cô vẫn có thể chọn các nút Hộp quà bên dưới hoặc nhấn MỞ HỘP NGẪU NHIÊN để
-                  chọn học sinh công bằng.
+                  Thầy/cô vẫn có thể chọn các nút Hộp quà bên dưới hoặc nhấn MỞ HỘP để chọn học sinh
+                  công bằng.
                 </p>
               </div>
             )}
 
             {/* FINISHED Overlay (All students called) */}
             {boxState === 'FINISHED' && (
-              <div className="absolute inset-0 bg-[#071B38]/90 flex items-center justify-center p-6 z-20">
-                <div className="max-w-md w-full bg-[#0B234A] border-2 border-[#F5C45E] rounded-3xl p-6 text-center space-y-4 shadow-2xl">
-                  <Sparkles className="w-10 h-10 text-[#F5C45E] mx-auto" />
-                  <h4 className="text-xl font-black text-[#F5C45E] uppercase">
-                    Đã gọi hết học sinh!
+              <div className="absolute inset-0 bg-[#071B38]/90 flex items-center justify-center p-4 z-20">
+                <div className="max-w-md w-full bg-[#0B234A] border-2 border-[#F5C45E] rounded-3xl p-5 sm:p-6 text-center space-y-3.5 shadow-2xl">
+                  <Sparkles className="w-9 h-9 text-[#F5C45E] mx-auto" />
+                  <h4 className="text-lg sm:text-xl font-black text-[#F5C45E] uppercase">
+                    Đã gọi hết học sinh trong lượt!
                   </h4>
-                  <p className="text-sm text-slate-200">
+                  <p className="text-xs sm:text-sm text-slate-200">
                     Tất cả học sinh đủ điều kiện của lớp <strong>{resolvedClassName}</strong> đã
                     được mở quà trong phiên này.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onResetSession?.();
-                      setOpenedBoxIdsInSession(new Set());
-                      setActiveWinnerPlan(null);
-                      setShowWinnerOverlay(false);
-                      setBoxState('READY');
-                      setSubPhase('READY');
-                    }}
-                    className="px-6 py-2.5 rounded-xl bg-[#F5C45E] text-slate-950 font-black text-sm uppercase shadow-lg"
-                  >
-                    BẮT ĐẦU PHIÊN MỚI
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleResetCurrentSession}
+                      className="px-5 py-2.5 rounded-xl bg-[#F5C45E] hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm uppercase shadow-lg cursor-pointer"
+                    >
+                      CHƠI LẠI / BẮT ĐẦU VÒNG MỚI
+                    </button>
+                    {antiDuplicate && onToggleAntiDuplicate && (
+                      <button
+                        type="button"
+                        onClick={onToggleAntiDuplicate}
+                        className="px-4 py-2.5 rounded-xl bg-[#1478D4] hover:bg-blue-500 text-white font-bold text-xs sm:text-sm cursor-pointer"
+                      >
+                        Chuyển sang Cho phép lặp
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Error Recovery Overlay */}
             {boxState === 'ERROR_RECOVERY' && errorMessage && (
-              <div className="absolute inset-0 bg-[#071B38]/90 flex items-center justify-center p-6 z-20">
-                <div className="max-w-md w-full bg-[#1E1B4B] border-2 border-rose-400 rounded-3xl p-6 text-center space-y-4 shadow-2xl">
-                  <AlertCircle className="w-10 h-10 text-rose-400 mx-auto" />
-                  <h4 className="text-lg font-black text-white">Khôi phục sân khấu hộp quà</h4>
-                  <p className="text-sm text-rose-200">{errorMessage}</p>
+              <div className="absolute inset-0 bg-[#071B38]/90 flex items-center justify-center p-4 z-20">
+                <div className="max-w-md w-full bg-[#1E1B4B] border-2 border-rose-400 rounded-3xl p-5 text-center space-y-3.5 shadow-2xl">
+                  <AlertCircle className="w-9 h-9 text-rose-400 mx-auto" />
+                  <h4 className="text-base sm:text-lg font-black text-white">
+                    Khôi phục sân khấu hộp quà
+                  </h4>
+                  <p className="text-xs sm:text-sm text-rose-200">{errorMessage}</p>
                   <button
                     type="button"
                     onClick={() => {
                       setErrorMessage(null);
-                      setBoxState(availableCandidates.length > 0 ? 'READY' : 'FINISHED');
+                      setBoxState(
+                        effectiveAvailableCandidates.length > 0 ? 'READY' : 'FINISHED'
+                      );
                       setSubPhase('READY');
                     }}
-                    className="px-5 py-2.5 rounded-xl bg-[#F5C45E] text-slate-950 font-black text-sm"
+                    className="px-5 py-2 rounded-xl bg-[#F5C45E] text-slate-950 font-black text-xs sm:text-sm cursor-pointer"
                   >
                     Tiếp tục mở quà
                   </button>
@@ -1962,304 +2184,642 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
             )}
           </div>
 
-          {/* Bottom Stage Controls: Quick Box Number Selector + Giant MỞ HỘP / MỞ TIẾP Button */}
-          <div className="relative z-10 px-4 pb-4 pt-2 bg-gradient-to-t from-[#051226] via-[#071B38]/95 to-transparent space-y-3">
-            {/* Keyboard-accessible Box Buttons for current page */}
-            {currentPageBoxes.length > 1 && (
-              <div className="flex flex-wrap items-center justify-center gap-1.5">
-                {currentPageBoxes.map((b, idxInPage) => (
-                  <button
-                    key={b.boxId}
-                    type="button"
-                    disabled={isOpeningNow || b.isOpened || availableCandidates.length === 0}
-                    onClick={() => startOpenGiftBoxTurn(idxInPage)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-black border transition-all tabular-nums ${
-                      b.isOpened
-                        ? 'bg-slate-900/60 border-slate-700 text-slate-500 line-through cursor-not-allowed'
-                        : 'bg-[#0B254D] hover:bg-[#1478D4] border-[#F5C45E]/50 text-[#F5C45E] hover:text-white shadow'
-                    }`}
-                  >
-                    Hộp #{b.formattedBoxNumber}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => startOpenGiftBoxTurn()}
-                disabled={isOpeningNow || availableCandidates.length === 0}
-                className="px-8 sm:px-10 py-3.5 rounded-2xl bg-gradient-to-r from-[#F5C45E] via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-base sm:text-lg tracking-wider uppercase shadow-[0_0_30px_rgba(245,196,94,0.45)] transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5 border-2 border-yellow-200"
-              >
-                <Gift className="w-5 h-5" />
-                <span>
-                  {isOpeningNow
-                    ? 'ĐANG MỞ HỘP QUÀ 3D...'
-                    : boxState === 'COMPLETED'
-                    ? 'MỞ TIẾP HỘP QUÀ (SPACE)'
-                    : 'MỞ HỘP NGẪU NHIÊN (SPACE)'}
-                </span>
-              </button>
-
-              {activeWinnerPlan && !isOpeningNow && (
-                <button
-                  type="button"
-                  onClick={() => setShowWinnerOverlay(true)}
-                  className="px-4 py-3.5 rounded-2xl bg-[#1478D4] hover:bg-blue-500 border border-[#40D8FF]/50 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg"
-                >
-                  <Trophy className="w-4 h-4 text-[#F5C45E]" />
-                  <span>
-                    Thẻ tên vừa mở: #{activeWinnerPlan.formattedStudentStt}{' '}
-                    {activeWinnerPlan.selectedStudent.fullName}
-                  </span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN (lg:col-span-3): Class & Student Management + 3D Settings */}
-        <div className="order-2 lg:order-3 lg:col-span-3 bg-[#06152D] border-t lg:border-t-0 lg:border-l border-[#F5C45E]/25 flex flex-col max-h-[580px] lg:max-h-none">
-          <div className="p-3 bg-[#091E40] border-b border-[#40D8FF]/20 space-y-2.5 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-black text-[#F5C45E] uppercase">
-                Danh sách Lớp & Học sinh
-              </span>
-              {onOpenAbsentModal && (
-                <button
-                  type="button"
-                  onClick={onOpenAbsentModal}
-                  disabled={isOpeningNow}
-                  className="px-2.5 py-1 rounded-lg bg-[#1478D4]/30 hover:bg-[#1478D4]/50 border border-[#40D8FF]/40 text-[#40D8FF] font-bold flex items-center gap-1"
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>Vắng ({absentIds.size})</span>
-                </button>
-              )}
-            </div>
-
-            {classes.length > 0 && onSelectSourceKey && (
-              <select
-                value={selectedSourceKey}
-                onChange={(e) => onSelectSourceKey(e.target.value)}
-                disabled={isOpeningNow}
-                className="w-full px-3 py-2 rounded-xl bg-[#0B234A] border border-[#40D8FF]/40 text-xs font-bold text-white focus:outline-none"
-              >
-                {classes.map((cls) => (
-                  <option key={cls.id} value={cls.id} className="bg-slate-900 text-white">
-                    Lớp {cls.name} ({cls.students?.length || 0} HS)
-                  </option>
-                ))}
-              </select>
-            )}
-
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                value={studentSearchQuery}
-                onChange={(e) => setStudentSearchQuery(e.target.value)}
-                placeholder="Tìm STT hoặc tên học sinh..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#06152D] border border-[#40D8FF]/30 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-[#F5C45E]"
-              />
-            </div>
-          </div>
-
-          {/* Student List */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-            {filteredRosterList.map((item) => {
-              const isLastWinner =
-                activeWinnerPlan?.selectedStudent.id === item.student.id && !isOpeningNow;
-
-              return (
-                <div
-                  key={item.student.id}
-                  className={`px-3 py-2 rounded-xl border text-xs flex items-center justify-between gap-2 transition-all ${
-                    isLastWinner
-                      ? 'bg-[#F5C45E]/25 border-[#F5C45E] text-white shadow-md'
-                      : item.isAbsent
-                      ? 'bg-slate-900/50 border-slate-800 text-slate-500 line-through'
-                      : item.isCalled && antiDuplicate
-                      ? 'bg-slate-900/60 border-slate-800 text-slate-400'
-                      : 'bg-[#0B234A]/75 border-[#40D8FF]/20 text-slate-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className={`w-7 h-7 rounded-lg font-black text-xs flex items-center justify-center shrink-0 tabular-nums ${
-                        isLastWinner
-                          ? 'bg-[#F5C45E] text-slate-950'
-                          : item.isEligibleNow
-                          ? 'bg-[#1478D4]/30 text-[#F5C45E] border border-[#F5C45E]/40'
-                          : 'bg-slate-800 text-slate-500'
-                      }`}
-                    >
-                      {item.formattedStt}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm truncate">{item.student.fullName}</p>
-                      <p className="text-[10px] text-slate-400">
-                        {item.isAbsent
-                          ? 'Vắng mặt'
-                          : item.isCalled
-                          ? 'Đã mở quà trong phiên'
-                          : 'Đủ điều kiện chọn'}
-                      </p>
-                    </div>
+          {/* 3. BOTTOM CONTROL BAR (10–15% HEIGHT, SHRINK-0, ALWAYS ACCESSIBLE) */}
+          <footer className="shrink-0 px-3 sm:px-5 py-2 bg-[#051226]/95 border-t border-[#F5C45E]/30 flex flex-col gap-1.5 z-10">
+            {/* Compact Box Selector & Area Tabs (Scrollable single row so it never overflows vertically) */}
+            {(currentPageBoxes.length > 1 || totalPages > 1) && (
+              <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-0.5">
+                {gameMode === 'ONE_BOX_PER_STUDENT' && totalPages > 1 && (
+                  <div className="flex items-center gap-1 shrink-0 pr-2 border-r border-[#40D8FF]/25">
+                    {Array.from({ length: totalPages }, (_, pIdx) => {
+                      const startNum = pIdx * adaptivePageSize + 1;
+                      const endNum = Math.min((pIdx + 1) * adaptivePageSize, allBoxes.length);
+                      return (
+                        <button
+                          key={pIdx}
+                          type="button"
+                          disabled={isOpeningNow}
+                          onClick={() => setCurrentPage(pIdx)}
+                          className={`px-2 py-0.5 rounded-lg text-[11px] font-black transition-colors whitespace-nowrap cursor-pointer ${
+                            currentPage === pIdx
+                              ? 'bg-[#40D8FF] text-slate-950'
+                              : 'bg-[#0B254D] text-slate-300 hover:text-white'
+                          }`}
+                        >
+                          Hộp {String(startNum).padStart(2, '0')}–{String(endNum).padStart(2, '0')}
+                        </button>
+                      );
+                    })}
                   </div>
+                )}
 
-                  {isLastWinner ? (
-                    <span className="px-2 py-0.5 rounded bg-[#F5C45E] text-slate-950 font-black text-[10px] shrink-0">
-                      VỪA MỞ
-                    </span>
-                  ) : item.isCalled && antiDuplicate && onRestoreStudentToPool ? (
+                <div className="flex items-center gap-1.5 mx-auto">
+                  {currentPageBoxes.map((b, idxInPage) => (
                     <button
+                      key={b.boxId}
                       type="button"
-                      onClick={() => onRestoreStudentToPool(item.student.id)}
-                      className="px-2 py-1 rounded-lg bg-[#1478D4]/30 hover:bg-[#1478D4]/50 text-[#40D8FF] font-bold text-[10px] shrink-0"
-                    >
-                      Đưa lại
-                    </button>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Stage Settings Footer */}
-          <div className="p-3 bg-[#091E40] border-t border-[#40D8FF]/20 space-y-2 text-xs">
-            {gameMode === 'LUCKY_BOXES' && (
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-bold text-slate-200 flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-[#40D8FF]" />
-                  <span>Số hộp trên bục:</span>
-                </span>
-                <div className="flex items-center gap-1">
-                  {[6, 8, 12].map((cnt) => (
-                    <button
-                      key={cnt}
-                      type="button"
-                      disabled={isOpeningNow}
-                      onClick={() => setLuckyBoxCount(cnt)}
-                      className={`px-2 py-0.5 rounded font-bold text-[11px] ${
-                        luckyBoxCount === cnt
-                          ? 'bg-[#40D8FF] text-slate-950 font-black'
-                          : 'bg-[#06152D] text-slate-300'
+                      disabled={
+                        isOpeningNow || b.isOpened || effectiveAvailableCandidates.length === 0
+                      }
+                      onClick={() => startOpenGiftBoxTurn(idxInPage)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-black border transition-all tabular-nums whitespace-nowrap shrink-0 cursor-pointer ${
+                        b.isOpened
+                          ? 'bg-slate-900/60 border-slate-700 text-slate-500 line-through cursor-not-allowed'
+                          : 'bg-[#0B254D] hover:bg-[#1478D4] border-[#F5C45E]/50 text-[#F5C45E] hover:text-white shadow-sm'
                       }`}
                     >
-                      {cnt} hộp
+                      Hộp #{b.formattedBoxNumber}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-bold text-slate-200 flex items-center gap-1">
-                <Sliders className="w-3.5 h-3.5 text-[#F5C45E]" />
-                <span>Đồ họa 3D:</span>
-              </span>
-              <div className="flex items-center gap-1">
-                {(['LOW', 'MEDIUM', 'HIGH'] as GiftBoxQualityPreset[]).map((q) => (
+            {/* Primary Action Buttons Row: BẮT ĐẦU / MỞ HỘP / MỞ TIẾP / CHƠI LẠI */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {/* Left quick status / last winner pill */}
+              <div className="flex items-center gap-2 min-w-0">
+                {activeWinnerPlan && !isOpeningNow ? (
                   <button
-                    key={q}
                     type="button"
-                    onClick={() => setQualityPreset(q)}
-                    className={`px-2 py-0.5 rounded font-bold text-[11px] ${
-                      qualityPreset === q
-                        ? 'bg-[#F5C45E] text-slate-950 font-black'
-                        : 'bg-[#06152D] text-slate-300'
-                    }`}
+                    onClick={() => setShowWinnerOverlay(true)}
+                    className="px-3 py-1.5 rounded-xl bg-[#0B254D] hover:bg-[#1478D4] border border-[#40D8FF]/50 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm truncate max-w-[260px] sm:max-w-[340px] cursor-pointer"
+                    title="Xem lại thẻ học sinh vừa mở"
                   >
-                    {q}
+                    <Trophy className="w-3.5 h-3.5 text-[#F5C45E] shrink-0" />
+                    <span className="truncate">
+                      Vừa mở: #{activeWinnerPlan.formattedStudentStt}{' '}
+                      {activeWinnerPlan.selectedStudent.fullName}
+                    </span>
                   </button>
-                ))}
+                ) : (
+                  <span className="text-[11px] sm:text-xs text-slate-300 hidden sm:inline truncate">
+                    Nhấn phím <strong className="text-[#F5C45E]">SPACE</strong> hoặc chạm vào hộp quà
+                    trên sân khấu để mở
+                  </span>
+                )}
+              </div>
+
+              {/* Center Primary CTA Buttons (BẮT ĐẦU / MỞ HỘP / MỞ TIẾP) */}
+              <div className="flex items-center justify-center gap-2.5 mx-auto sm:mx-0">
+                {boxState === 'FINISHED' ? (
+                  <button
+                    type="button"
+                    onClick={handleResetCurrentSession}
+                    className="px-6 sm:px-8 py-2.5 rounded-2xl bg-gradient-to-r from-[#F5C45E] via-yellow-400 to-amber-500 hover:brightness-105 text-slate-950 font-black text-sm sm:text-base tracking-wider uppercase shadow-[0_0_24px_rgba(245,196,94,0.45)] flex items-center gap-2 border-2 border-yellow-200 cursor-pointer"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>CHƠI LẠI</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => startOpenGiftBoxTurn()}
+                    disabled={isOpeningNow || effectiveAvailableCandidates.length === 0}
+                    className="px-6 sm:px-9 py-2.5 rounded-2xl bg-gradient-to-r from-[#F5C45E] via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm sm:text-base tracking-wider uppercase shadow-[0_0_25px_rgba(245,196,94,0.45)] transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border-2 border-yellow-200 cursor-pointer"
+                  >
+                    <Gift className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                    <span>
+                      {isOpeningNow
+                        ? 'ĐANG MỞ HỘP...'
+                        : boxState === 'COMPLETED'
+                        ? 'MỞ TIẾP (SPACE)'
+                        : turnRecords.length === 0
+                        ? 'BẮT ĐẦU / MỞ HỘP'
+                        : 'MỞ HỘP (SPACE)'}
+                    </span>
+                  </button>
+                )}
+
+                {(turnRecords.length > 0 || effectiveCalledIds.size > 0) && !isOpeningNow && (
+                  <button
+                    type="button"
+                    onClick={() => setShowResetModal(true)}
+                    className="px-3.5 py-2.5 rounded-2xl bg-[#0B254D] hover:bg-rose-500/25 border border-[#40D8FF]/35 hover:border-rose-400/50 text-slate-200 hover:text-rose-200 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Chơi lại / Đặt lại phiên mở quà (Phím R)"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span className="hidden sm:inline">Chơi lại</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Right Quick Management Shortcut */}
+              <div className="hidden lg:flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setManagementTab('HISTORY');
+                    setShowSidePanel((prev) =>
+                      prev && managementTab === 'HISTORY' ? false : true
+                    );
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl bg-[#0B254D] hover:bg-[#13366E] border border-[#40D8FF]/30 text-xs font-bold text-[#40D8FF] flex items-center gap-1 cursor-pointer"
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Lịch sử ({turnRecords.length})</span>
+                </button>
               </div>
             </div>
-
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-bold text-slate-200">Thời lượng mở:</span>
-              <div className="flex items-center gap-1">
-                {(
-                  [
-                    { key: 'FAST', label: 'Nhanh' },
-                    { key: 'NORMAL', label: 'Chuẩn' },
-                    { key: 'SUSPENSE', label: 'Hồi hộp' },
-                  ] as Array<{ key: GiftBoxSpeedMode; label: string }>
-                ).map((s) => (
-                  <button
-                    key={s.key}
-                    type="button"
-                    onClick={() => setSpeedMode(s.key)}
-                    className={`px-2 py-0.5 rounded font-bold text-[11px] ${
-                      speedMode === s.key
-                        ? 'bg-[#40D8FF] text-slate-950 font-black'
-                        : 'bg-[#06152D] text-slate-300'
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setVoiceEnabled((v) => !v)}
-              className="w-full py-1.5 px-2 rounded-lg bg-[#06152D] border border-[#40D8FF]/30 font-bold text-[11px] text-emerald-300 flex items-center justify-center gap-1"
-            >
-              <Volume1 className="w-3.5 h-3.5" />
-              <span>Giọng đọc Tiếng Việt: {voiceEnabled ? 'ĐANG BẬT' : 'ĐANG TẮT'}</span>
-            </button>
-          </div>
+          </footer>
         </div>
+
+        {/* MANAGEMENT MODE SLIDE-OVER / SIDE PANEL (Controlled width, zero viewport overflow) */}
+        {showSidePanel && (
+          <aside className="w-full sm:w-[360px] lg:w-[390px] shrink-0 h-full min-h-0 bg-[#06152D] border-l border-[#F5C45E]/35 flex flex-col z-30 shadow-2xl">
+            {/* Drawer Header & 3 Management Tabs */}
+            <div className="p-3 bg-[#091E40] border-b border-[#40D8FF]/25 space-y-2.5 shrink-0">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-black text-[#F5C45E] uppercase tracking-wide">
+                  Quản lý & Cấu hình Hộp quà 3D
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSidePanel(false);
+                    setIsPresentationMode(true);
+                  }}
+                  className="p-1.5 rounded-lg bg-[#06152D] hover:bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
+                  title="Đóng bảng quản lý để ưu tiên sân khấu 3D"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-1 bg-[#051226] p-1 rounded-xl border border-[#40D8FF]/20 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setManagementTab('ROSTER')}
+                  className={`py-1.5 px-2 rounded-lg transition-colors cursor-pointer ${
+                    managementTab === 'ROSTER'
+                      ? 'bg-[#F5C45E] text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Học sinh ({fullRoster.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setManagementTab('HISTORY')}
+                  className={`py-1.5 px-2 rounded-lg transition-colors cursor-pointer ${
+                    managementTab === 'HISTORY'
+                      ? 'bg-[#F5C45E] text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Lịch sử ({turnRecords.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setManagementTab('SETTINGS')}
+                  className={`py-1.5 px-2 rounded-lg transition-colors cursor-pointer ${
+                    managementTab === 'SETTINGS'
+                      ? 'bg-[#F5C45E] text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Cấu hình 3D
+                </button>
+              </div>
+            </div>
+
+            {/* TAB 1: STUDENT ROSTER, CLASS SELECTOR, SEARCH & 1-50 SIMULATOR */}
+            {managementTab === 'ROSTER' && (
+              <div className="flex-1 min-h-0 flex flex-col">
+                <div className="p-3 bg-[#081A38] border-b border-[#40D8FF]/20 space-y-2 shrink-0 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-slate-200">Chọn lớp / Điểm danh:</span>
+                    {onOpenAbsentModal && (
+                      <button
+                        type="button"
+                        onClick={onOpenAbsentModal}
+                        disabled={isOpeningNow}
+                        className="px-2.5 py-1 rounded-lg bg-[#1478D4]/30 hover:bg-[#1478D4]/50 border border-[#40D8FF]/40 text-[#40D8FF] font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>Đánh dấu vắng ({absentIds.size})</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {classes.length > 0 && onSelectSourceKey && (
+                    <select
+                      value={selectedSourceKey}
+                      onChange={(e) => {
+                        setDemoStudentCount(null);
+                        setDemoCalledIds(new Set());
+                        onSelectSourceKey(e.target.value);
+                      }}
+                      disabled={isOpeningNow}
+                      className="w-full px-3 py-1.5 rounded-xl bg-[#0B234A] border border-[#40D8FF]/40 text-xs font-bold text-white focus:outline-none"
+                    >
+                      {classes.map((cls) => (
+                        <option key={cls.id} value={cls.id} className="bg-slate-900 text-white">
+                          Lớp {cls.name} ({cls.students?.length || 0} HS)
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  {/* Quick 1–50 Students Classroom Size Simulator */}
+                  <div className="p-2 rounded-xl bg-[#051226] border border-[#40D8FF]/25 space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-[#40D8FF]">
+                        Mô phỏng nhanh sĩ số (1–50 HS):
+                      </span>
+                      {demoStudentCount !== null && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDemoStudentCount(null);
+                            setDemoCalledIds(new Set());
+                            setOpenedBoxIdsInSession(new Set());
+                            setCurrentPage(0);
+                          }}
+                          className="text-[#F5C45E] underline font-bold cursor-pointer"
+                        >
+                          Dùng lớp thật
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {[1, 10, 25, 40, 50].map((cnt) => (
+                        <button
+                          key={cnt}
+                          type="button"
+                          disabled={isOpeningNow}
+                          onClick={() => {
+                            setDemoStudentCount(cnt);
+                            setDemoCalledIds(new Set());
+                            setOpenedBoxIdsInSession(new Set());
+                            setCurrentPage(0);
+                          }}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-black transition-colors cursor-pointer ${
+                            demoStudentCount === cnt
+                              ? 'bg-[#F5C45E] text-slate-950'
+                              : 'bg-[#0B234A] text-slate-200 hover:bg-[#1478D4]'
+                          }`}
+                        >
+                          {cnt} HS
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      value={studentSearchQuery}
+                      onChange={(e) => setStudentSearchQuery(e.target.value)}
+                      placeholder="Tìm STT hoặc tên học sinh..."
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#06152D] border border-[#40D8FF]/30 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-[#F5C45E]"
+                    />
+                  </div>
+                </div>
+
+                {/* Scrollable Student List */}
+                <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-1.5">
+                  {filteredRosterList.map((item) => {
+                    const isLastWinner =
+                      activeWinnerPlan?.selectedStudent.id === item.student.id && !isOpeningNow;
+
+                    return (
+                      <div
+                        key={item.student.id}
+                        className={`px-3 py-2 rounded-xl border text-xs flex items-center justify-between gap-2 transition-all ${
+                          isLastWinner
+                            ? 'bg-[#F5C45E]/25 border-[#F5C45E] text-white shadow-md'
+                            : item.isAbsent
+                            ? 'bg-slate-900/50 border-slate-800 text-slate-500 line-through'
+                            : item.isCalled && antiDuplicate
+                            ? 'bg-slate-900/60 border-slate-800 text-slate-400'
+                            : 'bg-[#0B234A]/75 border-[#40D8FF]/20 text-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className={`w-7 h-7 rounded-lg font-black text-xs flex items-center justify-center shrink-0 tabular-nums ${
+                              isLastWinner
+                                ? 'bg-[#F5C45E] text-slate-950'
+                                : item.isEligibleNow
+                                ? 'bg-[#1478D4]/30 text-[#F5C45E] border border-[#F5C45E]/40'
+                                : 'bg-slate-800 text-slate-500'
+                            }`}
+                          >
+                            {item.formattedStt}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm truncate">{item.student.fullName}</p>
+                            <p className="text-[10px] text-slate-400">
+                              {item.isAbsent
+                                ? 'Vắng mặt'
+                                : item.isCalled
+                                ? 'Đã mở quà trong phiên'
+                                : 'Đủ điều kiện chọn'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {isLastWinner ? (
+                          <span className="px-2 py-0.5 rounded bg-[#F5C45E] text-slate-950 font-black text-[10px] shrink-0">
+                            VỪA MỞ
+                          </span>
+                        ) : item.isCalled && antiDuplicate ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (simulatedRoster) {
+                                setDemoCalledIds((prev) => {
+                                  const next = new Set(prev);
+                                  next.delete(item.student.id);
+                                  return next;
+                                });
+                              } else {
+                                onRestoreStudentToPool?.(item.student.id);
+                              }
+                            }}
+                            className="px-2 py-1 rounded-lg bg-[#1478D4]/30 hover:bg-[#1478D4]/50 text-[#40D8FF] font-bold text-[10px] shrink-0 cursor-pointer"
+                          >
+                            Đưa lại
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: TURN HISTORY & SUPABASE SYNC */}
+            {managementTab === 'HISTORY' && (
+              <div className="flex-1 min-h-0 flex flex-col">
+                <div className="px-3 py-2 bg-[#081A38] border-b border-[#40D8FF]/20 flex items-center justify-between text-xs shrink-0">
+                  <span className="font-bold text-slate-200">
+                    Lịch sử mở hộp quà ({turnRecords.length})
+                  </span>
+                  {onOpenHistoryModal && (
+                    <button
+                      type="button"
+                      onClick={onOpenHistoryModal}
+                      className="text-[11px] font-bold text-[#40D8FF] hover:underline cursor-pointer"
+                    >
+                      Xem toàn bộ
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
+                  {turnRecords.length === 0 ? (
+                    <div className="text-center py-12 px-3 text-slate-400 text-xs space-y-2">
+                      <Gift className="w-8 h-8 mx-auto text-[#F5C45E]/60" />
+                      <p className="font-bold text-slate-200">Chưa mở hộp quà nào trong phiên</p>
+                      <p>Nhấn trực tiếp vào hộp quà 3D trên sân khấu hoặc bấm nút MỞ HỘP.</p>
+                    </div>
+                  ) : (
+                    turnRecords.map((rec) => (
+                      <div
+                        key={rec.turnId}
+                        className="p-3 rounded-2xl bg-[#0B234A]/85 border border-[#40D8FF]/25 space-y-1.5 text-xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2 py-0.5 rounded bg-[#F5C45E]/20 border border-[#F5C45E]/40 text-[#F5C45E] font-black tabular-nums">
+                            Lượt #{rec.turnIndex} · Hộp #{String(rec.boxDisplayNumber).padStart(2, '0')}
+                          </span>
+                          <span className="text-[11px] text-slate-400 tabular-nums">
+                            {new Date(rec.selectedAt).toLocaleTimeString('vi-VN')}
+                          </span>
+                        </div>
+                        <p className="text-sm font-black text-white">
+                          #{rec.formattedStt} – {rec.studentName}
+                        </p>
+                        {rec.note && <p className="text-xs text-[#F5C45E] italic">“{rec.note}”</p>}
+                        <div className="flex items-center justify-between pt-1 border-t border-[#40D8FF]/15 text-[11px]">
+                          <span
+                            className={`flex items-center gap-1 font-bold ${
+                              rec.saveStatus === 'saved'
+                                ? 'text-emerald-400'
+                                : rec.saveStatus === 'pending'
+                                ? 'text-amber-300'
+                                : 'text-rose-400'
+                            }`}
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                            {rec.saveStatus === 'saved'
+                              ? 'Đã lưu'
+                              : rec.saveStatus === 'pending'
+                              ? 'Đang lưu...'
+                              : 'Lưu cục bộ (Lỗi mạng)'}
+                          </span>
+                          {rec.saveStatus === 'failed' && (
+                            <button
+                              type="button"
+                              onClick={() => handleRetrySaveTurn(rec.turnId)}
+                              className="px-2 py-0.5 rounded bg-rose-500/30 hover:bg-rose-500/50 text-rose-200 font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <RefreshCw className="w-3 h-3" />
+                              Thử lưu lại
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: 3D STAGE SETTINGS, BOX MODE, AUDIO & RNG VERIFICATION */}
+            {managementTab === 'SETTINGS' && (
+              <div className="flex-1 min-h-0 overflow-y-auto p-3.5 space-y-3.5 text-xs">
+                {/* Gift Box Mode Configuration */}
+                <div className="p-3 rounded-2xl bg-[#0B234A]/80 border border-[#40D8FF]/25 space-y-2">
+                  <p className="font-black text-[#F5C45E] uppercase">Chế độ Hộp quà 3D</p>
+                  <div className="space-y-1.5">
+                    {(
+                      [
+                        {
+                          mode: 'LUCKY_BOXES',
+                          title: '1. Hộp quà may mắn (6–12 hộp)',
+                          desc: 'Giữ 6–12 hộp đại diện trên bục, chọn ngẫu nhiên công bằng từ danh sách HS.',
+                        },
+                        {
+                          mode: 'ONE_BOX_PER_STUDENT',
+                          title: `2. Mỗi học sinh một hộp (${effectiveAvailableCandidates.length} hộp)`,
+                          desc: 'Tự động chia cụm/phân trang cho lớp 1–50 HS; mỗi hộp gắn cố định 1 HS.',
+                        },
+                        {
+                          mode: 'GIANT_BOX',
+                          title: '3. Hộp quà khổng lồ trung tâm',
+                          desc: 'Một hộp lớn giữa sân khấu, tối ưu trình chiếu cho lớp đông 40–50 HS.',
+                        },
+                      ] as Array<{ mode: GiftBoxGameMode; title: string; desc: string }>
+                    ).map((item) => (
+                      <button
+                        key={item.mode}
+                        type="button"
+                        disabled={isOpeningNow}
+                        onClick={() => {
+                          setGameMode(item.mode);
+                          setCurrentPage(0);
+                          if (item.mode === 'ONE_BOX_PER_STUDENT') {
+                            setShuffleSeed((s) => s + 1);
+                          }
+                        }}
+                        className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer ${
+                          gameMode === item.mode
+                            ? 'bg-[#1478D4]/35 border-[#F5C45E] text-white'
+                            : 'bg-[#06152D] border-[#40D8FF]/20 text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        <p className="font-black text-xs text-[#F5C45E]">{item.title}</p>
+                        <p className="text-[11px] text-slate-300 mt-0.5">{item.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {gameMode === 'LUCKY_BOXES' && (
+                  <div className="p-3 rounded-2xl bg-[#0B234A]/80 border border-[#40D8FF]/25 flex items-center justify-between gap-2">
+                    <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-[#40D8FF]" />
+                      <span>Số hộp quà may mắn:</span>
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {[6, 8, 10, 12].map((cnt) => (
+                        <button
+                          key={cnt}
+                          type="button"
+                          disabled={isOpeningNow}
+                          onClick={() => setLuckyBoxCount(cnt)}
+                          className={`px-2.5 py-1 rounded-lg font-bold text-xs cursor-pointer ${
+                            luckyBoxCount === cnt
+                              ? 'bg-[#40D8FF] text-slate-950 font-black'
+                              : 'bg-[#06152D] text-slate-300'
+                          }`}
+                        >
+                          {cnt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-3 rounded-2xl bg-[#0B234A]/80 border border-[#40D8FF]/25 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-slate-200">Thời lượng mở hộp:</span>
+                    <div className="flex items-center gap-1">
+                      {(
+                        [
+                          { key: 'FAST', label: 'Nhanh' },
+                          { key: 'NORMAL', label: 'Chuẩn' },
+                          { key: 'SUSPENSE', label: 'Hồi hộp' },
+                        ] as Array<{ key: GiftBoxSpeedMode; label: string }>
+                      ).map((s) => (
+                        <button
+                          key={s.key}
+                          type="button"
+                          onClick={() => setSpeedMode(s.key)}
+                          className={`px-2.5 py-1 rounded-lg font-bold text-xs cursor-pointer ${
+                            speedMode === s.key
+                              ? 'bg-[#40D8FF] text-slate-950 font-black'
+                              : 'bg-[#06152D] text-slate-300'
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-slate-200">Chất lượng đồ họa 3D:</span>
+                    <div className="flex items-center gap-1">
+                      {(['LOW', 'MEDIUM', 'HIGH'] as GiftBoxQualityPreset[]).map((q) => (
+                        <button
+                          key={q}
+                          type="button"
+                          onClick={() => setQualityPreset(q)}
+                          className={`px-2.5 py-1 rounded-lg font-bold text-xs cursor-pointer ${
+                            qualityPreset === q
+                              ? 'bg-[#F5C45E] text-slate-950 font-black'
+                              : 'bg-[#06152D] text-slate-300'
+                          }`}
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setVoiceEnabled((v) => !v)}
+                    className="w-full py-2 px-3 rounded-xl bg-[#06152D] border border-[#40D8FF]/30 font-bold text-xs text-emerald-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Volume1 className="w-4 h-4" />
+                    <span>Giọng đọc Tiếng Việt: {voiceEnabled ? 'ĐANG BẬT' : 'ĐANG TẮT'}</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowVerifyModal(true)}
+                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Kiểm định RNG & Xáo trộn ({unitTestReport.totalChecks} test OK)</span>
+                </button>
+              </div>
+            )}
+          </aside>
+        )}
       </div>
 
-      {/* Synchronized HTML Winner Overlay matching the 3D Hologram Name Card (Section VII) */}
+      {/* Synchronized HTML Winner Overlay matching the 3D Hologram Name Card (Viewport-Safe) */}
       {showWinnerOverlay && activeWinnerPlan && (
-        <div className="fixed inset-0 bg-slate-950/85 flex items-center justify-center p-4 z-50 animate-fadeIn">
+        <div className="fixed inset-0 bg-slate-950/85 flex items-center justify-center p-3 sm:p-4 z-50 animate-fadeIn">
           <div
             style={{ fontFamily: '"Times New Roman", Times, serif' }}
-            className="max-w-xl w-full bg-gradient-to-b from-[#0B234A] via-[#071B38] to-[#051226] border-4 border-[#F5C45E] rounded-3xl p-6 sm:p-8 text-white shadow-[0_0_65px_rgba(245,196,94,0.5)] space-y-6 relative overflow-hidden"
+            className="max-w-xl w-full max-h-[92dvh] overflow-y-auto bg-gradient-to-b from-[#0B234A] via-[#071B38] to-[#051226] border-4 border-[#F5C45E] rounded-3xl p-5 sm:p-7 text-white shadow-[0_0_65px_rgba(245,196,94,0.5)] space-y-4 sm:space-y-5 relative"
           >
             <button
               type="button"
               onClick={() => setShowWinnerOverlay(false)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300"
+              className="absolute top-3.5 right-3.5 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-[#F5C45E]/20 border border-[#F5C45E]/60 text-[#F5C45E] text-xs font-black uppercase tracking-widest">
-                <Sparkles className="w-4 h-4" />
+            <div className="text-center space-y-1.5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5C45E]/20 border border-[#F5C45E]/60 text-[#F5C45E] text-xs font-black uppercase tracking-widest">
+                <Sparkles className="w-3.5 h-3.5" />
                 <span>HỌC SINH MAY MẮN</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#40D8FF] uppercase">
+              <h2 className="text-xl sm:text-2xl font-black text-[#40D8FF] uppercase">
                 Hộp Quà Bí Mật #{String(activeWinnerPlan.boxIndex + 1).padStart(2, '0')} Đã Mở!
               </h2>
             </div>
 
             {/* Hologram Card Mirror */}
-            <div className="p-6 rounded-2xl bg-[#051226] border-2 border-[#40D8FF]/70 text-center space-y-3 shadow-inner">
-              <div className="inline-flex items-center justify-center px-4 py-1 rounded-xl bg-[#F5C45E] text-slate-950 font-black text-base tabular-nums">
+            <div className="p-4 sm:p-6 rounded-2xl bg-[#051226] border-2 border-[#40D8FF]/70 text-center space-y-2.5 shadow-inner">
+              <div className="inline-flex items-center justify-center px-3.5 py-1 rounded-xl bg-[#F5C45E] text-slate-950 font-black text-sm sm:text-base tabular-nums">
                 STT: #{activeWinnerPlan.formattedStudentStt}
               </div>
-              <div className="text-3xl sm:text-4xl font-black text-white tracking-wide py-1">
+              <div className="text-2xl sm:text-4xl font-black text-white tracking-wide py-1 break-words">
                 {activeWinnerPlan.selectedStudent.fullName}
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm text-[#40D8FF] font-bold">
+              <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs sm:text-sm text-[#40D8FF] font-bold">
                 <span>Lớp: {resolvedClassName}</span>
                 <span>•</span>
                 <span>Lượt mở thứ: #{turnRecords.length}</span>
                 <span>•</span>
-                <span>Chưa gọi: {availableCandidates.length} HS</span>
+                <span>Còn trong lượt: {effectiveAvailableCandidates.length} HS</span>
               </div>
             </div>
 
             {/* Teacher Quick Points & Note */}
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-[#F5C45E]">
                 <span>Ghi nhận điểm thưởng & nhận xét:</span>
                 <div className="flex items-center gap-1.5">
@@ -2268,7 +2828,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
                       key={pts}
                       type="button"
                       onClick={() => setWinnerBonusPoints(pts)}
-                      className={`px-2.5 py-1 rounded-lg font-black ${
+                      className={`px-2.5 py-1 rounded-lg font-black cursor-pointer ${
                         winnerBonusPoints === pts
                           ? 'bg-emerald-500 text-slate-950'
                           : 'bg-slate-800 text-slate-300'
@@ -2296,7 +2856,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
                         prev.map((r, i) => (i === 0 ? { ...r, note: presetNote } : r))
                       );
                     }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold border cursor-pointer ${
                       winnerNote === presetNote
                         ? 'bg-[#F5C45E] text-slate-950 border-amber-300 font-black'
                         : 'bg-[#0B234A] border-[#40D8FF]/30 text-slate-200'
@@ -2309,15 +2869,15 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
               <button
                 type="button"
                 onClick={() => {
                   setShowWinnerOverlay(false);
                   setTimeout(() => startOpenGiftBoxTurn(), 120);
                 }}
-                disabled={availableCandidates.length === 0}
-                className="py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#F5C45E] to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                disabled={effectiveAvailableCandidates.length === 0}
+                className="py-3 px-4 rounded-2xl bg-gradient-to-r from-[#F5C45E] to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer"
               >
                 <Play className="w-4 h-4 fill-slate-950" />
                 <span>MỞ TIẾP</span>
@@ -2331,7 +2891,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
                     true
                   )
                 }
-                className="py-3.5 px-5 rounded-2xl bg-[#1478D4] hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg"
+                className="py-3 px-4 rounded-2xl bg-[#1478D4] hover:bg-blue-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg cursor-pointer"
               >
                 <Volume1 className="w-4 h-4" />
                 <span>ĐỌC LẠI TÊN</span>
@@ -2341,9 +2901,14 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
                 type="button"
                 onClick={() => {
                   setShowWinnerOverlay(false);
-                  if (onOpenHistoryModal) onOpenHistoryModal();
+                  if (onOpenHistoryModal) {
+                    onOpenHistoryModal();
+                  } else {
+                    setManagementTab('HISTORY');
+                    setShowSidePanel(true);
+                  }
                 }}
-                className="py-3 px-4 rounded-2xl bg-[#0B234A] hover:bg-[#13366E] border border-[#40D8FF]/40 text-[#40D8FF] font-bold text-xs sm:text-sm flex items-center justify-center gap-2"
+                className="py-2.5 px-4 rounded-2xl bg-[#0B234A] hover:bg-[#13366E] border border-[#40D8FF]/40 text-[#40D8FF] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <History className="w-4 h-4" />
                 <span>XEM LỊCH SỬ</span>
@@ -2352,7 +2917,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setShowWinnerOverlay(false)}
-                className="py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2"
+                className="py-2.5 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>ĐÓNG KẾT QUẢ</span>
               </button>
@@ -2379,24 +2944,15 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => {
-                  onResetSession?.();
-                  setOpenedBoxIdsInSession(new Set());
-                  setActiveWinnerPlan(null);
-                  setShowWinnerOverlay(false);
-                  setShowResetModal(false);
-                  setShuffleSeed((s) => s + 1);
-                  setBoxState('READY');
-                  setSubPhase('READY');
-                }}
-                className="px-5 py-2.5 rounded-xl bg-[#F5C45E] text-slate-950 font-black text-sm"
+                onClick={handleResetCurrentSession}
+                className="px-5 py-2.5 rounded-xl bg-[#F5C45E] text-slate-950 font-black text-sm cursor-pointer"
               >
                 Đồng ý đặt lại
               </button>
               <button
                 type="button"
                 onClick={() => setShowResetModal(false)}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm"
+                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm cursor-pointer"
               >
                 Hủy
               </button>
@@ -2410,7 +2966,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
         <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50">
           <div
             style={{ fontFamily: '"Times New Roman", Times, serif' }}
-            className="max-w-lg w-full bg-[#0B234A] border-2 border-emerald-400 rounded-3xl p-6 text-white space-y-4 shadow-2xl"
+            className="max-w-lg w-full max-h-[90dvh] overflow-y-auto bg-[#0B234A] border-2 border-emerald-400 rounded-3xl p-6 text-white space-y-4 shadow-2xl"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-emerald-300">
@@ -2422,7 +2978,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setShowVerifyModal(false)}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-300"
+                className="p-1.5 rounded-lg bg-slate-800 text-slate-300 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2455,7 +3011,7 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setShowVerifyModal(false)}
-                className="px-5 py-2 rounded-xl bg-emerald-400 text-slate-950 font-black text-xs uppercase"
+                className="px-5 py-2 rounded-xl bg-emerald-400 text-slate-950 font-black text-xs uppercase cursor-pointer"
               >
                 Đóng bảng kiểm định
               </button>

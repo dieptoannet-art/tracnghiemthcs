@@ -19,7 +19,8 @@ import {
   ShieldCheck,
   Settings,
   Dices,
-  Presentation
+  Presentation,
+  FlaskConical
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -135,6 +136,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
               <span>Tài liệu học tập</span>
             </button>
 
+            <button
+              onClick={() => handleNav('math_lab')}
+              className={navItemClass('math_lab')}
+            >
+              <FlaskConical className="w-4 h-4 shrink-0 text-teal-300" />
+              <span>Phòng thí nghiệm Toán</span>
+            </button>
+
             {currentRole === 'student' && (
               <button
                 onClick={() => handleNav('teacher_student_call')}
@@ -160,6 +169,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
               >
                 <Presentation className="w-4 h-4 shrink-0 text-cyan-300" />
                 <span>Bài giảng</span>
+              </button>
+
+              <button
+                onClick={() => handleNav('math_lab')}
+                className={navItemClass('math_lab')}
+              >
+                <FlaskConical className="w-4 h-4 shrink-0 text-teal-300" />
+                <span>Phòng thí nghiệm Toán</span>
               </button>
 
               <button

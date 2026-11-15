@@ -16,7 +16,7 @@ export type Wheel3DState =
   | 'ERROR_RECOVERY'
   | 'RESET_CONFIRMATION';
 
-export type Wheel3DLabelMode = 'AUTO' | 'NAME' | 'NUMBER';
+export type Wheel3DLabelMode = 'AUTO' | 'NAME' | 'SHORT_NAME' | 'NUMBER';
 
 export type Wheel3DResolvedLabelMode = 'FULL_OR_SHORT_NAME' | 'SHORT_NAME' | 'NUMBER_STT';
 
@@ -100,19 +100,23 @@ export function cryptoRandomSymmetricOffset(halfRange: number): number {
 }
 
 /**
- * Determine automatic wheel label display mode based on student count (Section IV):
- * - 1..15 students: Full/short name on slice
- * - 16..30 students: Short name on slice
- * - 31..50+ students: STT ("01".."50") on slice + STT reference table on side
+ * Determine wheel label display mode based on student count and manual preference (Section IV):
+ * - Manual override:
+ *   - 'NAME' -> FULL_OR_SHORT_NAME (Tên học sinh)
+ *   - 'SHORT_NAME' -> SHORT_NAME (Tên rút gọn)
+ *   - 'NUMBER' -> NUMBER_STT (Số thứ tự)
+ * - Automatic ('AUTO'):
+ *   - 1..15 students: Full/short name on slice
+ *   - 16..30 students: Short name on slice
+ *   - 31..50+ students: STT ("01".."50") on slice + STT reference table on side
  */
 export function resolveWheelLabelMode(
   studentCount: number,
   userPreference: Wheel3DLabelMode
 ): Wheel3DResolvedLabelMode {
   if (userPreference === 'NUMBER') return 'NUMBER_STT';
-  if (userPreference === 'NAME') {
-    return studentCount <= 15 ? 'FULL_OR_SHORT_NAME' : 'SHORT_NAME';
-  }
+  if (userPreference === 'SHORT_NAME') return 'SHORT_NAME';
+  if (userPreference === 'NAME') return 'FULL_OR_SHORT_NAME';
   if (studentCount <= 15) return 'FULL_OR_SHORT_NAME';
   if (studentCount <= 30) return 'SHORT_NAME';
   return 'NUMBER_STT';
@@ -170,7 +174,8 @@ export function formatStudentWheelLabels(
 
 /**
  * Build immutable, deterministic slice items for the wheel.
- * Preserves each student's original class STT (1..M) if full roster is provided.
+ * Preserves each student's original class STT (1..M) if full roster is provided,
+ * and disambiguates duplicate short labels automatically.
  */
 export function buildWheel3DSliceItems(
   activeStudents: StudentCandidate[],
@@ -183,12 +188,30 @@ export function buildWheel3DSliceItems(
     });
   }
 
-  return activeStudents.map((student, sliceIndex) => {
+  const preliminary = activeStudents.map((student, sliceIndex) => {
     const sttNumber = rosterIndexMap.get(student.id) ?? sliceIndex + 1;
     const { formattedStt, shortLabel, mediumLabel } = formatStudentWheelLabels(
       student.fullName,
       sttNumber
     );
+    return {
+      sliceIndex,
+      sttNumber,
+      formattedStt,
+      student,
+      shortLabel,
+      mediumLabel,
+    };
+  });
+
+  // Count duplicate short labels so identical short names get disambiguated with STT
+  const shortCounts = new Map<string, number>();
+  for (const item of preliminary) {
+    const key = item.shortLabel.toLowerCase();
+    shortCounts.set(key, (shortCounts.get(key) ?? 0) + 1);
+  }
+
+  return preliminary.map((item, sliceIndex) => {
     // Avoid adjacent identical colors even when N % palette.length === 1
     let paletteIndex = sliceIndex % WHEEL_3D_COLOR_PALETTE.length;
     if (
@@ -199,14 +222,18 @@ export function buildWheel3DSliceItems(
       paletteIndex = 1;
     }
     const palette = WHEEL_3D_COLOR_PALETTE[paletteIndex];
+    const isDuplicateShort = (shortCounts.get(item.shortLabel.toLowerCase()) ?? 0) > 1;
+    const disambiguatedShort = isDuplicateShort
+      ? `${item.formattedStt}.${item.shortLabel}`
+      : item.shortLabel;
 
     return {
       sliceIndex,
-      sttNumber,
-      formattedStt,
-      student,
-      shortLabel,
-      mediumLabel,
+      sttNumber: item.sttNumber,
+      formattedStt: item.formattedStt,
+      student: item.student,
+      shortLabel: disambiguatedShort,
+      mediumLabel: item.mediumLabel,
       colorHex: palette.bg,
       accentHex: palette.accent,
     };

@@ -278,6 +278,16 @@ export const EDUGameCenter: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => {
+    const handleFsChange = () => {
+      if (!document.fullscreenElement) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
   // Absent, Called, History state arrays/sets (Teacher mode)
   const [teacherAbsentIds, setTeacherAbsentIds] = useState<Set<string>>(() => new Set(loadAbsentIds(systemTeacherId, selectedSourceKey)));
   const [teacherCalledSessionIds, setTeacherCalledSessionIds] = useState<Set<string>>(() => new Set(loadCalledSessionIds(systemTeacherId, selectedSourceKey)));
@@ -1052,7 +1062,7 @@ export const EDUGameCenter: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto space-y-5 font-serif">
+    <div className="w-full max-w-[1440px] mx-auto space-y-5 font-sans text-[#10213D]">
       {/* 1. Top Horizontal Navigation Bar (matches reference mockup) */}
       <div className="bg-white rounded-2xl px-4 py-2.5 border border-slate-200/90 shadow-xs flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
@@ -1073,10 +1083,10 @@ export const EDUGameCenter: React.FC = () => {
                   setActiveSubTab(tab.id as any);
                   if (tab.id === 'library') setActiveGame(null);
                 }}
-                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-r from-[#006BFF] to-[#1D4ED8] text-white shadow-md shadow-blue-500/20'
-                    : 'text-[#17324F] hover:bg-slate-100'
+                    ? 'bg-gradient-to-r from-[#0866F5] to-[#174CA8] text-white shadow-md shadow-blue-500/25'
+                    : 'text-[#10213D] hover:bg-slate-100'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -1089,14 +1099,14 @@ export const EDUGameCenter: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-[#17324F] text-xs font-bold flex items-center gap-1.5"
+            className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-[#10213D] text-xs font-bold flex items-center gap-1.5 cursor-pointer"
           >
-            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-600" />}
+            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-[#00BF83]" />}
             <span>{isMuted ? 'Tắt âm' : 'Âm thanh'}</span>
           </button>
           <button
             onClick={() => setShowHistoryModal(true)}
-            className="px-3 py-1.5 bg-blue-50 text-[#006BFF] hover:bg-blue-100 rounded-full transition-colors text-xs font-bold flex items-center gap-1.5"
+            className="px-3.5 py-1.5 bg-blue-50 text-[#0866F5] hover:bg-blue-100 rounded-full transition-colors text-xs font-bold flex items-center gap-1.5 cursor-pointer"
           >
             <History className="w-3.5 h-3.5" />
             <span>Lịch sử ({historyItems.length})</span>
@@ -1104,56 +1114,66 @@ export const EDUGameCenter: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Illustrated EDU GAME CENTER Banner */}
-      <div className="relative bg-gradient-to-r from-[#0D3B8C] via-[#1565D8] to-[#1E40AF] rounded-3xl px-5 py-4 sm:px-7 sm:py-5 text-white shadow-lg overflow-hidden border border-blue-400/30">
-        {/* Decorative Background Clouds & Glows */}
-        <div className="absolute -left-10 -bottom-12 w-56 h-32 bg-sky-300/20 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute left-1/3 -top-10 w-72 h-36 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute right-1/4 -bottom-10 w-64 h-28 bg-cyan-300/20 rounded-full blur-2xl pointer-events-none" />
+      {/* 2. Premium 3D EDU GAME CENTER Banner (hidden while an active game stage is open) */}
+      {!activeGame && (
+        <>
+          <div className="relative bg-gradient-to-r from-[#102C52] via-[#174CA8] to-[#102C52] rounded-[24px] px-5 py-4 sm:px-7 sm:py-5 text-white shadow-[0_14px_34px_-10px_rgba(16,44,82,0.45)] overflow-hidden border border-sky-300/25">
+        {/* Studio Lighting & Subtle Ambient Bokeh */}
+        <div className="absolute -left-8 -bottom-10 w-52 h-32 bg-[#20C9FF]/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute left-1/3 -top-12 w-80 h-40 bg-[#0866F5]/30 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute right-1/3 -bottom-10 w-64 h-32 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-5">
-          {/* Left & Center Banner Artwork + Golden Ribbon Title */}
-          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5 text-center sm:text-left">
-            <BannerGamepadSVG className="w-24 h-20 sm:w-28 sm:h-24 shrink-0" />
+          {/* Left 3D Gamepad + Center 3D Golden Title + Right-Center 3D Trophy & Textbooks */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
+            <BannerGamepadSVG className="w-24 h-24 sm:w-28 sm:h-28 shrink-0" />
 
             <div className="flex flex-col items-center sm:items-start">
               <h1
-                className="text-2xl sm:text-3xl md:text-4xl font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-amber-300 to-orange-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)]"
+                className="text-2xl sm:text-3xl md:text-4xl font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-b from-[#FFF7D6] via-[#FFBF25] to-[#D97706] drop-shadow-[0_3px_6px_rgba(0,0,0,0.5)]"
               >
                 EDU GAME CENTER
               </h1>
-              <div className="mt-1.5 px-5 py-1 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-[#102E54] rounded-full shadow-md border border-yellow-100">
+              <div className="mt-2 px-5 py-1.5 bg-gradient-to-r from-[#FFBF25] via-[#FFD452] to-[#F59E0B] text-[#10213D] rounded-full shadow-[0_4px_12px_rgba(255,191,37,0.35)] border border-yellow-100/80">
                 <p className="text-xs sm:text-sm font-extrabold tracking-tight">
                   Thế giới trò chơi tương tác – Tây Đô Smart EDU
                 </p>
               </div>
             </div>
 
-            <BannerTrophyBooksSVG className="hidden md:block w-24 h-20 sm:w-28 sm:h-24 shrink-0" />
+            <BannerTrophyBooksSVG className="hidden md:block w-28 h-24 sm:w-32 sm:h-26 shrink-0" />
           </div>
 
-          {/* Right 4 Stat Cards (Real Data) */}
+          {/* Right 4 3D Glossy Stat Cards (Real Data) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full xl:w-auto shrink-0">
-            <div className="bg-gradient-to-b from-indigo-500/40 to-blue-900/60 backdrop-blur-xs rounded-2xl px-4 py-2.5 border border-blue-300/40 flex flex-col items-center justify-center min-w-[105px] shadow-inner">
-              <Gamepad2 className="w-5 h-5 text-pink-300 mb-0.5" />
+            <div className="bg-gradient-to-b from-[#7C3AED]/85 to-[#312E81]/90 backdrop-blur-xs rounded-2xl px-4 py-2.5 border border-purple-300/45 flex flex-col items-center justify-center min-w-[106px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_8px_16px_rgba(0,0,0,0.25)]">
+              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center mb-1">
+                <Gamepad2 className="w-4 h-4 text-pink-200" />
+              </div>
               <span className="text-xl sm:text-2xl font-black text-white leading-tight tabular-nums">{totalGamesCount}</span>
-              <span className="text-[11px] text-blue-100 font-bold">Trò chơi</span>
+              <span className="text-[11px] text-purple-100 font-bold">Trò chơi</span>
             </div>
 
-            <div className="bg-gradient-to-b from-teal-500/40 to-emerald-900/60 backdrop-blur-xs rounded-2xl px-4 py-2.5 border border-emerald-300/40 flex flex-col items-center justify-center min-w-[105px] shadow-inner">
-              <CheckCircle2 className="w-5 h-5 text-emerald-300 mb-0.5" />
+            <div className="bg-gradient-to-b from-[#00BF83]/85 to-[#065F46]/90 backdrop-blur-xs rounded-2xl px-4 py-2.5 border border-emerald-300/45 flex flex-col items-center justify-center min-w-[106px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_8px_16px_rgba(0,0,0,0.25)]">
+              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center mb-1">
+                <CheckCircle2 className="w-4 h-4 text-emerald-100" />
+              </div>
               <span className="text-xl sm:text-2xl font-black text-white leading-tight tabular-nums">{readyGamesCount}</span>
-              <span className="text-[11px] text-emerald-100 font-bold">Sẵn sàng</span>
+              <span className="text-[11px] text-emerald-50 font-bold">Sẵn sàng</span>
             </div>
 
-            <div className="bg-gradient-to-b from-purple-500/40 to-indigo-900/60 backdrop-blur-xs rounded-2xl px-4 py-2.5 border border-purple-300/40 flex flex-col items-center justify-center min-w-[105px] shadow-inner">
-              <Star className="w-5 h-5 text-amber-300 fill-amber-300 mb-0.5" />
+            <div className="bg-gradient-to-b from-[#6D28D9]/85 to-[#1E1B4B]/90 backdrop-blur-xs rounded-2xl px-4 py-2.5 border border-violet-300/45 flex flex-col items-center justify-center min-w-[106px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_8px_16px_rgba(0,0,0,0.25)]">
+              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center mb-1">
+                <Star className="w-4 h-4 text-[#FFBF25] fill-[#FFBF25]" />
+              </div>
               <span className="text-xl sm:text-2xl font-black text-white leading-tight tabular-nums">{favoriteGameIds.size}</span>
-              <span className="text-[11px] text-purple-100 font-bold">Yêu thích</span>
+              <span className="text-[11px] text-violet-100 font-bold">Yêu thích</span>
             </div>
 
-            <div className="bg-gradient-to-b from-sky-500/40 to-blue-900/60 backdrop-blur-xs rounded-2xl px-4 py-2.5 border border-sky-300/40 flex flex-col items-center justify-center min-w-[105px] shadow-inner">
-              <Clock className="w-5 h-5 text-sky-200 mb-0.5" />
+            <div className="bg-gradient-to-b from-[#0866F5]/85 to-[#102C52]/95 backdrop-blur-xs rounded-2xl px-4 py-2.5 border border-sky-300/45 flex flex-col items-center justify-center min-w-[106px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_8px_16px_rgba(0,0,0,0.25)]">
+              <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center mb-1">
+                <Clock className="w-4 h-4 text-sky-100" />
+              </div>
               <span className="text-xl sm:text-2xl font-black text-white leading-tight tabular-nums">{usedGamesCount}</span>
               <span className="text-[11px] text-sky-100 font-bold">Đã sử dụng</span>
             </div>
@@ -1162,16 +1182,16 @@ export const EDUGameCenter: React.FC = () => {
       </div>
 
       {/* 2.5 SHARED GUEST MODE & TEACHER MODE PREPARATION BAR */}
-      <div className="bg-white rounded-3xl p-4 sm:px-6 border-2 border-[#BED8FB] shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+      <div className="bg-white rounded-[20px] p-4 sm:px-6 border border-slate-200/90 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => handleChangeRosterMode('guest')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
                 rosterMode === 'guest'
-                  ? 'bg-[#006BFF] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-[#0866F5] text-white shadow-sm'
+                  : 'bg-[#F3F7FD] text-[#10213D] hover:bg-slate-200/80'
               }`}
             >
               <Sparkles className="w-4 h-4" />
@@ -1181,10 +1201,10 @@ export const EDUGameCenter: React.FC = () => {
             <button
               type="button"
               onClick={() => handleChangeRosterMode('teacher')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
                 rosterMode === 'teacher'
-                  ? 'bg-[#006BFF] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-[#0866F5] text-white shadow-sm'
+                  : 'bg-[#F3F7FD] text-[#10213D] hover:bg-slate-200/80'
               }`}
             >
               <Users className="w-4 h-4" />
@@ -1193,14 +1213,14 @@ export const EDUGameCenter: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
-            <span className="px-3 py-1 rounded-full bg-[#F0F7FF] text-[#082B52] font-bold border border-blue-200">
-              Lớp: <strong className="text-[#006BFF]">{resolvedClassName}</strong>
+            <span className="px-3.5 py-1 rounded-full bg-[#F3F7FD] text-[#10213D] font-bold border border-blue-200">
+              Lớp: <strong className="text-[#0866F5]">{resolvedClassName}</strong>
             </span>
-            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+            <span className="px-3.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 tabular-nums">
               Sĩ số: {currentCandidates.length} HS · Sẵn sàng: {availableCandidates.length} HS
             </span>
             {calledSessionIds.size > 0 && (
-              <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-800 font-bold border border-amber-200">
+              <span className="px-3.5 py-1 rounded-full bg-amber-50 text-amber-800 font-bold border border-amber-200 tabular-nums">
                 Đã gọi: {calledSessionIds.size} HS
               </span>
             )}
@@ -1214,7 +1234,7 @@ export const EDUGameCenter: React.FC = () => {
               setPendingGameToLaunch(null);
               setShowRosterSetupModal(true);
             }}
-            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#006BFF] to-[#1769C2] hover:from-blue-600 hover:to-blue-700 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 transition-all cursor-pointer"
+            className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0866F5] to-[#174CA8] hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-sm flex items-center gap-2 transition-all duration-200 cursor-pointer"
           >
             <Users className="w-4 h-4" />
             <span>
@@ -1228,7 +1248,7 @@ export const EDUGameCenter: React.FC = () => {
             <button
               type="button"
               onClick={handleResetActiveSession}
-              className="px-3.5 py-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3.5 py-2.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Làm mới lượt gọi</span>
@@ -1236,14 +1256,16 @@ export const EDUGameCenter: React.FC = () => {
           )}
         </div>
       </div>
+        </>
+      )}
 
       {/* 3. Main Library Content Area */}
       {activeSubTab === 'library' && !activeGame && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Column: Categories Sidebar + Class Selector */}
           <div className="lg:col-span-3 space-y-4">
-            <div className="bg-white rounded-3xl p-4 border border-slate-200/90 shadow-xs space-y-3">
-              <h3 className="text-xs font-extrabold text-[#102E54] uppercase tracking-wider px-2 pt-1">
+            <div className="bg-white rounded-[20px] p-4 border border-slate-200/90 shadow-xs space-y-3">
+              <h3 className="text-xs font-extrabold text-[#10213D] uppercase tracking-wider px-2 pt-1">
                 DANH MỤC TRÒ CHƠI
               </h3>
               <div className="space-y-1">
@@ -1256,10 +1278,10 @@ export const EDUGameCenter: React.FC = () => {
                     <button
                       key={cat.key}
                       onClick={() => setSelectedCategory(cat.key)}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all ${
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all duration-150 cursor-pointer ${
                         isSelected
-                          ? 'bg-[#006BFF] text-white shadow-sm'
-                          : 'text-[#17324F] hover:bg-slate-50'
+                          ? 'bg-[#0866F5] text-white shadow-sm'
+                          : 'text-[#10213D] hover:bg-[#F3F7FD]'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
@@ -1268,7 +1290,7 @@ export const EDUGameCenter: React.FC = () => {
                       </div>
                       <span
                         className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold tabular-nums ${
-                          isSelected ? 'bg-white text-[#006BFF]' : 'bg-slate-100 text-slate-600'
+                          isSelected ? 'bg-white text-[#0866F5]' : 'bg-slate-100 text-slate-600'
                         }`}
                       >
                         {cat.count}
@@ -1280,21 +1302,21 @@ export const EDUGameCenter: React.FC = () => {
             </div>
 
             {/* Class Selector Card */}
-            <div className="bg-white rounded-3xl p-4 border border-slate-200/90 shadow-xs space-y-3">
+            <div className="bg-white rounded-[20px] p-4 border border-slate-200/90 shadow-xs space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm font-extrabold text-[#102E54]">
+                <p className="text-xs sm:text-sm font-extrabold text-[#10213D]">
                   {rosterMode === 'guest' ? 'Danh sách Khách đang dùng' : 'Lớp hệ thống đang áp dụng'}
                 </p>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#006BFF]">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0866F5]">
                   {rosterMode === 'guest' ? 'Chế độ Khách' : 'Giáo viên'}
                 </span>
               </div>
 
               {rosterMode === 'guest' ? (
                 <div className="space-y-2.5">
-                  <div className="p-3 rounded-xl bg-[#F0F7FF] border border-blue-200 text-xs space-y-1">
-                    <div className="font-bold text-[#082B52]">{resolvedClassName}</div>
-                    <div className="text-slate-600">
+                  <div className="p-3 rounded-xl bg-[#F3F7FD] border border-blue-200 text-xs space-y-1">
+                    <div className="font-bold text-[#10213D]">{resolvedClassName}</div>
+                    <div className="text-slate-600 tabular-nums">
                       Tổng số: <strong>{guestSession.students.length}</strong> học sinh · Tham gia:{' '}
                       <strong>{guestSession.students.filter((s) => s.participating).length}</strong>
                     </div>
@@ -1305,7 +1327,7 @@ export const EDUGameCenter: React.FC = () => {
                       setPendingGameToLaunch(null);
                       setShowRosterSetupModal(true);
                     }}
-                    className="w-full py-2.5 px-3 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#0866F5] hover:bg-[#174CA8] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                   >
                     <Users className="w-4 h-4" />
                     <span>Nhập / Dán danh sách học sinh</span>
@@ -1316,7 +1338,7 @@ export const EDUGameCenter: React.FC = () => {
                   <select
                     value={selectedSourceKey}
                     onChange={(e) => setSelectedSourceKey(e.target.value)}
-                    className="w-full text-xs sm:text-sm font-bold px-3.5 py-2.5 bg-[#F8FAFC] border border-slate-200 rounded-xl text-[#102E54] focus:outline-none focus:ring-2 focus:ring-[#006BFF]"
+                    className="w-full text-xs sm:text-sm font-bold px-3.5 py-2.5 bg-[#F3F7FD] border border-slate-200 rounded-xl text-[#10213D] focus:outline-none focus:ring-2 focus:ring-[#0866F5]"
                   >
                     <option value="manual">-- Danh sách nhập tự do ({manualStudents.length} HS) --</option>
                     {classes.map((c) => (
@@ -1328,16 +1350,16 @@ export const EDUGameCenter: React.FC = () => {
                 </div>
               )}
 
-              <div className="bg-[#F3F7FC] rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
+              <div className="bg-[#F3F7FD] rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
                 <span className="font-bold text-emerald-700 flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-emerald-600" />
+                  <Users className="w-4 h-4 text-[#00BF83]" />
                   <span>Sẵn sàng: <strong className="tabular-nums">{availableCandidates.length}</strong> bạn</span>
                 </span>
                 <button
                   onClick={() =>
                     rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true)
                   }
-                  className="text-[#006BFF] hover:underline font-extrabold tabular-nums"
+                  className="text-[#0866F5] hover:underline font-extrabold tabular-nums cursor-pointer"
                 >
                   {rosterMode === 'guest' ? `Tạm nghỉ (${absentIds.size})` : `Vắng (${absentIds.size})`}
                 </button>
@@ -1356,7 +1378,7 @@ export const EDUGameCenter: React.FC = () => {
                   placeholder="Tìm tên, mã hoặc mô tả trò chơi (VD: A01, vòng quay, đua ngựa...)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-white border border-slate-200/90 rounded-full shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#006BFF]"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-white border border-slate-200/90 rounded-full shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0866F5]"
                 />
               </div>
 
@@ -1367,7 +1389,7 @@ export const EDUGameCenter: React.FC = () => {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="text-xs font-bold text-[#17324F] bg-transparent focus:outline-none pr-1 cursor-pointer"
+                    className="text-xs font-bold text-[#10213D] bg-transparent focus:outline-none pr-1 cursor-pointer"
                   >
                     {EDU_GAME_CATEGORIES.map((c) => (
                       <option key={c.key} value={c.key}>
@@ -1380,13 +1402,13 @@ export const EDUGameCenter: React.FC = () => {
                 {/* Favorites Filter Pill Button */}
                 <button
                   onClick={() => setOnlyFavorites(!onlyFavorites)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold border flex items-center gap-1.5 transition-all shadow-2xs ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold border flex items-center gap-1.5 transition-all duration-150 shadow-2xs cursor-pointer ${
                     onlyFavorites
-                      ? 'bg-amber-50 border-amber-400 text-amber-700'
-                      : 'bg-white border-slate-200/90 text-[#17324F] hover:bg-slate-50'
+                      ? 'bg-amber-50 border-amber-400 text-amber-800'
+                      : 'bg-white border-slate-200/90 text-[#10213D] hover:bg-slate-50'
                   }`}
                 >
-                  <Star className={`w-3.5 h-3.5 ${onlyFavorites ? 'text-amber-500 fill-amber-500' : 'text-amber-500 fill-amber-400'}`} />
+                  <Star className={`w-3.5 h-3.5 ${onlyFavorites ? 'text-[#FFBF25] fill-[#FFBF25]' : 'text-[#FFBF25] fill-[#FFBF25]'}`} />
                   <span>Yêu thích</span>
                 </button>
 
@@ -1396,7 +1418,7 @@ export const EDUGameCenter: React.FC = () => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="text-xs font-bold text-[#17324F] bg-transparent focus:outline-none pr-1 cursor-pointer"
+                    className="text-xs font-bold text-[#10213D] bg-transparent focus:outline-none pr-1 cursor-pointer"
                   >
                     <option value="default">Sắp xếp: Mặc định</option>
                     <option value="ready">Sẵn sàng trước</option>
@@ -1409,57 +1431,57 @@ export const EDUGameCenter: React.FC = () => {
 
             {/* Featured Section: 4 Top Games in 1 Row (only shown in default All view) */}
             {showFeaturedSection && (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base sm:text-lg font-extrabold text-[#102E54] flex items-center gap-2">
-                    <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+                  <h3 className="text-base sm:text-lg font-extrabold text-[#10213D] flex items-center gap-2">
+                    <Star className="w-5 h-5 text-[#FFBF25] fill-[#FFBF25]" />
                     <span>Trò chơi nổi bật & gợi ý hàng đầu</span>
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {featuredGames.map((game) => {
                     const isFav = favoriteGameIds.has(game.id);
                     return (
                       <div
                         key={`featured_${game.id}`}
-                        className="bg-white rounded-2xl border border-slate-200/90 hover:border-[#006BFF] shadow-xs hover:shadow-xl transition-all duration-200 flex flex-col justify-between overflow-hidden group"
+                        className="bg-white rounded-[18px] border border-slate-200/90 hover:border-[#0866F5]/60 shadow-[0_4px_14px_rgba(16,33,61,0.06)] hover:shadow-[0_14px_28px_rgba(8,102,245,0.14)] hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none transition-all duration-200 ease-out flex flex-col justify-between overflow-hidden group h-full"
                       >
-                        {/* 16:9 Custom Illustrated Thumbnail */}
+                        {/* 4:3 Photorealistic 3D Thumbnail */}
                         <div
                           onClick={() => handleLaunchGameRequest(game)}
-                          className="relative aspect-video w-full overflow-hidden cursor-pointer bg-slate-900"
+                          className="relative aspect-4/3 w-full overflow-hidden cursor-pointer bg-[#102C52]"
                         >
-                          <div className="w-full h-full group-hover:scale-105 transition-transform duration-300">
+                          <div className="w-full h-full group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100 transition-transform duration-200 ease-out">
                             <GameCardIllustration code={game.code} category={game.category} />
                           </div>
-                          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-slate-900/75 backdrop-blur-xs text-white rounded-full text-[11px] font-extrabold tracking-wide">
+                          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-[#10213D]/85 backdrop-blur-xs text-white rounded-full text-[11px] font-extrabold tracking-wide shadow-xs">
                             {game.code}
                           </span>
-                          <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-emerald-500 text-white rounded-full text-[11px] font-extrabold flex items-center gap-1 shadow-xs">
+                          <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-[#00BF83] text-white rounded-full text-[11px] font-extrabold flex items-center gap-1 shadow-xs">
                             <CheckCircle2 className="w-3 h-3" /> Sẵn sàng
                           </span>
                         </div>
 
                         {/* Card Body */}
-                        <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
+                        <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
                           <div>
                             <h4
                               onClick={() => handleLaunchGameRequest(game)}
-                              className="text-sm sm:text-base font-extrabold text-[#102E54] group-hover:text-[#006BFF] transition-colors truncate cursor-pointer"
+                              className="text-sm sm:text-[15px] font-extrabold text-[#10213D] group-hover:text-[#0866F5] transition-colors truncate cursor-pointer"
                             >
                               {game.title}
                             </h4>
                             <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-bold mt-1">
-                              <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                              <Trophy className="w-3.5 h-3.5 text-[#FFBF25] shrink-0" />
                               <span className="truncate">{game.categoryLabel}</span>
                             </div>
                           </div>
 
-                          <div className="pt-1 flex items-center gap-2">
+                          <div className="pt-0.5 flex items-center gap-2">
                             <button
                               onClick={() => handleLaunchGameRequest(game)}
-                              className="flex-1 py-2 bg-gradient-to-r from-[#006BFF] to-[#2563EB] hover:from-blue-600 hover:to-blue-700 text-white rounded-full text-xs font-extrabold shadow-xs transition-all flex items-center justify-center gap-1.5"
+                              className="flex-1 py-2 px-3 bg-gradient-to-r from-[#0866F5] to-[#174CA8] group-hover:brightness-110 text-white rounded-full text-xs font-extrabold shadow-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
                             >
                               <Play className="w-3.5 h-3.5 fill-current" />
                               <span>Chơi ngay</span>
@@ -1467,10 +1489,10 @@ export const EDUGameCenter: React.FC = () => {
                             <button
                               onClick={(e) => toggleFavoriteGame(game.id, e)}
                               title="Yêu thích"
-                              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
+                              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${
                                 isFav
                                   ? 'border-rose-200 bg-rose-50 text-rose-500'
-                                  : 'border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-slate-50'
+                                  : 'border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50/50'
                               }`}
                             >
                               <Heart className={`w-4 h-4 ${isFav ? 'fill-rose-500' : ''}`} />
@@ -1485,10 +1507,10 @@ export const EDUGameCenter: React.FC = () => {
             )}
 
             {/* Main Games List Section (Remaining games without repeating Featured) */}
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               <div className="flex items-center justify-between">
-                <h3 className="text-base sm:text-lg font-extrabold text-[#102E54] flex items-center gap-2">
-                  <Gamepad2 className="w-5 h-5 text-[#006BFF]" />
+                <h3 className="text-base sm:text-lg font-extrabold text-[#10213D] flex items-center gap-2">
+                  <Gamepad2 className="w-5 h-5 text-[#0866F5]" />
                   <span>
                     {selectedCategory === 'all'
                       ? 'Danh sách trò chơi'
@@ -1496,13 +1518,13 @@ export const EDUGameCenter: React.FC = () => {
                   </span>
                 </h3>
                 <div className="text-xs text-slate-500 font-bold tabular-nums">
-                  Hiển thị <span className="text-[#102E54] font-extrabold">{filteredGames.length}</span> / {totalGamesCount} trò chơi
+                  Hiển thị <span className="text-[#10213D] font-extrabold">{filteredGames.length}</span> / {totalGamesCount} trò chơi
                 </div>
               </div>
 
               {mainGridGames.length === 0 ? (
-                <div className="bg-white rounded-3xl p-10 border border-slate-200 text-center space-y-2">
-                  <p className="text-sm font-bold text-[#102E54]">Không tìm thấy trò chơi phù hợp</p>
+                <div className="bg-white rounded-[20px] p-10 border border-slate-200 text-center space-y-2">
+                  <p className="text-sm font-bold text-[#10213D]">Không tìm thấy trò chơi phù hợp</p>
                   <p className="text-xs text-slate-500">Hãy thử từ khóa khác hoặc bỏ bộ lọc Yêu thích.</p>
                 </div>
               ) : (
@@ -1512,21 +1534,21 @@ export const EDUGameCenter: React.FC = () => {
                     return (
                       <div
                         key={game.id}
-                        className="bg-white rounded-2xl border border-slate-200/90 hover:border-[#006BFF] shadow-xs hover:shadow-xl transition-all duration-200 flex flex-col justify-between overflow-hidden group"
+                        className="bg-white rounded-[18px] border border-slate-200/90 hover:border-[#0866F5]/60 shadow-[0_4px_14px_rgba(16,33,61,0.06)] hover:shadow-[0_14px_28px_rgba(8,102,245,0.14)] hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none transition-all duration-200 ease-out flex flex-col justify-between overflow-hidden group h-full"
                       >
-                        {/* 16:9 Custom Illustrated Thumbnail */}
+                        {/* 4:3 Custom 3D Thumbnail */}
                         <div
                           onClick={() => handleLaunchGameRequest(game)}
-                          className="relative aspect-video w-full overflow-hidden cursor-pointer bg-slate-900"
+                          className="relative aspect-4/3 w-full overflow-hidden cursor-pointer bg-[#102C52]"
                         >
-                          <div className="w-full h-full group-hover:scale-105 transition-transform duration-300">
+                          <div className="w-full h-full group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100 transition-transform duration-200 ease-out">
                             <GameCardIllustration code={game.code} category={game.category} />
                           </div>
-                          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-slate-900/75 backdrop-blur-xs text-white rounded-full text-[11px] font-extrabold tracking-wide">
+                          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-[#10213D]/85 backdrop-blur-xs text-white rounded-full text-[11px] font-extrabold tracking-wide shadow-xs">
                             {game.code}
                           </span>
                           {game.isReady ? (
-                            <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-emerald-500 text-white rounded-full text-[11px] font-extrabold flex items-center gap-1 shadow-xs">
+                            <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-[#00BF83] text-white rounded-full text-[11px] font-extrabold flex items-center gap-1 shadow-xs">
                               <CheckCircle2 className="w-3 h-3" /> Sẵn sàng
                             </span>
                           ) : (
@@ -1537,25 +1559,25 @@ export const EDUGameCenter: React.FC = () => {
                         </div>
 
                         {/* Card Body */}
-                        <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
+                        <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
                           <div>
                             <h4
                               onClick={() => handleLaunchGameRequest(game)}
-                              className="text-sm sm:text-base font-extrabold text-[#102E54] group-hover:text-[#006BFF] transition-colors truncate cursor-pointer"
+                              className="text-sm sm:text-[15px] font-extrabold text-[#10213D] group-hover:text-[#0866F5] transition-colors truncate cursor-pointer"
                             >
                               {game.title}
                             </h4>
                             <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-bold mt-1">
-                              <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                              <Trophy className="w-3.5 h-3.5 text-[#FFBF25] shrink-0" />
                               <span className="truncate">{game.categoryLabel}</span>
                             </div>
                           </div>
 
-                          <div className="pt-1 flex items-center gap-2">
+                          <div className="pt-0.5 flex items-center gap-2">
                             {game.isReady ? (
                               <button
                                 onClick={() => handleLaunchGameRequest(game)}
-                                className="flex-1 py-2 bg-gradient-to-r from-[#006BFF] to-[#2563EB] hover:from-blue-600 hover:to-blue-700 text-white rounded-full text-xs font-extrabold shadow-xs transition-all flex items-center justify-center gap-1.5"
+                                className="flex-1 py-2 px-3 bg-gradient-to-r from-[#0866F5] to-[#174CA8] group-hover:brightness-110 text-white rounded-full text-xs font-extrabold shadow-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
                               >
                                 <Play className="w-3.5 h-3.5 fill-current" />
                                 <span>Chơi ngay</span>
@@ -1563,7 +1585,7 @@ export const EDUGameCenter: React.FC = () => {
                             ) : (
                               <button
                                 onClick={() => handleLaunchGameRequest(game)}
-                                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                                className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
                               >
                                 <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
                                 <span>Đang phát triển</span>
@@ -1572,10 +1594,10 @@ export const EDUGameCenter: React.FC = () => {
                             <button
                               onClick={(e) => toggleFavoriteGame(game.id, e)}
                               title="Yêu thích"
-                              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
+                              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${
                                 isFav
                                   ? 'border-rose-200 bg-rose-50 text-rose-500'
-                                  : 'border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-slate-50'
+                                  : 'border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50/50'
                               }`}
                             >
                               <Heart className={`w-4 h-4 ${isFav ? 'fill-rose-500' : ''}`} />
@@ -1594,62 +1616,88 @@ export const EDUGameCenter: React.FC = () => {
 
       {/* Active Game Running Stage */}
       {activeGame && (
-        <div ref={stageContainerRef} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-200">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setActiveGame(null)}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors"
-              >
-                ← Trở về thư viện
-              </button>
-              <div>
-                <span className="px-2 py-0.5 bg-blue-100 text-[#006BFF] rounded text-[11px] font-bold">
-                  {activeGame.code}
-                </span>
-                <h2 className="text-xl font-extrabold text-[#0F2D52] mt-0.5">{activeGame.title}</h2>
+        <div
+          ref={stageContainerRef}
+          className={
+            isFullscreen &&
+            (activeGame.modeKey === 'wheel' ||
+              activeGame.modeKey === 'claw_machine' ||
+              activeGame.modeKey === 'gift_box' ||
+              activeGame.modeKey === 'cards')
+              ? 'fixed inset-0 z-50 w-screen h-dvh bg-[#050C1C] p-0 m-0 border-0 rounded-none overflow-hidden flex flex-col'
+              : 'bg-white rounded-2xl border border-slate-200 shadow-md p-3 sm:p-4 space-y-3'
+          }
+        >
+          {!(
+            isFullscreen &&
+            (activeGame.modeKey === 'wheel' ||
+              activeGame.modeKey === 'claw_machine' ||
+              activeGame.modeKey === 'gift_box' ||
+              activeGame.modeKey === 'cards')
+          ) && (
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => {
+                    if (isFullscreen) {
+                      document.exitFullscreen?.().catch(() => {});
+                      setIsFullscreen(false);
+                    }
+                    setActiveGame(null);
+                  }}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                >
+                  ← Trở về thư viện
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 bg-blue-100 text-[#006BFF] rounded text-[11px] font-bold">
+                    {activeGame.code}
+                  </span>
+                  <h2 className="text-base sm:text-lg font-extrabold text-[#0F2D52]">{activeGame.title}</h2>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPendingGameToLaunch(null);
+                    setShowRosterSetupModal(true);
+                  }}
+                  className="px-3 py-1.5 bg-[#EAF4FF] text-[#006BFF] hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>
+                    {rosterMode === 'guest'
+                      ? `DS Khách: ${resolvedClassName} (${availableCandidates.length}/${currentCandidates.length} HS)`
+                      : `Đổi danh sách / Lớp (${resolvedClassName})`}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setShowTimerModal(true)}
+                  className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <TimerIcon className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Hẹn giờ ({timerSeconds}s)</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (!stageContainerRef.current) return;
+                    if (!isFullscreen) {
+                      stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                      setIsFullscreen(true);
+                    } else {
+                      document.exitFullscreen?.().catch(() => {});
+                      setIsFullscreen(false);
+                    }
+                  }}
+                  className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 cursor-pointer"
+                  title="Phóng to toàn màn hình"
+                >
+                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </button>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setPendingGameToLaunch(null);
-                  setShowRosterSetupModal(true);
-                }}
-                className="px-3.5 py-2 bg-[#EAF4FF] text-[#006BFF] hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Users className="w-4 h-4" />
-                <span>
-                  {rosterMode === 'guest'
-                    ? `DS Khách: ${resolvedClassName} (${availableCandidates.length}/${currentCandidates.length} HS)`
-                    : `Đổi danh sách / Lớp (${resolvedClassName})`}
-                </span>
-              </button>
-              <button
-                onClick={() => setShowTimerModal(true)}
-                className="px-3.5 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
-              >
-                <TimerIcon className="w-4 h-4 text-amber-600" />
-                <span>Hẹn giờ ({timerSeconds}s)</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (!stageContainerRef.current) return;
-                  if (!isFullscreen) {
-                    stageContainerRef.current.requestFullscreen?.();
-                    setIsFullscreen(true);
-                  } else {
-                    document.exitFullscreen?.();
-                    setIsFullscreen(false);
-                  }
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700"
-              >
-                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
+          )}
 
           {activeGame.modeKey === 'wheel' ? (
             <React.Suspense
@@ -1781,6 +1829,13 @@ export const EDUGameCenter: React.FC = () => {
                     setIsFullscreen(false);
                   }
                 }}
+                onCloseGame={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
                 isMuted={isMuted}
                 onToggleMute={() => setIsMuted(!isMuted)}
                 onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
@@ -1789,6 +1844,48 @@ export const EDUGameCenter: React.FC = () => {
                 onUpdateLatestNote={handleUpdateLatestHistoryNote}
               />
             </React.Suspense>
+          ) : activeGame.modeKey === 'cards' ? (
+            <MagicLotteryGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              calledSessionIds={calledSessionIds}
+              antiDuplicate={antiDuplicate}
+              onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
+              onResetSession={handleResetActiveSession}
+              onRestoreStudentToPool={handleRestoreStudentToPool}
+              classes={effectiveClasses}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || (rosterMode === 'guest' ? 'Khách' : 'Giáo viên')}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              onCloseGame={() => {
+                if (isFullscreen) {
+                  document.exitFullscreen?.().catch(() => {});
+                  setIsFullscreen(false);
+                }
+                setActiveGame(null);
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onPick={handleGamePickStudent}
+              onUpdateLatestNote={handleUpdateLatestHistoryNote}
+            />
           ) : activeGame.modeKey === 'balloons' ? (
             <BalloonsGame
               availableCandidates={availableCandidates}

@@ -222,151 +222,212 @@ function renderWheelFrontTextureCanvas(params: {
 
   const cx = textureSize / 2;
   const cy = textureSize / 2;
-  const outerRadius = textureSize * 0.478;
-  const innerHubRadius = textureSize * 0.115;
+  const outerRadius = textureSize * 0.482;
+  const innerHubRadius = textureSize * 0.112;
+  const fontStack = '"Plus Jakarta Sans", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif';
 
   ctx.clearRect(0, 0, textureSize, textureSize);
 
   // Outer metallic backing disc
-  const rimGrad = ctx.createRadialGradient(cx, cy, innerHubRadius, cx, cy, outerRadius * 1.04);
+  const rimGrad = ctx.createRadialGradient(cx, cy, innerHubRadius, cx, cy, outerRadius * 1.035);
   rimGrad.addColorStop(0, '#0F172A');
   rimGrad.addColorStop(0.92, '#1E293B');
   rimGrad.addColorStop(1, '#F59E0B');
   ctx.fillStyle = rimGrad;
   ctx.beginPath();
-  ctx.arc(cx, cy, outerRadius * 1.03, 0, Math.PI * 2);
+  ctx.arc(cx, cy, outerRadius * 1.028, 0, Math.PI * 2);
   ctx.fill();
 
   const count = slices.length;
   if (count === 0) {
-    // Empty state wheel face
     ctx.fillStyle = '#1E293B';
     ctx.beginPath();
     ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = '#F8FAFC';
-    ctx.font = `bold ${Math.round(textureSize * 0.042)}px "Times New Roman", Times, serif`;
+    ctx.font = `800 ${Math.round(textureSize * 0.038)}px ${fontStack}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('CHƯA CÓ HỌC SINH HỢP LỆ', cx, cy - textureSize * 0.18);
     return canvas;
   }
 
-  const sliceArc = (Math.PI * 2) / count;
-
-  slices.forEach((slice, idx) => {
-    const startCanvasAngle = idx * sliceArc - Math.PI / 2;
-    const endCanvasAngle = (idx + 1) * sliceArc - Math.PI / 2;
-    const midCanvasAngle = (idx + 0.5) * sliceArc - Math.PI / 2;
-
-    const isWinner = highlightedSliceIndex === idx;
-    const isHovered = hoveredSliceIndex === idx;
-    const wasCalled = calledSessionIds?.has(slice.student.id) ?? false;
+  // Special case: 1 student (full 360-degree wheel)
+  if (count === 1) {
+    const single = slices[0];
+    const isWinner = highlightedSliceIndex === 0;
+    const grad = ctx.createRadialGradient(cx, cy, innerHubRadius, cx, cy, outerRadius);
+    grad.addColorStop(0, isWinner ? '#F59E0B' : '#2563EB');
+    grad.addColorStop(0.75, isWinner ? '#D97706' : '#1D4ED8');
+    grad.addColorStop(1, '#0F172A');
 
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, outerRadius, startCanvasAngle, endCanvasAngle);
-    ctx.closePath();
-
-    // Rich radial gradient per slice for 3D depth
-    const sliceGrad = ctx.createRadialGradient(cx, cy, innerHubRadius * 0.8, cx, cy, outerRadius);
-    if (isWinner) {
-      sliceGrad.addColorStop(0, '#FEF08A');
-      sliceGrad.addColorStop(0.35, '#F59E0B');
-      sliceGrad.addColorStop(1, '#B45309');
-    } else if (isHovered) {
-      sliceGrad.addColorStop(0, slice.accentHex);
-      sliceGrad.addColorStop(0.45, slice.colorHex);
-      sliceGrad.addColorStop(1, '#0F172A');
-    } else {
-      sliceGrad.addColorStop(0, slice.colorHex);
-      sliceGrad.addColorStop(0.78, slice.colorHex);
-      sliceGrad.addColorStop(1, '#0F172A');
-    }
-
-    ctx.fillStyle = sliceGrad;
+    ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
     ctx.fill();
-
-    // Subtle inner highlight bevel
-    ctx.lineWidth = Math.max(1.5, textureSize * (count > 35 ? 0.0022 : 0.0035));
-    ctx.strokeStyle = isWinner ? '#FFFFFF' : 'rgba(255, 255, 255, 0.72)';
+    ctx.lineWidth = textureSize * 0.006;
+    ctx.strokeStyle = '#FEF08A';
     ctx.stroke();
 
-    // Outer STT badge pill near rim
-    const sttBadgeRadius = outerRadius * 0.895;
-    const bx = cx + Math.cos(midCanvasAngle) * sttBadgeRadius;
-    const by = cy + Math.sin(midCanvasAngle) * sttBadgeRadius;
+    ctx.fillStyle = '#FEF08A';
+    ctx.font = `900 ${Math.round(textureSize * 0.045)}px ${fontStack}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`#${single.formattedStt}`, cx, cy - outerRadius * 0.56);
 
-    if (count <= 42) {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = `800 ${Math.round(textureSize * 0.042)}px ${fontStack}`;
+    ctx.fillText(single.student.fullName.slice(0, 24), cx, cy + outerRadius * 0.52);
+    ctx.restore();
+  } else {
+    const sliceArc = (Math.PI * 2) / count;
+
+    slices.forEach((slice, idx) => {
+      const startCanvasAngle = idx * sliceArc - Math.PI / 2;
+      const endCanvasAngle = (idx + 1) * sliceArc - Math.PI / 2;
+      const midCanvasAngle = (idx + 0.5) * sliceArc - Math.PI / 2;
+
+      const isWinner = highlightedSliceIndex === idx;
+      const isHovered = hoveredSliceIndex === idx;
+      const wasCalled = calledSessionIds?.has(slice.student.id) ?? false;
+
       ctx.save();
-      ctx.translate(bx, by);
-      ctx.rotate(midCanvasAngle + Math.PI / 2);
-      const pillRadius = Math.max(textureSize * 0.015, Math.min(textureSize * 0.026, (outerRadius * sliceArc) * 0.26));
-      ctx.fillStyle = isWinner ? '#78350F' : 'rgba(15, 23, 42, 0.58)';
       ctx.beginPath();
-      ctx.arc(0, 0, pillRadius, 0, Math.PI * 2);
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, outerRadius, startCanvasAngle, endCanvasAngle);
+      ctx.closePath();
+
+      // Rich radial gradient per slice for 3D depth
+      const sliceGrad = ctx.createRadialGradient(cx, cy, innerHubRadius * 0.8, cx, cy, outerRadius);
+      if (isWinner) {
+        sliceGrad.addColorStop(0, '#FEF08A');
+        sliceGrad.addColorStop(0.35, '#F59E0B');
+        sliceGrad.addColorStop(1, '#B45309');
+      } else if (isHovered) {
+        sliceGrad.addColorStop(0, slice.accentHex);
+        sliceGrad.addColorStop(0.45, slice.colorHex);
+        sliceGrad.addColorStop(1, '#0F172A');
+      } else {
+        sliceGrad.addColorStop(0, slice.colorHex);
+        sliceGrad.addColorStop(0.78, slice.colorHex);
+        sliceGrad.addColorStop(1, '#0F172A');
+      }
+
+      ctx.fillStyle = sliceGrad;
       ctx.fill();
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = isWinner ? '#FEF08A' : 'rgba(253, 224, 71, 0.75)';
+
+      // Subtle inner highlight bevel
+      ctx.lineWidth = Math.max(1.2, textureSize * (count > 35 ? 0.0018 : 0.003));
+      ctx.strokeStyle = isWinner ? '#FFFFFF' : 'rgba(255, 255, 255, 0.72)';
       ctx.stroke();
 
-      ctx.fillStyle = '#FEF08A';
-      ctx.font = `bold ${Math.round(pillRadius * 1.05)}px "Times New Roman", Times, serif`;
-      ctx.textAlign = 'center';
+      // Apply strict radial wedge clip so text/badges NEVER bleed into neighbor slices
+      const clipPadAngle = Math.min(sliceArc * 0.06, 0.012);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(
+        cx,
+        cy,
+        outerRadius * 0.985,
+        startCanvasAngle + clipPadAngle,
+        endCanvasAngle - clipPadAngle
+      );
+      ctx.closePath();
+      ctx.clip();
+
+      // Outer STT badge pill near rim (shown when not in pure NUMBER_STT mode, or for <= 35 students)
+      const showOuterSttPill = resolvedLabelMode !== 'NUMBER_STT' && count <= 36;
+      const sttBadgeRadius = outerRadius * 0.902;
+      const bx = cx + Math.cos(midCanvasAngle) * sttBadgeRadius;
+      const by = cy + Math.sin(midCanvasAngle) * sttBadgeRadius;
+
+      if (showOuterSttPill) {
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(midCanvasAngle + Math.PI / 2);
+        const pillRadius = Math.max(
+          textureSize * 0.0135,
+          Math.min(textureSize * 0.024, outerRadius * sliceArc * 0.25)
+        );
+        ctx.fillStyle = isWinner ? '#78350F' : 'rgba(15, 23, 42, 0.68)';
+        ctx.beginPath();
+        ctx.arc(0, 0, pillRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = isWinner ? '#FEF08A' : 'rgba(253, 224, 71, 0.82)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#FEF08A';
+        ctx.font = `800 ${Math.round(pillRadius * 1.02)}px ${fontStack}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(slice.formattedStt, 0, 0);
+        ctx.restore();
+      }
+
+      // Radial label along slice center
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(midCanvasAngle);
+
+      let displayText = slice.formattedStt;
+      if (resolvedLabelMode === 'FULL_OR_SHORT_NAME') {
+        displayText = count <= 12 ? slice.mediumLabel : slice.shortLabel;
+      } else if (resolvedLabelMode === 'SHORT_NAME') {
+        displayText = slice.shortLabel;
+      } else {
+        displayText = slice.formattedStt;
+      }
+
+      const textOuterAnchor = showOuterSttPill ? outerRadius * 0.825 : outerRadius * 0.915;
+      const textInnerLimit = innerHubRadius * 1.32;
+      const maxRadialWidth = Math.max(textureSize * 0.08, textOuterAnchor - textInnerLimit);
+
+      // Chord height at midpoint of text span
+      const midTextRadius = (textOuterAnchor + textInnerLimit) * 0.54;
+      const maxChordHeight = 2 * midTextRadius * Math.sin(sliceArc / 2) * 0.74;
+
+      let fontSize =
+        resolvedLabelMode === 'NUMBER_STT'
+          ? Math.min(textureSize * 0.036, maxChordHeight * 0.86)
+          : count <= 8
+          ? textureSize * 0.028
+          : count <= 15
+          ? textureSize * 0.0235
+          : count <= 25
+          ? textureSize * 0.0195
+          : count <= 35
+          ? textureSize * 0.0165
+          : textureSize * 0.014;
+
+      fontSize = Math.max(Math.min(fontSize, maxChordHeight * 0.82), textureSize * 0.0105);
+      ctx.font = `800 ${Math.round(fontSize)}px ${fontStack}`;
+
+      // Shrink font further if text length exceeds radial span
+      const measuredW = ctx.measureText(displayText).width;
+      if (measuredW > maxRadialWidth && measuredW > 0) {
+        fontSize = Math.max(textureSize * 0.01, fontSize * (maxRadialWidth / measuredW) * 0.96);
+        ctx.font = `800 ${Math.round(fontSize)}px ${fontStack}`;
+      }
+
+      ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
-      ctx.fillText(slice.formattedStt, 0, 0);
+
+      // Crisp dark outline/shadow for projector contrast
+      ctx.shadowColor = isWinner ? 'rgba(0,0,0,0.35)' : 'rgba(2, 6, 23, 0.92)';
+      ctx.shadowBlur = 5;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+
+      ctx.fillStyle = isWinner ? '#0F172A' : wasCalled ? 'rgba(255,255,255,0.78)' : '#FFFFFF';
+      ctx.fillText(displayText, textOuterAnchor, 0);
       ctx.restore();
-    }
 
-    // Radial label along slice center
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(midCanvasAngle);
-
-    let displayText = slice.formattedStt;
-    if (resolvedLabelMode === 'FULL_OR_SHORT_NAME') {
-      displayText = slice.mediumLabel;
-    } else if (resolvedLabelMode === 'SHORT_NAME') {
-      displayText = slice.shortLabel;
-    } else {
-      displayText = slice.formattedStt;
-    }
-
-    // Dynamic font sizing so text never overflows slice chord width
-    const textRadius = count > 32 ? outerRadius * 0.73 : outerRadius * 0.65;
-    const maxChordHeight = 2 * textRadius * Math.sin(sliceArc / 2) * 0.76;
-    let fontSize =
-      resolvedLabelMode === 'NUMBER_STT'
-        ? Math.min(textureSize * 0.036, maxChordHeight * 0.88)
-        : count <= 10
-        ? textureSize * 0.029
-        : count <= 20
-        ? textureSize * 0.023
-        : count <= 30
-        ? textureSize * 0.0185
-        : textureSize * 0.016;
-
-    fontSize = Math.max(Math.min(fontSize, maxChordHeight * 0.85), textureSize * 0.0125);
-
-    ctx.font = `bold ${Math.round(fontSize)}px "Times New Roman", Times, serif`;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-
-    // Strong dark text shadow for high contrast on classroom projectors
-    ctx.shadowColor = isWinner ? 'rgba(0,0,0,0.45)' : 'rgba(2, 6, 23, 0.92)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetX = 1.5;
-    ctx.shadowOffsetY = 1.5;
-
-    ctx.fillStyle = isWinner ? '#0F172A' : wasCalled ? 'rgba(255,255,255,0.78)' : '#FFFFFF';
-    const textOuterAnchor = count <= 42 ? outerRadius * 0.81 : outerRadius * 0.91;
-    ctx.fillText(displayText, textOuterAnchor, 0);
-    ctx.restore();
-
-    ctx.restore();
-  });
+      ctx.restore();
+    });
+  }
 
   // Inner metallic gold ring around the hub
   ctx.save();
@@ -379,6 +440,59 @@ function renderWheelFrontTextureCanvas(params: {
 
   return canvas;
 }
+
+const SAMPLE_VIETNAMESE_NAMES = [
+  'Nguyễn Hoàng Minh Anh',
+  'Trần Gia Bảo',
+  'Lê Ngọc Khánh Châu',
+  'Phạm Đức Duy',
+  'Hoàng Thảo Đan',
+  'Vũ Minh Giang',
+  'Đặng Gia Hân',
+  'Bùi Quang Huy',
+  'Đỗ Ngọc Khánh',
+  'Hồ Tuấn Kiệt',
+  'Ngô Phương Linh',
+  'Dương Hoàng Long',
+  'Lý Bảo Minh',
+  'Phan Thảo My',
+  'Trương Quốc Nam',
+  'Võ Khánh Ngân',
+  'Đinh Khôi Nguyên',
+  'Lâm Bảo Ngọc',
+  'Mai Hoàng Phát',
+  'Tạ Minh Phúc',
+  'Châu Thanh Quân',
+  'Lương Ngọc Quỳnh',
+  'Thái Minh Sơn',
+  'Nguyễn Thủy Tiên',
+  'Trần Quốc Toàn',
+  'Lê Anh Tuấn',
+  'Phạm Phương Thảo',
+  'Hoàng Minh Thư',
+  'Vũ Quốc Trọng',
+  'Đặng Thanh Trúc',
+  'Bùi Khánh Uyên',
+  'Đỗ Hoàng Việt',
+  'Hồ Thảo Vy',
+  'Ngô Minh Xuân',
+  'Dương Hải Yến',
+  'Lý Gia Hưng',
+  'Phan Nhật Minh',
+  'Trương Bảo Trâm',
+  'Võ Quốc Khánh',
+  'Đinh Minh Khang',
+  'Lâm Thiên Ân',
+  'Mai Ngọc Ánh',
+  'Tạ Quốc Bình',
+  'Châu Minh Châu',
+  'Lương Thành Đạt',
+  'Thái Ngọc Diệp',
+  'Nguyễn Hải Đăng',
+  'Trần Minh Đức',
+  'Lê Hương Giang',
+  'Phạm Hoàng Hải',
+];
 
 export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
   availableCandidates,
@@ -414,9 +528,14 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
   const [isSoftwareRenderer, setIsSoftwareRenderer] = useState<boolean>(false);
 
-  // Side drawer & modals
+  // Presentation Mode vs Management Mode & Fullscreen sync
+  const [isPresentationMode, setIsPresentationMode] = useState<boolean>(true);
+  const [isLocalFullscreen, setIsLocalFullscreen] = useState<boolean>(false);
+  const [demoStudentCount, setDemoStudentCount] = useState<number | null>(null);
+
+  // Side drawer & modals (collapsed by default in Presentation Mode so wheel gets 100% stage width)
   const [sideTab, setSideTab] = useState<'STT_MAP' | 'HISTORY' | 'SETTINGS'>('STT_MAP');
-  const [showSidePanel, setShowSidePanel] = useState<boolean>(true);
+  const [showSidePanel, setShowSidePanel] = useState<boolean>(false);
   const [showWinnerModal, setShowWinnerModal] = useState<boolean>(false);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState<boolean>(false);
   const [showMathVerifyModal, setShowMathVerifyModal] = useState<boolean>(false);
@@ -435,10 +554,12 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
   const [spinRecords, setSpinRecords] = useState<Wheel3DSpinRecord[]>([]);
 
   // Refs for Anti-Stall Animation & Three.js Scene
+  const wheelStudioRootRef = useRef<HTMLDivElement | null>(null);
   const mountContainerRef = useRef<HTMLDivElement | null>(null);
   const fallbackCanvas2DRef = useRef<HTMLCanvasElement | null>(null);
   const soundEngineRef = useRef<Wheel3DSoundEngine>(new Wheel3DSoundEngine());
   const deduplicatorRef = useRef<SpinSaveDeduplicator>(new SpinSaveDeduplicator());
+  const stageAspectRef = useRef<number>(1.5);
 
   const activeSpinTokenRef = useRef<string | null>(null);
   const currentAngleCwRef = useRef<number>(0);
@@ -449,16 +570,16 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
   const spinStartTimeRef = useRef<number>(0);
   const watchdogTimerRef = useRef<number | null>(null);
 
-  // Camera orbit refs (for smooth drag + presets)
+  // Camera orbit refs (for smooth drag + dynamic aspect scaling)
   const targetOrbitRef = useRef<{ azimuth: number; elevation: number; distance: number }>({
     azimuth: 0.34,
-    elevation: 0.16,
-    distance: 9.1,
+    elevation: 0.14,
+    distance: 8.35,
   });
   const currentOrbitRef = useRef<{ azimuth: number; elevation: number; distance: number }>({
     azimuth: 0.34,
-    elevation: 0.16,
-    distance: 9.1,
+    elevation: 0.14,
+    distance: 8.35,
   });
   const isDraggingCameraRef = useRef<boolean>(false);
   const dragPreviousPointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -480,18 +601,78 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
     spotlightTargetGlow: THREE.Mesh;
   } | null>(null);
 
+  // Sync native browser fullscreen state (including Esc key exit)
+  const effectiveFullscreen = isFullscreen || isLocalFullscreen;
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isDocFs = Boolean(document.fullscreenElement);
+      setIsLocalFullscreen(isDocFs);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const handleToggleStudioFullscreen = useCallback(() => {
+    if (onToggleFullscreen) {
+      onToggleFullscreen();
+    }
+    const nextFs = !effectiveFullscreen;
+    setIsLocalFullscreen(nextFs);
+    if (nextFs) {
+      setIsPresentationMode(true);
+      setShowSidePanel(false);
+      if (!document.fullscreenElement && wheelStudioRootRef.current?.requestFullscreen) {
+        wheelStudioRootRef.current.requestFullscreen().catch(() => {
+          // Pseudo-fullscreen (fixed inset-0 z-50) remains active if iframe blocks native API
+        });
+      }
+    } else if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {
+        // Ignore
+      });
+    }
+  }, [effectiveFullscreen, onToggleFullscreen]);
+
   // Run mathematical unit tests once on mount
   const mathTestReport = useMemo(() => runWheel3DUnitTests(), []);
 
-  // Build immutable slice list from availableCandidates and full roster (allCandidates)
-  const fullRoster = useMemo(
-    () => (allCandidates.length > 0 ? allCandidates : availableCandidates),
-    [allCandidates, availableCandidates]
-  );
+  // Build effective roster (real class candidates or simulated 1..50 student test roster)
+  const effectiveRosterAndAvailable = useMemo(() => {
+    const baseFull = allCandidates.length > 0 ? allCandidates : availableCandidates;
+    if (demoStudentCount === null || demoStudentCount <= 0) {
+      return {
+        fullRoster: baseFull,
+        activeAvailable: availableCandidates,
+      };
+    }
+    const targetCount = Math.min(50, Math.max(1, demoStudentCount));
+    const simulatedRoster: StudentCandidate[] = Array.from({ length: targetCount }, (_, i) => {
+      if (i < baseFull.length) {
+        return baseFull[i];
+      }
+      const sampleName = SAMPLE_VIETNAMESE_NAMES[i % SAMPLE_VIETNAMESE_NAMES.length];
+      return {
+        id: `sim_hs_${i + 1}`,
+        code: String(i + 1).padStart(2, '0'),
+        fullName: sampleName,
+      };
+    });
+    const simulatedAvailable = simulatedRoster.filter(
+      (s) => !absentIds.has(s.id) && (!antiDuplicate || !calledSessionIds.has(s.id))
+    );
+    return {
+      fullRoster: simulatedRoster,
+      activeAvailable: simulatedAvailable,
+    };
+  }, [allCandidates, availableCandidates, demoStudentCount, absentIds, antiDuplicate, calledSessionIds]);
+
+  const fullRoster = effectiveRosterAndAvailable.fullRoster;
+  const activeAvailableCandidates = effectiveRosterAndAvailable.activeAvailable;
 
   const slices = useMemo(
-    () => buildWheel3DSliceItems(availableCandidates, fullRoster),
-    [availableCandidates, fullRoster]
+    () => buildWheel3DSliceItems(activeAvailableCandidates, fullRoster),
+    [activeAvailableCandidates, fullRoster]
   );
 
   const resolvedLabelMode = useMemo(
@@ -501,7 +682,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
 
   // Full roster STT reference list (so teacher/students can always see STT 01..N -> Full Name)
   const fullRosterReference = useMemo(() => {
-    const eligibleIds = new Set(availableCandidates.map((s) => s.id));
+    const eligibleIds = new Set(activeAvailableCandidates.map((s) => s.id));
     return fullRoster.map((student, idx) => ({
       sttNumber: idx + 1,
       formattedStt: String(idx + 1).padStart(2, '0'),
@@ -510,7 +691,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       isCalled: calledSessionIds.has(student.id),
       isEligibleNow: eligibleIds.has(student.id),
     }));
-  }, [fullRoster, availableCandidates, absentIds, calledSessionIds]);
+  }, [fullRoster, activeAvailableCandidates, absentIds, calledSessionIds]);
 
   // Load local spin records for this class
   const localRecordsKey = useMemo(
@@ -567,11 +748,11 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
   // Update camera target angles when cameraPreset changes
   useEffect(() => {
     if (cameraPreset === 'FRONT_TV') {
-      targetOrbitRef.current = { azimuth: 0, elevation: 0.04, distance: 8.85 };
+      targetOrbitRef.current = { azimuth: 0, elevation: 0.03, distance: 8.15 };
     } else if (cameraPreset === 'STUDIO_3D') {
-      targetOrbitRef.current = { azimuth: 0.36, elevation: 0.16, distance: 9.1 };
+      targetOrbitRef.current = { azimuth: 0.34, elevation: 0.14, distance: 8.35 };
     } else if (cameraPreset === 'HIGH_STAGE') {
-      targetOrbitRef.current = { azimuth: -0.32, elevation: 0.32, distance: 9.45 };
+      targetOrbitRef.current = { azimuth: -0.28, elevation: 0.28, distance: 8.65 };
     }
   }, [cameraPreset]);
 
@@ -957,17 +1138,17 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
     scene.environment = envTarget.texture;
 
     const camera = new THREE.PerspectiveCamera(
-      40,
+      43,
       (container.clientWidth || 800) / (container.clientHeight || 560),
       0.1,
       100
     );
 
     // Studio Lighting (Key, Fill, Rim, Stage Uplight)
-    const ambientLight = new THREE.AmbientLight('#1E3A8A', 0.85);
+    const ambientLight = new THREE.AmbientLight('#1E3A8A', 0.9);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight('#FFFBEB', 2.4);
+    const keyLight = new THREE.DirectionalLight('#FFFBEB', 2.45);
     keyLight.position.set(5.5, 7.5, 8.5);
     if (!softwareGl && qualityPreset === 'HIGH') {
       keyLight.castShadow = true;
@@ -975,38 +1156,38 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
     }
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight('#38BDF8', 1.25);
+    const fillLight = new THREE.DirectionalLight('#38BDF8', 1.3);
     fillLight.position.set(-6.5, 3.0, 5.5);
     scene.add(fillLight);
 
-    const rimLight = new THREE.PointLight('#F59E0B', 3.2, 18);
+    const rimLight = new THREE.PointLight('#F59E0B', 3.4, 18);
     rimLight.position.set(0, 4.8, -3.2);
     scene.add(rimLight);
 
-    // Master Root Group
+    // Master Root Group (centered vertically so wheel + pointer + stand fill 88-92% of stage height)
     const wheelRootGroup = new THREE.Group();
-    wheelRootGroup.position.set(0, 0.25, 0);
+    wheelRootGroup.position.set(0, 0.14, 0);
     scene.add(wheelRootGroup);
 
     const radialSegments = softwareGl || qualityPreset === 'LOW' ? 48 : 96;
 
-    // 1. Heavy 3D Studio Pedestal & Stage Floor
+    // 1. Compact Heavy 3D Studio Pedestal & Stage Floor
     const pedestalGroup = new THREE.Group();
     wheelRootGroup.add(pedestalGroup);
 
-    const floorGeo = new THREE.CylinderGeometry(5.6, 6.1, 0.26, radialSegments);
+    const floorGeo = new THREE.CylinderGeometry(5.2, 5.7, 0.22, radialSegments);
     const floorMat = new THREE.MeshStandardMaterial({
       color: '#0B1938',
       metalness: 0.65,
       roughness: 0.28,
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
-    floorMesh.position.set(0, -4.05, -0.35);
+    floorMesh.position.set(0, -3.56, -0.35);
     floorMesh.receiveShadow = true;
     pedestalGroup.add(floorMesh);
 
     // Glowing Stage Ring on Floor
-    const floorGlowRingGeo = new THREE.RingGeometry(3.85, 4.18, radialSegments);
+    const floorGlowRingGeo = new THREE.RingGeometry(3.65, 3.98, radialSegments);
     const floorGlowRingMat = new THREE.MeshBasicMaterial({
       color: '#38BDF8',
       side: THREE.DoubleSide,
@@ -1015,11 +1196,11 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
     });
     const spotlightTargetGlow = new THREE.Mesh(floorGlowRingGeo, floorGlowRingMat);
     spotlightTargetGlow.rotation.x = -Math.PI / 2;
-    spotlightTargetGlow.position.set(0, -3.9, -0.15);
+    spotlightTargetGlow.position.set(0, -3.43, -0.15);
     pedestalGroup.add(spotlightTargetGlow);
 
     // Pedestal Stepped Base
-    const baseStepGeo = new THREE.CylinderGeometry(2.35, 2.75, 0.42, 48);
+    const baseStepGeo = new THREE.CylinderGeometry(2.25, 2.65, 0.36, 48);
     const darkMetalMat = new THREE.MeshStandardMaterial({
       color: '#1E293B',
       metalness: 0.82,
@@ -1031,31 +1212,31 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       roughness: 0.18,
     });
     const baseStepMesh = new THREE.Mesh(baseStepGeo, darkMetalMat);
-    baseStepMesh.position.set(0, -3.72, -0.38);
+    baseStepMesh.position.set(0, -3.28, -0.38);
     pedestalGroup.add(baseStepMesh);
 
     // Twin A-Frame Support Pillars behind the wheel
-    const leftPillarGeo = new THREE.CylinderGeometry(0.18, 0.28, 4.1, 24);
+    const leftPillarGeo = new THREE.CylinderGeometry(0.18, 0.26, 3.65, 24);
     const leftPillar = new THREE.Mesh(leftPillarGeo, darkMetalMat);
-    leftPillar.position.set(-0.85, -1.85, -0.58);
+    leftPillar.position.set(-0.82, -1.62, -0.58);
     leftPillar.rotation.z = -0.22;
     pedestalGroup.add(leftPillar);
 
     const rightPillar = new THREE.Mesh(leftPillarGeo, darkMetalMat);
-    rightPillar.position.set(0.85, -1.85, -0.58);
+    rightPillar.position.set(0.82, -1.62, -0.58);
     rightPillar.rotation.z = 0.22;
     pedestalGroup.add(rightPillar);
 
     // Rear Axle Housing Spine (extends up to 12 o'clock pointer bracket)
-    const spineGeo = new THREE.BoxGeometry(0.46, 4.2, 0.34);
+    const spineGeo = new THREE.BoxGeometry(0.46, 4.1, 0.34);
     const spineMesh = new THREE.Mesh(spineGeo, darkMetalMat);
     spineMesh.position.set(0, 1.55, -0.56);
     pedestalGroup.add(spineMesh);
 
     // Top Pointer Overhang Arm (connecting rear spine to 12 o'clock front pointer)
-    const overhangGeo = new THREE.BoxGeometry(0.56, 0.34, 1.15);
+    const overhangGeo = new THREE.BoxGeometry(0.56, 0.32, 1.15);
     const overhangMesh = new THREE.Mesh(overhangGeo, goldMetalMat);
-    overhangMesh.position.set(0, 3.55, -0.1);
+    overhangMesh.position.set(0, 3.54, -0.1);
     pedestalGroup.add(overhangMesh);
 
     // 2. Stationary Outer Casing & 24 LED Bulbs
@@ -1192,16 +1373,19 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       spotlightTargetGlow,
     };
 
-    // ResizeObserver for responsive stage
+    // ResizeObserver for responsive stage & dynamic aspect scaling
     const handleResize = () => {
       if (!mountContainerRef.current || !threeSceneRef.current) return;
-      const w = mountContainerRef.current.clientWidth || 800;
-      const h = mountContainerRef.current.clientHeight || 560;
-      threeSceneRef.current.camera.aspect = w / h;
+      const w = Math.max(280, mountContainerRef.current.clientWidth || 800);
+      const h = Math.max(280, mountContainerRef.current.clientHeight || 560);
+      const aspect = w / h;
+      stageAspectRef.current = aspect;
+      threeSceneRef.current.camera.aspect = aspect;
       threeSceneRef.current.camera.updateProjectionMatrix();
       threeSceneRef.current.renderer.setSize(w, h);
     };
 
+    handleResize();
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
 
@@ -1293,21 +1477,26 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       refs.pointerCrystalMat.emissiveIntensity =
         1.4 + currentVelocityNorm * 2.2 + 0.4 * Math.sin(now * 0.006);
 
-      // 5. Smooth Camera Orbit Interpolation
+      // 5. Smooth Camera Orbit Interpolation + Dynamic Aspect Scaling
       const curOrbit = currentOrbitRef.current;
       const tgtOrbit = targetOrbitRef.current;
       curOrbit.azimuth += (tgtOrbit.azimuth - curOrbit.azimuth) * 0.12;
       curOrbit.elevation += (tgtOrbit.elevation - curOrbit.elevation) * 0.12;
       curOrbit.distance += (tgtOrbit.distance - curOrbit.distance) * 0.12;
 
+      // Automatically back camera up if viewport aspect is narrow so horizontal rim never clips
+      const aspect = stageAspectRef.current || 1.5;
+      const aspectScale = aspect < 1.08 ? Math.min(1.45, 1.08 / Math.max(0.55, aspect)) : 1.0;
+      const effectiveDist = curOrbit.distance * aspectScale;
+
       const camX =
-        curOrbit.distance * Math.sin(curOrbit.azimuth) * Math.cos(curOrbit.elevation);
-      const camY = curOrbit.distance * Math.sin(curOrbit.elevation) + 0.15;
+        effectiveDist * Math.sin(curOrbit.azimuth) * Math.cos(curOrbit.elevation);
+      const camY = effectiveDist * Math.sin(curOrbit.elevation) + 0.12;
       const camZ =
-        curOrbit.distance * Math.cos(curOrbit.azimuth) * Math.cos(curOrbit.elevation);
+        effectiveDist * Math.cos(curOrbit.azimuth) * Math.cos(curOrbit.elevation);
 
       refs.camera.position.set(camX, camY, camZ);
-      refs.camera.lookAt(0, 0.05, 0);
+      refs.camera.lookAt(0, 0.08, 0);
 
       refs.renderer.render(refs.scene, refs.camera);
       afterDrawTime = performance.now();
@@ -1335,6 +1524,20 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       threeSceneRef.current = null;
     };
   }, [qualityPreset]); // Re-init only if user changes WebGL quality preset
+
+  // Trigger resize recalculation when presentation mode, fullscreen, or side panel changes
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (!mountContainerRef.current || !threeSceneRef.current) return;
+      const w = Math.max(280, mountContainerRef.current.clientWidth || 800);
+      const h = Math.max(280, mountContainerRef.current.clientHeight || 560);
+      stageAspectRef.current = w / h;
+      threeSceneRef.current.camera.aspect = w / h;
+      threeSceneRef.current.camera.updateProjectionMatrix();
+      threeSceneRef.current.renderer.setSize(w, h);
+    }, 60);
+    return () => window.clearTimeout(timer);
+  }, [effectiveFullscreen, isPresentationMode, showSidePanel]);
 
   // Update 3D Wheel Front Texture, 3D Divider Ribs, and 3D Boundary Pegs whenever slices or label mode change
   useEffect(() => {
@@ -1509,7 +1712,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
     isDraggingCameraRef.current = false;
   };
 
-  // Keyboard Shortcuts: Space = Spin, R = Reset, M = Mute, F = Fullscreen (Section X)
+  // Keyboard Shortcuts: Space = Spin, R = Reset, M = Mute, F = Fullscreen, Esc = Exit Fullscreen
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -1534,13 +1737,34 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
         onToggleMute?.();
       } else if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
-        onToggleFullscreen?.();
+        handleToggleStudioFullscreen();
+      } else if (e.key === 'Escape') {
+        if (showWinnerModal) {
+          setShowWinnerModal(false);
+        } else if (showSidePanel && isPresentationMode) {
+          setShowSidePanel(false);
+        } else if (effectiveFullscreen) {
+          setIsLocalFullscreen(false);
+          if (isFullscreen && onToggleFullscreen) {
+            onToggleFullscreen();
+          }
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [startSpin3D, onToggleMute, onToggleFullscreen]);
+  }, [
+    startSpin3D,
+    onToggleMute,
+    handleToggleStudioFullscreen,
+    showWinnerModal,
+    showSidePanel,
+    isPresentationMode,
+    effectiveFullscreen,
+    isFullscreen,
+    onToggleFullscreen,
+  ]);
 
   const isSpinningNow =
     wheelState === 'SELECTING_RESULT' ||
@@ -1570,40 +1794,57 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
 
   return (
     <div
-      style={{ fontFamily: '"Times New Roman", Times, serif' }}
-      className="w-full bg-gradient-to-b from-[#060E20] via-[#0B1938] to-[#081229] text-white rounded-3xl border-2 border-amber-400/40 shadow-2xl overflow-hidden flex flex-col"
+      ref={wheelStudioRootRef}
+      className={
+        effectiveFullscreen
+          ? 'fixed inset-0 z-50 w-screen h-dvh bg-[#050C1C] text-white font-sans overflow-hidden flex flex-col select-none'
+          : 'relative w-full h-[calc(100dvh-132px)] min-h-[620px] bg-gradient-to-b from-[#060E20] via-[#0B1938] to-[#050C1C] text-white font-sans rounded-2xl border-2 border-amber-400/45 shadow-2xl overflow-hidden flex flex-col select-none'
+      }
     >
-      {/* Top Broadcast Control Bar */}
-      <div className="px-4 sm:px-6 py-3.5 bg-[#0A1633] border-b border-amber-400/25 flex flex-wrap items-center justify-between gap-3">
-        {/* Left: Brand & Class Selector */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center font-black text-base shadow-md">
+      {/* 1. Streamlined Top Presentation Bar (56px-62px) */}
+      <div className="shrink-0 px-3 sm:px-5 py-2.5 bg-[#08132C]/95 border-b border-amber-400/25 flex flex-wrap items-center justify-between gap-2.5 z-20">
+        {/* Left: Game Brand, Class Selector & Student Counts */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center font-black text-xs sm:text-sm shadow-md shrink-0">
               A01
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-black tracking-wide text-amber-300 uppercase">
-                  Vòng Quay Học Sinh 3D · Gameshow Studio
+                <h3 className="text-sm sm:text-base font-black tracking-tight text-amber-300 uppercase leading-tight">
+                  Vòng Quay Học Sinh 3D
                 </h3>
-                <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-400/40 text-[11px] font-bold text-sky-300">
-                  WebGL 3D 2.0
+                {demoStudentCount !== null && (
+                  <span className="px-2 py-0.5 rounded bg-amber-400 text-slate-950 text-[10px] font-black uppercase">
+                    Mô phỏng {demoStudentCount} HS
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-[11px] sm:text-xs text-slate-300">
+                <span>
+                  Lớp: <strong className="text-white">{resolvedClassName}</strong>
+                </span>
+                <span>•</span>
+                <span>
+                  Tham gia: <strong className="text-sky-300 tabular-nums">{fullRoster.length}</strong>
+                </span>
+                <span>•</span>
+                <span>
+                  Còn lại: <strong className="text-emerald-400 tabular-nums">{slices.length}</strong> HS
                 </span>
               </div>
-              <p className="text-xs text-slate-300">
-                Lớp đang chọn: <strong className="text-white">{resolvedClassName}</strong> · Sẵn sàng:{' '}
-                <strong className="text-emerald-400 tabular-nums">{slices.length}</strong>/
-                <span className="tabular-nums">{fullRoster.length}</span> HS
-              </p>
             </div>
           </div>
 
           {classes.length > 0 && onSelectSourceKey && (
             <select
               value={selectedSourceKey}
-              onChange={(e) => onSelectSourceKey(e.target.value)}
+              onChange={(e) => {
+                setDemoStudentCount(null);
+                onSelectSourceKey(e.target.value);
+              }}
               disabled={isSpinningNow}
-              className="px-3 py-1.5 rounded-xl bg-[#11224D] border border-blue-400/40 text-xs sm:text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-50"
+              className="px-2.5 py-1.5 rounded-xl bg-[#10224C] border border-blue-400/40 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-50 cursor-pointer"
             >
               {classes.map((cls) => (
                 <option key={cls.id} value={cls.id} className="bg-slate-900 text-white">
@@ -1612,16 +1853,29 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               ))}
             </select>
           )}
+
+          {onOpenAbsentModal && (
+            <button
+              type="button"
+              onClick={onOpenAbsentModal}
+              disabled={isSpinningNow}
+              className="px-2.5 py-1.5 rounded-xl bg-[#10224C] hover:bg-[#18316B] border border-blue-400/30 text-xs font-bold text-sky-200 flex items-center gap-1.5 cursor-pointer"
+              title="Quản lý danh sách học sinh / Điểm danh vắng"
+            >
+              <Users className="w-3.5 h-3.5 text-sky-400" />
+              <span className="hidden sm:inline">DS Lớp / Vắng ({absentIds.size})</span>
+            </button>
+          )}
         </div>
 
-        {/* Right: Quick Action Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Right: Non-Repeat, Presentation Mode Toggle, Drawer Toggle, Audio & Fullscreen */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* Anti-repeat toggle */}
           <button
             type="button"
             onClick={onToggleAntiDuplicate}
             disabled={isSpinningNow}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
               antiDuplicate
                 ? 'bg-emerald-500/20 border-emerald-400/60 text-emerald-200'
                 : 'bg-slate-800 border-slate-600 text-slate-300'
@@ -1629,131 +1883,113 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
             title="Chế độ không lặp lại học sinh đã gọi trong phiên"
           >
             <UserCheck className="w-3.5 h-3.5" />
-            <span>{antiDuplicate ? 'Không lặp: BẬT' : 'Cho phép lặp'}</span>
+            <span>{antiDuplicate ? 'Không lặp' : 'Cho lặp'}</span>
           </button>
-
-          {/* Label mode switch: AUTO / NAME / NUMBER */}
-          <div className="flex items-center bg-[#102048] border border-blue-400/30 rounded-xl p-0.5 text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => setLabelModePref('AUTO')}
-              className={`px-2.5 py-1 rounded-lg transition-colors ${
-                labelModePref === 'AUTO'
-                  ? 'bg-amber-400 text-slate-950 font-black'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              Tự động
-            </button>
-            <button
-              type="button"
-              onClick={() => setLabelModePref('NAME')}
-              className={`px-2.5 py-1 rounded-lg transition-colors ${
-                labelModePref === 'NAME'
-                  ? 'bg-amber-400 text-slate-950 font-black'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              Tên HS
-            </button>
-            <button
-              type="button"
-              onClick={() => setLabelModePref('NUMBER')}
-              className={`px-2.5 py-1 rounded-lg transition-colors ${
-                labelModePref === 'NUMBER'
-                  ? 'bg-amber-400 text-slate-950 font-black'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              Số TT
-            </button>
-          </div>
-
-          {/* Speed selector */}
-          <select
-            value={speedMode}
-            onChange={(e) => setSpeedMode(e.target.value as Wheel3DSpeedMode)}
-            disabled={isSpinningNow}
-            className="px-2.5 py-1.5 rounded-xl bg-[#102048] border border-blue-400/30 text-xs font-bold text-amber-200 focus:outline-none"
-            title="Tốc độ quay"
-          >
-            <option value="FAST" className="bg-slate-900">Tốc độ: Nhanh (3s)</option>
-            <option value="NORMAL" className="bg-slate-900">Tốc độ: Chuẩn (6s)</option>
-            <option value="SUSPENSE" className="bg-slate-900">Tốc độ: Hồi hộp (9s)</option>
-          </select>
-
-          {/* Absent students button */}
-          {onOpenAbsentModal && (
-            <button
-              type="button"
-              onClick={onOpenAbsentModal}
-              disabled={isSpinningNow}
-              className="px-3 py-1.5 rounded-xl bg-[#102048] hover:bg-[#19306B] border border-blue-400/30 text-xs font-bold text-sky-200 flex items-center gap-1.5"
-            >
-              <Users className="w-3.5 h-3.5 text-sky-400" />
-              <span>Vắng ({absentIds.size})</span>
-            </button>
-          )}
 
           {/* Reset Session */}
           <button
             type="button"
             onClick={() => setShowResetConfirmModal(true)}
             disabled={isSpinningNow}
-            className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-xs font-bold text-rose-200 flex items-center gap-1.5"
+            className="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-xs font-bold text-rose-200 flex items-center gap-1 cursor-pointer"
             title="Đặt lại danh sách học sinh đã gọi (Phím R)"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Đặt lại</span>
+            <span className="hidden md:inline">Đặt lại</span>
+          </button>
+
+          {/* Presentation vs Management Mode Toggle */}
+          <div className="flex items-center bg-[#0F2147] border border-blue-400/30 rounded-xl p-0.5 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => {
+                setIsPresentationMode(true);
+                setShowSidePanel(false);
+              }}
+              className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                isPresentationMode
+                  ? 'bg-amber-400 text-slate-950 font-black'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+              title="Chế độ Trình chiếu: Ưu tiên 100% không gian cho vòng quay 3D"
+            >
+              Trình chiếu
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsPresentationMode(false);
+                setShowSidePanel(true);
+              }}
+              className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                !isPresentationMode
+                  ? 'bg-amber-400 text-slate-950 font-black'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+              title="Chế độ Quản lý: Hiển thị cố định bảng STT, lịch sử và cấu hình"
+            >
+              Quản lý
+            </button>
+          </div>
+
+          {/* Drawer Toggle (STT / History / 3D Settings) */}
+          <button
+            type="button"
+            onClick={() => setShowSidePanel((v) => !v)}
+            className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              showSidePanel
+                ? 'bg-blue-600 border-sky-300 text-white'
+                : 'bg-[#10224C] hover:bg-[#18316B] border-blue-400/30 text-slate-200'
+            }`}
+            title="Đóng/mở bảng STT, Lịch sử & Cấu hình 3D"
+          >
+            <Sliders className="w-3.5 h-3.5 text-amber-300" />
+            <span className="hidden sm:inline">
+              {showSidePanel ? 'Đóng bảng phụ' : 'Bảng STT & Cấu hình'}
+            </span>
           </button>
 
           {/* Audio Mute */}
           <button
             type="button"
             onClick={onToggleMute}
-            className="p-2 rounded-xl bg-[#102048] hover:bg-[#19306B] border border-blue-400/30 text-amber-300"
+            className="p-2 rounded-xl bg-[#10224C] hover:bg-[#18316B] border border-blue-400/30 text-amber-300 cursor-pointer"
             title="Bật/tắt âm thanh (Phím M)"
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
-          {/* Fullscreen */}
-          {onToggleFullscreen && (
-            <button
-              type="button"
-              onClick={onToggleFullscreen}
-              className="p-2 rounded-xl bg-[#102048] hover:bg-[#19306B] border border-blue-400/30 text-sky-300"
-              title="Toàn màn hình (Phím F)"
-            >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-          )}
-
-          {/* Toggle Side Panel */}
+          {/* Fullscreen Toggle */}
           <button
             type="button"
-            onClick={() => setShowSidePanel((v) => !v)}
-            className="px-2.5 py-1.5 rounded-xl bg-[#102048] hover:bg-[#19306B] border border-blue-400/30 text-xs font-bold text-slate-200 flex items-center gap-1"
+            onClick={handleToggleStudioFullscreen}
+            className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:brightness-110 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+            title="Phóng to toàn màn hình trình chiếu (Phím F / Esc để thoát)"
           >
-            {showSidePanel ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            <span className="hidden md:inline">{showSidePanel ? 'Ẩn bảng phụ' : 'Hiện bảng phụ'}</span>
+            {effectiveFullscreen ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Thoát Fullscreen</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Toàn màn hình</span>
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Main Studio Body: 3D Stage Canvas + Collapsible Side Reference Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-[580px]">
-        {/* Left / Center: True Three.js 3D WebGL Stage */}
-        <div
-          className={`${
-            showSidePanel ? 'lg:col-span-8 xl:col-span-9' : 'lg:col-span-12'
-          } relative flex flex-col justify-between bg-gradient-to-b from-[#071126] via-[#0B1B3D] to-[#060E20] overflow-hidden`}
-        >
-          {/* Top HUD Overlay: Live State Badge, Active Slice Readout & 3D Camera Angles */}
-          <div className="relative z-10 px-4 sm:px-6 pt-4 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
-            {/* Live Status & Current Pointer Slice */}
-            <div className="flex flex-wrap items-center gap-2.5 pointer-events-auto">
-              <div className="px-3.5 py-1.5 rounded-xl bg-[#0A1736]/95 border border-amber-400/50 shadow-lg flex items-center gap-2">
+      {/* 2. Main Studio Workspace: Full-Height 3D Stage + Collapsible/Overlay Side Drawer */}
+      <div className="relative flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
+        {/* Center 3D Stage Column (always flex-1 min-h-0 so zero bottom whitespace) */}
+        <div className="relative flex-1 min-h-0 flex flex-col justify-between bg-[radial-gradient(ellipse_at_center,_#102554_0%,_#07122B_60%,_#040A18_100%)] overflow-hidden">
+          {/* Floating Top HUD Overlay inside 3D Stage */}
+          <div className="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+            {/* Live Status & Current 12h Pointer Student */}
+            <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+              <div className="px-3 py-1 rounded-xl bg-[#081533]/90 backdrop-blur-md border border-amber-400/50 shadow-lg flex items-center gap-2">
                 <span
                   className={`w-2.5 h-2.5 rounded-full ${
                     isSpinningNow
@@ -1763,18 +1999,18 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                       : 'bg-emerald-400'
                   }`}
                 />
-                <span className="text-xs font-black tracking-wider text-amber-300 uppercase">
+                <span className="text-[11px] sm:text-xs font-black tracking-wider text-amber-300 uppercase">
                   {stateBadgeText[wheelState]}
                 </span>
               </div>
 
               {activePointerSlice && (
-                <div className="px-3.5 py-1.5 rounded-xl bg-[#0F2350]/95 border border-sky-400/40 shadow-lg flex items-center gap-2">
-                  <span className="text-xs text-sky-300 font-bold">Kim chỉ 12h:</span>
-                  <span className="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-xs tabular-nums">
+                <div className="px-3 py-1 rounded-xl bg-[#0D214C]/90 backdrop-blur-md border border-sky-400/40 shadow-lg flex items-center gap-2">
+                  <span className="text-[11px] text-sky-300 font-bold">Kim 12h:</span>
+                  <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-xs tabular-nums">
                     #{activePointerSlice.formattedStt}
                   </span>
-                  <span className="text-sm font-black text-white truncate max-w-[200px] sm:max-w-[260px]">
+                  <span className="text-xs sm:text-sm font-black text-white truncate max-w-[180px] sm:max-w-[260px]">
                     {activePointerSlice.student.fullName}
                   </span>
                 </div>
@@ -1782,12 +2018,12 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
             </div>
 
             {/* 3D Camera Angle Presets */}
-            <div className="flex items-center gap-1.5 bg-[#0A1736]/95 border border-blue-400/30 rounded-xl p-1 pointer-events-auto shadow-lg">
+            <div className="flex items-center gap-1 bg-[#081533]/90 backdrop-blur-md border border-blue-400/30 rounded-xl p-1 pointer-events-auto shadow-lg">
               <Camera className="w-3.5 h-3.5 text-amber-400 ml-1.5" />
               <button
                 type="button"
                 onClick={() => setCameraPreset('STUDIO_3D')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                className={`px-2 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition-colors cursor-pointer ${
                   cameraPreset === 'STUDIO_3D'
                     ? 'bg-blue-600 text-white'
                     : 'text-slate-300 hover:text-white'
@@ -1798,7 +2034,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setCameraPreset('FRONT_TV')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                className={`px-2 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition-colors cursor-pointer ${
                   cameraPreset === 'FRONT_TV'
                     ? 'bg-blue-600 text-white'
                     : 'text-slate-300 hover:text-white'
@@ -1809,7 +2045,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setCameraPreset('HIGH_STAGE')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                className={`px-2 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition-colors cursor-pointer ${
                   cameraPreset === 'HIGH_STAGE'
                     ? 'bg-blue-600 text-white'
                     : 'text-slate-300 hover:text-white'
@@ -1820,13 +2056,13 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
             </div>
           </div>
 
-          {/* Center 3D WebGL Viewport */}
+          {/* Center 3D WebGL Viewport (flex-1 min-h-0 fills 100% of stage height) */}
           <div
             onPointerDown={handleStagePointerDown}
             onPointerMove={handleStagePointerMove}
             onPointerUp={handleStagePointerUp}
             onPointerLeave={handleStagePointerUp}
-            className="relative w-full h-[430px] sm:h-[490px] lg:h-[520px] cursor-grab active:cursor-grabbing select-none"
+            className="relative flex-1 min-h-0 w-full h-full cursor-grab active:cursor-grabbing select-none"
             title="Kéo chuột để xoay góc nhìn 3D quanh sân khấu"
           >
             {webglSupported ? (
@@ -1835,9 +2071,9 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <div className="w-full h-full flex flex-col items-center justify-center p-4">
                 <canvas
                   ref={fallbackCanvas2DRef}
-                  width={420}
-                  height={420}
-                  className="rounded-full border-4 border-amber-400 shadow-2xl"
+                  width={460}
+                  height={460}
+                  className="rounded-full border-4 border-amber-400 shadow-2xl max-h-full max-w-full"
                 />
                 <p className="text-xs text-amber-300 mt-2 font-bold">
                   Chế độ tương thích Canvas 2D (Thiết bị không bật WebGL)
@@ -1868,7 +2104,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                         setWinnerSlice(null);
                         setWheelState('READY');
                       }}
-                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-sm shadow-lg hover:brightness-105"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-sm shadow-lg hover:brightness-105 cursor-pointer"
                     >
                       Đặt lại lượt gọi ngay
                     </button>
@@ -1876,7 +2112,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                       <button
                         type="button"
                         onClick={onToggleAntiDuplicate}
-                        className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm"
+                        className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm cursor-pointer"
                       >
                         Chuyển sang Cho phép lặp
                       </button>
@@ -1899,7 +2135,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                       setErrorMessage(null);
                       setWheelState(slices.length > 0 ? 'READY' : 'NO_ELIGIBLE_STUDENTS');
                     }}
-                    className="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-sm"
+                    className="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-sm cursor-pointer"
                   >
                     Sẵn sàng quay lại
                   </button>
@@ -1908,32 +2144,83 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
             )}
           </div>
 
-          {/* Bottom Stage Deck: Giant Spin Button + Winner Quick Banner + Hint */}
-          <div className="relative z-10 px-4 sm:px-6 pb-5 pt-2 bg-gradient-to-t from-[#050C1C] via-[#081530]/95 to-transparent flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Left Hint: Drag 3D & Mode Info */}
-            <div className="text-xs text-slate-300 flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-[#102048] border border-blue-400/30 text-sky-200 font-bold">
-                Chế độ nhãn:{' '}
-                {resolvedLabelMode === 'FULL_OR_SHORT_NAME'
-                  ? 'Tên đầy đủ/rút gọn (1–15 HS)'
-                  : resolvedLabelMode === 'SHORT_NAME'
-                  ? 'Tên rút gọn (16–30 HS)'
-                  : 'Số thứ tự 01–50 (Lớp đông)'}
-              </span>
-              <span className="hidden xl:inline text-slate-400">
-                Phím tắt: [Space] Quay · [R] Đặt lại · [M] Âm thanh · [F] Toàn màn hình
-              </span>
+          {/* Bottom Control Dock (Compact, Centered Primary Action, No Canvas Overlap) */}
+          <div className="shrink-0 px-3 sm:px-6 py-2.5 bg-[#061024]/95 border-t border-amber-400/25 flex flex-wrap items-center justify-between gap-2.5 z-10">
+            {/* Left: 3 Label Modes + Auto Switch & Speed */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center bg-[#0F2147] border border-blue-400/30 rounded-xl p-0.5 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setLabelModePref('AUTO')}
+                  className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                    labelModePref === 'AUTO'
+                      ? 'bg-amber-400 text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  title="Tự động chọn cách hiển thị tối ưu theo sĩ số lớp"
+                >
+                  Tự động
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLabelModePref('NAME')}
+                  className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                    labelModePref === 'NAME'
+                      ? 'bg-amber-400 text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  title="Chế độ 1: Hiển thị Tên học sinh trên ô vòng quay"
+                >
+                  Tên HS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLabelModePref('SHORT_NAME')}
+                  className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                    labelModePref === 'SHORT_NAME'
+                      ? 'bg-amber-400 text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  title="Chế độ 2: Hiển thị Tên rút gọn (VD: M. Anh)"
+                >
+                  Tên rút gọn
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLabelModePref('NUMBER')}
+                  className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                    labelModePref === 'NUMBER'
+                      ? 'bg-amber-400 text-slate-950 font-black'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  title="Chế độ 3: Chỉ hiển thị Số thứ tự (01-50) cho lớp đông"
+                >
+                  Số TT
+                </button>
+              </div>
+
+              <select
+                value={speedMode}
+                onChange={(e) => setSpeedMode(e.target.value as Wheel3DSpeedMode)}
+                disabled={isSpinningNow}
+                className="px-2.5 py-1.5 rounded-xl bg-[#0F2147] border border-blue-400/30 text-xs font-bold text-amber-200 focus:outline-none cursor-pointer"
+                title="Tốc độ quay"
+              >
+                <option value="FAST" className="bg-slate-900">Tốc độ: Nhanh (3s)</option>
+                <option value="NORMAL" className="bg-slate-900">Tốc độ: Chuẩn (6s)</option>
+                <option value="SUSPENSE" className="bg-slate-900">Tốc độ: Hồi hộp (9s)</option>
+              </select>
             </div>
 
             {/* Center CTA: QUAY NGAY 3D */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={startSpin3D}
                 disabled={isSpinningNow || slices.length === 0}
-                className="px-8 sm:px-10 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-base sm:text-lg tracking-wider uppercase shadow-[0_0_30px_rgba(245,158,11,0.45)] transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5 border-2 border-yellow-200"
+                className="px-7 sm:px-10 py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm sm:text-base tracking-wider uppercase shadow-[0_0_26px_rgba(245,158,11,0.5)] transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border-2 border-yellow-100 cursor-pointer"
               >
-                <Play className="w-5 h-5 fill-slate-950" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-slate-950" />
                 <span>{isSpinningNow ? 'ĐANG QUAY 3D...' : 'QUAY NGAY (SPACE)'}</span>
               </button>
 
@@ -1941,36 +2228,46 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowWinnerModal(true)}
-                  className="px-4 py-3.5 rounded-2xl bg-blue-600/90 hover:bg-blue-500 border border-blue-300/50 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg"
+                  className="px-3.5 py-2.5 rounded-2xl bg-blue-600/90 hover:bg-blue-500 border border-blue-300/50 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg cursor-pointer"
                 >
-                  <Trophy className="w-4 h-4 text-amber-300" />
-                  <span>Xem lại: #{winnerSlice.formattedStt} {winnerSlice.student.fullName}</span>
+                  <Trophy className="w-4 h-4 text-amber-300 shrink-0" />
+                  <span className="truncate max-w-[160px] sm:max-w-[220px]">
+                    KQ: #{winnerSlice.formattedStt} {winnerSlice.student.fullName}
+                  </span>
                 </button>
               )}
             </div>
 
-            {/* Right: Fairness & Math Verification Status */}
-            <button
-              type="button"
-              onClick={() => setShowMathVerifyModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 text-xs font-bold flex items-center gap-1.5"
-              title="Kiểm tra độ chính xác toán học & RNG công bằng"
-            >
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>RNG Công bằng ({mathTestReport.totalChecks} test OK)</span>
-            </button>
+            {/* Right: Fairness Status & Quick STT Drawer */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowMathVerifyModal(true)}
+                className="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                title="Kiểm tra độ chính xác toán học & RNG công bằng"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden xl:inline">RNG Công bằng ({mathTestReport.totalChecks} OK)</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Right Column: Reference Table (STT <-> Full Name), Session History & 3D Settings */}
+        {/* Right Side Panel / Drawer (Overlay in Presentation Mode, Pinned in Management Mode) */}
         {showSidePanel && (
-          <div className="lg:col-span-4 xl:col-span-3 bg-[#091530] border-t lg:border-t-0 lg:border-l border-amber-400/25 flex flex-col h-[580px] lg:h-auto">
-            {/* Side Panel Tabs */}
-            <div className="grid grid-cols-3 p-2 gap-1 bg-[#060E20] border-b border-blue-400/20 text-xs font-bold">
+          <div
+            className={
+              isPresentationMode
+                ? 'absolute right-0 top-0 bottom-0 w-full sm:w-[360px] bg-[#08132C]/98 backdrop-blur-xl border-l border-amber-400/35 shadow-2xl flex flex-col z-30'
+                : 'w-full lg:w-[340px] xl:w-[360px] shrink-0 bg-[#08132C] border-t lg:border-t-0 lg:border-l border-amber-400/25 flex flex-col min-h-0'
+            }
+          >
+            {/* Side Panel Tabs + Close Button */}
+            <div className="flex items-center gap-1 p-2 bg-[#050C1C] border-b border-blue-400/20 text-xs font-bold shrink-0">
               <button
                 type="button"
                 onClick={() => setSideTab('STT_MAP')}
-                className={`py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors ${
+                className={`flex-1 py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer ${
                   sideTab === 'STT_MAP'
                     ? 'bg-blue-600 text-white font-black'
                     : 'text-slate-300 hover:bg-slate-800/60'
@@ -1982,7 +2279,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setSideTab('HISTORY')}
-                className={`py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors ${
+                className={`flex-1 py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer ${
                   sideTab === 'HISTORY'
                     ? 'bg-blue-600 text-white font-black'
                     : 'text-slate-300 hover:bg-slate-800/60'
@@ -1994,21 +2291,29 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setSideTab('SETTINGS')}
-                className={`py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors ${
+                className={`flex-1 py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer ${
                   sideTab === 'SETTINGS'
                     ? 'bg-blue-600 text-white font-black'
                     : 'text-slate-300 hover:bg-slate-800/60'
                 }`}
               >
                 <Sliders className="w-3.5 h-3.5" />
-                <span>Cấu hình 3D</span>
+                <span>Cấu hình</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSidePanel(false)}
+                className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                title="Đóng bảng phụ"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Tab 1: STT <-> Student Full Name Reference Table (Section IV) */}
             {sideTab === 'STT_MAP' && (
               <div className="flex-1 flex flex-col min-h-0">
-                <div className="px-4 py-2.5 bg-[#0D1E45] border-b border-blue-400/20 flex items-center justify-between text-xs">
+                <div className="px-4 py-2.5 bg-[#0D1E45] border-b border-blue-400/20 flex items-center justify-between text-xs shrink-0">
                   <span className="font-bold text-amber-300">
                     Bảng ánh xạ Số TT ↔ Họ tên học sinh
                   </span>
@@ -2017,7 +2322,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                   </span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-3 space-y-1.5 max-h-[460px]">
+                <div className="flex-1 overflow-y-auto p-3 space-y-1.5 min-h-0">
                   {fullRosterReference.map((item) => {
                     const activeSliceIdx = slices.findIndex(
                       (s) => s.student.id === item.student.id
@@ -2080,7 +2385,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                           <button
                             type="button"
                             onClick={() => onRestoreStudentToPool(item.student.id)}
-                            className="px-2 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-500/40 text-sky-300 font-bold text-[11px] shrink-0"
+                            className="px-2 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-500/40 text-sky-300 font-bold text-[11px] shrink-0 cursor-pointer"
                             title="Đưa học sinh này trở lại vòng quay"
                           >
                             Đưa lại
@@ -2096,20 +2401,20 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
             {/* Tab 2: Session Spin History & Supabase Sync Status (Section XIV) */}
             {sideTab === 'HISTORY' && (
               <div className="flex-1 flex flex-col min-h-0">
-                <div className="px-4 py-2.5 bg-[#0D1E45] border-b border-blue-400/20 flex items-center justify-between text-xs">
+                <div className="px-4 py-2.5 bg-[#0D1E45] border-b border-blue-400/20 flex items-center justify-between text-xs shrink-0">
                   <span className="font-bold text-amber-300">Lịch sử lượt quay trong phiên</span>
                   {onOpenHistoryModal && (
                     <button
                       type="button"
                       onClick={onOpenHistoryModal}
-                      className="text-sky-300 hover:underline font-bold"
+                      className="text-sky-300 hover:underline font-bold cursor-pointer"
                     >
                       Toàn bộ lịch sử
                     </button>
                   )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[460px]">
+                <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
                   {spinRecords.length === 0 ? (
                     <div className="text-center py-12 px-4 text-slate-400 text-xs space-y-2">
                       <History className="w-8 h-8 mx-auto text-slate-500" />
@@ -2153,7 +2458,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                             <button
                               type="button"
                               onClick={() => handleRetrySaveRecord(rec.spinId)}
-                              className="px-2 py-0.5 rounded bg-rose-500/30 hover:bg-rose-500/50 text-rose-200 font-bold flex items-center gap-1"
+                              className="px-2 py-0.5 rounded bg-rose-500/30 hover:bg-rose-500/50 text-rose-200 font-bold flex items-center gap-1 cursor-pointer"
                             >
                               <RefreshCw className="w-3 h-3" />
                               Thử lưu lại
@@ -2167,10 +2472,89 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               </div>
             )}
 
-            {/* Tab 3: 3D Graphics Quality, Voice & Accessibility Settings */}
+            {/* Tab 3: 3D Graphics Quality, Label Modes, 1-50 Student Simulator & Voice */}
             {sideTab === 'SETTINGS' && (
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs min-h-0">
+                {/* 3 Display Modes + Auto */}
                 <div className="space-y-2">
+                  <label className="block font-black text-amber-300 uppercase tracking-wider">
+                    Chế độ hiển thị nhãn trên vòng quay
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {(
+                      [
+                        { id: 'AUTO', label: 'Tự động (Khuyên dùng)' },
+                        { id: 'NAME', label: 'Chế độ 1: Tên HS' },
+                        { id: 'SHORT_NAME', label: 'Chế độ 2: Tên rút gọn' },
+                        { id: 'NUMBER', label: 'Chế độ 3: Số thứ tự' },
+                      ] as Array<{ id: Wheel3DLabelMode; label: string }>
+                    ).map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setLabelModePref(m.id)}
+                        className={`py-2 px-2.5 rounded-xl font-bold border text-left transition-all cursor-pointer ${
+                          labelModePref === m.id
+                            ? 'bg-amber-400 text-slate-950 border-amber-300 font-black'
+                            : 'bg-[#0F2350] text-slate-300 border-blue-400/20 hover:border-amber-400/40'
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Dù chọn chế độ nào trên vòng quay, khi dừng lại hộp thoại chúc mừng vẫn hiển thị đầy đủ Họ tên, Số thứ tự và Lớp.
+                  </p>
+                </div>
+
+                {/* Quick 1-50 Student Roster Simulator for Classroom Testing */}
+                <div className="space-y-2 pt-2 border-t border-blue-400/20">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-black text-amber-300 uppercase tracking-wider">
+                      Kiểm thử nhanh quy mô lớp (1 – 50 HS)
+                    </label>
+                    {demoStudentCount !== null && (
+                      <button
+                        type="button"
+                        onClick={() => setDemoStudentCount(null)}
+                        className="text-[11px] text-sky-300 hover:underline font-bold cursor-pointer"
+                      >
+                        Về lớp thực tế
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {[1, 5, 10, 20, 25, 30, 40, 45, 50].map((cnt) => (
+                      <button
+                        key={cnt}
+                        type="button"
+                        onClick={() => setDemoStudentCount(cnt)}
+                        className={`py-1.5 rounded-lg font-bold border transition-all cursor-pointer ${
+                          demoStudentCount === cnt
+                            ? 'bg-emerald-400 text-slate-950 border-emerald-300 font-black'
+                            : 'bg-[#0F2350] text-slate-200 border-blue-400/20 hover:border-emerald-400/50'
+                        }`}
+                      >
+                        {cnt} HS
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setDemoStudentCount(null)}
+                      className={`py-1.5 rounded-lg font-bold border transition-all cursor-pointer ${
+                        demoStudentCount === null
+                          ? 'bg-amber-400 text-slate-950 border-amber-300 font-black'
+                          : 'bg-[#0F2350] text-slate-300 border-blue-400/20'
+                      }`}
+                    >
+                      Mặc định
+                    </button>
+                  </div>
+                </div>
+
+                {/* WebGL Quality */}
+                <div className="space-y-2 pt-2 border-t border-blue-400/20">
                   <label className="block font-black text-amber-300 uppercase tracking-wider">
                     Chất lượng đồ họa WebGL 3D
                   </label>
@@ -2180,7 +2564,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                         key={preset}
                         type="button"
                         onClick={() => setQualityPreset(preset)}
-                        className={`py-2 rounded-xl font-bold border transition-all ${
+                        className={`py-2 rounded-xl font-bold border transition-all cursor-pointer ${
                           qualityPreset === preset
                             ? 'bg-amber-400 text-slate-950 border-amber-300 font-black'
                             : 'bg-[#0F2350] text-slate-300 border-blue-400/20'
@@ -2190,11 +2574,9 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                       </button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-slate-400">
-                    Chế độ Thấp/Trung bình giúp máy tính phòng học cấu hình yếu vẫn đạt 60 FPS mượt mà.
-                  </p>
                 </div>
 
+                {/* Vietnamese TTS */}
                 <div className="space-y-2 pt-2 border-t border-blue-400/20">
                   <label className="block font-black text-amber-300 uppercase tracking-wider">
                     Giọng đọc Tiếng Việt (Web Speech API)
@@ -2202,7 +2584,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                   <button
                     type="button"
                     onClick={() => setVoiceEnabled((v) => !v)}
-                    className={`w-full py-2.5 px-3 rounded-xl border font-bold flex items-center justify-between ${
+                    className={`w-full py-2.5 px-3 rounded-xl border font-bold flex items-center justify-between cursor-pointer ${
                       voiceEnabled
                         ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-200'
                         : 'bg-slate-800 border-slate-700 text-slate-400'
@@ -2213,6 +2595,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                   </button>
                 </div>
 
+                {/* Reduce Motion */}
                 <div className="space-y-2 pt-2 border-t border-blue-400/20">
                   <label className="block font-black text-amber-300 uppercase tracking-wider">
                     Tùy chọn chuyển động
@@ -2220,7 +2603,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                   <button
                     type="button"
                     onClick={() => setReduceMotion((v) => !v)}
-                    className={`w-full py-2.5 px-3 rounded-xl border font-bold flex items-center justify-between ${
+                    className={`w-full py-2.5 px-3 rounded-xl border font-bold flex items-center justify-between cursor-pointer ${
                       reduceMotion
                         ? 'bg-amber-500/20 border-amber-400/50 text-amber-200'
                         : 'bg-[#0F2350] border-blue-400/20 text-slate-300'
@@ -2239,15 +2622,12 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       {/* Winner Announcement Modal (Section XII) */}
       {showWinnerModal && winnerSlice && (
         <div className="fixed inset-0 bg-slate-950/85 flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div
-            style={{ fontFamily: '"Times New Roman", Times, serif' }}
-            className="max-w-xl w-full bg-gradient-to-b from-[#0F2350] via-[#0B1938] to-[#071126] border-4 border-amber-400 rounded-3xl p-6 sm:p-8 text-white shadow-[0_0_60px_rgba(245,158,11,0.45)] space-y-6 relative overflow-hidden"
-          >
+          <div className="max-w-xl w-full bg-gradient-to-b from-[#0F2350] via-[#0B1938] to-[#071126] border-4 border-amber-400 rounded-3xl p-6 sm:p-8 text-white font-sans shadow-[0_0_60px_rgba(245,158,11,0.45)] space-y-6 relative overflow-hidden">
             {/* Close button */}
             <button
               type="button"
               onClick={() => setShowWinnerModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300"
+              className="absolute top-4 right-4 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -2263,7 +2643,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               </h2>
             </div>
 
-            {/* Student Card */}
+            {/* Student Card (Always shows full name, STT, and class regardless of slice label mode) */}
             <div className="p-6 rounded-2xl bg-[#071126]/90 border-2 border-amber-400/60 text-center space-y-3 shadow-inner">
               <div className="inline-flex items-center justify-center px-4 py-1 rounded-xl bg-amber-400 text-slate-950 font-black text-base tabular-nums shadow">
                 Số thứ tự: #{winnerSlice.formattedStt}
@@ -2290,7 +2670,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                       key={pts}
                       type="button"
                       onClick={() => setWinnerBonusPoints(pts)}
-                      className={`px-2.5 py-1 rounded-lg font-black transition-colors ${
+                      className={`px-2.5 py-1 rounded-lg font-black transition-colors cursor-pointer ${
                         winnerBonusPoints === pts
                           ? 'bg-emerald-500 text-slate-950'
                           : 'bg-slate-800 text-slate-300'
@@ -2318,7 +2698,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                         prev.map((r, i) => (i === 0 ? { ...r, note: presetNote } : r))
                       );
                     }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                       winnerNote === presetNote
                         ? 'bg-amber-400 text-slate-950 border-amber-300 font-black'
                         : 'bg-[#102048] border-blue-400/30 text-slate-200 hover:border-amber-400/50'
@@ -2339,7 +2719,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                   setTimeout(() => startSpin3D(), 120);
                 }}
                 disabled={slices.length === 0}
-                className="py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                className="py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer"
               >
                 <Play className="w-4 h-4 fill-slate-950" />
                 <span>Gọi tiếp học sinh khác</span>
@@ -2348,7 +2728,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => speakWinnerAnnouncement(winnerSlice.student.fullName, true)}
-                className="py-3.5 px-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg"
+                className="py-3.5 px-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg cursor-pointer"
               >
                 <Volume1 className="w-4 h-4" />
                 <span>Đọc lại tên học sinh</span>
@@ -2361,7 +2741,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                     onRestoreStudentToPool(winnerSlice.student.id);
                     setShowWinnerModal(false);
                   }}
-                  className="py-3 px-4 rounded-2xl bg-[#102048] hover:bg-[#19306B] border border-sky-400/40 text-sky-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2"
+                  className="py-3 px-4 rounded-2xl bg-[#102048] hover:bg-[#19306B] border border-sky-400/40 text-sky-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Đưa học sinh này lại vào danh sách</span>
@@ -2371,7 +2751,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setShowWinnerModal(false)}
-                className="py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2"
+                className="py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Đóng bảng công bố</span>
               </button>
@@ -2383,10 +2763,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       {/* Reset Confirmation Modal */}
       {showResetConfirmModal && (
         <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50">
-          <div
-            style={{ fontFamily: '"Times New Roman", Times, serif' }}
-            className="max-w-md w-full bg-[#0F2350] border-2 border-amber-400 rounded-3xl p-6 text-white space-y-4 shadow-2xl text-center"
-          >
+          <div className="max-w-md w-full bg-[#0F2350] border-2 border-amber-400 rounded-3xl p-6 text-white font-sans space-y-4 shadow-2xl text-center">
             <RotateCcw className="w-10 h-10 text-amber-400 mx-auto" />
             <h4 className="text-xl font-black text-amber-300 uppercase">
               Đặt lại phiên vòng quay?
@@ -2405,14 +2782,14 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                   setShowResetConfirmModal(false);
                   setWheelState('READY');
                 }}
-                className="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-sm"
+                className="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-sm cursor-pointer"
               >
                 Đồng ý đặt lại
               </button>
               <button
                 type="button"
                 onClick={() => setShowResetConfirmModal(false)}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm"
+                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm cursor-pointer"
               >
                 Hủy
               </button>
@@ -2424,10 +2801,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       {/* Mathematical & RNG Fairness Verification Modal (Section XV) */}
       {showMathVerifyModal && (
         <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50">
-          <div
-            style={{ fontFamily: '"Times New Roman", Times, serif' }}
-            className="max-w-lg w-full bg-[#0F2350] border-2 border-emerald-400 rounded-3xl p-6 text-white space-y-4 shadow-2xl"
-          >
+          <div className="max-w-lg w-full bg-[#0F2350] border-2 border-emerald-400 rounded-3xl p-6 text-white font-sans space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-emerald-300">
                 <ShieldCheck className="w-6 h-6" />
@@ -2438,7 +2812,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setShowMathVerifyModal(false)}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-300"
+                className="p-1.5 rounded-lg bg-slate-800 text-slate-300 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2472,7 +2846,7 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
               <button
                 type="button"
                 onClick={() => setShowMathVerifyModal(false)}
-                className="px-5 py-2 rounded-xl bg-emerald-400 text-slate-950 font-black text-xs uppercase"
+                className="px-5 py-2 rounded-xl bg-emerald-400 text-slate-950 font-black text-xs uppercase cursor-pointer"
               >
                 Đóng bảng kiểm định
               </button>
