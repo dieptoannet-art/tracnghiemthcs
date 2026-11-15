@@ -57,12 +57,36 @@ import { DiceGame } from './games/DiceGame';
 import { SecretCardGame } from './games/SecretCardGame';
 import { NumberWheelGame } from './games/NumberWheelGame';
 import { RobotGame } from './games/RobotGame';
+import { SpeedChallengeGame } from './games/SpeedChallengeGame';
+import { MysteryPictureGame } from './games/MysteryPictureGame';
+import { CrosswordGame } from './games/CrosswordGame';
+import { SecretCodeGame } from './games/SecretCodeGame';
+import { TrueFalseGame } from './games/TrueFalseGame';
+import { PictureWordGame } from './games/PictureWordGame';
+
+const StudentWheel3DGame = React.lazy(() => import('./games/StudentWheel3DGame'));
+const ClawMachine3DGame = React.lazy(() => import('./games/ClawMachine3DGame'));
+const MysteryGiftBox3DGame = React.lazy(() => import('./games/MysteryGiftBox3DGame'));
 import {
   CATEGORY_META,
   BannerGamepadSVG,
   BannerTrophyBooksSVG,
   GameCardIllustration,
 } from './gameLibraryHelpers';
+import {
+  GuestClassSession,
+  GuestTurnHistoryItem,
+  loadGuestSession,
+  saveGuestSession,
+  loadGuestHistory,
+  appendGuestTurnHistory,
+  clearAllGuestData,
+  loadRosterModePreference,
+  saveRosterModePreference,
+  buildGuestHistoryCsvContent,
+} from './GuestRosterManager';
+import { GameRosterSetup } from './GameRosterSetup';
+import { ClassRoom } from '../../types';
 
 // Web Audio Sound Synthesizer
 class SoundPlayer {
@@ -168,8 +192,49 @@ const SLICE_COLORS = [
 const PLUSH_ICONS = ['🧸', '🐰', '🐱', '🐶', '🦊', '🐼', '🐸', '🐥', '🦁', '🐯'];
 
 export const EDUGameCenter: React.FC = () => {
-  const { classes, questions, user, userProfile, currentRole } = useApp();
-  const teacherId = user?.id || 'gv_taydo';
+  const { classes, questions, user, userProfile, currentRole, openAuthModal } = useApp();
+  const isLoggedInTeacher = Boolean(user && currentRole !== 'student');
+  const systemTeacherId = user?.id || 'gv_taydo';
+
+  // Shared Guest Mode vs Teacher Mode state
+  const [rosterMode, setRosterMode] = useState<'guest' | 'teacher'>(() =>
+    loadRosterModePreference(Boolean(user && currentRole !== 'student'))
+  );
+  const [guestSession, setGuestSession] = useState<GuestClassSession>(() => loadGuestSession());
+  const [guestHistory, setGuestHistory] = useState<GuestTurnHistoryItem[]>(() => loadGuestHistory());
+  const [showRosterSetupModal, setShowRosterSetupModal] = useState<boolean>(false);
+  const [pendingGameToLaunch, setPendingGameToLaunch] = useState<EduGameItem | null>(null);
+
+  const handleChangeRosterMode = (nextMode: 'guest' | 'teacher') => {
+    setRosterMode(nextMode);
+    saveRosterModePreference(nextMode);
+  };
+
+  const handleUpdateGuestSession = (nextSession: GuestClassSession) => {
+    setGuestSession(nextSession);
+    saveGuestSession(nextSession);
+  };
+
+  const handleClearAllGuestData = () => {
+    const fresh = clearAllGuestData();
+    setGuestSession(fresh);
+    setGuestHistory([]);
+    setPickedResult(null);
+    setPreviousResult(null);
+  };
+
+  const handleResetGuestCalledSession = () => {
+    const updated: GuestClassSession = {
+      ...guestSession,
+      calledStudentIds: [],
+    };
+    handleUpdateGuestSession(updated);
+    setPickedResult(null);
+    setPreviousResult(null);
+  };
+
+  // Effective teacherId & class source isolated per mode
+  const teacherId = rosterMode === 'guest' ? guestSession.guestSessionId : systemTeacherId;
 
   // Navigation Sub-Tabs within EDU Game Center
   const [activeSubTab, setActiveSubTab] = useState<'library' | 'creator' | 'my_games' | 'sessions' | 'history' | 'guide'>('library');
@@ -181,7 +246,7 @@ export const EDUGameCenter: React.FC = () => {
   const [sortBy, setSortBy] = useState<'default' | 'name' | 'ready' | 'recent'>('default');
   const [favoriteGameIds, setFavoriteGameIds] = useState<Set<string>>(() => {
     try {
-      const raw = localStorage.getItem(`taydo_edu_fav_games_${teacherId}`);
+      const raw = localStorage.getItem(`taydo_edu_fav_games_${systemTeacherId}`);
       if (raw) return new Set(JSON.parse(raw));
     } catch {}
     return new Set(['a01', 'a02', 'a03', 'a04']);
@@ -194,7 +259,7 @@ export const EDUGameCenter: React.FC = () => {
       if (next.has(gameId)) next.delete(gameId);
       else next.add(gameId);
       try {
-        localStorage.setItem(`taydo_edu_fav_games_${teacherId}`, JSON.stringify(Array.from(next)));
+        localStorage.setItem(`taydo_edu_fav_games_${systemTeacherId}`, JSON.stringify(Array.from(next)));
       } catch {}
       return next;
     });
@@ -203,41 +268,129 @@ export const EDUGameCenter: React.FC = () => {
   // Currently active running game
   const [activeGame, setActiveGame] = useState<EduGameItem | null>(null);
 
-  // Class and Student Source
+  // Class and Student Source (Teacher mode)
   const [selectedSourceKey, setSelectedSourceKey] = useState<string>(() => classes[0]?.id || 'manual');
-  const [manualStudents, setManualStudents] = useState<StudentCandidate[]>(() => loadCustomManualStudents(teacherId));
+  const [manualStudents] = useState<StudentCandidate[]>(() => loadCustomManualStudents(systemTeacherId));
 
-  // Game Settings & States
-  const [antiDuplicate, setAntiDuplicate] = useState<boolean>(true);
+  // Game Settings & States (Teacher mode)
+  const [teacherAntiDuplicate, setTeacherAntiDuplicate] = useState<boolean>(true);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Absent, Called, History state arrays/sets
-  const [absentIds, setAbsentIds] = useState<Set<string>>(() => new Set(loadAbsentIds(teacherId, selectedSourceKey)));
-  const [calledSessionIds, setCalledSessionIds] = useState<Set<string>>(() => new Set(loadCalledSessionIds(teacherId, selectedSourceKey)));
-  const [historyItems, setHistoryItems] = useState<CallHistoryItem[]>(() => loadCallHistory(teacherId, selectedSourceKey));
+  // Absent, Called, History state arrays/sets (Teacher mode)
+  const [teacherAbsentIds, setTeacherAbsentIds] = useState<Set<string>>(() => new Set(loadAbsentIds(systemTeacherId, selectedSourceKey)));
+  const [teacherCalledSessionIds, setTeacherCalledSessionIds] = useState<Set<string>>(() => new Set(loadCalledSessionIds(systemTeacherId, selectedSourceKey)));
+  const [historyItems, setHistoryItems] = useState<CallHistoryItem[]>(() => loadCallHistory(systemTeacherId, selectedSourceKey));
 
-  // Candidates list
-  const currentCandidates = useMemo(() => {
+  // Unified mode-aware getters & setters
+  const antiDuplicate = rosterMode === 'guest' ? !guestSession.allowRepeat : teacherAntiDuplicate;
+  const setAntiDuplicate = (val: boolean) => {
+    if (rosterMode === 'guest') {
+      handleUpdateGuestSession({ ...guestSession, allowRepeat: !val });
+    } else {
+      setTeacherAntiDuplicate(val);
+    }
+  };
+
+  const absentIds = useMemo(() => {
+    if (rosterMode === 'guest') {
+      return new Set(guestSession.students.filter(s => !s.participating).map(s => s.guestStudentId));
+    }
+    return teacherAbsentIds;
+  }, [rosterMode, guestSession.students, teacherAbsentIds]);
+
+  const calledSessionIds = useMemo(() => {
+    if (rosterMode === 'guest') {
+      return new Set(guestSession.calledStudentIds);
+    }
+    return teacherCalledSessionIds;
+  }, [rosterMode, guestSession.calledStudentIds, teacherCalledSessionIds]);
+
+  // Candidates list (Guest mode vs Teacher mode)
+  const currentCandidates = useMemo<StudentCandidate[]>(() => {
+    if (rosterMode === 'guest') {
+      return guestSession.students.map((s) => ({
+        id: s.guestStudentId,
+        code: String(s.stt).padStart(2, '0'),
+        fullName: s.fullName,
+      }));
+    }
     if (selectedSourceKey === 'manual') {
       return manualStudents;
     }
     const foundClass = classes.find((c) => c.id === selectedSourceKey);
     if (!foundClass) return manualStudents;
     return mapClassStudentsToCandidates(foundClass);
-  }, [selectedSourceKey, classes, manualStudents]);
+  }, [rosterMode, guestSession.students, selectedSourceKey, classes, manualStudents]);
 
   const availableCandidates = useMemo(() => {
     return currentCandidates.filter((s) => !absentIds.has(s.id) && (!antiDuplicate || !calledSessionIds.has(s.id)));
   }, [currentCandidates, absentIds, antiDuplicate, calledSessionIds]);
 
+  // Effective Classes list for child games
+  const effectiveClasses = useMemo<ClassRoom[]>(() => {
+    if (rosterMode === 'guest') {
+      const guestClassRoom: ClassRoom = {
+        id: 'guest_mode',
+        name: guestSession.className || 'Lớp Khách',
+        grade: '6',
+        teacherName: 'Khách',
+        schoolYear: '2025-2026',
+        studentCount: guestSession.students.length,
+        inviteCode: 'GUEST',
+        students: guestSession.students.map((s) => ({
+          id: s.guestStudentId,
+          code: String(s.stt).padStart(2, '0'),
+          fullName: s.fullName,
+          email: '',
+        })),
+      };
+      return [guestClassRoom, ...classes];
+    }
+    return classes;
+  }, [rosterMode, guestSession.className, guestSession.students, classes]);
+
+  const effectiveSourceKey = rosterMode === 'guest' ? 'guest_mode' : selectedSourceKey;
+  const handleSelectEffectiveSourceKey = (key: string) => {
+    if (key === 'guest_mode') {
+      handleChangeRosterMode('guest');
+    } else {
+      handleChangeRosterMode('teacher');
+      setSelectedSourceKey(key);
+    }
+  };
+
   // Resolved Class Name helper
   const resolvedClassName = useMemo(() => {
+    if (rosterMode === 'guest') {
+      return guestSession.className || 'Lớp Khách (Tự nhập)';
+    }
     if (selectedSourceKey === 'manual') return 'Danh sách tự do';
     const found = classes.find((c) => c.id === selectedSourceKey);
     return found ? found.name : selectedSourceKey;
-  }, [selectedSourceKey, classes]);
+  }, [rosterMode, guestSession.className, selectedSourceKey, classes]);
+
+  // Launch Game Request (opens GameRosterSetup if Guest Roster is empty or user opted not to share across games)
+  const handleLaunchGameRequest = (game: EduGameItem) => {
+    if (!game.isReady) {
+      alert(
+        `Trò chơi "${game.title}" (${game.code}) đang trong quá trình phát triển. Vui lòng trải nghiệm các trò chơi Nhóm A (A01–A12) và Nhóm B (B01–B06) đã sẵn sàng!`
+      );
+      return;
+    }
+    if (rosterMode === 'guest' && (guestSession.students.length === 0 || !guestSession.shareAcrossGames)) {
+      setPendingGameToLaunch(game);
+      setShowRosterSetupModal(true);
+      return;
+    }
+    if (rosterMode === 'teacher' && currentCandidates.length === 0) {
+      setPendingGameToLaunch(game);
+      setShowRosterSetupModal(true);
+      return;
+    }
+    setActiveGame(game);
+  };
 
   // Modals
   const [showAbsentModal, setShowAbsentModal] = useState<boolean>(false);
@@ -319,23 +472,39 @@ export const EDUGameCenter: React.FC = () => {
         prev.map((b, i) => (i === index ? { ...b, isOpen: true } : b))
       );
 
-      const newCalled = new Set(calledSessionIds);
-      newCalled.add(box.student.id);
-      setCalledSessionIds(newCalled);
-      saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(newCalled));
+      if (rosterMode === 'guest') {
+        const nextCalled = Array.from(new Set([...guestSession.calledStudentIds, box.student.id]));
+        handleUpdateGuestSession({ ...guestSession, calledStudentIds: nextCalled });
+        const entry = appendGuestTurnHistory({
+          guestSessionId: guestSession.guestSessionId,
+          gameId: activeGame?.id || 'a03',
+          gameCode: activeGame?.code || 'A03',
+          gameTitle: activeGame?.title || 'Hộp quà bí ẩn',
+          guestStudentId: box.student.id,
+          studentName: box.student.fullName,
+          className: resolvedClassName,
+          status: 'CALLED',
+        });
+        setGuestHistory((prev) => [entry, ...prev]);
+      } else {
+        const newCalled = new Set(calledSessionIds);
+        newCalled.add(box.student.id);
+        setTeacherCalledSessionIds(newCalled);
+        saveCalledSessionIds(systemTeacherId, selectedSourceKey, Array.from(newCalled));
 
-      const historyItem: CallHistoryItem = {
-        id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-        timestamp: Date.now(),
-        classId: selectedSourceKey,
-        className: resolvedClassName,
-        mode: 'gift_box',
-        modeName: 'Hộp quà bí ẩn',
-        selectedStudents: [box.student],
-      };
-      const updatedHistory = [historyItem, ...historyItems];
-      setHistoryItems(updatedHistory);
-      saveCallHistory(teacherId, selectedSourceKey, updatedHistory);
+        const historyItem: CallHistoryItem = {
+          id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          timestamp: Date.now(),
+          classId: selectedSourceKey,
+          className: resolvedClassName,
+          mode: 'gift_box',
+          modeName: 'Hộp quà bí ẩn',
+          selectedStudents: [box.student],
+        };
+        const updatedHistory = [historyItem, ...historyItems];
+        setHistoryItems(updatedHistory);
+        saveCallHistory(systemTeacherId, selectedSourceKey, updatedHistory);
+      }
     }, 1200);
   };
 
@@ -383,23 +552,39 @@ export const EDUGameCenter: React.FC = () => {
             prev.map((b, i) => (i === targetIdx ? { ...b, isOpen: true } : b))
           );
 
-          const newCalled = new Set(calledSessionIds);
-          newCalled.add(chosenBox.student.id);
-          setCalledSessionIds(newCalled);
-          saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(newCalled));
+          if (rosterMode === 'guest') {
+            const nextCalled = Array.from(new Set([...guestSession.calledStudentIds, chosenBox.student.id]));
+            handleUpdateGuestSession({ ...guestSession, calledStudentIds: nextCalled });
+            const entry = appendGuestTurnHistory({
+              guestSessionId: guestSession.guestSessionId,
+              gameId: activeGame?.id || 'a03',
+              gameCode: activeGame?.code || 'A03',
+              gameTitle: activeGame?.title || 'Hộp quà bí ẩn',
+              guestStudentId: chosenBox.student.id,
+              studentName: chosenBox.student.fullName,
+              className: resolvedClassName,
+              status: 'CALLED',
+            });
+            setGuestHistory((prev) => [entry, ...prev]);
+          } else {
+            const newCalled = new Set(calledSessionIds);
+            newCalled.add(chosenBox.student.id);
+            setTeacherCalledSessionIds(newCalled);
+            saveCalledSessionIds(systemTeacherId, selectedSourceKey, Array.from(newCalled));
 
-          const historyItem: CallHistoryItem = {
-            id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-            timestamp: Date.now(),
-            classId: selectedSourceKey,
-            className: resolvedClassName,
-            mode: 'gift_box',
-            modeName: 'Hộp quà bí ẩn',
-            selectedStudents: [chosenBox.student],
-          };
-          const updatedHistory = [historyItem, ...historyItems];
-          setHistoryItems(updatedHistory);
-          saveCallHistory(teacherId, selectedSourceKey, updatedHistory);
+            const historyItem: CallHistoryItem = {
+              id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+              timestamp: Date.now(),
+              classId: selectedSourceKey,
+              className: resolvedClassName,
+              mode: 'gift_box',
+              modeName: 'Hộp quà bí ẩn',
+              selectedStudents: [chosenBox.student],
+            };
+            const updatedHistory = [historyItem, ...historyItems];
+            setHistoryItems(updatedHistory);
+            saveCallHistory(systemTeacherId, selectedSourceKey, updatedHistory);
+          }
         }, 1200);
       }
     }, 150);
@@ -415,15 +600,33 @@ export const EDUGameCenter: React.FC = () => {
       sounds.playFanfare();
     }
 
-    const newCalled = new Set(calledSessionIds);
-    newCalled.add(chosen.id);
-    setCalledSessionIds(newCalled);
-    saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(newCalled));
-
     const noteParts = [
       meta?.bonusPoints && meta.bonusPoints > 0 ? `+${meta.bonusPoints}đ` : '',
       meta?.note?.trim() || '',
     ].filter(Boolean);
+
+    if (rosterMode === 'guest') {
+      const nextCalled = Array.from(new Set([...guestSession.calledStudentIds, chosen.id]));
+      handleUpdateGuestSession({ ...guestSession, calledStudentIds: nextCalled });
+      const entry = appendGuestTurnHistory({
+        guestSessionId: guestSession.guestSessionId,
+        gameId: activeGame?.id || 'game',
+        gameCode: activeGame?.code || 'A00',
+        gameTitle: activeGame?.title || 'Trò chơi ngẫu nhiên',
+        guestStudentId: chosen.id,
+        studentName: chosen.fullName,
+        className: resolvedClassName,
+        status: 'CALLED',
+        note: noteParts.length > 0 ? noteParts.join(' - ') : undefined,
+      });
+      setGuestHistory((prev) => [entry, ...prev]);
+      return;
+    }
+
+    const newCalled = new Set(calledSessionIds);
+    newCalled.add(chosen.id);
+    setTeacherCalledSessionIds(newCalled);
+    saveCalledSessionIds(systemTeacherId, selectedSourceKey, Array.from(newCalled));
 
     const historyItem: CallHistoryItem = {
       id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
@@ -437,29 +640,57 @@ export const EDUGameCenter: React.FC = () => {
     };
     const updatedHistory = [historyItem, ...historyItems];
     setHistoryItems(updatedHistory);
-    saveCallHistory(teacherId, selectedSourceKey, updatedHistory);
+    saveCallHistory(systemTeacherId, selectedSourceKey, updatedHistory);
   };
 
   const handleUpdateLatestHistoryNote = (noteText: string) => {
     setResultScoreNote(noteText);
+    if (rosterMode === 'guest') return;
     setHistoryItems((prev) => {
       if (prev.length === 0) return prev;
       const updated = [{ ...prev[0], scoreNote: noteText }, ...prev.slice(1)];
-      saveCallHistory(teacherId, selectedSourceKey, updated);
+      saveCallHistory(systemTeacherId, selectedSourceKey, updated);
       return updated;
     });
   };
 
+  const handleResetActiveSession = () => {
+    if (rosterMode === 'guest') {
+      handleResetGuestCalledSession();
+    } else {
+      setTeacherCalledSessionIds(new Set());
+      saveCalledSessionIds(systemTeacherId, selectedSourceKey, []);
+      setPickedResult(null);
+      setPreviousResult(null);
+    }
+  };
+
+  const handleRestoreStudentToPool = (studentId: string) => {
+    if (rosterMode === 'guest') {
+      handleUpdateGuestSession({
+        ...guestSession,
+        calledStudentIds: guestSession.calledStudentIds.filter((id) => id !== studentId),
+      });
+    } else {
+      setTeacherCalledSessionIds((prev) => {
+        const next = new Set(prev);
+        next.delete(studentId);
+        saveCalledSessionIds(systemTeacherId, selectedSourceKey, Array.from(next));
+        return next;
+      });
+    }
+  };
+
   // Reload persistence when class source changes
   useEffect(() => {
-    setHistoryItems(loadCallHistory(teacherId, selectedSourceKey));
-    setAbsentIds(new Set(loadAbsentIds(teacherId, selectedSourceKey)));
-    setCalledSessionIds(new Set(loadCalledSessionIds(teacherId, selectedSourceKey)));
+    setHistoryItems(loadCallHistory(systemTeacherId, selectedSourceKey));
+    setTeacherAbsentIds(new Set(loadAbsentIds(systemTeacherId, selectedSourceKey)));
+    setTeacherCalledSessionIds(new Set(loadCalledSessionIds(systemTeacherId, selectedSourceKey)));
     setPickedResult(null);
     setPreviousResult(null);
     setClawPhase('IDLE');
     setHeldCandidate(null);
-  }, [teacherId, selectedSourceKey]);
+  }, [systemTeacherId, selectedSourceKey]);
 
   // Timer effect
   useEffect(() => {
@@ -557,24 +788,42 @@ export const EDUGameCenter: React.FC = () => {
       setIsPlayingAnimation(false);
       sounds.playFanfare();
 
-      const newCalled = new Set(calledSessionIds);
-      selected.forEach((s) => newCalled.add(s.id));
-      setCalledSessionIds(newCalled);
-      saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(newCalled));
+      if (rosterMode === 'guest') {
+        const nextCalled = Array.from(new Set([...guestSession.calledStudentIds, ...selected.map((s) => s.id)]));
+        handleUpdateGuestSession({ ...guestSession, calledStudentIds: nextCalled });
+        selected.forEach((st) => {
+          const entry = appendGuestTurnHistory({
+            guestSessionId: guestSession.guestSessionId,
+            gameId: activeGame?.id || 'random',
+            gameCode: activeGame?.code || 'A00',
+            gameTitle: activeGame?.title || 'Gọi ngẫu nhiên',
+            guestStudentId: st.id,
+            studentName: st.fullName,
+            className: resolvedClassName,
+            status: 'CALLED',
+          });
+          setGuestHistory((prev) => [entry, ...prev]);
+        });
+      } else {
+        const newCalled = new Set(calledSessionIds);
+        selected.forEach((s) => newCalled.add(s.id));
+        setTeacherCalledSessionIds(newCalled);
+        saveCalledSessionIds(systemTeacherId, selectedSourceKey, Array.from(newCalled));
 
-      const historyItem: CallHistoryItem = {
-        id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-        timestamp: Date.now(),
-        classId: selectedSourceKey,
-        className: resolvedClassName,
-        mode: (activeGame?.modeKey as any) || 'wheel',
-        modeName: activeGame?.title || 'Gọi ngẫu nhiên',
-        selectedStudents: selected,
-      };
+        const historyItem: CallHistoryItem = {
+          id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          timestamp: Date.now(),
+          classId: selectedSourceKey,
+          className: resolvedClassName,
+          mode: (activeGame?.modeKey as any) || 'wheel',
+          modeName: activeGame?.title || 'Gọi ngẫu nhiên',
+          selectedStudents: selected,
+        };
 
-      const updatedHistory = [historyItem, ...historyItems];
-      setHistoryItems(updatedHistory);
-      saveCallHistory(teacherId, selectedSourceKey, updatedHistory);
+        const updatedHistory = [historyItem, ...historyItems];
+        setHistoryItems(updatedHistory);
+        saveCallHistory(systemTeacherId, selectedSourceKey, updatedHistory);
+      }
     }, 1800);
 
     return () => clearTimeout(timer);
@@ -639,23 +888,39 @@ export const EDUGameCenter: React.FC = () => {
                 setClawPhase('IDLE');
                 sounds.playFanfare();
 
-                const newCalled = new Set(calledSessionIds);
-                newCalled.add(chosen.id);
-                setCalledSessionIds(newCalled);
-                saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(newCalled));
+                if (rosterMode === 'guest') {
+                  const nextCalled = Array.from(new Set([...guestSession.calledStudentIds, chosen.id]));
+                  handleUpdateGuestSession({ ...guestSession, calledStudentIds: nextCalled });
+                  const entry = appendGuestTurnHistory({
+                    guestSessionId: guestSession.guestSessionId,
+                    gameId: 'a02',
+                    gameCode: 'A02',
+                    gameTitle: 'Máy gắp thú',
+                    guestStudentId: chosen.id,
+                    studentName: chosen.fullName,
+                    className: resolvedClassName,
+                    status: 'CALLED',
+                  });
+                  setGuestHistory((prev) => [entry, ...prev]);
+                } else {
+                  const newCalled = new Set(calledSessionIds);
+                  newCalled.add(chosen.id);
+                  setTeacherCalledSessionIds(newCalled);
+                  saveCalledSessionIds(systemTeacherId, selectedSourceKey, Array.from(newCalled));
 
-                const historyItem: CallHistoryItem = {
-                  id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-                  timestamp: Date.now(),
-                  classId: selectedSourceKey,
-                  className: resolvedClassName,
-                  mode: 'claw_machine',
-                  modeName: 'Máy gắp thú',
-                  selectedStudents: [chosen],
-                };
-                const updatedHistory = [historyItem, ...historyItems];
-                setHistoryItems(updatedHistory);
-                saveCallHistory(teacherId, selectedSourceKey, updatedHistory);
+                  const historyItem: CallHistoryItem = {
+                    id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                    timestamp: Date.now(),
+                    classId: selectedSourceKey,
+                    className: resolvedClassName,
+                    mode: 'claw_machine',
+                    modeName: 'Máy gắp thú',
+                    selectedStudents: [chosen],
+                  };
+                  const updatedHistory = [historyItem, ...historyItems];
+                  setHistoryItems(updatedHistory);
+                  saveCallHistory(systemTeacherId, selectedSourceKey, updatedHistory);
+                }
               }, 600);
             }, 800);
           }, 1000);
@@ -748,23 +1013,39 @@ export const EDUGameCenter: React.FC = () => {
       setPickedResult([chosen]);
       sounds.playFanfare();
 
-      const newCalled = new Set(calledSessionIds);
-      newCalled.add(chosen.id);
-      setCalledSessionIds(newCalled);
-      saveCalledSessionIds(teacherId, selectedSourceKey, Array.from(newCalled));
+      if (rosterMode === 'guest') {
+        const nextCalled = Array.from(new Set([...guestSession.calledStudentIds, chosen.id]));
+        handleUpdateGuestSession({ ...guestSession, calledStudentIds: nextCalled });
+        const entry = appendGuestTurnHistory({
+          guestSessionId: guestSession.guestSessionId,
+          gameId: 'a01',
+          gameCode: 'A01',
+          gameTitle: 'Vòng quay may mắn',
+          guestStudentId: chosen.id,
+          studentName: chosen.fullName,
+          className: resolvedClassName,
+          status: 'CALLED',
+        });
+        setGuestHistory((prev) => [entry, ...prev]);
+      } else {
+        const newCalled = new Set(calledSessionIds);
+        newCalled.add(chosen.id);
+        setTeacherCalledSessionIds(newCalled);
+        saveCalledSessionIds(systemTeacherId, selectedSourceKey, Array.from(newCalled));
 
-      const historyItem: CallHistoryItem = {
-        id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-        timestamp: Date.now(),
-        classId: selectedSourceKey,
-        className: resolvedClassName,
-        mode: 'wheel',
-        modeName: 'Vòng quay may mắn',
-        selectedStudents: [chosen],
-      };
-      const updatedHistory = [historyItem, ...historyItems];
-      setHistoryItems(updatedHistory);
-      saveCallHistory(teacherId, selectedSourceKey, updatedHistory);
+        const historyItem: CallHistoryItem = {
+          id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          timestamp: Date.now(),
+          classId: selectedSourceKey,
+          className: resolvedClassName,
+          mode: 'wheel',
+          modeName: 'Vòng quay may mắn',
+          selectedStudents: [chosen],
+        };
+        const updatedHistory = [historyItem, ...historyItems];
+        setHistoryItems(updatedHistory);
+        saveCallHistory(systemTeacherId, selectedSourceKey, updatedHistory);
+      }
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -880,6 +1161,82 @@ export const EDUGameCenter: React.FC = () => {
         </div>
       </div>
 
+      {/* 2.5 SHARED GUEST MODE & TEACHER MODE PREPARATION BAR */}
+      <div className="bg-white rounded-3xl p-4 sm:px-6 border-2 border-[#BED8FB] shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleChangeRosterMode('guest')}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                rosterMode === 'guest'
+                  ? 'bg-[#006BFF] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Chế độ Khách (Tự nhập DS · Không cần đăng nhập)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleChangeRosterMode('teacher')}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                rosterMode === 'teacher'
+                  ? 'bg-[#006BFF] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Chế độ Giáo viên (Dữ liệu hệ thống)</span>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+            <span className="px-3 py-1 rounded-full bg-[#F0F7FF] text-[#082B52] font-bold border border-blue-200">
+              Lớp: <strong className="text-[#006BFF]">{resolvedClassName}</strong>
+            </span>
+            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+              Sĩ số: {currentCandidates.length} HS · Sẵn sàng: {availableCandidates.length} HS
+            </span>
+            {calledSessionIds.size > 0 && (
+              <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                Đã gọi: {calledSessionIds.size} HS
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              setPendingGameToLaunch(null);
+              setShowRosterSetupModal(true);
+            }}
+            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#006BFF] to-[#1769C2] hover:from-blue-600 hover:to-blue-700 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <Users className="w-4 h-4" />
+            <span>
+              {rosterMode === 'guest'
+                ? 'Chuẩn bị trò chơi / Nhập danh sách HS (Excel, Dán, Tự nhập)'
+                : 'Chuẩn bị trò chơi / Đổi lớp hệ thống'}
+            </span>
+          </button>
+
+          {calledSessionIds.size > 0 && (
+            <button
+              type="button"
+              onClick={handleResetActiveSession}
+              className="px-3.5 py-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Làm mới lượt gọi</span>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* 3. Main Library Content Area */}
       {activeSubTab === 'library' && !activeGame && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -924,31 +1281,65 @@ export const EDUGameCenter: React.FC = () => {
 
             {/* Class Selector Card */}
             <div className="bg-white rounded-3xl p-4 border border-slate-200/90 shadow-xs space-y-3">
-              <p className="text-xs sm:text-sm font-extrabold text-[#102E54]">Lớp đang áp dụng</p>
-              <div className="relative">
-                <select
-                  value={selectedSourceKey}
-                  onChange={(e) => setSelectedSourceKey(e.target.value)}
-                  className="w-full text-xs sm:text-sm font-bold px-3.5 py-2.5 bg-[#F8FAFC] border border-slate-200 rounded-xl text-[#102E54] focus:outline-none focus:ring-2 focus:ring-[#006BFF]"
-                >
-                  <option value="manual">-- Danh sách nhập tự do ({manualStudents.length} HS) --</option>
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.students?.length || 0} học sinh)
-                    </option>
-                  ))}
-                </select>
+              <div className="flex items-center justify-between">
+                <p className="text-xs sm:text-sm font-extrabold text-[#102E54]">
+                  {rosterMode === 'guest' ? 'Danh sách Khách đang dùng' : 'Lớp hệ thống đang áp dụng'}
+                </p>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#006BFF]">
+                  {rosterMode === 'guest' ? 'Chế độ Khách' : 'Giáo viên'}
+                </span>
               </div>
+
+              {rosterMode === 'guest' ? (
+                <div className="space-y-2.5">
+                  <div className="p-3 rounded-xl bg-[#F0F7FF] border border-blue-200 text-xs space-y-1">
+                    <div className="font-bold text-[#082B52]">{resolvedClassName}</div>
+                    <div className="text-slate-600">
+                      Tổng số: <strong>{guestSession.students.length}</strong> học sinh · Tham gia:{' '}
+                      <strong>{guestSession.students.filter((s) => s.participating).length}</strong>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingGameToLaunch(null);
+                      setShowRosterSetupModal(true);
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Nhập / Dán danh sách học sinh</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <select
+                    value={selectedSourceKey}
+                    onChange={(e) => setSelectedSourceKey(e.target.value)}
+                    className="w-full text-xs sm:text-sm font-bold px-3.5 py-2.5 bg-[#F8FAFC] border border-slate-200 rounded-xl text-[#102E54] focus:outline-none focus:ring-2 focus:ring-[#006BFF]"
+                  >
+                    <option value="manual">-- Danh sách nhập tự do ({manualStudents.length} HS) --</option>
+                    {classes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.students?.length || 0} học sinh)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="bg-[#F3F7FC] rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
                 <span className="font-bold text-emerald-700 flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-emerald-600" />
                   <span>Sẵn sàng: <strong className="tabular-nums">{availableCandidates.length}</strong> bạn</span>
                 </span>
                 <button
-                  onClick={() => setShowAbsentModal(true)}
+                  onClick={() =>
+                    rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true)
+                  }
                   className="text-[#006BFF] hover:underline font-extrabold tabular-nums"
                 >
-                  Vắng ({absentIds.size})
+                  {rosterMode === 'guest' ? `Tạm nghỉ (${absentIds.size})` : `Vắng (${absentIds.size})`}
                 </button>
               </div>
             </div>
@@ -1036,7 +1427,7 @@ export const EDUGameCenter: React.FC = () => {
                       >
                         {/* 16:9 Custom Illustrated Thumbnail */}
                         <div
-                          onClick={() => setActiveGame(game)}
+                          onClick={() => handleLaunchGameRequest(game)}
                           className="relative aspect-video w-full overflow-hidden cursor-pointer bg-slate-900"
                         >
                           <div className="w-full h-full group-hover:scale-105 transition-transform duration-300">
@@ -1054,7 +1445,7 @@ export const EDUGameCenter: React.FC = () => {
                         <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
                           <div>
                             <h4
-                              onClick={() => setActiveGame(game)}
+                              onClick={() => handleLaunchGameRequest(game)}
                               className="text-sm sm:text-base font-extrabold text-[#102E54] group-hover:text-[#006BFF] transition-colors truncate cursor-pointer"
                             >
                               {game.title}
@@ -1067,7 +1458,7 @@ export const EDUGameCenter: React.FC = () => {
 
                           <div className="pt-1 flex items-center gap-2">
                             <button
-                              onClick={() => setActiveGame(game)}
+                              onClick={() => handleLaunchGameRequest(game)}
                               className="flex-1 py-2 bg-gradient-to-r from-[#006BFF] to-[#2563EB] hover:from-blue-600 hover:to-blue-700 text-white rounded-full text-xs font-extrabold shadow-xs transition-all flex items-center justify-center gap-1.5"
                             >
                               <Play className="w-3.5 h-3.5 fill-current" />
@@ -1125,13 +1516,7 @@ export const EDUGameCenter: React.FC = () => {
                       >
                         {/* 16:9 Custom Illustrated Thumbnail */}
                         <div
-                          onClick={() => {
-                            if (game.isReady) setActiveGame(game);
-                            else
-                              alert(
-                                `Trò chơi "${game.title}" (${game.code}) đang trong quá trình phát triển. Vui lòng trải nghiệm 12 trò chơi Nhóm A (A01–A12) đã sẵn sàng!`
-                              );
-                          }}
+                          onClick={() => handleLaunchGameRequest(game)}
                           className="relative aspect-video w-full overflow-hidden cursor-pointer bg-slate-900"
                         >
                           <div className="w-full h-full group-hover:scale-105 transition-transform duration-300">
@@ -1155,9 +1540,7 @@ export const EDUGameCenter: React.FC = () => {
                         <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
                           <div>
                             <h4
-                              onClick={() => {
-                                if (game.isReady) setActiveGame(game);
-                              }}
+                              onClick={() => handleLaunchGameRequest(game)}
                               className="text-sm sm:text-base font-extrabold text-[#102E54] group-hover:text-[#006BFF] transition-colors truncate cursor-pointer"
                             >
                               {game.title}
@@ -1171,7 +1554,7 @@ export const EDUGameCenter: React.FC = () => {
                           <div className="pt-1 flex items-center gap-2">
                             {game.isReady ? (
                               <button
-                                onClick={() => setActiveGame(game)}
+                                onClick={() => handleLaunchGameRequest(game)}
                                 className="flex-1 py-2 bg-gradient-to-r from-[#006BFF] to-[#2563EB] hover:from-blue-600 hover:to-blue-700 text-white rounded-full text-xs font-extrabold shadow-xs transition-all flex items-center justify-center gap-1.5"
                               >
                                 <Play className="w-3.5 h-3.5 fill-current" />
@@ -1179,11 +1562,7 @@ export const EDUGameCenter: React.FC = () => {
                               </button>
                             ) : (
                               <button
-                                onClick={() =>
-                                  alert(
-                                    `Trò chơi "${game.title}" (${game.code}) đang trong quá trình phát triển. Vui lòng trải nghiệm 12 trò chơi Nhóm A (A01–A12) đã sẵn sàng!`
-                                  )
-                                }
+                                onClick={() => handleLaunchGameRequest(game)}
                                 className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                               >
                                 <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
@@ -1231,7 +1610,22 @@ export const EDUGameCenter: React.FC = () => {
                 <h2 className="text-xl font-extrabold text-[#0F2D52] mt-0.5">{activeGame.title}</h2>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingGameToLaunch(null);
+                  setShowRosterSetupModal(true);
+                }}
+                className="px-3.5 py-2 bg-[#EAF4FF] text-[#006BFF] hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Users className="w-4 h-4" />
+                <span>
+                  {rosterMode === 'guest'
+                    ? `DS Khách: ${resolvedClassName} (${availableCandidates.length}/${currentCandidates.length} HS)`
+                    : `Đổi danh sách / Lớp (${resolvedClassName})`}
+                </span>
+              </button>
               <button
                 onClick={() => setShowTimerModal(true)}
                 className="px-3.5 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
@@ -1257,7 +1651,145 @@ export const EDUGameCenter: React.FC = () => {
             </div>
           </div>
 
-          {activeGame.modeKey === 'balloons' ? (
+          {activeGame.modeKey === 'wheel' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full min-h-[540px] rounded-3xl bg-[#071126] border-2 border-amber-400/40 flex flex-col items-center justify-center text-white p-8 space-y-3">
+                  <div className="w-12 h-12 rounded-full border-4 border-amber-400 border-t-transparent animate-spin" />
+                  <p className="text-base font-extrabold text-amber-300">
+                    Đang khởi tạo sân khấu Vòng quay 3D (WebGL Studio)...
+                  </p>
+                </div>
+              }
+            >
+              <StudentWheel3DGame
+                availableCandidates={availableCandidates}
+                allCandidates={currentCandidates}
+                absentIds={absentIds}
+                calledSessionIds={calledSessionIds}
+                antiDuplicate={antiDuplicate}
+                onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
+                onResetSession={handleResetActiveSession}
+                onRestoreStudentToPool={handleRestoreStudentToPool}
+                classes={effectiveClasses}
+                selectedSourceKey={effectiveSourceKey}
+                onSelectSourceKey={handleSelectEffectiveSourceKey}
+                resolvedClassName={resolvedClassName}
+                teacherId={teacherId}
+                teacherName={userProfile?.fullName || (rosterMode === 'guest' ? 'Khách' : 'Giáo viên')}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.();
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.();
+                    setIsFullscreen(false);
+                  }
+                }}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(!isMuted)}
+                onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+                onOpenHistoryModal={() => setShowHistoryModal(true)}
+                onPick={handleGamePickStudent}
+                onUpdateLatestNote={handleUpdateLatestHistoryNote}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'claw_machine' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full min-h-[560px] rounded-3xl bg-[#050C1C] border-2 border-cyan-400/50 flex flex-col items-center justify-center text-white p-8 space-y-3">
+                  <div className="w-12 h-12 rounded-full border-4 border-cyan-400 border-t-transparent animate-spin" />
+                  <p className="text-base font-extrabold text-amber-300">
+                    Đang khởi tạo Máy Gắp Học Sinh 3D (WebGL Arcade Studio)...
+                  </p>
+                </div>
+              }
+            >
+              <ClawMachine3DGame
+                availableCandidates={availableCandidates}
+                allCandidates={currentCandidates}
+                absentIds={absentIds}
+                calledSessionIds={calledSessionIds}
+                antiDuplicate={antiDuplicate}
+                onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
+                onResetSession={handleResetActiveSession}
+                onRestoreStudentToPool={handleRestoreStudentToPool}
+                classes={effectiveClasses}
+                selectedSourceKey={effectiveSourceKey}
+                onSelectSourceKey={handleSelectEffectiveSourceKey}
+                resolvedClassName={resolvedClassName}
+                teacherId={teacherId}
+                teacherName={userProfile?.fullName || (rosterMode === 'guest' ? 'Khách' : 'Giáo viên')}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.();
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.();
+                    setIsFullscreen(false);
+                  }
+                }}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(!isMuted)}
+                onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+                onOpenHistoryModal={() => setShowHistoryModal(true)}
+                onPick={handleGamePickStudent}
+                onUpdateLatestNote={handleUpdateLatestHistoryNote}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'gift_box' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full min-h-[560px] rounded-3xl bg-[#071B38] border-2 border-[#F5C45E]/50 flex flex-col items-center justify-center text-white p-8 space-y-3">
+                  <div className="w-12 h-12 rounded-full border-4 border-[#F5C45E] border-t-transparent animate-spin" />
+                  <p className="text-base font-extrabold text-[#F5C45E]">
+                    Đang khởi tạo Sân khấu Hộp Quà Bí Mật 3D (WebGL Gift Show)...
+                  </p>
+                </div>
+              }
+            >
+              <MysteryGiftBox3DGame
+                availableCandidates={availableCandidates}
+                allCandidates={currentCandidates}
+                absentIds={absentIds}
+                calledSessionIds={calledSessionIds}
+                antiDuplicate={antiDuplicate}
+                onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
+                onResetSession={handleResetActiveSession}
+                onRestoreStudentToPool={handleRestoreStudentToPool}
+                classes={effectiveClasses}
+                selectedSourceKey={effectiveSourceKey}
+                onSelectSourceKey={handleSelectEffectiveSourceKey}
+                resolvedClassName={resolvedClassName}
+                teacherId={teacherId}
+                teacherName={userProfile?.fullName || (rosterMode === 'guest' ? 'Khách' : 'Giáo viên')}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.();
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.();
+                    setIsFullscreen(false);
+                  }
+                }}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(!isMuted)}
+                onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+                onOpenHistoryModal={() => setShowHistoryModal(true)}
+                onPick={handleGamePickStudent}
+                onUpdateLatestNote={handleUpdateLatestHistoryNote}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'balloons' ? (
             <BalloonsGame
               availableCandidates={availableCandidates}
               allCandidates={currentCandidates}
@@ -1265,15 +1797,10 @@ export const EDUGameCenter: React.FC = () => {
               calledSessionIds={calledSessionIds}
               antiDuplicate={antiDuplicate}
               onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
-              onResetSession={() => {
-                setCalledSessionIds(new Set());
-                saveCalledSessionIds(teacherId, selectedSourceKey, []);
-                setPickedResult(null);
-                setPreviousResult(null);
-              }}
-              classes={classes}
-              selectedSourceKey={selectedSourceKey}
-              onSelectSourceKey={(key) => setSelectedSourceKey(key)}
+              onResetSession={handleResetActiveSession}
+              classes={effectiveClasses}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
               resolvedClassName={resolvedClassName}
               teacherId={teacherId}
               teacherName={userProfile?.fullName || 'Giáo viên'}
@@ -1291,7 +1818,7 @@ export const EDUGameCenter: React.FC = () => {
               }}
               isMuted={isMuted}
               onToggleMute={() => setIsMuted(!isMuted)}
-              onOpenAbsentModal={() => setShowAbsentModal(true)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
               onPick={handleGamePickStudent}
               onUpdateLatestNote={handleUpdateLatestHistoryNote}
             />
@@ -1303,15 +1830,10 @@ export const EDUGameCenter: React.FC = () => {
               calledSessionIds={calledSessionIds}
               antiDuplicate={antiDuplicate}
               onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
-              onResetSession={() => {
-                setCalledSessionIds(new Set());
-                saveCalledSessionIds(teacherId, selectedSourceKey, []);
-                setPickedResult(null);
-                setPreviousResult(null);
-              }}
-              classes={classes}
-              selectedSourceKey={selectedSourceKey}
-              onSelectSourceKey={(key) => setSelectedSourceKey(key)}
+              onResetSession={handleResetActiveSession}
+              classes={effectiveClasses}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
               resolvedClassName={resolvedClassName}
               teacherId={teacherId}
               teacherName={userProfile?.fullName || 'Giáo viên'}
@@ -1329,7 +1851,7 @@ export const EDUGameCenter: React.FC = () => {
               }}
               isMuted={isMuted}
               onToggleMute={() => setIsMuted(!isMuted)}
-              onOpenAbsentModal={() => setShowAbsentModal(true)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
               onOpenHistoryModal={() => setShowHistoryModal(true)}
               onPick={handleGamePickStudent}
               onUpdateLatestNote={handleUpdateLatestHistoryNote}
@@ -1342,16 +1864,11 @@ export const EDUGameCenter: React.FC = () => {
               calledSessionIds={calledSessionIds}
               antiDuplicate={antiDuplicate}
               onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
-              onResetSession={() => {
-                setCalledSessionIds(new Set());
-                saveCalledSessionIds(teacherId, selectedSourceKey, []);
-                setPickedResult(null);
-                setPreviousResult(null);
-              }}
-              classes={classes}
+              onResetSession={handleResetActiveSession}
+              classes={effectiveClasses}
               questions={questions}
-              selectedSourceKey={selectedSourceKey}
-              onSelectSourceKey={(key) => setSelectedSourceKey(key)}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
               resolvedClassName={resolvedClassName}
               teacherId={teacherId}
               teacherName={userProfile?.fullName || 'Giáo viên'}
@@ -1369,7 +1886,7 @@ export const EDUGameCenter: React.FC = () => {
               }}
               isMuted={isMuted}
               onToggleMute={() => setIsMuted(!isMuted)}
-              onOpenAbsentModal={() => setShowAbsentModal(true)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
               onOpenHistoryModal={() => setShowHistoryModal(true)}
               onPick={handleGamePickStudent}
               onUpdateLatestNote={handleUpdateLatestHistoryNote}
@@ -1382,15 +1899,10 @@ export const EDUGameCenter: React.FC = () => {
               calledSessionIds={calledSessionIds}
               antiDuplicate={antiDuplicate}
               onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
-              onResetSession={() => {
-                setCalledSessionIds(new Set());
-                saveCalledSessionIds(teacherId, selectedSourceKey, []);
-                setPickedResult(null);
-                setPreviousResult(null);
-              }}
-              classes={classes}
-              selectedSourceKey={selectedSourceKey}
-              onSelectSourceKey={(key) => setSelectedSourceKey(key)}
+              onResetSession={handleResetActiveSession}
+              classes={effectiveClasses}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
               resolvedClassName={resolvedClassName}
               teacherId={teacherId}
               teacherName={userProfile?.fullName || 'Giáo viên'}
@@ -1408,10 +1920,220 @@ export const EDUGameCenter: React.FC = () => {
               }}
               isMuted={isMuted}
               onToggleMute={() => setIsMuted(!isMuted)}
-              onOpenAbsentModal={() => setShowAbsentModal(true)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
               onOpenHistoryModal={() => setShowHistoryModal(true)}
               onPick={handleGamePickStudent}
               onUpdateLatestNote={handleUpdateLatestHistoryNote}
+            />
+          ) : activeGame.modeKey === 'robot_picker' ? (
+            <RobotGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              calledSessionIds={calledSessionIds}
+              antiDuplicate={antiDuplicate}
+              onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
+              onResetSession={handleResetActiveSession}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onPick={handleGamePickStudent}
+              onUpdateLatestNote={handleUpdateLatestHistoryNote}
+            />
+          ) : activeGame.modeKey === 'warmup_quiz' ? (
+            <SpeedChallengeGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onPick={handleGamePickStudent}
+            />
+          ) : activeGame.modeKey === 'reveal_image' ? (
+            <MysteryPictureGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+            />
+          ) : activeGame.modeKey === 'crossword_basic' ? (
+            <CrosswordGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+            />
+          ) : activeGame.modeKey === 'decode_cipher' ? (
+            <SecretCodeGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+            />
+          ) : activeGame.modeKey === 'true_false' ? (
+            <TrueFalseGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+            />
+          ) : activeGame.modeKey === 'catch_word' ? (
+            <PictureWordGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
             />
           ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
@@ -1696,10 +2418,7 @@ export const EDUGameCenter: React.FC = () => {
                 </div>
                 <button
                   onClick={() => {
-                    setCalledSessionIds(new Set());
-                    saveCalledSessionIds(teacherId, selectedSourceKey, []);
-                    setPickedResult(null);
-                    setPreviousResult(null);
+                    handleResetActiveSession();
                     setClawPhase('IDLE');
                     setHeldCandidate(null);
                     alert('Đã đặt lại toàn bộ phiên mới! Bộ đếm và kết quả cũ đã được làm mới.');
@@ -1766,28 +2485,91 @@ export const EDUGameCenter: React.FC = () => {
             <Users className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-bold text-[#0F2D52]">Quản lý phiên chơi & lớp học</h2>
-          <p className="text-xs text-slate-600">Đang hoạt động với lớp: <strong className="text-[#006BFF]">{resolvedClassName}</strong>. Tổng số học sinh đã gọi trong phiên: {calledSessionIds.size}.</p>
+          <p className="text-xs text-slate-600">
+            Chế độ hiện tại: <strong>{rosterMode === 'guest' ? 'Chế độ Khách (Tự nhập danh sách)' : 'Chế độ Giáo viên (Hệ thống)'}</strong> · Lớp:{' '}
+            <strong className="text-[#006BFF]">{resolvedClassName}</strong>. Tổng số học sinh đã gọi trong phiên: {calledSessionIds.size}.
+          </p>
+          <div className="flex justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowRosterSetupModal(true)}
+              className="px-6 py-2.5 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-bold"
+            >
+              Mở bảng Chuẩn bị trò chơi &amp; Quản lý danh sách
+            </button>
+          </div>
         </div>
       )}
 
       {/* Sub-tab: History */}
       {activeSubTab === 'history' && (
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-            <h3 className="text-base font-bold text-[#0F2D52]">Lịch sử các lượt gọi & trò chơi</h3>
-            <button
-              onClick={() => {
-                if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử?')) {
-                  clearCallHistory(teacherId, selectedSourceKey);
-                  setHistoryItems([]);
-                }
-              }}
-              className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold flex items-center gap-1.5"
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Xóa lịch sử
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
+            <h3 className="text-base font-bold text-[#0F2D52]">
+              {rosterMode === 'guest'
+                ? `Lịch sử Chế độ Khách (${guestHistory.length} lượt)`
+                : `Lịch sử các lượt gọi & trò chơi hệ thống (${historyItems.length} lượt)`}
+            </h3>
+            <div className="flex items-center gap-2">
+              {rosterMode === 'guest' && guestHistory.length > 0 && (
+                <button
+                  onClick={() => {
+                    const csv = buildGuestHistoryCsvContent(guestHistory);
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `lich_su_khach_${new Date().toISOString().slice(0, 10)}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg text-xs font-bold"
+                >
+                  Tải CSV lịch sử khách
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (rosterMode === 'guest') {
+                    handleClearAllGuestData();
+                  } else if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử?')) {
+                    clearCallHistory(systemTeacherId, selectedSourceKey);
+                    setHistoryItems([]);
+                  }
+                }}
+                className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Xóa lịch sử
+              </button>
+            </div>
           </div>
-          {historyItems.length > 0 ? (
+
+          {rosterMode === 'guest' ? (
+            guestHistory.length > 0 ? (
+              <div className="space-y-2">
+                {guestHistory.map((item) => (
+                  <div key={item.turnId} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-[#006BFF]">{item.gameCode} - {item.gameTitle}</span> ({item.className})
+                      <p className="text-slate-600 mt-0.5">
+                        Đã chọn: <strong className="text-[#0F2D52]">{item.studentName}</strong>
+                        {item.note && (
+                          <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md font-bold">
+                            {item.note}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <span className="text-[11px] text-slate-400">{new Date(item.timestamp).toLocaleTimeString('vi-VN')}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 text-center py-8">Chưa có lịch sử gọi học sinh trong Chế độ Khách.</p>
+            )
+          ) : historyItems.length > 0 ? (
             <div className="space-y-2">
               {historyItems.map((item) => (
                 <div key={item.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
@@ -1816,10 +2598,10 @@ export const EDUGameCenter: React.FC = () => {
       {activeSubTab === 'guide' && (
         <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xs space-y-6 max-w-3xl mx-auto text-left font-serif">
           <h2 className="text-xl font-extrabold text-[#0F2D52] border-b pb-3">Hướng dẫn sử dụng EDU Game Center</h2>
-          <div className="space-y-4 text-xs text-slate-700 leading-relaxed">
-            <p><strong>1. Thư viện 50 trò chơi:</strong> Chia thành 7 nhóm phù hợp cho mọi hoạt động từ gọi học sinh ngẫu nhiên, khởi động, củng cố đến thi đua và vận động.</p>
-            <p><strong>2. Cơ chế gọi ngẫu nhiên (A01 - A12):</strong> Kết quả được chọn ngẫu nhiên trước khi hiển thị hoạt ảnh nhằm đảm bảo tính công bằng tuyệt đối.</p>
-            <p><strong>3. Trò A02 - Máy gắp thú:</strong> Hoạt ảnh máy gắp 2D chính xác với trạng thái state machine (Di chuyển ngang tới thú &rarr; Hạ cần gắp &rarr; Kẹp thú &rarr; Nâng lên &rarr; Đưa về cửa nhận thưởng &rarr; Thả thú &rarr; Công bố kết quả).</p>
+          <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <p><strong>1. Chế độ Khách (Không cần đăng nhập):</strong> Cho phép giáo viên thỉnh giảng, học sinh hoặc khách truy cập tự nhập danh sách học sinh, dán trực tiếp từ Excel / Google Sheets hoặc tải tệp <code>.xlsx</code>, <code>.csv</code> để chơi ngay mọi trò chơi mà không cần tài khoản.</p>
+            <p><strong>2. Chế độ Giáo viên (Dữ liệu hệ thống):</strong> Sử dụng danh sách lớp học chính thức và ngân hàng câu hỏi của trường THCS Tây Đô khi đã đăng nhập.</p>
+            <p><strong>3. Thư viện 50 trò chơi:</strong> Chia thành 7 nhóm phù hợp cho mọi hoạt động từ gọi học sinh ngẫu nhiên 3D (A01–A12), khởi động tiết học (B01–B10) đến củng cố và thi đua.</p>
           </div>
         </div>
       )}
@@ -1863,7 +2645,7 @@ export const EDUGameCenter: React.FC = () => {
         </div>
       )}
 
-      {/* Absent Management Modal */}
+      {/* Absent Management Modal (Teacher Mode) */}
       {showAbsentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-xl">
@@ -1881,11 +2663,20 @@ export const EDUGameCenter: React.FC = () => {
                       type="checkbox"
                       checked={isAbs}
                       onChange={() => {
-                        const newAbs = new Set(absentIds);
-                        if (isAbs) newAbs.delete(st.id);
-                        else newAbs.add(st.id);
-                        setAbsentIds(newAbs);
-                        saveAbsentIds(teacherId, selectedSourceKey, Array.from(newAbs));
+                        if (rosterMode === 'guest') {
+                          handleUpdateGuestSession({
+                            ...guestSession,
+                            students: guestSession.students.map((s) =>
+                              s.guestStudentId === st.id ? { ...s, participating: isAbs } : s
+                            ),
+                          });
+                        } else {
+                          const newAbs = new Set(teacherAbsentIds);
+                          if (isAbs) newAbs.delete(st.id);
+                          else newAbs.add(st.id);
+                          setTeacherAbsentIds(newAbs);
+                          saveAbsentIds(systemTeacherId, selectedSourceKey, Array.from(newAbs));
+                        }
                       }}
                       className="rounded text-[#006BFF]"
                     />
@@ -1904,17 +2695,33 @@ export const EDUGameCenter: React.FC = () => {
       {showHistoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs">
           <div className="bg-white rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-xl">
-            <h3 className="text-base font-bold text-[#0F2D52]">Lịch sử phiên gọi ({historyItems.length})</h3>
+            <h3 className="text-base font-bold text-[#0F2D52]">
+              {rosterMode === 'guest'
+                ? `Lịch sử phiên gọi Chế độ Khách (${guestHistory.length})`
+                : `Lịch sử phiên gọi (${historyItems.length})`}
+            </h3>
             <div className="max-h-80 overflow-y-auto space-y-2">
-              {historyItems.map((item) => (
-                <div key={item.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-[#006BFF]">{item.modeName}</span>
-                    <p className="text-slate-600 mt-0.5">Gọi: <strong className="text-[#0F2D52]">{item.selectedStudents.map((s) => s.fullName).join(', ')}</strong></p>
-                  </div>
-                  <span className="text-[11px] text-slate-400">{new Date(item.timestamp).toLocaleTimeString()}</span>
-                </div>
-              ))}
+              {rosterMode === 'guest'
+                ? guestHistory.map((item) => (
+                    <div key={item.turnId} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-[#006BFF]">{item.gameCode} · {item.gameTitle}</span>
+                        <p className="text-slate-600 mt-0.5">
+                          Gọi: <strong className="text-[#0F2D52]">{item.studentName}</strong> ({item.className})
+                        </p>
+                      </div>
+                      <span className="text-[11px] text-slate-400">{new Date(item.timestamp).toLocaleTimeString('vi-VN')}</span>
+                    </div>
+                  ))
+                : historyItems.map((item) => (
+                    <div key={item.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-[#006BFF]">{item.modeName}</span>
+                        <p className="text-slate-600 mt-0.5">Gọi: <strong className="text-[#0F2D52]">{item.selectedStudents.map((s) => s.fullName).join(', ')}</strong></p>
+                      </div>
+                      <span className="text-[11px] text-slate-400">{new Date(item.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                  ))}
             </div>
             <button onClick={() => setShowHistoryModal(false)} className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700">
               Đóng
@@ -1922,6 +2729,39 @@ export const EDUGameCenter: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Shared GameRosterSetup Modal ("CHUẨN BỊ TRÒ CHƠI") */}
+      <GameRosterSetup
+        isOpen={showRosterSetupModal}
+        onClose={() => {
+          setShowRosterSetupModal(false);
+          setPendingGameToLaunch(null);
+        }}
+        onStartGame={() => {
+          setShowRosterSetupModal(false);
+          if (pendingGameToLaunch) {
+            setActiveGame(pendingGameToLaunch);
+            setPendingGameToLaunch(null);
+          }
+        }}
+        targetGameTitle={pendingGameToLaunch?.title || activeGame?.title}
+        targetGameCode={pendingGameToLaunch?.code || activeGame?.code}
+        rosterMode={rosterMode}
+        onChangeRosterMode={handleChangeRosterMode}
+        guestSession={guestSession}
+        onUpdateGuestSession={handleUpdateGuestSession}
+        guestHistory={guestHistory}
+        onClearAllGuestData={handleClearAllGuestData}
+        onResetGuestCalledSession={handleResetGuestCalledSession}
+        isLoggedInTeacher={isLoggedInTeacher}
+        teacherClasses={classes}
+        selectedTeacherClassId={selectedSourceKey}
+        onSelectTeacherClassId={(classId) => setSelectedSourceKey(classId)}
+        onRequestLogin={() => {
+          setShowRosterSetupModal(false);
+          openAuthModal?.('login');
+        }}
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { UserProfile, UserRole } from '../types';
+import { UserProfile, UserRole } from '../types/index.ts';
 
 // Default project credentials configured for THCS Tây Đô
 export const DEFAULT_SUPABASE_URL = 'https://hhtwbmzqjpbbhqoqpsse.supabase.co';

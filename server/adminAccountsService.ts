@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import type {
   ClassRoleAssignment,
   ClassRoleType,
@@ -9,6 +10,13 @@ import type {
   UserRole
 } from '../src/types/index.ts';
 import { getSubjectDisplayName, resolveCanonicalSubject } from '../src/utils/subjectCatalog.ts';
+import {
+  buildStudentInternalAuthEmail,
+  isStudentInternalAuthEmail,
+  isValidStudentCode,
+  normalizeInternalAuthDomain,
+  normalizeStudentCode
+} from '../src/utils/studentAuthHelper.ts';
 
 export interface AdminCaller {
   id: string;
@@ -109,6 +117,7 @@ export interface AdminWorkspacePayload {
   teachingSchemaReady: boolean;
   teachingSchemaWarning?: string | null;
   teacherPerClassLimitNotice: string;
+  serviceRoleConfigured?: boolean;
 }
 
 export interface CreateClassRoleInput {
@@ -121,7 +130,7 @@ export interface CreateClassRoleInput {
 
 export interface CreateAccountInput {
   fullName: string;
-  email: string;
+  email?: string;
   role: 'student' | 'teacher' | 'reviewer';
   studentCode?: string;
   teacherCode?: string;
@@ -138,6 +147,9 @@ export interface CreateAccountResponseData {
   account: AdminAccountRecord;
   classAssigned: boolean;
   classError?: string;
+  initialPassword?: string;
+  loginIdentifier?: string;
+  mustChangePassword?: boolean;
   classConflict?: {
     classId: string;
     className: string;
@@ -150,6 +162,13 @@ export interface CreateClassInput {
   name: string;
   grade: string;
   schoolYear: string;
+  classCode?: string;
+}
+
+export interface UpdateClassInput {
+  name?: string;
+  grade?: string;
+  schoolYear?: string;
   classCode?: string;
 }
 
@@ -181,6 +200,9 @@ export interface ExcelImportRowResult {
   canRetryClassAssign?: boolean;
   existingAccountId?: string;
   existingRole?: string;
+  initialPassword?: string;
+  loginIdentifier?: string;
+  mustChangePassword?: boolean;
 }
 
 export interface ExcelImportBatchResult {
@@ -203,6 +225,42 @@ const VALID_ROLES: UserRole[] = ['student', 'teacher', 'reviewer', 'admin'];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export function resolveStudentInternalDomain(): string {
+  return normalizeInternalAuthDomain(process.env.STUDENT_AUTH_INTERNAL_DOMAIN);
+}
+
+/**
+ * Tạo mật khẩu khởi tạo ngẫu nhiên, riêng biệt và đủ mạnh cho học sinh mới
+ * bằng CSPRNG (crypto.randomInt), loại bỏ các ký tự dễ nhầm lẫn (0/O/1/l/I).
+ */
+export function generateInitialStudentPassword(): string {
+  const uppers = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lowers = 'abcdefghijkmnopqrstuvwxyz';
+  const digits = '23456789';
+  const symbols = '@#%!+';
+  const allAlnum = uppers + lowers + digits;
+
+  const chars: string[] = [
+    uppers[crypto.randomInt(0, uppers.length)],
+    lowers[crypto.randomInt(0, lowers.length)],
+    digits[crypto.randomInt(0, digits.length)],
+    symbols[crypto.randomInt(0, symbols.length)]
+  ];
+
+  for (let i = 0; i < 4; i++) {
+    chars.push(allAlnum[crypto.randomInt(0, allAlnum.length)]);
+  }
+
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(0, i + 1);
+    const tmp = chars[i];
+    chars[i] = chars[j];
+    chars[j] = tmp;
+  }
+
+  return `Td${chars.join('')}`;
+}
+
 export function isValidUuid(val?: string | null): boolean {
   return Boolean(val && UUID_REGEX.test(val.trim()));
 }
@@ -212,7 +270,7 @@ export function normalizeEmail(email: string): string {
 }
 
 export function normalizeCode(code?: string | null): string {
-  return String(code || '').trim().toUpperCase();
+  return normalizeStudentCode(code);
 }
 
 function isMissingSchemaObjectError(err: any): boolean {
@@ -247,7 +305,10 @@ export function formatInviteEmailError(errMsg: string): string {
   return `Lỗi Supabase Auth khi gửi lời mời email: ${errMsg}`;
 }
 
-export function deriveAuthStatus(authUser: any): {
+export function deriveAuthStatus(
+  authUser: any,
+  hasVerifiedProfileRow = false
+): {
   status: RealAuthStatus;
   label: string;
   emailConfirmedAt: string | null;
@@ -255,6 +316,15 @@ export function deriveAuthStatus(authUser: any): {
   lastSignInAt: string | null;
 } {
   if (!authUser) {
+    if (hasVerifiedProfileRow) {
+      return {
+        status: 'active',
+        label: 'Đã kích hoạt',
+        emailConfirmedAt: null,
+        invitedAt: null,
+        lastSignInAt: null
+      };
+    }
     return {
       status: 'no_auth_user',
       label: 'Chưa liên kết Auth',
@@ -266,6 +336,9 @@ export function deriveAuthStatus(authUser: any): {
   const emailConfirmedAt = authUser.email_confirmed_at ? String(authUser.email_confirmed_at) : null;
   const invitedAt = authUser.invited_at ? String(authUser.invited_at) : null;
   const lastSignInAt = authUser.last_sign_in_at ? String(authUser.last_sign_in_at) : null;
+  const isStudentCodeAuth =
+    isStudentInternalAuthEmail(authUser.email) ||
+    authUser.user_metadata?.auth_login_mode === 'student_code';
 
   if (emailConfirmedAt && lastSignInAt) {
     return {
@@ -279,7 +352,7 @@ export function deriveAuthStatus(authUser: any): {
   if (emailConfirmedAt) {
     return {
       status: 'confirmed_pending_login',
-      label: 'Đã xác nhận email',
+      label: isStudentCodeAuth ? 'Đã cấp MK (Chờ ĐN)' : 'Đã xác nhận email',
       emailConfirmedAt,
       invitedAt,
       lastSignInAt
@@ -303,7 +376,30 @@ export function deriveAuthStatus(authUser: any): {
   };
 }
 
-export async function listAllAuthUsers(supabaseAdmin: any): Promise<{ users: any[]; error?: string }> {
+function isAuthAdminNotAllowedError(err: any): boolean {
+  if (!err) return false;
+  const msg = String(err.message || err || '').toLowerCase();
+  const code = String(err.code || '').toLowerCase();
+  const status = Number(err.status || 0);
+  return (
+    code === 'not_admin' ||
+    status === 401 ||
+    status === 403 ||
+    msg.includes('not allowed') ||
+    msg.includes('not_admin') ||
+    msg.includes('service_role') ||
+    msg.includes(' forbidden') ||
+    msg.includes('jwt')
+  );
+}
+
+export async function listAllAuthUsers(
+  supabaseAdmin: any
+): Promise<{ users: any[]; error?: string; authAdminAvailable: boolean }> {
+  if (supabaseAdmin?.__isServiceRoleClient === false || !supabaseAdmin?.auth?.admin?.listUsers) {
+    return { users: [], authAdminAvailable: false };
+  }
+
   const allUsers: any[] = [];
   let page = 1;
   const perPage = 1000;
@@ -311,7 +407,14 @@ export async function listAllAuthUsers(supabaseAdmin: any): Promise<{ users: any
   while (true) {
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
     if (error) {
-      return { users: [], error: error.message || 'Không thể truy vấn danh sách Auth users.' };
+      if (isAuthAdminNotAllowedError(error)) {
+        return { users: [], authAdminAvailable: false };
+      }
+      return {
+        users: [],
+        error: error.message || 'Không thể truy vấn danh sách Auth users.',
+        authAdminAvailable: true
+      };
     }
     const batch = Array.isArray(data?.users) ? data.users : [];
     allUsers.push(...batch);
@@ -320,7 +423,7 @@ export async function listAllAuthUsers(supabaseAdmin: any): Promise<{ users: any
     if (page > 20) break;
   }
 
-  return { users: allUsers };
+  return { users: allUsers, authAdminAvailable: true };
 }
 
 export async function writeServerAuditLog(
@@ -891,7 +994,7 @@ export async function listAdminWorkspace(
   const accounts: AdminAccountRecord[] = profileRows.map((p: any) => {
     const pid = String(p.id);
     const authUser = authById.get(pid);
-    const authMeta = deriveAuthStatus(authUser);
+    const authMeta = deriveAuthStatus(authUser, !authRes.authAdminAvailable);
     return {
       id: pid,
       fullName: String(p.full_name || 'Chưa đặt tên'),
@@ -974,7 +1077,8 @@ export async function listAdminWorkspace(
       teachingSchemaWarning,
       teacherPerClassLimitNotice: teachingSchemaReady
         ? 'Hệ thống tách riêng vai trò phụ trách lớp (public.class_roles) và phân công giảng dạy theo môn (public.teaching_assignments).'
-        : 'Hãy chạy migration 04_teaching_assignments_and_codes.sql để bổ sung bảng phân công môn, class_roles và danh sách "Thiếu môn" trước khi bật Bước 5.'
+        : 'Hãy chạy migration 04_teaching_assignments_and_codes.sql để bổ sung bảng phân công môn, class_roles và danh sách "Thiếu môn" trước khi bật Bước 5.',
+      serviceRoleConfigured: Boolean(authRes.authAdminAvailable)
     }
   };
 }
@@ -1129,6 +1233,255 @@ export async function createClassByAdmin(
         memberCount: 0,
         students: []
       }
+    }
+  };
+}
+
+export async function updateClassByAdmin(
+  supabaseAdmin: any,
+  classId: string,
+  input: UpdateClassInput,
+  caller: AdminCaller
+): Promise<ServiceResult<{ classRoom: AdminClassSummary }>> {
+  if (!isValidUuid(classId)) {
+    return { ok: false, status: 400, code: 'INVALID_CLASS_ID', message: 'Mã định danh lớp học không hợp lệ.' };
+  }
+
+  const { res: clsQueryRes, hasClassCodeColumn } = await queryClassesSafe(supabaseAdmin);
+  if (clsQueryRes.error) {
+    return {
+      ok: false,
+      status: 500,
+      code: 'CLASSES_QUERY_FAILED',
+      message: `Không thể truy vấn danh sách lớp: ${clsQueryRes.error.message}`
+    };
+  }
+
+  const allClasses = clsQueryRes.data || [];
+  const currentClass = allClasses.find((c: any) => String(c.id) === classId);
+  if (!currentClass) {
+    return { ok: false, status: 404, code: 'CLASS_NOT_FOUND', message: 'Không tìm thấy lớp học cần chỉnh sửa.' };
+  }
+
+  const nextName = input.name !== undefined ? String(input.name).trim() : String(currentClass.name || '').trim();
+  const nextGrade = input.grade !== undefined ? String(input.grade).trim() : String(currentClass.grade || '8').trim();
+  const nextSchoolYear =
+    input.schoolYear !== undefined
+      ? String(input.schoolYear).trim()
+      : String(currentClass.school_year || '2025-2026').trim();
+  const rawClassCode =
+    input.classCode !== undefined
+      ? String(input.classCode).trim()
+      : String(currentClass.class_code || '').trim();
+
+  const derivedCode = normalizeCode(
+    rawClassCode ||
+      nextName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/[^a-zA-Z0-9]/g, '')
+  );
+
+  if (!nextName) {
+    return { ok: false, status: 400, code: 'INVALID_CLASS_NAME', message: 'Vui lòng nhập tên lớp học.' };
+  }
+  if (!['6', '7', '8', '9'].includes(nextGrade)) {
+    return { ok: false, status: 400, code: 'INVALID_GRADE', message: 'Khối lớp phải từ 6 đến 9.' };
+  }
+  if (!nextSchoolYear) {
+    return { ok: false, status: 400, code: 'INVALID_SCHOOL_YEAR', message: 'Vui lòng nhập năm học (VD: 2025-2026).' };
+  }
+  if (!derivedCode) {
+    return { ok: false, status: 400, code: 'INVALID_CLASS_CODE', message: 'Mã lớp không hợp lệ.' };
+  }
+
+  const siblingsInYear = allClasses.filter(
+    (c: any) => String(c.id) !== classId && String(c.school_year || '').trim() === nextSchoolYear
+  );
+
+  const dupByName = siblingsInYear.find(
+    (c: any) => String(c.name || '').trim().toLowerCase() === nextName.toLowerCase()
+  );
+  if (dupByName) {
+    return {
+      ok: false,
+      status: 409,
+      code: 'CLASS_NAME_EXISTS',
+      message: `Lớp "${nextName}" đã tồn tại trong năm học ${nextSchoolYear}.`
+    };
+  }
+
+  if (hasClassCodeColumn) {
+    const dupByCode = siblingsInYear.find((c: any) => normalizeCode(c.class_code) === derivedCode);
+    if (dupByCode) {
+      return {
+        ok: false,
+        status: 409,
+        code: 'CLASS_CODE_EXISTS',
+        message: `Mã lớp "${derivedCode}" đã thuộc về lớp "${dupByCode.name}" trong năm học ${nextSchoolYear}.`
+      };
+    }
+  }
+
+  const updatePayload: Record<string, any> = {
+    name: nextName,
+    grade: nextGrade,
+    school_year: nextSchoolYear
+  };
+  if (hasClassCodeColumn) {
+    updatePayload.class_code = derivedCode;
+  }
+
+  const selectCols = hasClassCodeColumn
+    ? 'id, name, class_code, grade, school_year, teacher_id, teacher_name, invite_code'
+    : 'id, name, grade, school_year, teacher_id, teacher_name, invite_code';
+
+  const { data: updated, error: updateErr } = await supabaseAdmin
+    .from('classes')
+    .update(updatePayload)
+    .eq('id', classId)
+    .select(selectCols)
+    .single();
+
+  if (updateErr || !updated) {
+    return {
+      ok: false,
+      status: 500,
+      code: 'UPDATE_CLASS_FAILED',
+      message: `Không thể cập nhật thông tin lớp học: ${updateErr?.message || 'Lỗi không xác định'}`
+    };
+  }
+
+  // Keep active teaching_assignments and class_roles school_year aligned if schoolYear was changed
+  const prevYear = String(currentClass.school_year || '').trim();
+  if (prevYear && prevYear !== nextSchoolYear) {
+    await Promise.all([
+      supabaseAdmin
+        .from('teaching_assignments')
+        .update({ school_year: nextSchoolYear, updated_by: caller.id })
+        .eq('class_id', classId)
+        .eq('status', 'active'),
+      supabaseAdmin
+        .from('class_roles')
+        .update({ school_year: nextSchoolYear })
+        .eq('class_id', classId)
+        .eq('status', 'active')
+    ]).catch(() => undefined);
+  }
+
+  await writeServerAuditLog(
+    supabaseAdmin,
+    caller,
+    'Cập nhật lớp học',
+    `${updated.name} (${nextSchoolYear})`,
+    `Cập nhật lớp ${updated.name}, Khối ${nextGrade}, Mã lớp ${derivedCode}, Năm học ${nextSchoolYear}`,
+    classId
+  );
+
+  return {
+    ok: true,
+    status: 200,
+    message: `Đã cập nhật thông tin lớp "${updated.name}" (${nextSchoolYear}).`,
+    data: {
+      classRoom: {
+        id: String(updated.id),
+        name: String(updated.name),
+        classCode: updated.class_code ? String(updated.class_code) : derivedCode,
+        grade: String(updated.grade),
+        schoolYear: String(updated.school_year),
+        teacherId: updated.teacher_id ? String(updated.teacher_id) : null,
+        teacherName: updated.teacher_name ? String(updated.teacher_name) : null,
+        inviteCode: String(updated.invite_code || ''),
+        memberCount: 0,
+        students: []
+      }
+    }
+  };
+}
+
+export async function deleteClassByAdmin(
+  supabaseAdmin: any,
+  classId: string,
+  caller: AdminCaller
+): Promise<ServiceResult<{ deletedId: string; name: string }>> {
+  if (!isValidUuid(classId)) {
+    return { ok: false, status: 400, code: 'INVALID_CLASS_ID', message: 'Mã định danh lớp học không hợp lệ.' };
+  }
+
+  const { data: cls, error: clsErr } = await supabaseAdmin
+    .from('classes')
+    .select('id, name, grade, school_year')
+    .eq('id', classId)
+    .maybeSingle();
+
+  if (clsErr || !cls) {
+    return { ok: false, status: 404, code: 'CLASS_NOT_FOUND', message: 'Không tìm thấy lớp học cần xóa.' };
+  }
+
+  // Protect student exam submissions & historical grades
+  const { data: classAssignments, error: asgErr } = await supabaseAdmin
+    .from('assignments')
+    .select('id')
+    .eq('class_id', classId);
+
+  if (!asgErr && Array.isArray(classAssignments) && classAssignments.length > 0) {
+    const asgIds = classAssignments.map((a: any) => String(a.id));
+    const { data: existingSubs } = await supabaseAdmin
+      .from('submissions')
+      .select('id')
+      .in('assignment_id', asgIds)
+      .limit(1);
+
+    if (Array.isArray(existingSubs) && existingSubs.length > 0) {
+      return {
+        ok: false,
+        status: 409,
+        code: 'CLASS_HAS_SUBMISSIONS',
+        message: `Lớp "${cls.name}" (${cls.school_year}) đã có bài nộp điểm số của học sinh. Để bảo toàn dữ liệu lịch sử học tập, hệ thống không cho phép xóa lớp đã phát sinh bài làm.`
+      };
+    }
+  }
+
+  // Delete memberships, teaching_assignments, class_roles, and empty assignments for this class only
+  await Promise.all([
+    supabaseAdmin.from('class_members').delete().eq('class_id', classId),
+    supabaseAdmin.from('teaching_assignments').delete().eq('class_id', classId),
+    supabaseAdmin.from('class_roles').delete().eq('class_id', classId),
+    supabaseAdmin.from('assignments').delete().eq('class_id', classId)
+  ]).catch(() => undefined);
+
+  const { error: delErr } = await supabaseAdmin
+    .from('classes')
+    .delete()
+    .eq('id', classId);
+
+  if (delErr) {
+    return {
+      ok: false,
+      status: 500,
+      code: 'DELETE_CLASS_FAILED',
+      message: `Không thể xóa lớp "${cls.name}": ${delErr.message}`
+    };
+  }
+
+  await writeServerAuditLog(
+    supabaseAdmin,
+    caller,
+    'Xóa lớp học',
+    `${cls.name} (${cls.school_year})`,
+    `Đã xóa lớp ${cls.name} (Khối ${cls.grade}, Năm học ${cls.school_year})`,
+    classId
+  );
+
+  return {
+    ok: true,
+    status: 200,
+    message: `Đã xóa lớp "${cls.name}" (${cls.school_year}).`,
+    data: {
+      deletedId: classId,
+      name: String(cls.name)
     }
   };
 }
@@ -2110,7 +2463,6 @@ export async function createOrInviteAccount(
   redirectTo?: string
 ): Promise<ServiceResult<CreateAccountResponseData & { existingAccountId?: string }>> {
   const fullName = String(input.fullName || '').trim();
-  const cleanEmail = normalizeEmail(String(input.email || ''));
   const targetRole = input.role;
   const cleanCode = input.studentCode ? normalizeCode(input.studentCode) : '';
   const cleanTeacherCode = input.teacherCode ? normalizeCode(input.teacherCode) : '';
@@ -2120,9 +2472,6 @@ export async function createOrInviteAccount(
 
   if (!fullName) {
     return { ok: false, status: 400, code: 'INVALID_FULL_NAME', message: 'Vui lòng nhập họ và tên.' };
-  }
-  if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) {
-    return { ok: false, status: 400, code: 'INVALID_EMAIL', message: 'Địa chỉ email không hợp lệ.' };
   }
   if (!['student', 'teacher', 'reviewer'].includes(targetRole)) {
     return {
@@ -2139,10 +2488,276 @@ export async function createOrInviteAccount(
     return { ok: false, status: 400, code: 'INVALID_CLASS_ID', message: 'Mã lớp học được chọn không hợp lệ.' };
   }
 
+  // =========================================================================
+  // LUỒNG TẠO / GÁN HỌC SINH BẰNG MÃ HỌC SINH (KHÔNG CẦN EMAIL HỌC SINH)
+  // =========================================================================
+  if (targetRole === 'student') {
+    if (!cleanCode) {
+      return {
+        ok: false,
+        status: 400,
+        code: 'MISSING_STUDENT_CODE',
+        message: 'Vui lòng nhập Mã học sinh (dùng làm tên đăng nhập cho học sinh).'
+      };
+    }
+    if (!isValidStudentCode(cleanCode)) {
+      return {
+        ok: false,
+        status: 400,
+        code: 'INVALID_STUDENT_CODE',
+        message:
+          'Mã học sinh không hợp lệ (chỉ gồm chữ cái không dấu, chữ số, dấu chấm/gạch ngang/gạch dưới, từ 2–32 ký tự).'
+      };
+    }
+
+    const internalDomain = resolveStudentInternalDomain();
+    const internalEmail = buildStudentInternalAuthEmail(cleanCode, internalDomain);
+
+    const { data: matchedByCodeRows, error: codeCheckErr } = await supabaseAdmin
+      .from('profiles')
+      .select('id, full_name, email, role, grade, student_code, teacher_code, subject, school_name, created_at')
+      .ilike('student_code', cleanCode);
+
+    if (codeCheckErr) {
+      return {
+        ok: false,
+        status: 500,
+        code: 'STUDENT_CODE_CHECK_FAILED',
+        message: `Lỗi kiểm tra Mã học sinh trong CSDL: ${codeCheckErr.message}`
+      };
+    }
+
+    const exactCodeMatches = (matchedByCodeRows || []).filter(
+      (r: any) => normalizeCode(r.student_code) === cleanCode
+    );
+
+    if (exactCodeMatches.length > 1) {
+      return {
+        ok: false,
+        status: 409,
+        code: 'AMBIGUOUS_STUDENT_CODE',
+        message: `Mã học sinh "${cleanCode}" đang xuất hiện trên ${exactCodeMatches.length} hồ sơ khác nhau. Vui lòng kiểm tra và xử lý thủ công, hệ thống không tự gộp tài khoản.`
+      };
+    }
+
+    const existingStudentProf = exactCodeMatches[0] || null;
+    if (existingStudentProf) {
+      const existingId = String(existingStudentProf.id);
+      if (existingStudentProf.role !== 'student') {
+        return {
+          ok: false,
+          status: 409,
+          code: 'ROLE_CONFLICT_NOT_STUDENT',
+          message: `Mã "${cleanCode}" đang thuộc về tài khoản vai trò "${existingStudentProf.role}".`,
+          data: { existingAccountId: existingId } as any
+        };
+      }
+
+      if (classId) {
+        const assignRes = await assignUserToClass(supabaseAdmin, existingId, classId, {}, caller);
+        if (!assignRes.ok) {
+          return {
+            ok: false,
+            status: assignRes.status,
+            code: assignRes.code || 'ENROLL_STUDENT_FAILED',
+            message: assignRes.message || 'Không thể gán học sinh hiện có vào lớp.'
+          };
+        }
+
+        return {
+          ok: true,
+          status: 200,
+          message:
+            assignRes.message ||
+            `Học sinh "${existingStudentProf.full_name}" (${cleanCode}) đã tồn tại. Hệ thống giữ nguyên mật khẩu cũ và gán vào lớp.`,
+          data: {
+            accountCreated: false,
+            profileSaved: true,
+            inviteSent: false,
+            loginIdentifier: cleanCode,
+            account: {
+              id: existingId,
+              fullName: String(existingStudentProf.full_name || fullName),
+              email: String(existingStudentProf.email || internalEmail),
+              role: 'student',
+              grade: existingStudentProf.grade ? String(existingStudentProf.grade) : cleanGrade || '8',
+              studentCode: cleanCode,
+              teacherCode: null,
+              subject: null,
+              schoolName: String(existingStudentProf.school_name || 'Trường THCS Tây Đô'),
+              createdAt: existingStudentProf.created_at ? String(existingStudentProf.created_at) : null,
+              authStatus: 'active',
+              authStatusLabel: 'Đã kích hoạt',
+              emailConfirmedAt: null,
+              invitedAt: null,
+              lastSignInAt: null,
+              enrolledClasses: [
+                {
+                  id: assignRes.data?.classId || classId,
+                  name: assignRes.data?.className || 'Lớp học',
+                  grade: cleanGrade || '8'
+                }
+              ],
+              teachingClasses: []
+            },
+            classAssigned: true
+          }
+        };
+      }
+
+      return {
+        ok: false,
+        status: 409,
+        code: 'STUDENT_CODE_EXISTS',
+        message: `Mã học sinh "${cleanCode}" đã tồn tại (${existingStudentProf.full_name}).`,
+        data: { existingAccountId: existingId } as any
+      };
+    }
+
+    if (supabaseAdmin?.__isServiceRoleClient === false || !supabaseAdmin?.auth?.admin?.createUser) {
+      return {
+        ok: false,
+        status: 503,
+        code: 'SERVICE_ROLE_REQUIRED_FOR_CREATE_USER',
+        message:
+          'Máy chủ cần cấu hình SUPABASE_SERVICE_ROLE_KEY để tạo tài khoản học sinh trực tiếp trên Supabase Auth.'
+      };
+    }
+
+    const initialPassword = generateInitialStudentPassword();
+    const { data: createdData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: internalEmail,
+      password: initialPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+        role: 'student',
+        grade: cleanGrade || '8',
+        student_code: cleanCode,
+        school_name: 'Trường THCS Tây Đô',
+        must_change_password: true,
+        auth_login_mode: 'student_code'
+      }
+    });
+
+    if (createError || !createdData?.user) {
+      const rawMsg = createError?.message || 'Không tạo được tài khoản học sinh trên Supabase Auth.';
+      return {
+        ok: false,
+        status: 502,
+        code: 'AUTH_CREATE_STUDENT_FAILED',
+        message: `Lỗi tạo tài khoản học sinh (${cleanCode}): ${rawMsg}`
+      };
+    }
+
+    const userId = String(createdData.user.id);
+    const studentProfilePayload = {
+      id: userId,
+      full_name: fullName,
+      email: internalEmail,
+      role: 'student',
+      grade: cleanGrade || '8',
+      student_code: cleanCode,
+      subject: null,
+      school_name: 'Trường THCS Tây Đô'
+    };
+
+    const { data: savedStudentProfile, error: profErr } = await supabaseAdmin
+      .from('profiles')
+      .upsert(studentProfilePayload, { onConflict: 'id' })
+      .select('id, full_name, email, role, grade, student_code, subject, school_name, created_at')
+      .single();
+
+    if (profErr || !savedStudentProfile) {
+      return {
+        ok: false,
+        status: 500,
+        code: 'PROFILE_PERSIST_FAILED',
+        message: `Đã tạo Auth cho mã ${cleanCode} nhưng chưa lưu được vào public.profiles: ${profErr?.message || 'Lỗi không xác định'}.`
+      };
+    }
+
+    await writeServerAuditLog(
+      supabaseAdmin,
+      caller,
+      'Tạo tài khoản học sinh theo mã',
+      cleanCode,
+      `Tạo tài khoản học sinh ${fullName} (Mã HS: ${cleanCode}) và cấp mật khẩu khởi tạo`,
+      userId
+    );
+
+    let classAssigned = false;
+    let classError: string | undefined;
+    const enrolledClasses: AdminAccountRecord['enrolledClasses'] = [];
+
+    if (classId) {
+      const assignRes = await assignUserToClass(supabaseAdmin, userId, classId, {}, caller);
+      if (assignRes.ok && assignRes.data?.assigned) {
+        classAssigned = true;
+        enrolledClasses.push({
+          id: assignRes.data.classId,
+          name: assignRes.data.className,
+          grade: cleanGrade || ''
+        });
+      } else {
+        classAssigned = false;
+        classError = assignRes.message || 'Chưa thể gán lớp cho học sinh vừa tạo.';
+      }
+    }
+
+    const accountRecord: AdminAccountRecord = {
+      id: userId,
+      fullName: String(savedStudentProfile.full_name),
+      email: String(savedStudentProfile.email),
+      role: 'student',
+      grade: savedStudentProfile.grade ? String(savedStudentProfile.grade) : null,
+      studentCode: cleanCode,
+      teacherCode: null,
+      subject: null,
+      schoolName: String(savedStudentProfile.school_name || 'Trường THCS Tây Đô'),
+      createdAt: savedStudentProfile.created_at ? String(savedStudentProfile.created_at) : null,
+      authStatus: 'confirmed_pending_login',
+      authStatusLabel: 'Đã cấp MK (Chờ ĐN)',
+      emailConfirmedAt: new Date().toISOString(),
+      invitedAt: null,
+      lastSignInAt: null,
+      enrolledClasses,
+      teachingClasses: []
+    };
+
+    return {
+      ok: true,
+      status: 201,
+      message:
+        classId && !classAssigned
+          ? `Đã tạo tài khoản học sinh ${cleanCode}, nhưng bước gán lớp chưa hoàn tất.`
+          : `Đã tạo tài khoản học sinh ${cleanCode} thành công (đăng nhập bằng Mã HS và mật khẩu khởi tạo).`,
+      data: {
+        accountCreated: true,
+        profileSaved: true,
+        inviteSent: false,
+        account: accountRecord,
+        classAssigned,
+        classError,
+        initialPassword,
+        loginIdentifier: cleanCode,
+        mustChangePassword: true
+      }
+    };
+  }
+
+  // =========================================================================
+  // LUỒNG TẠO TÀI KHOẢN GIÁO VIÊN / KIỂM DUYỆT (GIỮ NGUYÊN CƠ CHẾ EMAIL)
+  // =========================================================================
+  const cleanEmail = normalizeEmail(String(input.email || ''));
+  if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) {
+    return { ok: false, status: 400, code: 'INVALID_EMAIL', message: 'Địa chỉ email không hợp lệ.' };
+  }
+
   // 1. Check duplicate email in public.profiles
   const { data: existingProfileByEmail, error: existingCheckErr } = await supabaseAdmin
     .from('profiles')
-    .select('id, full_name, email, role')
+    .select('id, full_name, email, role, grade, student_code, teacher_code, subject, school_name, created_at')
     .ilike('email', cleanEmail)
     .maybeSingle();
 
@@ -2191,23 +2806,6 @@ export async function createOrInviteAccount(
     };
   }
 
-  // Check duplicate student_code
-  if (targetRole === 'student' && cleanCode) {
-    const { data: dupCode } = await supabaseAdmin
-      .from('profiles')
-      .select('id, full_name, email')
-      .ilike('student_code', cleanCode)
-      .maybeSingle();
-    if (dupCode) {
-      return {
-        ok: false,
-        status: 409,
-        code: 'STUDENT_CODE_EXISTS',
-        message: `Mã học sinh "${cleanCode}" đã thuộc về tài khoản "${dupCode.full_name}" (${dupCode.email}).`
-      };
-    }
-  }
-
   // Check duplicate teacher_code if schema supports it
   if (targetRole === 'teacher' && cleanTeacherCode) {
     const { data: dupTeacherCode, error: tCodeErr } = await supabaseAdmin
@@ -2225,6 +2823,16 @@ export async function createOrInviteAccount(
     }
   }
 
+  if (supabaseAdmin?.__isServiceRoleClient === false || !supabaseAdmin?.auth?.admin?.inviteUserByEmail) {
+    return {
+      ok: false,
+      status: 503,
+      code: 'SERVICE_ROLE_REQUIRED_FOR_INVITE',
+      message:
+        'Máy chủ chưa cấu hình SUPABASE_SERVICE_ROLE_KEY nên không thể gửi email mời tạo tài khoản Auth mới.'
+    };
+  }
+
   // 2. Invite via Supabase Auth Admin API
   const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
     cleanEmail,
@@ -2239,6 +2847,15 @@ export async function createOrInviteAccount(
 
   if (inviteError || !inviteData?.user) {
     const rawMsg = inviteError?.message || 'Không nhận được dữ liệu người dùng từ Supabase Auth.';
+    if (isAuthAdminNotAllowedError(inviteError)) {
+      return {
+        ok: false,
+        status: 503,
+        code: 'SERVICE_ROLE_REQUIRED_FOR_INVITE',
+        message:
+          'Máy chủ cần cấu hình SUPABASE_SERVICE_ROLE_KEY để gửi lời mời kích hoạt tài khoản mới qua Supabase Auth Admin API.'
+      };
+    }
     const lowerMsg = rawMsg.toLowerCase();
     if (lowerMsg.includes('already') && lowerMsg.includes('registered')) {
       return {
@@ -2265,8 +2882,8 @@ export async function createOrInviteAccount(
     full_name: fullName,
     email: cleanEmail,
     role: targetRole,
-    grade: targetRole === 'student' ? (cleanGrade || '8') : null,
-    student_code: targetRole === 'student' ? (cleanCode || null) : null,
+    grade: null,
+    student_code: null,
     subject: targetRole === 'teacher' ? (cleanSubject || null) : null,
     school_name: 'Trường THCS Tây Đô'
   };
@@ -2329,13 +2946,7 @@ export async function createOrInviteAccount(
 
     if (assignRes.ok && assignRes.data?.assigned) {
       classAssigned = true;
-      if (targetRole === 'student') {
-        enrolledClasses.push({
-          id: assignRes.data.classId,
-          name: assignRes.data.className,
-          grade: cleanGrade || ''
-        });
-      } else if (targetRole === 'teacher') {
+      if (targetRole === 'teacher') {
         teachingClasses.push({
           id: assignRes.data.classId,
           name: assignRes.data.className,
@@ -2389,6 +3000,130 @@ export async function createOrInviteAccount(
       classAssigned,
       classError,
       classConflict
+    }
+  };
+}
+
+/**
+ * Cấp lại mật khẩu khởi tạo ngẫu nhiên mới cho Học sinh khi quên mật khẩu (chỉ Quản trị viên thực hiện).
+ */
+export async function resetStudentPasswordByAdmin(
+  supabaseAdmin: any,
+  targetUserId: string,
+  caller: AdminCaller
+): Promise<
+  ServiceResult<{
+    studentId: string;
+    studentCode: string;
+    fullName: string;
+    initialPassword: string;
+    mustChangePassword: boolean;
+  }>
+> {
+  if (!isValidUuid(targetUserId)) {
+    return { ok: false, status: 400, code: 'INVALID_UUID', message: 'ID học sinh không hợp lệ.' };
+  }
+
+  if (supabaseAdmin?.__isServiceRoleClient === false || !supabaseAdmin?.auth?.admin?.updateUserById) {
+    return {
+      ok: false,
+      status: 503,
+      code: 'SERVICE_ROLE_REQUIRED',
+      message: 'Máy chủ cần cấu hình SUPABASE_SERVICE_ROLE_KEY để cấp lại mật khẩu học sinh trên Supabase Auth.'
+    };
+  }
+
+  const { data: targetProfile, error: profErr } = await supabaseAdmin
+    .from('profiles')
+    .select('id, full_name, email, role, student_code, grade')
+    .eq('id', targetUserId)
+    .maybeSingle();
+
+  if (profErr || !targetProfile) {
+    return {
+      ok: false,
+      status: 404,
+      code: 'STUDENT_NOT_FOUND',
+      message: 'Không tìm thấy hồ sơ học sinh trong CSDL.'
+    };
+  }
+
+  if (targetProfile.role !== 'student') {
+    return {
+      ok: false,
+      status: 400,
+      code: 'NOT_A_STUDENT',
+      message: 'Chức năng cấp lại mật khẩu khởi tạo chỉ áp dụng cho tài khoản Học sinh.'
+    };
+  }
+
+  const cleanCode = normalizeCode(targetProfile.student_code);
+  if (!cleanCode) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'MISSING_STUDENT_CODE',
+      message: 'Học sinh này chưa có Mã học sinh trong hồ sơ. Vui lòng cập nhật Mã học sinh trước.'
+    };
+  }
+
+  const { data: authData, error: authGetErr } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+  if (authGetErr || !authData?.user) {
+    return {
+      ok: false,
+      status: 404,
+      code: 'AUTH_USER_NOT_FOUND',
+      message: 'Không tìm thấy tài khoản tương ứng trên Supabase Auth.'
+    };
+  }
+
+  const initialPassword = generateInitialStudentPassword();
+  const existingMeta =
+    authData.user.user_metadata && typeof authData.user.user_metadata === 'object'
+      ? authData.user.user_metadata
+      : {};
+
+  const { error: updateAuthErr } = await supabaseAdmin.auth.admin.updateUserById(targetUserId, {
+    password: initialPassword,
+    email_confirm: true,
+    user_metadata: {
+      ...existingMeta,
+      full_name: targetProfile.full_name,
+      role: 'student',
+      student_code: cleanCode,
+      must_change_password: true,
+      password_reset_at: new Date().toISOString()
+    }
+  });
+
+  if (updateAuthErr) {
+    return {
+      ok: false,
+      status: 502,
+      code: 'RESET_PASSWORD_FAILED',
+      message: `Không thể đặt lại mật khẩu trên Supabase Auth: ${updateAuthErr.message}`
+    };
+  }
+
+  await writeServerAuditLog(
+    supabaseAdmin,
+    caller,
+    'Cấp lại mật khẩu học sinh',
+    cleanCode,
+    `Cấp mật khẩu khởi tạo mới cho học sinh ${targetProfile.full_name} (Mã HS: ${cleanCode}) — yêu cầu đổi mật khẩu lần đầu`,
+    targetUserId
+  );
+
+  return {
+    ok: true,
+    status: 200,
+    message: `Đã cấp mật khẩu khởi tạo mới cho học sinh "${targetProfile.full_name}" (${cleanCode}).`,
+    data: {
+      studentId: targetUserId,
+      studentCode: cleanCode,
+      fullName: String(targetProfile.full_name || ''),
+      initialPassword,
+      mustChangePassword: true
     }
   };
 }
@@ -2481,6 +3216,15 @@ export async function resendInviteEmail(
     return { ok: false, status: 400, code: 'INVALID_UUID', message: 'ID tài khoản không hợp lệ.' };
   }
 
+  if (supabaseAdmin?.__isServiceRoleClient === false || !supabaseAdmin?.auth?.admin?.getUserById) {
+    return {
+      ok: false,
+      status: 503,
+      code: 'SERVICE_ROLE_REQUIRED_FOR_INVITE',
+      message: 'Máy chủ cần cấu hình SUPABASE_SERVICE_ROLE_KEY để gửi lại email mời kích hoạt.'
+    };
+  }
+
   const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
   if (authErr || !authData?.user) {
     return {
@@ -2565,14 +3309,18 @@ function summarizeImportResults(
 }
 
 /**
- * Import 1: Nhập học sinh vào 1 lớp cụ thể (Mã học sinh, Họ và tên, Email đăng nhập)
+ * Import 1: Nhập học sinh vào 1 lớp cụ thể theo mẫu chuẩn 2 cột (Mã học sinh, Họ và tên)
+ * - Không yêu cầu email học sinh, không gửi email mời.
+ * - Học sinh mới được tạo trực tiếp trên Supabase Auth với định danh kỹ thuật nội bộ và mật khẩu khởi tạo ngẫu nhiên.
+ * - Học sinh đã tồn tại (kể cả học sinh đã tạo ở các lần trước) được đối chiếu theo Mã học sinh,
+ *   giữ nguyên tài khoản Auth, email và mật khẩu cũ, chỉ bổ sung liên kết vào lớp nếu chưa có.
  */
 export async function runStudentClassImport(
   supabaseAdmin: any,
   classId: string,
   rows: Array<{ rowNumber?: number; studentCode?: string; fullName?: string; email?: string }>,
   caller: AdminCaller,
-  redirectTo: string | undefined,
+  _redirectTo: string | undefined,
   dryRun: boolean
 ): Promise<ServiceResult<ExcelImportBatchResult>> {
   if (!isValidUuid(classId)) {
@@ -2608,30 +3356,54 @@ export async function runStudentClassImport(
     name: String(cls.name),
     classCode: cls.class_code ? String(cls.class_code) : null,
     grade: String(cls.grade || '8'),
-    schoolYear: String(cls.school_year || '2025-2026')
+    schoolYear: String(cls.school_year || '2026-2027')
   };
 
+  const internalDomain = resolveStudentInternalDomain();
   const profiles = profQuery.res.data || [];
-  const profileByEmail = new Map<string, any>();
-  const profileByCode = new Map<string, any>();
   const profileById = new Map<string, any>();
+  const profileByEmail = new Map<string, any>();
+  const profilesByCode = new Map<string, any[]>();
 
   for (const p of profiles) {
-    profileById.set(String(p.id), p);
-    if (p.email) profileByEmail.set(normalizeEmail(String(p.email)), p);
-    if (p.student_code) profileByCode.set(normalizeCode(String(p.student_code)), p);
+    const pid = String(p.id);
+    profileById.set(pid, p);
+    if (p.email) {
+      profileByEmail.set(normalizeEmail(String(p.email)), p);
+    }
+    if (p.student_code) {
+      const normCode = normalizeCode(String(p.student_code));
+      if (normCode) {
+        const list = profilesByCode.get(normCode) || [];
+        list.push(p);
+        profilesByCode.set(normCode, list);
+      }
+    }
   }
 
+  const authById = new Map<string, any>();
   const authByEmail = new Map<string, any>();
+  const authUsersByCode = new Map<string, any[]>();
+
   for (const au of authRes.users) {
-    if (au?.email) authByEmail.set(normalizeEmail(String(au.email)), au);
+    if (!au?.id) continue;
+    const uid = String(au.id);
+    authById.set(uid, au);
+    if (au.email) {
+      authByEmail.set(normalizeEmail(String(au.email)), au);
+    }
+    const metaCode = au.user_metadata?.student_code ? normalizeCode(String(au.user_metadata.student_code)) : '';
+    if (metaCode) {
+      const list = authUsersByCode.get(metaCode) || [];
+      list.push(au);
+      authUsersByCode.set(metaCode, list);
+    }
   }
 
   const memberStudentIds = new Set<string>(
     (existingMembers || []).map((m: any) => String(m.student_id))
   );
 
-  const seenEmailsInFile = new Map<string, number>();
   const seenCodesInFile = new Map<string, number>();
   const results: ExcelImportRowResult[] = [];
 
@@ -2640,131 +3412,131 @@ export async function runStudentClassImport(
     const rowNumber = Number(raw.rowNumber || i + 2);
     const cleanCode = normalizeCode(raw.studentCode);
     const fullName = String(raw.fullName || '').trim();
-    const cleanEmail = normalizeEmail(String(raw.email || ''));
     const columns = {
       'Mã học sinh': cleanCode,
-      'Họ và tên': fullName,
-      'Email đăng nhập': cleanEmail
+      'Họ và tên': fullName
     };
 
-    if (!cleanCode || !fullName || !cleanEmail) {
+    if (!cleanCode || !fullName) {
       results.push({
         rowNumber,
         status: 'error',
         statusLabel: 'Lỗi thiếu dữ liệu',
         code: 'MISSING_FIELDS',
-        message: 'Cần nhập đầy đủ Mã học sinh, Họ và tên và Email đăng nhập.',
+        message: 'Cần nhập đầy đủ 2 cột bắt buộc: Mã học sinh và Họ và tên.',
         columns
       });
       continue;
     }
 
-    if (!EMAIL_REGEX.test(cleanEmail)) {
+    if (!isValidStudentCode(cleanCode)) {
       results.push({
         rowNumber,
         status: 'error',
-        statusLabel: 'Email không hợp lệ',
-        code: 'INVALID_EMAIL',
-        message: `Địa chỉ email "${cleanEmail}" không đúng định dạng.`,
+        statusLabel: 'Mã HS không hợp lệ',
+        code: 'INVALID_STUDENT_CODE',
+        message: `Mã học sinh "${cleanCode}" không hợp lệ (chỉ dùng chữ cái không dấu, chữ số, dấu chấm/gạch ngang/gạch dưới, từ 2–32 ký tự).`,
         columns
       });
       continue;
     }
 
-    const prevEmailRow = seenEmailsInFile.get(cleanEmail);
     const prevCodeRow = seenCodesInFile.get(cleanCode);
-    if (prevEmailRow !== undefined || prevCodeRow !== undefined) {
+    if (prevCodeRow !== undefined) {
       results.push({
         rowNumber,
         status: 'error',
         statusLabel: 'Trùng lặp trong tệp',
         code: 'DUPLICATE_IN_FILE',
-        message:
-          prevEmailRow !== undefined
-            ? `Email "${cleanEmail}" bị lặp lại với dòng ${prevEmailRow} trong tệp Excel.`
-            : `Mã học sinh "${cleanCode}" bị lặp lại với dòng ${prevCodeRow} trong tệp Excel.`,
+        message: `Mã học sinh "${cleanCode}" bị lặp lại với dòng ${prevCodeRow} trong tệp tải lên.`,
         columns
       });
       continue;
     }
-    seenEmailsInFile.set(cleanEmail, rowNumber);
     seenCodesInFile.set(cleanCode, rowNumber);
 
-    const profEmail = profileByEmail.get(cleanEmail);
-    const profCode = profileByCode.get(cleanCode);
-    const authUser = authByEmail.get(cleanEmail);
+    const internalEmail = buildStudentInternalAuthEmail(cleanCode, internalDomain);
 
-    // Conflict 1: Email and Student Code resolve to TWO DIFFERENT profiles
-    if (profEmail && profCode && String(profEmail.id) !== String(profCode.id)) {
+    // Tập hợp tất cả bản ghi có thể tương ứng với Mã học sinh này từ profiles và auth.users
+    const candidateUserIds = new Set<string>();
+    const codeProfiles = profilesByCode.get(cleanCode) || [];
+    for (const cp of codeProfiles) {
+      candidateUserIds.add(String(cp.id));
+    }
+
+    const internalEmailProfile = profileByEmail.get(internalEmail);
+    if (internalEmailProfile) {
+      candidateUserIds.add(String(internalEmailProfile.id));
+    }
+
+    const codeAuthUsers = authUsersByCode.get(cleanCode) || [];
+    for (const cau of codeAuthUsers) {
+      candidateUserIds.add(String(cau.id));
+    }
+
+    const internalAuthUser = authByEmail.get(internalEmail);
+    if (internalAuthUser) {
+      candidateUserIds.add(String(internalAuthUser.id));
+    }
+
+    // Nếu 1 học sinh khớp với nhiều bản ghi không rõ tương ứng -> báo Quản trị viên xử lý, không tự gộp/xóa
+    if (candidateUserIds.size > 1) {
       results.push({
         rowNumber,
         status: 'error',
-        statusLabel: 'Xung đột Email & Mã HS',
-        code: 'CONFLICT_EMAIL_CODE_MISMATCH',
-        message: `Email "${cleanEmail}" thuộc "${profEmail.full_name}" nhưng Mã HS "${cleanCode}" lại thuộc "${profCode.full_name}" (${profCode.email}). Hệ thống dừng dòng này để Quản trị viên xử lý.`,
+        statusLabel: 'Trùng nhiều bản ghi',
+        code: 'AMBIGUOUS_STUDENT_RECORDS',
+        message: `Mã học sinh "${cleanCode}" tương ứng với ${candidateUserIds.size} bản ghi tài khoản khác nhau trong hệ thống. Hệ thống giữ nguyên dữ liệu, không tự gộp hay xóa; vui lòng kiểm tra trong mục Quản lý tài khoản.`,
         columns
       });
       continue;
     }
 
-    // Conflict 2: Email exists with a non-student role
-    if (profEmail && profEmail.role !== 'student') {
+    const existingStudentId = candidateUserIds.size === 1 ? Array.from(candidateUserIds)[0] : null;
+    const existingProf = existingStudentId ? profileById.get(existingStudentId) : null;
+    const existingAuth = existingStudentId ? authById.get(existingStudentId) : null;
+
+    if (existingProf && existingProf.role !== 'student') {
       results.push({
         rowNumber,
         status: 'error',
         statusLabel: 'Sai vai trò tài khoản',
         code: 'ROLE_CONFLICT_NOT_STUDENT',
-        message: `Email "${cleanEmail}" đang gắn với tài khoản vai trò "${profEmail.role}". Không thể nhập làm học sinh.`,
+        message: `Mã "${cleanCode}" đang gắn với tài khoản vai trò "${existingProf.role}". Không thể nhập làm học sinh.`,
         columns,
-        existingAccountId: String(profEmail.id),
-        existingRole: String(profEmail.role)
+        existingAccountId: String(existingProf.id),
+        existingRole: String(existingProf.role)
       });
       continue;
     }
 
-    // Conflict 3: Student Code already belongs to another student with a different email
-    if (profCode && !profEmail) {
-      results.push({
-        rowNumber,
-        status: 'error',
-        statusLabel: 'Trùng Mã học sinh',
-        code: 'STUDENT_CODE_BELONGS_TO_OTHER',
-        message: `Mã học sinh "${cleanCode}" đã thuộc tài khoản "${profCode.full_name}" (${profCode.email}).`,
-        columns,
-        existingAccountId: String(profCode.id)
-      });
-      continue;
-    }
-
-    // Conflict 4: Existing student profile already has a different student_code
-    if (profEmail && profEmail.student_code && normalizeCode(profEmail.student_code) !== cleanCode) {
+    if (
+      existingProf &&
+      existingProf.student_code &&
+      normalizeCode(existingProf.student_code) !== cleanCode
+    ) {
       results.push({
         rowNumber,
         status: 'error',
         statusLabel: 'Lệch Mã học sinh',
         code: 'STUDENT_CODE_MISMATCH',
-        message: `Email "${cleanEmail}" đã có Mã học sinh là "${profEmail.student_code}", không khớp với "${cleanCode}" trong file.`,
+        message: `Tài khoản hiện có đang mang Mã học sinh "${existingProf.student_code}", không khớp với "${cleanCode}".`,
         columns,
-        existingAccountId: String(profEmail.id)
+        existingAccountId: String(existingProf.id)
       });
       continue;
     }
 
-    const existingStudentId = profEmail
-      ? String(profEmail.id)
-      : authUser
-      ? String(authUser.id)
-      : null;
-
-    // Already enrolled in target class -> idempotent skip
+    // Học sinh đã thuộc lớp đích -> bỏ qua an toàn, giữ nguyên tài khoản & mật khẩu cũ
     if (existingStudentId && memberStudentIds.has(existingStudentId)) {
       results.push({
         rowNumber,
         status: 'skipped',
         statusLabel: 'Đã thuộc lớp (Bỏ qua)',
-        message: `Học sinh "${profEmail?.full_name || fullName}" đã có trong lớp ${targetClass.name}. Không tạo trùng.`,
+        message: `Học sinh "${existingProf?.full_name || fullName}" (${cleanCode}) đã có trong lớp ${targetClass.name}. Giữ nguyên tài khoản, email và mật khẩu hiện có.`,
         columns,
-        accountId: existingStudentId
+        accountId: existingStudentId,
+        loginIdentifier: cleanCode
       });
       continue;
     }
@@ -2773,24 +3545,27 @@ export async function runStudentClassImport(
       results.push({
         rowNumber,
         status: 'ready',
-        statusLabel: existingStudentId ? 'Sẵn sàng dùng lại & thêm lớp' : 'Sẵn sàng tạo mới & thêm lớp',
+        statusLabel: existingStudentId ? 'Đã có TK · Sẵn sàng thêm lớp' : 'Sẵn sàng tạo mới & thêm lớp',
         message: existingStudentId
-          ? `Dùng lại tài khoản Auth/Hồ sơ đã có và thêm vào lớp ${targetClass.name} (giữ nguyên dữ liệu năm học cũ).`
-          : `Mời kích hoạt tài khoản học sinh mới và thêm vào lớp ${targetClass.name}.`,
-        columns
+          ? `Học sinh "${existingProf?.full_name || fullName}" (${cleanCode}) đã tồn tại. Sẽ giữ nguyên mật khẩu hiện có và chỉ liên kết vào lớp ${targetClass.name}.`
+          : `Sẽ tạo tài khoản mới (đăng nhập bằng Mã HS: ${cleanCode}, cấp mật khẩu khởi tạo ngẫu nhiên, không gửi email) và thêm vào lớp ${targetClass.name}.`,
+        columns,
+        ...(existingStudentId ? { accountId: existingStudentId } : {}),
+        loginIdentifier: cleanCode
       });
       continue;
     }
 
-    // Execute confirm phase
+    // Thực thi bước xác nhận (dryRun = false)
+    // Trường hợp 1: Học sinh đã tồn tại -> giữ nguyên tài khoản Auth & mật khẩu cũ, chỉ đồng bộ hồ sơ/lớp
     if (existingStudentId) {
-      // Ensure profile exists & backfill empty student_code safely (never alter role)
-      if (!profEmail) {
+      if (!existingProf) {
+        const preservedEmail = existingAuth?.email ? normalizeEmail(String(existingAuth.email)) : internalEmail;
         const { error: upsertErr } = await supabaseAdmin.from('profiles').upsert(
           {
             id: existingStudentId,
             full_name: fullName,
-            email: cleanEmail,
+            email: preservedEmail,
             role: 'student',
             grade: targetClass.grade,
             student_code: cleanCode,
@@ -2804,13 +3579,13 @@ export async function runStudentClassImport(
             status: 'error',
             statusLabel: 'Lỗi đồng bộ hồ sơ',
             code: 'PROFILE_PERSIST_FAILED',
-            message: `Không thể lưu hồ sơ học sinh cho Auth ID ${existingStudentId}: ${upsertErr.message}`,
+            message: `Không thể đồng bộ hồ sơ học sinh cho ID ${existingStudentId}: ${upsertErr.message}`,
             columns,
             accountId: existingStudentId
           });
           continue;
         }
-      } else if (!profEmail.student_code) {
+      } else if (!existingProf.student_code) {
         await supabaseAdmin
           .from('profiles')
           .update({ student_code: cleanCode })
@@ -2829,7 +3604,8 @@ export async function runStudentClassImport(
           accountId: existingStudentId,
           accountCreated: false,
           classAssigned: false,
-          canRetryClassAssign: true
+          canRetryClassAssign: true,
+          loginIdentifier: cleanCode
         });
         continue;
       }
@@ -2838,42 +3614,63 @@ export async function runStudentClassImport(
       results.push({
         rowNumber,
         status: 'reused',
-        statusLabel: 'Đã dùng lại & thêm vào lớp',
-        message: `Đã dùng lại hồ sơ hiện có và thêm vào lớp ${targetClass.name}.`,
+        statusLabel: 'Đã dùng lại TK & thêm vào lớp',
+        message: `Đã giữ nguyên tài khoản hiện có (${cleanCode}) và liên kết vào lớp ${targetClass.name}.`,
         columns,
         accountId: existingStudentId,
-        classAssigned: true
+        classAssigned: true,
+        loginIdentifier: cleanCode
       });
       continue;
     }
 
-    // New student -> inviteUserByEmail + upsert profile + add to class_members
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      cleanEmail,
-      {
-        data: { full_name: fullName, role: 'student' },
-        ...(redirectTo ? { redirectTo } : {})
-      }
-    );
-
-    if (inviteError || !inviteData?.user) {
+    // Trường hợp 2: Học sinh mới -> tạo trực tiếp qua Supabase Auth Admin API (createUser, không gửi email)
+    if (supabaseAdmin?.__isServiceRoleClient === false || !supabaseAdmin?.auth?.admin?.createUser) {
       results.push({
         rowNumber,
         status: 'error',
-        statusLabel: 'Lỗi gửi mời Auth',
-        code: 'INVITE_EMAIL_FAILED',
-        message: formatInviteEmailError(inviteError?.message || 'Không tạo được tài khoản Auth.'),
+        statusLabel: 'Thiếu quyền tạo Auth',
+        code: 'SERVICE_ROLE_REQUIRED_FOR_NEW_USER',
+        message: `Mã học sinh "${cleanCode}" chưa có tài khoản. Máy chủ cần cấu hình SUPABASE_SERVICE_ROLE_KEY để tạo tài khoản học sinh hàng loạt trên Supabase Auth.`,
         columns
       });
       continue;
     }
 
-    const newUserId = String(inviteData.user.id);
+    const initialPassword = generateInitialStudentPassword();
+    const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: internalEmail,
+      password: initialPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+        role: 'student',
+        grade: targetClass.grade,
+        student_code: cleanCode,
+        school_name: 'Trường THCS Tây Đô',
+        must_change_password: true,
+        auth_login_mode: 'student_code'
+      }
+    });
+
+    if (createError || !createData?.user) {
+      results.push({
+        rowNumber,
+        status: 'error',
+        statusLabel: 'Lỗi tạo tài khoản Auth',
+        code: 'CREATE_USER_FAILED',
+        message: `Không thể tạo tài khoản Auth cho mã "${cleanCode}": ${createError?.message || 'Lỗi không xác định'}.`,
+        columns
+      });
+      continue;
+    }
+
+    const newUserId = String(createData.user.id);
     const { error: profInsertErr } = await supabaseAdmin.from('profiles').upsert(
       {
         id: newUserId,
         full_name: fullName,
-        email: cleanEmail,
+        email: internalEmail,
         role: 'student',
         grade: targetClass.grade,
         student_code: cleanCode,
@@ -2888,14 +3685,28 @@ export async function runStudentClassImport(
         status: 'partial_failed',
         statusLabel: 'Đã tạo Auth, lỗi hồ sơ',
         code: 'PROFILE_PERSIST_FAILED',
-        message: `Đã tạo Auth (${newUserId}) nhưng lỗi lưu profiles: ${profInsertErr.message}`,
+        message: `Đã tạo tài khoản Auth (${cleanCode}) nhưng lỗi lưu bảng profiles: ${profInsertErr.message}`,
         columns,
         accountId: newUserId,
         accountCreated: true,
-        classAssigned: false
+        classAssigned: false,
+        initialPassword,
+        loginIdentifier: cleanCode,
+        mustChangePassword: true
       });
       continue;
     }
+
+    const createdProfObj = {
+      id: newUserId,
+      email: internalEmail,
+      student_code: cleanCode,
+      role: 'student',
+      full_name: fullName
+    };
+    profileById.set(newUserId, createdProfObj);
+    profileByEmail.set(internalEmail, createdProfObj);
+    profilesByCode.set(cleanCode, [createdProfObj]);
 
     const enrollRes = await assignUserToClass(supabaseAdmin, newUserId, classId, {}, caller);
     if (!enrollRes.ok) {
@@ -2904,40 +3715,45 @@ export async function runStudentClassImport(
         status: 'partial_failed',
         statusLabel: 'Đã tạo TK, lỗi gán lớp',
         code: enrollRes.code || 'ENROLL_FAILED',
-        message: `Đã tạo tài khoản học sinh nhưng chưa thể gán vào lớp ${targetClass.name}: ${enrollRes.message}`,
+        message: `Đã tạo tài khoản học sinh (${cleanCode}) nhưng chưa thể gán vào lớp ${targetClass.name}: ${enrollRes.message}`,
         columns,
         accountId: newUserId,
         accountCreated: true,
         classAssigned: false,
-        canRetryClassAssign: true
+        canRetryClassAssign: true,
+        initialPassword,
+        loginIdentifier: cleanCode,
+        mustChangePassword: true
       });
       continue;
     }
 
     memberStudentIds.add(newUserId);
-    profileByEmail.set(cleanEmail, { id: newUserId, email: cleanEmail, student_code: cleanCode, role: 'student', full_name: fullName });
-    profileByCode.set(cleanCode, { id: newUserId, email: cleanEmail, student_code: cleanCode, role: 'student', full_name: fullName });
 
     results.push({
       rowNumber,
       status: 'created',
       statusLabel: 'Tạo mới & thêm vào lớp',
-      message: `Đã gửi lời mời kích hoạt và thêm vào lớp ${targetClass.name}.`,
+      message: `Đã tạo tài khoản học sinh (Tên ĐN: ${cleanCode}) và thêm vào lớp ${targetClass.name}.`,
       columns,
       accountId: newUserId,
       accountCreated: true,
-      classAssigned: true
+      classAssigned: true,
+      initialPassword,
+      loginIdentifier: cleanCode,
+      mustChangePassword: true
     });
   }
 
   if (!dryRun) {
-    const applied = results.filter(r => r.status === 'created' || r.status === 'reused').length;
+    const createdCount = results.filter(r => r.status === 'created').length;
+    const reusedCount = results.filter(r => r.status === 'reused').length;
     await writeServerAuditLog(
       supabaseAdmin,
       caller,
-      'Nhập học sinh từ Excel',
+      'Nhập học sinh từ Excel (Mẫu 2 cột)',
       `${targetClass.name} (${targetClass.schoolYear})`,
-      `Xử lý ${results.length} dòng: thêm thành công ${applied} học sinh vào lớp ${targetClass.name}`,
+      `Xử lý ${results.length} dòng: tạo mới ${createdCount} học sinh, liên kết ${reusedCount} học sinh hiện có vào lớp ${targetClass.name}`,
       classId
     );
   }
@@ -3191,6 +4007,18 @@ export async function runTeacherImport(
     }
 
     // New teacher account -> inviteUserByEmail + profiles upsert with role='teacher' (strictly verified admin server-side)
+    if (supabaseAdmin?.__isServiceRoleClient === false || !supabaseAdmin?.auth?.admin?.inviteUserByEmail) {
+      results.push({
+        rowNumber,
+        status: 'error',
+        statusLabel: 'Cần tài khoản đã đăng ký',
+        code: 'SERVICE_ROLE_REQUIRED_FOR_NEW_USER',
+        message: `Email "${cleanEmail}" chưa có hồ sơ trên hệ thống. Để tự động gửi lời mời tạo Auth mới, máy chủ cần cấu hình SUPABASE_SERVICE_ROLE_KEY (hoặc giáo viên tự đăng ký tài khoản trước).`,
+        columns
+      });
+      continue;
+    }
+
     const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       cleanEmail,
       {
@@ -3543,3 +4371,157 @@ export async function runTeachingAssignmentImport(
     data: summarizeImportResults('assignments', dryRun, results)
   };
 }
+
+export interface StudentCodeLoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: any;
+  mustChangePassword: boolean;
+  studentCode: string;
+}
+
+/**
+ * Xác thực đăng nhập cho Học sinh bằng Mã học sinh và Mật khẩu:
+ * - Không yêu cầu học sinh cung cấp email cá nhân.
+ * - Hỗ trợ cả học sinh mới (dùng định danh kỹ thuật nội bộ) lẫn học sinh đã tạo trước đó (có student_code trong profiles).
+ * - Nếu 1 mã học sinh bị trùng trên nhiều bản ghi, từ chối và báo Quản trị viên xử lý.
+ * - Không để lộ định danh kỹ thuật nội bộ hoặc email trong phản hồi lỗi.
+ */
+export async function authenticateStudentByCode(
+  studentCodeRaw: string,
+  passwordRaw: string,
+  options: {
+    supabaseLookupClient?: any;
+    createAnonAuthClient: () => any;
+  }
+): Promise<ServiceResult<StudentCodeLoginResponse>> {
+  const cleanCode = normalizeCode(studentCodeRaw);
+  const password = String(passwordRaw || '').trim();
+
+  if (!cleanCode || !password) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'MISSING_CREDENTIALS',
+      message: 'Vui lòng nhập đầy đủ Mã học sinh và Mật khẩu.'
+    };
+  }
+
+  if (!isValidStudentCode(cleanCode)) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'INVALID_STUDENT_CODE',
+      message: 'Mã học sinh không đúng định dạng hợp lệ.'
+    };
+  }
+
+  if (password.length < 6) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'INVALID_PASSWORD',
+      message: 'Mật khẩu cần tối thiểu 6 ký tự.'
+    };
+  }
+
+  const internalDomain = resolveStudentInternalDomain();
+  const internalEmail = buildStudentInternalAuthEmail(cleanCode, internalDomain);
+  const candidateEmails: string[] = [];
+
+  if (options.supabaseLookupClient) {
+    const { data: rows, error: lookupErr } = await options.supabaseLookupClient
+      .from('profiles')
+      .select('id, full_name, email, role, student_code')
+      .ilike('student_code', cleanCode);
+
+    if (!lookupErr && Array.isArray(rows)) {
+      const exactMatches = rows.filter(
+        (r: any) => normalizeCode(r.student_code) === cleanCode
+      );
+
+      if (exactMatches.length > 1) {
+        return {
+          ok: false,
+          status: 409,
+          code: 'AMBIGUOUS_STUDENT_CODE',
+          message:
+            'Mã học sinh này đang xuất hiện trên nhiều hồ sơ không rõ tương ứng. Vui lòng báo Quản trị viên nhà trường kiểm tra.'
+        };
+      }
+
+      if (exactMatches.length === 1) {
+        const matched = exactMatches[0];
+        if (matched.role && matched.role !== 'student') {
+          return {
+            ok: false,
+            status: 403,
+            code: 'NOT_STUDENT_ACCOUNT',
+            message: 'Tài khoản Giáo viên / Quản trị viên vui lòng đăng nhập bằng Email.'
+          };
+        }
+        if (matched.email) {
+          const normMatchedEmail = normalizeEmail(String(matched.email));
+          if (normMatchedEmail) {
+            candidateEmails.push(normMatchedEmail);
+          }
+        }
+      }
+    }
+  }
+
+  if (!candidateEmails.includes(internalEmail)) {
+    candidateEmails.push(internalEmail);
+  }
+
+  const anonClient = options.createAnonAuthClient();
+  if (!anonClient?.auth?.signInWithPassword) {
+    return {
+      ok: false,
+      status: 503,
+      code: 'SUPABASE_NOT_CONFIGURED',
+      message: 'Máy chủ chưa cấu hình kết nối xác thực Supabase.'
+    };
+  }
+
+  for (const candidateEmail of candidateEmails) {
+    const { data, error } = await anonClient.auth.signInWithPassword({
+      email: candidateEmail,
+      password
+    });
+
+    if (!error && data?.session && data?.user) {
+      const metaRole = data.user.user_metadata?.role;
+      if (metaRole && metaRole !== 'student') {
+        return {
+          ok: false,
+          status: 403,
+          code: 'NOT_STUDENT_ACCOUNT',
+          message: 'Tài khoản Giáo viên / Quản trị viên vui lòng đăng nhập bằng Email.'
+        };
+      }
+
+      const mustChangePassword = Boolean(data.user.user_metadata?.must_change_password);
+      return {
+        ok: true,
+        status: 200,
+        message: 'Đăng nhập thành công.',
+        data: {
+          accessToken: String(data.session.access_token),
+          refreshToken: String(data.session.refresh_token),
+          user: data.user,
+          mustChangePassword,
+          studentCode: cleanCode
+        }
+      };
+    }
+  }
+
+  return {
+    ok: false,
+    status: 401,
+    code: 'INVALID_CREDENTIALS',
+    message: 'Mã học sinh hoặc mật khẩu không chính xác.'
+  };
+}
+

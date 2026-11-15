@@ -64,7 +64,8 @@ const AppContent: React.FC = () => {
   }, [currentView]);
 
   // ROUTE GUARD: Chặn truy cập trái quyền ở cấp độ Route & URL trực tiếp
-  const isTeacherRoute = currentView.startsWith('teacher_');
+  // Ngoại lệ: 'teacher_student_call' (EDU Game Center) cho phép Chế độ Khách & Học sinh truy cập không cần đăng nhập
+  const isTeacherRoute = currentView.startsWith('teacher_') && currentView !== 'teacher_student_call';
   const isAdminRoute = currentView.startsWith('admin_');
   const isAdminOnlyRoute =
     currentView === 'admin_accounts' ||

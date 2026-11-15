@@ -3,8 +3,12 @@ import {
   AlertCircle,
   AlertTriangle,
   CheckCircle2,
+  Copy,
   Download,
+  Eye,
+  EyeOff,
   FileSpreadsheet,
+  KeyRound,
   RefreshCw,
   Upload,
   X
@@ -12,6 +16,7 @@ import {
 import {
   downloadClassStudentsTemplate,
   downloadImportResultReport,
+  downloadStudentInitialCredentialsSheet,
   downloadTeachersTemplate,
   downloadTeachingAssignmentsTemplate,
   parseExcelImportFile,
@@ -48,7 +53,7 @@ const KIND_META: Record<
 > = {
   students: {
     title: 'Nhập học sinh từ Excel vào lớp',
-    subtitle: 'Mẫu chuẩn 3 cột: Mã học sinh, Họ và tên, Email đăng nhập',
+    subtitle: 'Mẫu chuẩn 2 cột: Mã học sinh, Họ và tên (không cần email học sinh)',
     endpointSlug: 'students'
   },
   teachers: {
@@ -97,6 +102,8 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
   const [busy, setBusy] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [retryingRowNum, setRetryingRowNum] = useState<number | null>(null);
+  const [showInitialPasswords, setShowInitialPasswords] = useState<boolean>(false);
+  const [copiedRowNum, setCopiedRowNum] = useState<number | null>(null);
 
   if (!isOpen) return null;
 
@@ -110,6 +117,8 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
     setConfirmResult(null);
     setErrorMsg(null);
     setRetryingRowNum(null);
+    setShowInitialPasswords(false);
+    setCopiedRowNum(null);
   };
 
   const handleClose = () => {
@@ -394,16 +403,38 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         <div className="flex-1 overflow-y-auto space-y-4 min-h-0">
           {step === 'upload' && (
             <div className="space-y-4">
+              {kind === 'students' && (
+                <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-950 space-y-1.5">
+                  <p className="font-bold flex items-center gap-1.5 text-emerald-900">
+                    <KeyRound className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>Hướng dẫn nhập học sinh không cần Email:</span>
+                  </p>
+                  <ul className="list-disc pl-5 space-y-1 text-emerald-900/90 leading-relaxed">
+                    <li>
+                      Tệp Excel chỉ cần đúng <strong>2 cột</strong>: <code>Mã học sinh</code> và <code>Họ và tên</code>. Không yêu cầu email cá nhân và không gửi thư mời.
+                    </li>
+                    <li>
+                      Học sinh mới sẽ được tạo tài khoản trực tiếp với tên đăng nhập là <strong>Mã học sinh</strong> và một <strong>Mật khẩu khởi tạo ngẫu nhiên</strong> (yêu cầu đổi mật khẩu ở lần đăng nhập đầu tiên).
+                    </li>
+                    <li>
+                      Học sinh đã có tài khoản từ trước (khớp <code>Mã học sinh</code>) sẽ được giữ nguyên tài khoản &amp; mật khẩu hiện có, chỉ bổ sung vào lớp nếu chưa có trong lớp.
+                    </li>
+                  </ul>
+                </div>
+              )}
+
               <div className="p-5 rounded-2xl border border-dashed border-[#9EC5F8] bg-[#F8FBFF] text-center space-y-4">
                 <div className="w-12 h-12 rounded-xl bg-white border border-[#DCE8F7] text-[#006BFF] flex items-center justify-center mx-auto">
                   {busy ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-[#082B52]">
-                    {busy ? 'Đang đọc và kiểm tra dữ liệu với Supabase...' : 'Chọn tệp Excel (.xlsx hoặc .xls) để kiểm tra trước'}
+                    {busy ? 'Đang đọc và kiểm tra dữ liệu với Supabase...' : 'Chọn tệp Excel (.xlsx, .xls) hoặc CSV (.csv) để kiểm tra trước'}
                   </p>
                   <p className="text-xs text-slate-600 max-w-lg mx-auto">
-                    Hệ thống sẽ kiểm tra từng dòng trước khi ghi dữ liệu vào Supabase Auth và CSDL. Bạn có thể tải tệp mẫu để điền đúng tên cột.
+                    {kind === 'students'
+                      ? 'Hệ thống sẽ đối chiếu Mã học sinh với dữ liệu hiện có trước khi tạo tài khoản và xếp lớp. Bạn có thể tải mẫu chuẩn 2 cột bên dưới.'
+                      : 'Hệ thống sẽ kiểm tra từng dòng trước khi ghi dữ liệu vào Supabase Auth và CSDL. Bạn có thể tải tệp mẫu để điền đúng tên cột.'}
                   </p>
                 </div>
 
@@ -415,15 +446,15 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#DCE8F7] bg-white hover:bg-slate-50 text-xs font-bold text-[#082B52] whitespace-nowrap"
                   >
                     <Download className="w-4 h-4 text-[#006BFF]" />
-                    <span>Tải mẫu Excel (.xlsx)</span>
+                    <span>{kind === 'students' ? 'Tải mẫu Excel 2 cột (.xlsx)' : 'Tải mẫu Excel (.xlsx)'}</span>
                   </button>
 
                   <label className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white text-xs font-bold cursor-pointer whitespace-nowrap">
                     <Upload className="w-4 h-4" />
-                    <span>{busy ? 'Đang kiểm tra...' : 'Chọn tệp Excel'}</span>
+                    <span>{busy ? 'Đang kiểm tra...' : 'Chọn tệp Excel / CSV'}</span>
                     <input
                       type="file"
-                      accept=".xlsx,.xls"
+                      accept=".xlsx,.xls,.csv"
                       disabled={busy}
                       onChange={handleFileChange}
                       className="hidden"
@@ -454,7 +485,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                   </div>
                 )}
                 <div className="p-3 rounded-xl border border-blue-200 bg-blue-50/60">
-                  <span className="text-blue-800 block">{step === 'preview' ? 'Ghi chú / Tệp' : 'Dùng lại / Cập nhật'}</span>
+                  <span className="text-blue-800 block">{step === 'preview' ? 'Ghi chú / Tệp' : 'Dùng lại / Xếp lớp'}</span>
                   <strong className="text-lg text-[#082B52] tabular-nums">
                     {step === 'preview' ? fileName.slice(0, 14) : activeData.summary.reusedCount}
                   </strong>
@@ -472,6 +503,64 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                   </strong>
                 </div>
               </div>
+
+              {step === 'result' &&
+                kind === 'students' &&
+                activeData.rows.some(r => Boolean(r.initialPassword)) && (
+                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="font-bold flex items-center gap-1.5 text-amber-900">
+                        <KeyRound className="w-4 h-4 text-amber-700 shrink-0" />
+                        <span>
+                          Đã khởi tạo mật khẩu lần đầu cho{' '}
+                          {activeData.rows.filter(r => Boolean(r.initialPassword)).length} học sinh mới
+                        </span>
+                      </p>
+                      <p className="text-amber-900/90 leading-relaxed">
+                        Vì lý do bảo mật, mật khẩu khởi tạo <strong>chỉ hiển thị một lần duy nhất</strong> tại bước này và không lưu dạng rõ trong CSDL. Hãy tải phiếu mật khẩu để phát cho học sinh.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setShowInitialPasswords(v => !v)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-300 bg-white hover:bg-amber-100/60 text-amber-900 font-bold"
+                      >
+                        {showInitialPasswords ? (
+                          <>
+                            <EyeOff className="w-3.5 h-3.5" />
+                            <span>Ẩn mật khẩu</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Hiện mật khẩu</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          downloadStudentInitialCredentialsSheet(
+                            targetClass?.name || 'Lop',
+                            targetClass?.schoolYear || defaultSchoolYear,
+                            activeData.rows
+                              .filter(r => Boolean(r.initialPassword))
+                              .map(r => ({
+                                studentCode: r.columns['Mã học sinh'] || r.loginIdentifier || '',
+                                fullName: r.columns['Họ và tên'] || '',
+                                initialPassword: r.initialPassword || ''
+                              }))
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#082B52] hover:bg-[#0d3a6d] text-white font-bold shadow-2xs"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Tải phiếu mật khẩu khởi tạo (.xlsx)</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
               {activeData.summary.partialFailedCount > 0 && (
                 <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-950 flex items-start gap-2">
@@ -495,6 +584,9 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                           </th>
                         ))}
                         <th className="py-2.5 px-3 whitespace-nowrap">Trạng thái</th>
+                        {step === 'result' && kind === 'students' && (
+                          <th className="py-2.5 px-3 whitespace-nowrap">Mật khẩu khởi tạo</th>
+                        )}
                         <th className="py-2.5 px-3">Chi tiết</th>
                         {step === 'result' && kind === 'students' && (
                           <th className="py-2.5 px-3 text-right whitespace-nowrap">Xử lý</th>
@@ -519,6 +611,38 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                               {row.statusLabel}
                             </span>
                           </td>
+                          {step === 'result' && kind === 'students' && (
+                            <td className="py-2 px-3 whitespace-nowrap">
+                              {row.initialPassword ? (
+                                <div className="inline-flex items-center gap-1.5">
+                                  <code className="px-2 py-0.5 rounded bg-amber-50 border border-amber-200 font-mono font-bold text-[#082B52]">
+                                    {showInitialPasswords ? row.initialPassword : '••••••••••'}
+                                  </code>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (row.initialPassword && navigator.clipboard) {
+                                        navigator.clipboard.writeText(row.initialPassword);
+                                        setCopiedRowNum(row.rowNumber);
+                                        setTimeout(() => setCopiedRowNum(null), 1800);
+                                      }
+                                    }}
+                                    className="p-1 rounded hover:bg-slate-100 text-slate-600 hover:text-[#006BFF]"
+                                    title="Sao chép mật khẩu khởi tạo"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                  </button>
+                                  {copiedRowNum === row.rowNumber && (
+                                    <span className="text-[10px] font-bold text-emerald-700">Đã chép</span>
+                                  )}
+                                </div>
+                              ) : row.status === 'reused' || row.status === 'skipped' ? (
+                                <span className="text-[11px] text-slate-500">Giữ nguyên mật khẩu hiện có</span>
+                              ) : (
+                                <span className="text-slate-400">—</span>
+                              )}
+                            </td>
+                          )}
                           <td className="py-2 px-3 text-slate-700 leading-relaxed min-w-[220px]">
                             {row.message}
                           </td>
@@ -612,24 +736,50 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
           {step === 'result' && confirmResult && (
             <>
-              <button
-                type="button"
-                onClick={() =>
-                  downloadImportResultReport(
-                    kind,
-                    confirmResult.rows.map(r => ({
-                      rowNumber: r.rowNumber,
-                      statusLabel: r.statusLabel,
-                      message: r.message,
-                      columns: r.columns
-                    }))
-                  )
-                }
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#082B52] border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-[#E4F0FF] rounded-xl whitespace-nowrap"
-              >
-                <Download className="w-3.5 h-3.5 text-[#006BFF]" />
-                <span>Tải báo cáo kết quả (.xlsx)</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    downloadImportResultReport(
+                      kind,
+                      confirmResult.rows.map(r => ({
+                        rowNumber: r.rowNumber,
+                        statusLabel: r.statusLabel,
+                        message: r.message,
+                        columns: r.columns
+                      }))
+                    )
+                  }
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#082B52] border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-[#E4F0FF] rounded-xl whitespace-nowrap"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#006BFF]" />
+                  <span>Tải báo cáo kết quả (.xlsx)</span>
+                </button>
+
+                {kind === 'students' &&
+                  confirmResult.rows.some(r => Boolean(r.initialPassword)) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        downloadStudentInitialCredentialsSheet(
+                          targetClass?.name || 'Lop',
+                          targetClass?.schoolYear || defaultSchoolYear,
+                          confirmResult.rows
+                            .filter(r => Boolean(r.initialPassword))
+                            .map(r => ({
+                              studentCode: r.columns['Mã học sinh'] || r.loginIdentifier || '',
+                              fullName: r.columns['Họ và tên'] || '',
+                              initialPassword: r.initialPassword || ''
+                            }))
+                        )
+                      }
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-amber-950 border border-amber-300 bg-amber-100 hover:bg-amber-200/80 rounded-xl whitespace-nowrap"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-amber-800" />
+                      <span>Tải phiếu mật khẩu khởi tạo (.xlsx)</span>
+                    </button>
+                  )}
+              </div>
 
               <button
                 type="button"

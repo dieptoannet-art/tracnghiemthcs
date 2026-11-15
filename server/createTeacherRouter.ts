@@ -1,5 +1,5 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
-import { createDefaultSupabaseAdminClient } from './createAdminRouter.ts';
+import { resolveRequestSupabaseClient } from './createAdminRouter.ts';
 import {
   getTeacherScopePayload,
   gradeSubmissionWithScopeCheck,
@@ -16,19 +16,20 @@ export function createTeacherRouter(options: TeacherRouterOptions = {}) {
   const router = express.Router();
   router.use(express.json({ limit: '2mb' }));
 
-  const getAdminClient = options.getSupabaseAdmin || createDefaultSupabaseAdminClient;
-
   const requireVerifiedStaff = async (
     req: Request & { staffCaller?: StaffCaller; supabaseAdminClient?: any },
     res: Response,
     next: NextFunction
   ) => {
-    const adminClient = getAdminClient();
+    const adminClient = resolveRequestSupabaseClient(
+      req.headers.authorization,
+      options.getSupabaseAdmin
+    );
     if (!adminClient) {
       return res.status(503).json({
         ok: false,
-        code: 'MISSING_SERVICE_ROLE_KEY',
-        message: 'Máy chủ chưa cấu hình SUPABASE_SERVICE_ROLE_KEY.'
+        code: 'MISSING_SUPABASE_CONFIG',
+        message: 'Máy chủ chưa cấu hình kết nối Supabase.'
       });
     }
 

@@ -121,8 +121,8 @@ export const Dashboard: React.FC<DashboardProps> = () => {
     },
     {
       id: 'teacher_student_call',
-      title: 'Trò chơi gọi học sinh',
-      description: 'Tạo trò chơi tương tác để gọi học sinh, tăng hứng thú và sự tham gia của học sinh trong giờ học.',
+      title: 'EDU Game Center – Trò chơi giáo dục',
+      description: 'Tổ chức trò chơi gọi tên 3D & khởi động tiết học. Hỗ trợ Chế độ Khách (tự nhập danh sách, không cần đăng nhập) và Chế độ Giáo viên.',
       viewId: 'teacher_student_call',
       isTeacher: true,
       icon: <IconStudentCall className="w-28 h-24 sm:w-32 sm:h-28" />
@@ -170,6 +170,29 @@ export const Dashboard: React.FC<DashboardProps> = () => {
           alt="Tây Đô Smart EDU - Trường THCS Tây Đô"
           className="w-full h-auto block"
         />
+      </div>
+
+      {/* QUICK ACCESS BANNER: EDU GAME CENTER (GUEST & TEACHER MODE) */}
+      <div className="bg-gradient-to-r from-[#082B52] via-[#0F3D73] to-[#1769C2] rounded-2xl p-5 sm:p-6 text-white shadow-md border border-blue-300/30 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="space-y-1 text-center md:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-xs font-bold">
+            <span>MỚI · CHƠI NGAY KHÔNG CẦN ĐĂNG NHẬP</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold">
+            EDU Game Center – Thế giới trò chơi tương tác lớp học 3D
+          </h2>
+          <p className="text-xs sm:text-sm text-blue-100 max-w-2xl">
+            Khách truy cập và giáo viên có thể mở ngay toàn bộ trò chơi gọi học sinh 3D (Vòng quay 3D, Máy gắp thú 3D, Hộp quà bí mật 3D...) và trò chơi khởi động bằng cách tự nhập hoặc dán danh sách học sinh từ Excel / Google Sheets mà không cần đăng nhập.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => handleCardClick('teacher_student_call')}
+          className="px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#082B52] font-bold text-sm sm:text-base shadow-lg shrink-0 flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <span>Mở EDU Game Center ngay</span>
+          <ArrowRight className="w-5 h-5" />
+        </button>
       </div>
 
       {/* 2. DÀNH CHO HỌC SINH (8 thẻ giới thiệu chức năng) */}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, Bell, Database, LogIn, LogOut, User, Shield, GraduationCap, X, Laptop, UserPlus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { formatAccountLoginDisplay } from '../utils/studentAuthHelper';
 
 interface HeaderProps {
   onOpenSupabaseConfig: () => void;
@@ -142,7 +143,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
               {userProfile
                 ? userProfile.fullName
                 : user
-                ? (profileStatus === 'loading' ? 'Đang tải hồ sơ...' : user.email || 'Tài khoản')
+                ? profileStatus === 'loading'
+                  ? 'Đang tải hồ sơ...'
+                  : formatAccountLoginDisplay(
+                      user.email,
+                      user.user_metadata?.student_code,
+                      'student'
+                    )
                 : 'Chưa đăng nhập'}
             </span>
             {userProfile && (

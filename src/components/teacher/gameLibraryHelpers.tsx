@@ -597,6 +597,286 @@ export const GameCardIllustration: React.FC<{ code: string; category: string }> 
         </svg>
       );
 
+    case 'B01': // Ai nhanh hơn (EDU Speed Challenge)
+      return (
+        <svg viewBox="0 0 320 180" className="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgB01" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#1E1B4B" />
+              <stop offset="50%" stopColor="#1D4ED8" />
+              <stop offset="100%" stopColor="#7C3AED" />
+            </linearGradient>
+            <linearGradient id="buzzerRedB01" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F87171" />
+              <stop offset="50%" stopColor="#EF4444" />
+              <stop offset="100%" stopColor="#991B1B" />
+            </linearGradient>
+          </defs>
+          <rect width="320" height="180" fill="url(#bgB01)" />
+          {/* Speed Rays */}
+          <circle cx="160" cy="105" r="78" fill="#38BDF8" fillOpacity="0.12" />
+          <circle cx="160" cy="105" r="54" fill="#FACC15" fillOpacity="0.16" />
+          {/* Stopwatch Badge Top Left */}
+          <g transform="translate(56, 46)">
+            <circle r="22" fill="#0F172A" stroke="#38BDF8" strokeWidth="3" />
+            <text x="0" y="5" textAnchor="middle" fill="#FDE047" fontSize="12" fontWeight="900">15s</text>
+          </g>
+          {/* Scoreboard Badge Top Right */}
+          <g transform="translate(230, 30)">
+            <rect x="0" y="0" width="56" height="32" rx="8" fill="#0F172A" stroke="#FACC15" strokeWidth="2.5" />
+            <text x="28" y="20" textAnchor="middle" fill="#34D399" fontSize="12" fontWeight="900">+10Đ</text>
+          </g>
+          {/* Central 3D Game Show Buzzer Podium */}
+          <g transform="translate(160, 122)">
+            <path d="M-54 44 L-40 6 L40 6 L54 44 Z" fill="#1E293B" stroke="#38BDF8" strokeWidth="2.5" />
+            <ellipse cx="0" cy="6" rx="44" ry="12" fill="#CBD5E1" stroke="#FFFFFF" strokeWidth="2" />
+            {/* Glowing Red Buzzer Dome */}
+            <path d="M-32 4 C-32 -24 32 -24 32 4 Z" fill="url(#buzzerRedB01)" stroke="#FEF08A" strokeWidth="2.5" />
+            <ellipse cx="-10" cy="-8" rx="10" ry="4" fill="#FFFFFF" fillOpacity="0.45" />
+            {/* Lightning Bolt Icon */}
+            <path d="M4 -54 L-12 -26 L0 -26 L-6 -4 L16 -34 L2 -34 Z" fill="#FACC15" stroke="#FFFFFF" strokeWidth="1.5" />
+          </g>
+        </svg>
+      );
+
+    case 'B02': // Đoán hình bí mật (EDU Mystery Picture)
+      return (
+        <svg viewBox="0 0 320 180" className="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgB02" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#0F172A" />
+              <stop offset="50%" stopColor="#0369A1" />
+              <stop offset="100%" stopColor="#1D4ED8" />
+            </linearGradient>
+          </defs>
+          <rect width="320" height="180" fill="url(#bgB02)" />
+          {/* Picture Frame */}
+          <rect x="64" y="20" width="192" height="140" rx="14" fill="#1E293B" stroke="#FACC15" strokeWidth="4" />
+          {/* Revealed Landscape behind opened tiles */}
+          <rect x="74" y="30" width="172" height="120" rx="8" fill="#38BDF8" />
+          <circle cx="195" cy="60" r="18" fill="#FDE047" />
+          <path d="M74 135 L125 85 L168 125 L205 95 L246 135 V150 H74 Z" fill="#10B981" />
+          {/* Numbered Cover Tiles (Some closed, some flipping open) */}
+          <rect x="74" y="30" width="56" height="58" rx="6" fill="#1E3A8A" stroke="#93C5FD" strokeWidth="2" />
+          <text x="102" y="65" textAnchor="middle" fill="#FFF" fontSize="18" fontWeight="900">1</text>
+          <rect x="132" y="30" width="56" height="58" rx="6" fill="#3B82F6" stroke="#93C5FD" strokeWidth="2" />
+          <text x="160" y="65" textAnchor="middle" fill="#FFF" fontSize="18" fontWeight="900">2</text>
+          <rect x="74" y="92" width="56" height="58" rx="6" fill="#2563EB" stroke="#93C5FD" strokeWidth="2" />
+          <text x="102" y="127" textAnchor="middle" fill="#FFF" fontSize="18" fontWeight="900">4</text>
+          <rect x="190" y="92" width="56" height="58" rx="6" fill="#1D4ED8" stroke="#93C5FD" strokeWidth="2" />
+          <text x="218" y="127" textAnchor="middle" fill="#FFF" fontSize="18" fontWeight="900">6</text>
+          {/* Magnifying Glass & Question Mark Badge */}
+          <g transform="translate(238, 46)">
+            <circle cx="0" cy="0" r="22" fill="#F59E0B" stroke="#FFFFFF" strokeWidth="3" />
+            <text x="0" y="7" textAnchor="middle" fill="#FFF" fontSize="22" fontWeight="900">?</text>
+          </g>
+        </svg>
+      );
+
+    case 'B03': // Lật ô chữ bí mật (EDU Crossword Challenge)
+      return (
+        <svg viewBox="0 0 320 180" className="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgB03" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#09152B" />
+              <stop offset="55%" stopColor="#1E3A8A" />
+              <stop offset="100%" stopColor="#3B82F6" />
+            </linearGradient>
+          </defs>
+          <rect width="320" height="180" fill="url(#bgB03)" />
+          {/* Crossword Rows & Golden Vertical Keyword Column */}
+          <g transform="translate(52, 26)">
+            {/* Row 1 */}
+            <rect x="28" y="0" width="28" height="28" rx="5" fill="#1E293B" stroke="#60A5FA" strokeWidth="2" />
+            <rect x="60" y="0" width="28" height="28" rx="5" fill="#2563EB" stroke="#93C5FD" strokeWidth="2" />
+            <rect x="92" y="0" width="28" height="28" rx="5" fill="#FACC15" stroke="#FEF08A" strokeWidth="2.5" />
+            <rect x="124" y="0" width="28" height="28" rx="5" fill="#2563EB" stroke="#93C5FD" strokeWidth="2" />
+            <rect x="156" y="0" width="28" height="28" rx="5" fill="#2563EB" stroke="#93C5FD" strokeWidth="2" />
+            <text x="74" y="19" textAnchor="middle" fill="#FFF" fontSize="14" fontWeight="900">M</text>
+            <text x="106" y="19" textAnchor="middle" fill="#0F172A" fontSize="14" fontWeight="900">A</text>
+            <text x="138" y="19" textAnchor="middle" fill="#FFF" fontSize="14" fontWeight="900">N</text>
+            <text x="170" y="19" textAnchor="middle" fill="#FFF" fontSize="14" fontWeight="900">G</text>
+            {/* Row 2 */}
+            <rect x="0" y="34" width="28" height="28" rx="5" fill="#1E293B" stroke="#60A5FA" strokeWidth="2" />
+            <rect x="32" y="34" width="28" height="28" rx="5" fill="#1E293B" stroke="#60A5FA" strokeWidth="2" />
+            <rect x="64" y="34" width="28" height="28" rx="5" fill="#1E293B" stroke="#60A5FA" strokeWidth="2" />
+            <rect x="92" y="34" width="28" height="28" rx="5" fill="#F59E0B" stroke="#FEF08A" strokeWidth="2.5" />
+            <rect x="124" y="34" width="28" height="28" rx="5" fill="#1E293B" stroke="#60A5FA" strokeWidth="2" />
+            <text x="106" y="53" textAnchor="middle" fill="#0F172A" fontSize="14" fontWeight="900">I</text>
+            {/* Row 3 */}
+            <rect x="28" y="68" width="28" height="28" rx="5" fill="#059669" stroke="#6EE7B7" strokeWidth="2" />
+            <rect x="60" y="68" width="28" height="28" rx="5" fill="#059669" stroke="#6EE7B7" strokeWidth="2" />
+            <rect x="92" y="68" width="28" height="28" rx="5" fill="#FACC15" stroke="#FEF08A" strokeWidth="2.5" />
+            <rect x="124" y="68" width="28" height="28" rx="5" fill="#059669" stroke="#6EE7B7" strokeWidth="2" />
+            <rect x="156" y="68" width="28" height="28" rx="5" fill="#059669" stroke="#6EE7B7" strokeWidth="2" />
+            <rect x="188" y="68" width="28" height="28" rx="5" fill="#059669" stroke="#6EE7B7" strokeWidth="2" />
+            <text x="42" y="87" textAnchor="middle" fill="#FFF" fontSize="14" fontWeight="900">T</text>
+            <text x="74" y="87" textAnchor="middle" fill="#FFF" fontSize="14" fontWeight="900">R</text>
+            <text x="106" y="87" textAnchor="middle" fill="#0F172A" fontSize="14" fontWeight="900">I</text>
+            <text x="138" y="87" textAnchor="middle" fill="#FFF" fontSize="14" fontWeight="900">T</text>
+            <text x="170" y="87" textAnchor="middle" fill="#FFF" fontSize="14" fontWeight="900">U</text>
+            <text x="202" y="87" textAnchor="middle" fill="#FFF" fontSize="14" fontWeight="900">E</text>
+            {/* Row 4 */}
+            <rect x="60" y="102" width="28" height="28" rx="5" fill="#1E293B" stroke="#60A5FA" strokeWidth="2" />
+            <rect x="92" y="102" width="28" height="28" rx="5" fill="#F59E0B" stroke="#FEF08A" strokeWidth="2.5" />
+            <rect x="124" y="102" width="28" height="28" rx="5" fill="#1E293B" stroke="#60A5FA" strokeWidth="2" />
+            <rect x="156" y="102" width="28" height="28" rx="5" fill="#1E293B" stroke="#60A5FA" strokeWidth="2" />
+            <text x="106" y="121" textAnchor="middle" fill="#0F172A" fontSize="14" fontWeight="900">?</text>
+          </g>
+        </svg>
+      );
+
+    case 'B04': // Giải mã bí mật (EDU Secret Code Adventure)
+      return (
+        <svg viewBox="0 0 320 180" className="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgB04" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#09152B" />
+              <stop offset="50%" stopColor="#1E1B4B" />
+              <stop offset="100%" stopColor="#0F766E" />
+            </linearGradient>
+            <linearGradient id="goldB04" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#FEF08A" />
+              <stop offset="50%" stopColor="#FACC15" />
+              <stop offset="100%" stopColor="#CA8A04" />
+            </linearGradient>
+          </defs>
+          <rect width="320" height="180" fill="url(#bgB04)" />
+          {/* Glowing Portal Halo */}
+          <circle cx="160" cy="95" r="72" fill="#14B8A6" fillOpacity="0.14" />
+          <circle cx="160" cy="95" r="50" fill="#FACC15" fillOpacity="0.16" />
+          {/* Treasure Chest Base */}
+          <g transform="translate(86, 44)">
+            {/* Chest Lid */}
+            <path d="M8 38 C8 14 140 14 140 38 Z" fill="#78350F" stroke="url(#goldB04)" strokeWidth="4" />
+            {/* Chest Body */}
+            <rect x="8" y="38" width="132" height="68" rx="10" fill="#451A03" stroke="url(#goldB04)" strokeWidth="4" />
+            {/* Gold Straps */}
+            <rect x="34" y="20" width="12" height="86" fill="url(#goldB04)" />
+            <rect x="102" y="20" width="12" height="86" fill="url(#goldB04)" />
+            {/* Rotary Code Lock Panel */}
+            <rect x="24" y="48" width="100" height="42" rx="8" fill="#0F172A" stroke="#38BDF8" strokeWidth="2.5" />
+            {/* 4 Code Dials */}
+            <rect x="31" y="54" width="19" height="30" rx="4" fill="#1E293B" stroke="#FACC15" strokeWidth="1.5" />
+            <text x="40.5" y="74" textAnchor="middle" fill="#FEF08A" fontSize="15" fontWeight="900">2</text>
+            <rect x="54" y="54" width="19" height="30" rx="4" fill="#1E293B" stroke="#FACC15" strokeWidth="1.5" />
+            <text x="63.5" y="74" textAnchor="middle" fill="#FEF08A" fontSize="15" fontWeight="900">5</text>
+            <rect x="77" y="54" width="19" height="30" rx="4" fill="#1E293B" stroke="#FACC15" strokeWidth="1.5" />
+            <text x="86.5" y="74" textAnchor="middle" fill="#FEF08A" fontSize="15" fontWeight="900">1</text>
+            <rect x="100" y="54" width="19" height="30" rx="4" fill="#14B8A6" stroke="#FFFFFF" strokeWidth="1.5" />
+            <text x="109.5" y="74" textAnchor="middle" fill="#0F172A" fontSize="15" fontWeight="900">8</text>
+          </g>
+          {/* Floating Rune Clue Stones */}
+          <g transform="translate(32, 42)">
+            <polygon points="18,0 36,12 30,34 6,34 0,12" fill="#0F766E" stroke="#5EEAD4" strokeWidth="2" />
+            <text x="18" y="23" textAnchor="middle" fill="#FEF08A" fontSize="13" fontWeight="900">#1</text>
+          </g>
+          <g transform="translate(252, 42)">
+            <polygon points="18,0 36,12 30,34 6,34 0,12" fill="#6D28D9" stroke="#C4B5FD" strokeWidth="2" />
+            <text x="18" y="23" textAnchor="middle" fill="#FEF08A" fontSize="13" fontWeight="900">#4</text>
+          </g>
+        </svg>
+      );
+
+    case 'B05': // Đúng hay sai (EDU True or False Challenge)
+      return (
+        <svg viewBox="0 0 320 180" className="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgB05" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#09152B" />
+              <stop offset="50%" stopColor="#0F172A" />
+              <stop offset="100%" stopColor="#1E293B" />
+            </linearGradient>
+            <linearGradient id="trueGreenB05" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#34D399" />
+              <stop offset="100%" stopColor="#059669" />
+            </linearGradient>
+            <linearGradient id="falseRedB05" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#FB7185" />
+              <stop offset="100%" stopColor="#E11D48" />
+            </linearGradient>
+          </defs>
+          <rect width="320" height="180" fill="url(#bgB05)" />
+          {/* Split Arena Glow */}
+          <circle cx="92" cy="95" r="68" fill="#10B981" fillOpacity="0.16" />
+          <circle cx="228" cy="95" r="68" fill="#F43F5E" fillOpacity="0.16" />
+          {/* Top Statement Banner */}
+          <rect x="44" y="18" width="232" height="36" rx="10" fill="#1E293B" stroke="#38BDF8" strokeWidth="2" />
+          <text x="160" y="40" textAnchor="middle" fill="#F8FAFC" fontSize="12" fontWeight="900">
+            NHẬN ĐỊNH: a) ĐÚNG · b) SAI
+          </text>
+          {/* Left TRUE Podium Button */}
+          <g transform="translate(34, 66)">
+            <rect width="114" height="88" rx="16" fill="url(#trueGreenB05)" stroke="#A7F3D0" strokeWidth="3" />
+            <circle cx="57" cy="34" r="18" fill="#064E3B" fillOpacity="0.35" />
+            <path d="M48 34 L54 40 L67 27" fill="none" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            <text x="57" y="72" textAnchor="middle" fill="#FFFFFF" fontSize="16" fontWeight="900">
+              ĐÚNG
+            </text>
+          </g>
+          {/* Right FALSE Podium Button */}
+          <g transform="translate(172, 66)">
+            <rect width="114" height="88" rx="16" fill="url(#falseRedB05)" stroke="#FECDD3" strokeWidth="3" />
+            <circle cx="57" cy="34" r="18" fill="#881337" fillOpacity="0.35" />
+            <path d="M49 26 L65 42 M65 26 L49 42" fill="none" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" />
+            <text x="57" y="72" textAnchor="middle" fill="#FFFFFF" fontSize="16" fontWeight="900">
+              SAI
+            </text>
+          </g>
+          {/* Center VS / Timer Badge */}
+          <g transform="translate(160, 110)">
+            <circle r="20" fill="#0F172A" stroke="#FACC15" strokeWidth="3" />
+            <text x="0" y="5" textAnchor="middle" fill="#FEF08A" fontSize="12" fontWeight="900">10s</text>
+          </g>
+        </svg>
+      );
+
+    case 'B06': // Đuổi hình bắt chữ (EDU Picture Word Challenge)
+      return (
+        <svg viewBox="0 0 320 180" className="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgB06" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#0F172A" />
+              <stop offset="50%" stopColor="#1E3A8A" />
+              <stop offset="100%" stopColor="#4C1D95" />
+            </linearGradient>
+          </defs>
+          <rect width="320" height="180" fill="url(#bgB06)" />
+          {/* Left Visual Clue Card (Fire / Nhiệt) */}
+          <g transform="translate(36, 22)">
+            <rect width="102" height="84" rx="14" fill="#1E293B" stroke="#38BDF8" strokeWidth="3" />
+            <circle cx="51" cy="42" r="26" fill="#FEF08A" fillOpacity="0.18" />
+            <path d="M51 16 C65 32 72 44 64 58 C59 66 43 66 38 58 C30 44 37 32 51 16 Z" fill="#F97316" stroke="#FACC15" strokeWidth="2" />
+            <path d="M51 30 C58 40 60 48 56 55 C53 60 49 60 46 55 C42 48 44 40 51 30 Z" fill="#FEF08A" />
+          </g>
+          {/* Plus Sign Badge */}
+          <g transform="translate(160, 64)">
+            <circle r="15" fill="#FACC15" stroke="#FFFFFF" strokeWidth="2.5" />
+            <path d="M-6 0 H6 M0 -6 V6" stroke="#0F172A" strokeWidth="3.5" strokeLinecap="round" />
+          </g>
+          {/* Right Visual Clue Card (Ruler / Độ) */}
+          <g transform="translate(182, 22)">
+            <rect width="102" height="84" rx="14" fill="#1E293B" stroke="#C084FC" strokeWidth="3" />
+            <rect x="20" y="32" width="62" height="22" rx="4" fill="#FACC15" stroke="#FEF08A" strokeWidth="2" />
+            <line x1="30" y1="32" x2="30" y2="42" stroke="#0F172A" strokeWidth="2" />
+            <line x1="42" y1="32" x2="42" y2="46" stroke="#0F172A" strokeWidth="2" />
+            <line x1="54" y1="32" x2="54" y2="42" stroke="#0F172A" strokeWidth="2" />
+            <line x1="66" y1="32" x2="66" y2="46" stroke="#0F172A" strokeWidth="2" />
+          </g>
+          {/* Bottom Letter Tiles Row */}
+          <g transform="translate(46, 122)">
+            {['N', 'H', 'I', 'Ệ', 'T', 'Đ', 'Ộ'].map((ch, idx) => (
+              <g key={idx} transform={`translate(${idx * 33}, 0)`}>
+                <rect width="29" height="36" rx="7" fill="#FACC15" stroke="#FFFFFF" strokeWidth="2" />
+                <text x="14.5" y="24" textAnchor="middle" fill="#0F172A" fontSize="15" fontWeight="900">
+                  {ch}
+                </text>
+              </g>
+            ))}
+          </g>
+        </svg>
+      );
+
     default: {
       // Rich thematic illustrations for B, C, D, E, F categories
       const palettes: Record<string, { c1: string; c2: string; accent: string }> = {

@@ -18,6 +18,10 @@ import {
 } from '../../utils/importExportTemplates';
 import { ExcelImportModal, type ExcelImportTargetClass } from './ExcelImportModal';
 import {
+  formatAccountLoginDisplay,
+  isStudentInternalAuthEmail
+} from '../../utils/studentAuthHelper';
+import {
   AlertCircle,
   AlertTriangle,
   BookOpen,
@@ -25,6 +29,7 @@ import {
   ChevronDown,
   ChevronUp,
   ClipboardList,
+  Copy,
   Download,
   Edit3,
   FileSpreadsheet,
@@ -102,6 +107,7 @@ export const ClassAccountWorkspace: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [serverMissingKey, setServerMissingKey] = useState<boolean>(false);
+  const [serviceRoleConfigured, setServiceRoleConfigured] = useState<boolean>(true);
   const [readOnlyMode, setReadOnlyMode] = useState<boolean>(false);
 
   // Navigation & Filters
@@ -124,6 +130,21 @@ export const ClassAccountWorkspace: React.FC = () => {
   const [newClassCode, setNewClassCode] = useState<string>('');
   const [creatingClass, setCreatingClass] = useState<boolean>(false);
   const [createClassError, setCreateClassError] = useState<string | null>(null);
+
+  // Edit Class Modal state
+  const [editingClass, setEditingClass] = useState<AdminClassSummary | null>(null);
+  const [editClassSchoolYear, setEditClassSchoolYear] = useState<string>('2025-2026');
+  const [editClassGrade, setEditClassGrade] = useState<Grade>('8');
+  const [editClassName, setEditClassName] = useState<string>('');
+  const [editClassCode, setEditClassCode] = useState<string>('');
+  const [updatingClass, setUpdatingClass] = useState<boolean>(false);
+  const [editClassError, setEditClassError] = useState<string | null>(null);
+
+  // Delete Class Modal state
+  const [deletingClassTarget, setDeletingClassTarget] = useState<AdminClassSummary | null>(null);
+  const [deletingClassBusy, setDeletingClassBusy] = useState<boolean>(false);
+  const [deleteClassError, setDeleteClassError] = useState<string | null>(null);
+
   const [removingStudentId, setRemovingStudentId] = useState<string | null>(null);
   const [classRoleTeacherId, setClassRoleTeacherId] = useState<string>('');
   const [classRoleType, setClassRoleType] = useState<ClassRoleType>('homeroom');
@@ -197,6 +218,11 @@ export const ClassAccountWorkspace: React.FC = () => {
   const [splitClassError, setSplitClassError] = useState<string | null>(null);
   const [splitRetryClassId, setSplitRetryClassId] = useState<string>('');
   const [retryingClassAssign, setRetryingClassAssign] = useState<boolean>(false);
+  const [createdStudentCredentials, setCreatedStudentCredentials] = useState<{
+    studentCode: string;
+    fullName: string;
+    initialPassword: string;
+  } | null>(null);
 
   // Inspect Account & Role Drawer
   const [selectedAccount, setSelectedAccount] = useState<AdminAccountRecord | null>(null);
@@ -204,6 +230,13 @@ export const ClassAccountWorkspace: React.FC = () => {
   const [updatingRole, setUpdatingRole] = useState<boolean>(false);
   const [assignClassIdInDrawer, setAssignClassIdInDrawer] = useState<string>('');
   const [assigningClassInDrawer, setAssigningClassInDrawer] = useState<boolean>(false);
+  const [resettingStudentPassword, setResettingStudentPassword] = useState<boolean>(false);
+  const [resetPasswordResult, setResetPasswordResult] = useState<{
+    studentCode: string;
+    fullName: string;
+    initialPassword: string;
+  } | null>(null);
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [drawerNotice, setDrawerNotice] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -215,20 +248,34 @@ export const ClassAccountWorkspace: React.FC = () => {
   }, []);
 
   const loadReadOnlyFallback = useCallback(async () => {
-    const [profRes, clsRes, memRes] = await Promise.all([
+    const [profRes, clsRes, memRes, taRes, crRes] = await Promise.all([
       supabase
         .from('profiles')
-        .select('id, full_name, email, role, grade, student_code, subject, school_name, created_at')
+        .select('id, full_name, email, role, grade, student_code, teacher_code, subject, school_name, created_at')
         .order('created_at', { ascending: false }),
       supabase
         .from('classes')
-        .select('id, name, grade, school_year, teacher_id, teacher_name, invite_code')
+        .select('id, name, class_code, grade, school_year, teacher_id, teacher_name, invite_code')
         .order('grade', { ascending: true }),
-      supabase.from('class_members').select('class_id, student_id')
+      supabase.from('class_members').select('class_id, student_id'),
+      supabase
+        .from('teaching_assignments')
+        .select('id, school_year, teacher_id, class_id, subject, status, needs_subject_completion, notes, started_at, ended_at')
+        .order('school_year', { ascending: false }),
+      supabase
+        .from('class_roles')
+        .select('id, school_year, class_id, teacher_id, role_type, status, notes, granted_at, ended_at')
+        .order('school_year', { ascending: false })
     ]);
 
     if (profRes.error) {
-      throw new Error(profRes.error.message);
+      throw new Error(`Lỗi truy vấn public.profiles: ${profRes.error.message}`);
+    }
+    if (clsRes.error) {
+      throw new Error(`Lỗi truy vấn public.classes: ${clsRes.error.message}`);
+    }
+    if (memRes.error) {
+      throw new Error(`Lỗi truy vấn public.class_members: ${memRes.error.message}`);
     }
 
     const profMap = new Map<string, any>((profRes.data || []).map((p: any) => [String(p.id), p]));
@@ -260,14 +307,71 @@ export const ClassAccountWorkspace: React.FC = () => {
       }
     }
 
-    const teachingMap = new Map<string, { id: string; name: string; grade: string; schoolYear?: string }[]>();
-    for (const c of clsRows) {
-      if (c.teacher_id) {
-        const tid = String(c.teacher_id);
-        const list = teachingMap.get(tid) || [];
-        list.push({ id: String(c.id), name: c.name, grade: c.grade, schoolYear: c.school_year });
-        teachingMap.set(tid, list);
-      }
+    const fallbackTas: TeachingAssignment[] = !taRes.error && Array.isArray(taRes.data)
+      ? taRes.data.map((row: any) => {
+          const teacherProf = profMap.get(String(row.teacher_id));
+          const cls = clsMap.get(String(row.class_id));
+          const subj = row.subject ? String(row.subject) : null;
+          return {
+            id: String(row.id),
+            schoolYear: String(row.school_year || cls?.school_year || '2025-2026'),
+            teacherId: String(row.teacher_id),
+            teacherCode: teacherProf?.teacher_code ? String(teacherProf.teacher_code) : null,
+            teacherName: String(teacherProf?.full_name || 'Giáo viên'),
+            teacherEmail: String(teacherProf?.email || ''),
+            classId: String(row.class_id),
+            classCode: cls?.class_code ? String(cls.class_code) : null,
+            className: String(cls?.name || 'Lớp học'),
+            grade: (cls?.grade as Grade) || '8',
+            subject: subj,
+            subjectLabel: getSubjectDisplayName(subj),
+            status: row.status === 'ended' ? 'ended' : 'active',
+            needsSubjectCompletion: Boolean(row.needs_subject_completion || !subj),
+            notes: row.notes ? String(row.notes) : null,
+            startedAt: row.started_at ? String(row.started_at) : undefined,
+            endedAt: row.ended_at ? String(row.ended_at) : null
+          };
+        })
+      : [];
+
+    const fallbackClassRoles: ClassRoleAssignment[] = !crRes.error && Array.isArray(crRes.data)
+      ? crRes.data.map((row: any) => {
+          const teacherProf = profMap.get(String(row.teacher_id));
+          const cls = clsMap.get(String(row.class_id));
+          const roleType: ClassRoleType = row.role_type === 'class_manager' ? 'class_manager' : 'homeroom';
+          return {
+            id: String(row.id),
+            schoolYear: String(row.school_year || cls?.school_year || '2025-2026'),
+            classId: String(row.class_id),
+            classCode: cls?.class_code ? String(cls.class_code) : null,
+            className: String(cls?.name || 'Lớp học'),
+            grade: (cls?.grade as Grade) || '8',
+            teacherId: String(row.teacher_id),
+            teacherCode: teacherProf?.teacher_code ? String(teacherProf.teacher_code) : null,
+            teacherName: String(teacherProf?.full_name || 'Giáo viên'),
+            teacherEmail: String(teacherProf?.email || ''),
+            roleType,
+            roleLabel: roleType === 'homeroom' ? 'Chủ nhiệm lớp' : 'Quản lý danh sách lớp',
+            status: row.status === 'ended' ? 'ended' : 'active',
+            notes: row.notes ? String(row.notes) : null,
+            grantedAt: row.granted_at ? String(row.granted_at) : undefined,
+            endedAt: row.ended_at ? String(row.ended_at) : null
+          };
+        })
+      : [];
+
+    const teachingMap = new Map<string, { id: string; name: string; grade: string; schoolYear?: string; subjectLabel?: string }[]>();
+    for (const ta of fallbackTas) {
+      if (ta.status !== 'active') continue;
+      const list = teachingMap.get(ta.teacherId) || [];
+      list.push({
+        id: ta.classId,
+        name: ta.className || 'Lớp học',
+        grade: String(ta.grade || ''),
+        schoolYear: ta.schoolYear,
+        subjectLabel: ta.subjectLabel
+      });
+      teachingMap.set(ta.teacherId, list);
     }
 
     setAccounts(
@@ -278,12 +382,12 @@ export const ClassAccountWorkspace: React.FC = () => {
         role: (p.role as UserRole) || 'student',
         grade: p.grade ? String(p.grade) : null,
         studentCode: p.student_code ? String(p.student_code) : null,
-        teacherCode: null,
+        teacherCode: p.teacher_code ? String(p.teacher_code) : null,
         subject: p.subject ? String(p.subject) : null,
         schoolName: String(p.school_name || 'Trường THCS Tây Đô'),
         createdAt: p.created_at ? String(p.created_at) : null,
-        authStatus: 'confirmed_pending_login',
-        authStatusLabel: 'Chưa xác minh qua API server',
+        authStatus: 'active',
+        authStatusLabel: 'Đã kích hoạt',
         emailConfirmedAt: null,
         invitedAt: null,
         lastSignInAt: null,
@@ -298,7 +402,7 @@ export const ClassAccountWorkspace: React.FC = () => {
         return {
           id: String(c.id),
           name: String(c.name),
-          classCode: null,
+          classCode: c.class_code ? String(c.class_code) : null,
           grade: String(c.grade),
           schoolYear: String(c.school_year || '2025-2026'),
           teacherId: c.teacher_id ? String(c.teacher_id) : null,
@@ -309,8 +413,8 @@ export const ClassAccountWorkspace: React.FC = () => {
         };
       })
     );
-    setTeachingAssignments([]);
-    setClassRoles([]);
+    setTeachingAssignments(fallbackTas);
+    setClassRoles(fallbackClassRoles);
     setCutoverReadiness(null);
   }, []);
 
@@ -323,7 +427,7 @@ export const ClassAccountWorkspace: React.FC = () => {
     try {
       const token = await getAccessToken();
       if (!token) {
-        setLoadError('Chưa có phiên đăng nhập Quản trị viên hợp lệ.');
+        setLoadError('Chưa có phiên đăng nhập Quản trị viên hợp lệ. Vui lòng đăng nhập lại.');
         setLoading(false);
         return;
       }
@@ -337,7 +441,7 @@ export const ClassAccountWorkspace: React.FC = () => {
 
       if (res.status === 503 && payload?.code === 'MISSING_SERVICE_ROLE_KEY') {
         setServerMissingKey(true);
-        setReadOnlyMode(true);
+        setServiceRoleConfigured(false);
         await loadReadOnlyFallback();
         setLoading(false);
         return;
@@ -362,6 +466,7 @@ export const ClassAccountWorkspace: React.FC = () => {
       setAuditWarning(payload.auditLogsWarning || null);
       setTeachingSchemaReady(payload.teachingSchemaReady !== false);
       setTeachingSchemaWarning(payload.teachingSchemaWarning || null);
+      setServiceRoleConfigured(payload.serviceRoleConfigured !== false);
 
       setSelectedAccount(prev => {
         if (!prev) return null;
@@ -605,6 +710,104 @@ export const ClassAccountWorkspace: React.FC = () => {
     }
   };
 
+  const openEditClassModal = (cls: AdminClassSummary) => {
+    setEditingClass(cls);
+    setEditClassSchoolYear(cls.schoolYear || '2025-2026');
+    setEditClassGrade((cls.grade as Grade) || '8');
+    setEditClassName(cls.name || '');
+    setEditClassCode(cls.classCode || '');
+    setEditClassError(null);
+  };
+
+  const handleUpdateClassSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingClass || updatingClass || readOnlyMode) return;
+    setEditClassError(null);
+    setUpdatingClass(true);
+
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setEditClassError('Phiên đăng nhập đã hết hạn.');
+        setUpdatingClass(false);
+        return;
+      }
+
+      const res = await fetch(`/api/admin/classes/${editingClass.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          schoolYear: editClassSchoolYear.trim(),
+          grade: editClassGrade,
+          name: editClassName.trim(),
+          classCode: editClassCode.trim()
+        })
+      });
+
+      const payload = await res.json().catch(() => null);
+      if (!res.ok || !payload?.ok) {
+        setEditClassError(payload?.message || 'Không thể cập nhật thông tin lớp học.');
+        setUpdatingClass(false);
+        return;
+      }
+
+      setEditingClass(null);
+      setPageBanner({
+        type: 'success',
+        text: payload.message || 'Đã cập nhật thông tin lớp học.'
+      });
+      await refreshAll();
+    } catch (err: any) {
+      setEditClassError(err?.message || 'Lỗi kết nối máy chủ khi cập nhật lớp.');
+    } finally {
+      setUpdatingClass(false);
+    }
+  };
+
+  const handleConfirmDeleteClass = async () => {
+    if (!deletingClassTarget || deletingClassBusy || readOnlyMode) return;
+    setDeleteClassError(null);
+    setDeletingClassBusy(true);
+
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setDeleteClassError('Phiên đăng nhập đã hết hạn.');
+        setDeletingClassBusy(false);
+        return;
+      }
+
+      const res = await fetch(`/api/admin/classes/${deletingClassTarget.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const payload = await res.json().catch(() => null);
+      if (!res.ok || !payload?.ok) {
+        setDeleteClassError(payload?.message || 'Không thể xóa lớp học.');
+        setDeletingClassBusy(false);
+        return;
+      }
+
+      const deletedName = deletingClassTarget.name;
+      setDeletingClassTarget(null);
+      setPageBanner({
+        type: 'success',
+        text: payload.message || `Đã xóa lớp "${deletedName}".`
+      });
+      await refreshAll();
+    } catch (err: any) {
+      setDeleteClassError(err?.message || 'Lỗi kết nối máy chủ khi xóa lớp.');
+    } finally {
+      setDeletingClassBusy(false);
+    }
+  };
+
   const handleRemoveStudentFromActiveClass = async (studentId: string, studentName: string) => {
     if (!activeClass || removingStudentId || readOnlyMode) return;
     setRemovingStudentId(studentId);
@@ -721,6 +924,7 @@ export const ClassAccountWorkspace: React.FC = () => {
     setSplitCreatedAccount(null);
     setSplitClassError(null);
     setSplitRetryClassId('');
+    setCreatedStudentCredentials(null);
     setCreateAccountOpen(true);
   };
 
@@ -736,6 +940,7 @@ export const ClassAccountWorkspace: React.FC = () => {
     setSplitCreatedAccount(null);
     setSplitClassError(null);
     setSplitRetryClassId('');
+    setCreatedStudentCredentials(null);
     setCreateAccountOpen(true);
   };
 
@@ -763,7 +968,7 @@ export const ClassAccountWorkspace: React.FC = () => {
         },
         body: JSON.stringify({
           fullName: formFullName.trim(),
-          email: formEmail.trim(),
+          email: formRole === 'student' ? undefined : formEmail.trim(),
           role: formRole,
           studentCode: formRole === 'student' ? formStudentCode.trim() : undefined,
           teacherCode: formRole === 'teacher' ? formTeacherCode.trim() : undefined,
@@ -786,6 +991,28 @@ export const ClassAccountWorkspace: React.FC = () => {
         setSplitCreatedAccount(payload.account);
         setSplitClassError(payload.classError || 'Đã tạo tài khoản nhưng chưa gán được vào lớp.');
         setSplitRetryClassId(formClassId);
+        if (payload.initialPassword) {
+          setCreatedStudentCredentials({
+            studentCode: payload.loginIdentifier || formStudentCode.trim().toUpperCase(),
+            fullName: formFullName.trim(),
+            initialPassword: payload.initialPassword
+          });
+        }
+        await refreshAll();
+        setSubmittingCreate(false);
+        return;
+      }
+
+      if (formRole === 'student' && payload.initialPassword) {
+        setCreatedStudentCredentials({
+          studentCode: payload.loginIdentifier || formStudentCode.trim().toUpperCase(),
+          fullName: formFullName.trim(),
+          initialPassword: payload.initialPassword
+        });
+        setPageBanner({
+          type: 'success',
+          text: payload.message || 'Đã tạo tài khoản học sinh và khởi tạo mật khẩu lần đầu.'
+        });
         await refreshAll();
         setSubmittingCreate(false);
         return;
@@ -794,7 +1021,7 @@ export const ClassAccountWorkspace: React.FC = () => {
       setCreateAccountOpen(false);
       setPageBanner({
         type: 'success',
-        text: payload.message || 'Đã tạo tài khoản và gửi lời mời kích hoạt.'
+        text: payload.message || 'Đã tạo tài khoản thành công.'
       });
       await refreshAll();
     } catch (err: any) {
@@ -824,8 +1051,10 @@ export const ClassAccountWorkspace: React.FC = () => {
         setSplitClassError(payload?.message || 'Thử gán lớp lại chưa thành công.');
         return;
       }
-      setCreateAccountOpen(false);
       setSplitCreatedAccount(null);
+      if (!createdStudentCredentials) {
+        setCreateAccountOpen(false);
+      }
       setPageBanner({
         type: 'success',
         text: `Đã hoàn tất gán ${splitCreatedAccount.fullName} vào lớp.`
@@ -837,7 +1066,7 @@ export const ClassAccountWorkspace: React.FC = () => {
   };
 
   // =========================================================================
-  // HANDLERS: RESEND INVITE & ACCOUNT DRAWER
+  // HANDLERS: RESEND INVITE, RESET STUDENT PASSWORD & ACCOUNT DRAWER
   // =========================================================================
   const handleResendInvite = async (acc: AdminAccountRecord) => {
     if (readOnlyMode || resendingId) return;
@@ -872,7 +1101,50 @@ export const ClassAccountWorkspace: React.FC = () => {
     setSelectedAccount(acc);
     setPendingRole(acc.role);
     setAssignClassIdInDrawer('');
+    setResetPasswordResult(null);
     setDrawerNotice(null);
+  };
+
+  const handleResetStudentPasswordInDrawer = async () => {
+    if (!selectedAccount || selectedAccount.role !== 'student' || readOnlyMode || resettingStudentPassword) {
+      return;
+    }
+    setResettingStudentPassword(true);
+    setDrawerNotice(null);
+    setResetPasswordResult(null);
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+      const res = await fetch(`/api/admin/users/${selectedAccount.id}/reset-student-password`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok || !payload?.ok || !payload?.initialPassword) {
+        setDrawerNotice({
+          type: 'error',
+          text: payload?.message || 'Không thể cấp lại mật khẩu mới cho học sinh.'
+        });
+        return;
+      }
+      setResetPasswordResult({
+        studentCode: payload.studentCode || selectedAccount.studentCode || '',
+        fullName: selectedAccount.fullName,
+        initialPassword: payload.initialPassword
+      });
+      setDrawerNotice({
+        type: 'success',
+        text: payload.message || 'Đã cấp mật khẩu khởi tạo mới cho học sinh.'
+      });
+      await refreshAll();
+    } catch (err: any) {
+      setDrawerNotice({
+        type: 'error',
+        text: err?.message || 'Lỗi mạng khi cấp lại mật khẩu học sinh.'
+      });
+    } finally {
+      setResettingStudentPassword(false);
+    }
   };
 
   const openExistingById = (accountId: string | null, email?: string) => {
@@ -1175,17 +1447,17 @@ export const ClassAccountWorkspace: React.FC = () => {
         </div>
       )}
 
-      {/* Warning if Server Service Role Key missing */}
-      {serverMissingKey && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-950 space-y-2">
+      {/* Notice if Server Service Role Key is not configured */}
+      {(!serviceRoleConfigured || serverMissingKey) && (
+        <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs text-[#082B52] space-y-1.5">
           <div className="flex items-start gap-2.5">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-[#006BFF] shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-sm text-amber-900">
-                Máy chủ chưa cấu hình SUPABASE_SERVICE_ROLE_KEY (chế độ chỉ đọc)
+              <p className="font-bold text-sm text-[#082B52]">
+                Đang vận hành bằng quyền Quản trị viên xác thực qua RLS (JWT Admin)
               </p>
-              <p className="text-amber-900 mt-1 leading-relaxed">
-                Để tạo lớp, nhập Excel học sinh/giáo viên/phân công và mời kích hoạt Supabase Auth, hãy cấu hình biến môi trường phía server <code>SUPABASE_SERVICE_ROLE_KEY</code> (không dùng tiền tố <code>VITE_</code>) và khởi động lại server.
+              <p className="text-slate-700 mt-0.5 leading-relaxed">
+                Bạn có đầy đủ quyền tạo, sửa, xóa lớp học, gán học sinh hiện có, cấp vai trò chủ nhiệm và phân công giáo viên theo môn. Nếu cần gửi email mời tự động tạo tài khoản Auth mới tinh qua Supabase Auth Admin API, hãy bổ sung biến môi trường phía server <code>SUPABASE_SERVICE_ROLE_KEY</code> (không dùng tiền tố <code>VITE_</code>).
               </p>
             </div>
           </div>
@@ -1201,7 +1473,7 @@ export const ClassAccountWorkspace: React.FC = () => {
         >
           <span className="flex items-center gap-2">
             <Info className="w-4 h-4 text-[#006BFF]" />
-            <span>Kiểm tra tài khoản Quản trị viên đầu tiên theo Auth UUID</span>
+            <span>Kiểm tra tài khoản Quản trị viên theo Auth UUID</span>
           </span>
           {showAdminGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
@@ -1272,10 +1544,61 @@ export const ClassAccountWorkspace: React.FC = () => {
             onClick={fetchWorkspace}
             className="px-3.5 py-2 bg-red-600 text-white rounded-xl text-xs font-bold shrink-0"
           >
-            Thử lại
+            Thử tải lại
           </button>
         </div>
       )}
+
+      {/* Summary KPI Cards: Lớp học | Giáo viên | Phân công giảng dạy | Tổng số tài khoản */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-slate-500">Tổng số lớp học</p>
+            <p className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+              {loading ? '...' : classes.length}
+            </p>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-center justify-center text-[#006BFF]">
+            <BookOpen className="w-4 h-4" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-slate-500">Đội ngũ giáo viên</p>
+            <p className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+              {loading ? '...' : teacherAccounts.length}
+            </p>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-center justify-center text-[#006BFF]">
+            <Users className="w-4 h-4" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-slate-500">Phân công giảng dạy</p>
+            <p className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+              {loading ? '...' : teachingAssignments.filter(t => t.status === 'active').length}
+            </p>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-center justify-center text-[#006BFF]">
+            <Layers className="w-4 h-4" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-slate-500">Tổng số tài khoản</p>
+            <p className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+              {loading ? '...' : accounts.length}
+            </p>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-center justify-center text-[#006BFF]">
+            <Shield className="w-4 h-4" />
+          </div>
+        </div>
+      </div>
 
       {/* Primary 3-Tab Navigation Bar: Lớp học | Giáo viên | Phân công giảng dạy */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-[#DCE8F7]">
@@ -1488,6 +1811,31 @@ export const ClassAccountWorkspace: React.FC = () => {
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        {!readOnlyMode && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => openEditClassModal(activeClass)}
+                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#DCE8F7] bg-white hover:bg-[#F3F8FF] text-xs font-bold text-[#082B52] whitespace-nowrap"
+                            >
+                              <Edit3 className="w-3.5 h-3.5 text-[#006BFF]" />
+                              <span>Sửa lớp</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeleteClassError(null);
+                                setDeletingClassTarget(activeClass);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 bg-white hover:bg-red-50 text-xs font-bold text-red-700 whitespace-nowrap"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Xóa lớp</span>
+                            </button>
+                          </>
+                        )}
+
                         <button
                           type="button"
                           onClick={() =>
@@ -1680,7 +2028,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                             <th className="py-2.5 px-4 w-12 text-center">STT</th>
                             <th className="py-2.5 px-4">Mã học sinh</th>
                             <th className="py-2.5 px-4">Họ và tên</th>
-                            <th className="py-2.5 px-4">Email đăng nhập</th>
+                            <th className="py-2.5 px-4">Tài khoản đăng nhập</th>
                             <th className="py-2.5 px-4 text-right">Thao tác</th>
                           </tr>
                         </thead>
@@ -1688,7 +2036,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           {activeClass.students.length === 0 ? (
                             <tr>
                               <td colSpan={5} className="py-8 text-center text-slate-400">
-                                Lớp chưa có học sinh. Bấm &quot;Nhập học sinh&quot; để nhập danh sách từ Excel hoặc &quot;Thêm 1 học sinh&quot;.
+                                Lớp chưa có học sinh. Bấm &quot;Nhập học sinh&quot; để nhập danh sách từ Excel (2 cột: Mã học sinh, Họ và tên) hoặc &quot;Thêm 1 học sinh&quot;.
                               </td>
                             </tr>
                           ) : (
@@ -1706,7 +2054,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                     {st.fullName}
                                   </td>
                                   <td className="py-2.5 px-4 font-mono text-slate-600">
-                                    {st.email || '—'}
+                                    {formatAccountLoginDisplay(st.email, st.code, 'student')}
                                   </td>
                                   <td className="py-2.5 px-4 text-right whitespace-nowrap space-x-2">
                                     {matchedAcc && (
@@ -2465,7 +2813,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                     <tr>
                       <th className="py-2.5 px-4">Họ và tên</th>
                       <th className="py-2.5 px-4">Mã HS / GV</th>
-                      <th className="py-2.5 px-4">Email</th>
+                      <th className="py-2.5 px-4">Định danh đăng nhập / Email</th>
                       <th className="py-2.5 px-4">Vai trò CSDL</th>
                       <th className="py-2.5 px-4">Trạng thái Auth</th>
                       <th className="py-2.5 px-4 text-right">Quản lý</th>
@@ -2478,7 +2826,9 @@ export const ClassAccountWorkspace: React.FC = () => {
                         <td className="py-2.5 px-4 font-mono text-[#006BFF]">
                           {acc.teacherCode || acc.studentCode || '—'}
                         </td>
-                        <td className="py-2.5 px-4 font-mono text-slate-600">{acc.email}</td>
+                        <td className="py-2.5 px-4 font-mono text-slate-600">
+                          {formatAccountLoginDisplay(acc.email, acc.studentCode, acc.role)}
+                        </td>
                         <td className="py-2.5 px-4">
                           <span
                             className={`inline-block px-2 py-0.5 rounded-md border text-[11px] font-bold ${
@@ -2673,6 +3023,171 @@ export const ClassAccountWorkspace: React.FC = () => {
       )}
 
       {/* =================================================================== */}
+      {/* MODAL: SỬA THÔNG TIN LỚP HỌC                                        */}
+      {/* =================================================================== */}
+      {editingClass && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <form
+            onSubmit={handleUpdateClassSubmit}
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-lg font-bold text-[#082B52]">Cập nhật thông tin lớp học</h3>
+              <button
+                type="button"
+                onClick={() => setEditingClass(null)}
+                className="p-1 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {editClassError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 font-semibold">
+                {editClassError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Năm học: <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editClassSchoolYear}
+                  onChange={e => setEditClassSchoolYear(e.target.value)}
+                  placeholder="2025-2026"
+                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Khối lớp: <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={editClassGrade}
+                  onChange={e => setEditClassGrade(e.target.value as Grade)}
+                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                >
+                  <option value="6">Khối 6</option>
+                  <option value="7">Khối 7</option>
+                  <option value="8">Khối 8</option>
+                  <option value="9">Khối 9</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Tên lớp: <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editClassName}
+                  onChange={e => setEditClassName(e.target.value)}
+                  placeholder="VD: Lớp 8A1"
+                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Mã lớp (duy nhất theo năm):
+                </label>
+                <input
+                  type="text"
+                  value={editClassCode}
+                  onChange={e => setEditClassCode(e.target.value)}
+                  placeholder="VD: 8A1"
+                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                disabled={updatingClass}
+                onClick={() => setEditingClass(null)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 border border-slate-300 rounded-xl hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={updatingClass || !editClassName.trim()}
+                className="px-5 py-2 text-xs font-bold bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl disabled:opacity-40"
+              >
+                {updatingClass ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* MODAL: XÁC NHẬN XÓA LỚP HỌC                                         */}
+      {/* =================================================================== */}
+      {deletingClassTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 text-xs">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-[#082B52]">
+                  Xác nhận xóa lớp học {deletingClassTarget.name}
+                </h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Bạn sắp xóa lớp <strong>{deletingClassTarget.name}</strong> (Khối{' '}
+                  <strong>{deletingClassTarget.grade}</strong> · Năm học{' '}
+                  <strong>{deletingClassTarget.schoolYear}</strong>). Hồ sơ tài khoản học sinh, giáo viên và dữ liệu các lớp khác vẫn được bảo toàn nguyên vẹn.
+                </p>
+              </div>
+            </div>
+
+            {deleteClassError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-900 font-semibold">
+                {deleteClassError}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                disabled={deletingClassBusy}
+                onClick={() => {
+                  setDeletingClassTarget(null);
+                  setDeleteClassError(null);
+                }}
+                className="px-4 py-2 font-bold text-slate-600 border border-slate-300 rounded-xl hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={deletingClassBusy}
+                onClick={handleConfirmDeleteClass}
+                className="px-4 py-2 font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-40"
+              >
+                {deletingClassBusy ? 'Đang xóa lớp...' : 'Xác nhận xóa lớp'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =================================================================== */}
       {/* MODAL: THÊM 1 HỌC SINH / 1 GIÁO VIÊN                                */}
       {/* =================================================================== */}
       {createAccountOpen && (
@@ -2747,6 +3262,68 @@ export const ClassAccountWorkspace: React.FC = () => {
                   </button>
                 </div>
               </div>
+            ) : createdStudentCredentials ? (
+              <div className="space-y-4 text-xs">
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-sm text-emerald-900">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <span>Đã tạo tài khoản học sinh thành công!</span>
+                  </div>
+                  <p className="leading-relaxed text-emerald-900/90">
+                    Mật khẩu khởi tạo dưới đây <strong>chỉ hiển thị một lần duy nhất</strong>. Học sinh dùng <strong>Mã học sinh</strong> và mật khẩu này để đăng nhập, sau đó hệ thống sẽ yêu cầu đổi mật khẩu riêng.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-[#F8FBFF] border border-[#DCE8F7] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Họ và tên học sinh:</span>
+                    <strong className="text-[#082B52]">{createdStudentCredentials.fullName}</strong>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Tên đăng nhập (Mã học sinh):</span>
+                    <code className="px-2 py-0.5 rounded bg-white border border-[#DCE8F7] font-mono font-bold text-[#006BFF]">
+                      {createdStudentCredentials.studentCode}
+                    </code>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Mật khẩu khởi tạo (1 lần):</span>
+                    <div className="inline-flex items-center gap-1.5">
+                      <code className="px-2.5 py-1 rounded bg-amber-50 border border-amber-300 font-mono font-bold text-sm text-[#082B52]">
+                        {createdStudentCredentials.initialPassword}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(
+                              `Mã HS: ${createdStudentCredentials.studentCode} | Mật khẩu: ${createdStudentCredentials.initialPassword}`
+                            );
+                            setCopiedToken('created_student_pw');
+                            setTimeout(() => setCopiedToken(null), 2000);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#DCE8F7] hover:bg-[#F3F8FF] font-bold text-[#082B52]"
+                      >
+                        <Copy className="w-3.5 h-3.5 text-[#006BFF]" />
+                        <span>{copiedToken === 'created_student_pw' ? 'Đã chép' : 'Sao chép'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreatedStudentCredentials(null);
+                      setCreateAccountOpen(false);
+                    }}
+                    className="px-5 py-2 bg-[#082B52] hover:bg-[#0d3a6d] text-white font-bold rounded-xl"
+                  >
+                    Đã lưu thông tin — Đóng
+                  </button>
+                </div>
+              </div>
             ) : (
               <form onSubmit={handleCreateAccountSubmit} className="space-y-3.5 text-xs">
                 {createAccountError && (
@@ -2768,18 +3345,18 @@ export const ClassAccountWorkspace: React.FC = () => {
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">
                       {formRole === 'student' ? 'Mã học sinh:' : 'Mã giáo viên:'}{' '}
-                      {formRole === 'teacher' && <span className="text-red-500">*</span>}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      required={formRole === 'teacher'}
+                      required
                       value={formRole === 'student' ? formStudentCode : formTeacherCode}
                       onChange={e =>
                         formRole === 'student'
                           ? setFormStudentCode(e.target.value)
                           : setFormTeacherCode(e.target.value)
                       }
-                      placeholder={formRole === 'student' ? 'VD: HS8A101' : 'VD: GV001'}
+                      placeholder={formRole === 'student' ? 'VD: HS9A101' : 'VD: GV001'}
                       className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl font-mono"
                     />
                   </div>
@@ -2798,25 +3375,38 @@ export const ClassAccountWorkspace: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">
-                    Email đăng nhập: <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formEmail}
-                    onChange={e => setFormEmail(e.target.value)}
-                    placeholder="ten@taydo.edu.vn"
-                    className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl font-mono"
-                  />
-                </div>
+                {formRole !== 'student' && (
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Email đăng nhập: <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={formEmail}
+                      onChange={e => setFormEmail(e.target.value)}
+                      placeholder="ten@taydo.edu.vn"
+                      className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl font-mono"
+                    />
+                  </div>
+                )}
 
                 <div className="p-3 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] text-[11px] text-[#12345B] flex items-start gap-2">
-                  <Mail className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
-                  <span>
-                    Hệ thống gửi email mời kích hoạt Supabase Auth để người dùng tự đặt mật khẩu. Không dùng tên hiển thị để suy đoán quyền.
-                  </span>
+                  {formRole === 'student' ? (
+                    <>
+                      <Key className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
+                      <span>
+                        Học sinh <strong>không cần email</strong>. Hệ thống tạo tài khoản trực tiếp bằng <strong>Mã học sinh</strong> và sinh mật khẩu khởi tạo ngẫu nhiên (hoặc giữ nguyên mật khẩu hiện có nếu học sinh đã có tài khoản từ trước).
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
+                      <span>
+                        Hệ thống gửi email mời kích hoạt Supabase Auth để giáo viên tự đặt mật khẩu. Không dùng tên hiển thị để suy đoán quyền.
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
@@ -2830,10 +3420,18 @@ export const ClassAccountWorkspace: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={submittingCreate || !formFullName.trim() || !formEmail.trim()}
+                    disabled={
+                      submittingCreate ||
+                      !formFullName.trim() ||
+                      (formRole === 'student' ? !formStudentCode.trim() : !formEmail.trim())
+                    }
                     className="px-5 py-2 font-bold bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl disabled:opacity-40"
                   >
-                    {submittingCreate ? 'Đang tạo & gửi mời...' : 'Tạo & gửi lời mời'}
+                    {submittingCreate
+                      ? 'Đang xử lý...'
+                      : formRole === 'student'
+                      ? 'Tạo / xếp lớp học sinh'
+                      : 'Tạo & gửi lời mời'}
                   </button>
                 </div>
               </form>
@@ -3196,9 +3794,16 @@ export const ClassAccountWorkspace: React.FC = () => {
               <div>
                 <h3 className="text-lg font-bold text-[#082B52]">{selectedAccount.fullName}</h3>
                 <p className="text-slate-500 font-mono mt-0.5">
-                  {selectedAccount.email}
+                  {formatAccountLoginDisplay(
+                    selectedAccount.email,
+                    selectedAccount.studentCode,
+                    selectedAccount.role
+                  )}
                   {selectedAccount.teacherCode ? ` · Mã GV: ${selectedAccount.teacherCode}` : ''}
-                  {selectedAccount.studentCode ? ` · Mã HS: ${selectedAccount.studentCode}` : ''}
+                  {selectedAccount.studentCode &&
+                  !isStudentInternalAuthEmail(selectedAccount.email)
+                    ? ` · Mã HS: ${selectedAccount.studentCode}`
+                    : ''}
                 </p>
               </div>
               <button
@@ -3269,6 +3874,66 @@ export const ClassAccountWorkspace: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* Student Password Reset by Admin */}
+            {selectedAccount.role === 'student' && !readOnlyMode && (
+              <div className="border border-[#DCE8F7] rounded-xl p-3.5 space-y-2.5 bg-[#FBFDFF]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="font-bold text-[#082B52] flex items-center gap-1.5">
+                      <Key className="w-4 h-4 text-[#006BFF]" />
+                      <span>Cấp lại mật khẩu học sinh (khi quên mật khẩu)</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 mt-0.5">
+                      Tạo mật khẩu khởi tạo ngẫu nhiên mới và yêu cầu học sinh đổi lại khi đăng nhập.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={resettingStudentPassword}
+                    onClick={handleResetStudentPasswordInDrawer}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold disabled:opacity-40 whitespace-nowrap"
+                  >
+                    {resettingStudentPassword ? 'Đang cấp MK...' : 'Cấp mật khẩu khởi tạo mới'}
+                  </button>
+                </div>
+
+                {resetPasswordResult && (
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 space-y-2">
+                    <p className="text-[11px] text-amber-900 font-semibold">
+                      Mật khẩu mới chỉ hiển thị một lần duy nhất bên dưới. Hãy sao chép và gửi cho học sinh:
+                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-amber-200">
+                      <div className="space-x-2">
+                        <span className="text-slate-600">Mã HS:</span>
+                        <code className="font-mono font-bold text-[#006BFF]">
+                          {resetPasswordResult.studentCode || '—'}
+                        </code>
+                        <span className="text-slate-300">|</span>
+                        <span className="text-slate-600">Mật khẩu mới:</span>
+                        <code className="font-mono font-bold text-sm text-[#082B52]">
+                          {resetPasswordResult.initialPassword}
+                        </code>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(resetPasswordResult.initialPassword);
+                            setCopiedToken('drawer_reset_pw');
+                            setTimeout(() => setCopiedToken(null), 2000);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] hover:bg-[#E4F0FF] font-bold text-[#082B52]"
+                      >
+                        <Copy className="w-3.5 h-3.5 text-[#006BFF]" />
+                        <span>{copiedToken === 'drawer_reset_pw' ? 'Đã chép' : 'Sao chép'}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Student Class Assignment */}
             {selectedAccount.role === 'student' && (

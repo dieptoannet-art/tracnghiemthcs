@@ -64,6 +64,11 @@ import {
   normalizeLegacyStudyDocument,
   saveStudyMaterialToSupabase
 } from '../utils/studyMaterialsSync';
+import {
+  buildStudentInternalAuthEmail,
+  isValidStudentCode,
+  normalizeStudentCode
+} from '../utils/studentAuthHelper';
 
 interface AppContextType {
   // Mode & Auth
@@ -99,7 +104,10 @@ interface AppContextType {
   authModalMode: 'login' | 'register' | 'forgot_password' | 'set_password';
   setAuthModalMode: (mode: 'login' | 'register' | 'forgot_password' | 'set_password') => void;
   openAuthModal: (mode?: 'login' | 'register' | 'forgot_password' | 'set_password') => void;
-  signIn: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (
+    identifier: string,
+    pass: string
+  ) => Promise<{ success: boolean; error?: string; mustChangePassword?: boolean }>;
   signUp: (
     email: string,
     pass: string,
@@ -978,7 +986,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (session?.user) {
         setUser(session.user);
         setAuthVerified(true);
-        if (isInviteOrRecoveryLink) {
+        if (isInviteOrRecoveryLink || session.user.user_metadata?.must_change_password === true) {
           setAuthModalMode('set_password');
           setAuthModalOpen(true);
         }
@@ -1018,6 +1026,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
         setAuthVerified(true);
+        if (session.user.user_metadata?.must_change_password === true) {
+          setAuthModalMode('set_password');
+          setAuthModalOpen(true);
+        }
         await loadProfile(session.user.id, session.user);
         setIsDemoMode(false);
       } else if (event === 'SIGNED_OUT') {
@@ -1043,14 +1055,117 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [loadProfile]);
 
   // Supabase Auth Actions
-  const signIn = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
+  const signIn = async (
+    identifierRaw: string,
+    pass: string
+  ): Promise<{ success: boolean; error?: string; mustChangePassword?: boolean }> => {
     setAuthLoading(true);
     setAuthError(null);
+    const trimmedIdentifier = String(identifierRaw || '').trim();
 
     if (isSupabaseConfigured) {
       try {
+        // 1. Luồng Học sinh đăng nhập bằng Mã học sinh (không chứa '@')
+        if (!trimmedIdentifier.includes('@')) {
+          const cleanCode = normalizeStudentCode(trimmedIdentifier);
+          if (!isValidStudentCode(cleanCode)) {
+            const msg = 'Mã học sinh không hợp lệ (chỉ gồm chữ cái, chữ số, dấu gạch ngang hoặc gạch dưới).';
+            setAuthError(msg);
+            setAuthLoading(false);
+            return { success: false, error: msg };
+          }
+
+          try {
+            const res = await fetch('/api/auth/student-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                studentCode: cleanCode,
+                password: pass
+              })
+            });
+            const payload = await res.json().catch(() => null);
+            const accessToken = payload?.accessToken || payload?.session?.access_token;
+            const refreshToken = payload?.refreshToken || payload?.session?.refresh_token;
+
+            if (res.ok && payload?.ok && accessToken && refreshToken) {
+              const { data: sessionData, error: sessionErr } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken
+              });
+
+              if (sessionErr) {
+                setAuthError(sessionErr.message);
+                setAuthLoading(false);
+                return { success: false, error: sessionErr.message };
+              }
+
+              const activeUser = sessionData.user || payload.user;
+              if (activeUser) {
+                setUser(activeUser);
+                await loadProfile(activeUser.id, activeUser);
+                setIsDemoMode(false);
+                const mustChange = Boolean(
+                  payload.mustChangePassword || activeUser.user_metadata?.must_change_password
+                );
+                if (mustChange) {
+                  setAuthModalMode('set_password');
+                  setAuthModalOpen(true);
+                }
+                setAuthLoading(false);
+                addAuditLog(
+                  'Đăng nhập',
+                  `Mã HS: ${cleanCode}`,
+                  'Học sinh đăng nhập thành công bằng Mã học sinh'
+                );
+                return { success: true, mustChangePassword: mustChange };
+              }
+            }
+
+            if (res.status === 400 || res.status === 401 || res.status === 403) {
+              const msg = payload?.message || 'Mã học sinh hoặc mật khẩu không chính xác.';
+              setAuthError(msg);
+              setAuthLoading(false);
+              return { success: false, error: msg };
+            }
+          } catch {
+            // Fallback sang xác thực trực tiếp qua định danh kỹ thuật nội bộ nếu nhánh API tạm thời gián đoạn
+          }
+
+          const fallbackEmail = buildStudentInternalAuthEmail(cleanCode);
+          const { data: fallbackData, error: fallbackErr } = await supabase.auth.signInWithPassword({
+            email: fallbackEmail,
+            password: pass
+          });
+
+          if (fallbackErr || !fallbackData.user) {
+            const msg = 'Mã học sinh hoặc mật khẩu không chính xác.';
+            setAuthError(msg);
+            setAuthLoading(false);
+            return { success: false, error: msg };
+          }
+
+          setUser(fallbackData.user);
+          await loadProfile(fallbackData.user.id, fallbackData.user);
+          setIsDemoMode(false);
+          const mustChange = Boolean(fallbackData.user.user_metadata?.must_change_password);
+          if (mustChange) {
+            setAuthModalMode('set_password');
+            setAuthModalOpen(true);
+          }
+          setAuthLoading(false);
+          addAuditLog(
+            'Đăng nhập',
+            `Mã HS: ${cleanCode}`,
+            'Học sinh đăng nhập thành công bằng Mã học sinh'
+          );
+          return { success: true, mustChangePassword: mustChange };
+        }
+
+        // 2. Luồng đăng nhập bằng Email (Giáo viên / Quản trị viên / Học sinh cũ có email)
+        const cleanEmail = trimmedIdentifier.toLowerCase();
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password: pass
         });
 
@@ -1064,9 +1179,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setUser(data.user);
           await loadProfile(data.user.id, data.user);
           setIsDemoMode(false);
+          const mustChange = Boolean(data.user.user_metadata?.must_change_password);
+          if (mustChange) {
+            setAuthModalMode('set_password');
+            setAuthModalOpen(true);
+          }
           setAuthLoading(false);
-          addAuditLog('Đăng nhập', data.user.email || '', 'Đăng nhập thành công vào hệ thống Supabase');
-          return { success: true };
+          addAuditLog('Đăng nhập', data.user.email || cleanEmail, 'Đăng nhập thành công vào hệ thống Supabase');
+          return { success: true, mustChangePassword: mustChange };
         }
 
         setAuthLoading(false);
@@ -1083,7 +1203,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (savedAccounts) {
         try {
           const list = JSON.parse(savedAccounts);
-          const matched = list.find((acc: any) => acc.email.toLowerCase() === email.toLowerCase());
+          const cleanCode = normalizeStudentCode(trimmedIdentifier);
+          const matched = list.find(
+            (acc: any) =>
+              (acc.email && acc.email.toLowerCase() === trimmedIdentifier.toLowerCase()) ||
+              (acc.studentCode && normalizeStudentCode(acc.studentCode) === cleanCode)
+          );
           if (matched) {
             if (matched.password && matched.password !== pass) {
               setAuthLoading(false);
@@ -1093,7 +1218,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setCurrentRoleState(matched.role);
             setIsDemoMode(true);
             setAuthLoading(false);
-            addAuditLog('Đăng nhập', email, `Đăng nhập vai trò ${matched.role === 'teacher' ? 'Giáo viên' : 'Học sinh'}`);
+            addAuditLog(
+              'Đăng nhập',
+              trimmedIdentifier,
+              `Đăng nhập vai trò ${matched.role === 'teacher' ? 'Giáo viên' : 'Học sinh'}`
+            );
             return { success: true };
           }
         } catch {
@@ -1281,7 +1410,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuthLoading(true);
     setAuthError(null);
     try {
-      const { data, error } = await supabase.auth.updateUser({ password: newPassword.trim() });
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword.trim(),
+        data: {
+          must_change_password: false,
+          password_changed_at: new Date().toISOString()
+        }
+      });
       if (error) {
         setAuthLoading(false);
         return { success: false, error: error.message };

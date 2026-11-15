@@ -4,6 +4,7 @@ import path from 'path';
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { createAdminRouter } from './server/createAdminRouter.ts';
+import { createAuthRouter } from './server/createAuthRouter.ts';
 import { createTeacherRouter } from './server/createTeacherRouter.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,6 +16,7 @@ async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';
 
   // Backend API routes MUST be registered before Vite / SPA static fallback
+  app.use('/api/auth', createAuthRouter());
   app.use('/api/admin', createAdminRouter());
   app.use('/api/teacher', createTeacherRouter());
 

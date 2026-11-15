@@ -123,11 +123,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanIdentifier = email.trim();
     const cleanPass = password.trim();
 
-    if (!cleanEmail || !cleanPass) {
-      setLocalError('Vui lòng nhập đầy đủ Email và Mật khẩu.');
+    if (!cleanIdentifier || !cleanPass) {
+      setLocalError(
+        mode === 'login'
+          ? 'Vui lòng nhập đầy đủ Mã học sinh (hoặc Email) và Mật khẩu.'
+          : 'Vui lòng nhập đầy đủ Email và Mật khẩu.'
+      );
       return;
     }
 
@@ -137,8 +141,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     if (mode === 'login') {
-      const res = await signIn(cleanEmail, cleanPass);
+      const res = await signIn(cleanIdentifier, cleanPass);
       if (res.success) {
+        if (res.mustChangePassword) {
+          setPassword('');
+          setConfirmPassword('');
+          setMode('set_password');
+          setAuthModalMode('set_password');
+          setSuccessMsg(
+            'Đăng nhập lần đầu thành công! Vui lòng đổi sang mật khẩu cá nhân mới của em để bảo mật tài khoản.'
+          );
+          return;
+        }
         setSuccessMsg('Đăng nhập thành công! Đang đồng bộ hồ sơ & phân quyền từ CSDL...');
         setTimeout(() => {
           handleClose();
@@ -160,7 +174,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     const res = await signUp(
-      cleanEmail,
+      cleanIdentifier.toLowerCase(),
       cleanPass,
       fullName.trim(),
       'student',
@@ -214,7 +228,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               : 'Thiết lập mật khẩu mới'}
           </h3>
           <p className="text-xs text-slate-500 mt-1">
-            Trường THCS Tây Đô • Phân quyền trực tiếp theo hồ sơ Supabase
+            Trường THCS Tây Đô • Học sinh đăng nhập bằng Mã học sinh · Giáo viên đăng nhập bằng Email
           </p>
         </div>
 
@@ -274,12 +288,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'set_password' && (
+            <div className="p-3 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] text-xs text-[#12345B] flex items-start space-x-2.5">
+              <KeyRound className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                Vui lòng nhập mật khẩu mới (tối thiểu 6 ký tự) để bảo vệ tài khoản của bạn trong những lần đăng nhập tiếp theo.
+              </div>
+            </div>
+          )}
+
           {mode === 'register' && (
             <>
               <div className="p-3 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-start space-x-2.5 text-xs text-[#12345B]">
                 <GraduationCap className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
-                  Tài khoản tự đăng ký luôn khởi tạo với vai trò <strong>Học sinh</strong>. Giáo viên hoặc Quản trị viên sẽ nhận thư mời kích hoạt hoặc được cấp quyền trong mục <em>Quản trị → Tài khoản &amp; phân quyền</em>.
+                  Học sinh đã được trường cấp <strong>Mã học sinh</strong> và mật khẩu khởi tạo hãy chuyển sang tab <strong>Đăng nhập</strong> (không cần tự đăng ký).
                 </div>
               </div>
 
@@ -332,23 +355,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </>
           )}
 
-          {/* EMAIL (for login, register, forgot_password) */}
+          {/* LOGIN IDENTIFIER OR EMAIL (for login, register, forgot_password) */}
           {mode !== 'set_password' && (
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Email đăng nhập: <span className="text-red-500">*</span>
+                {mode === 'login'
+                  ? 'Mã học sinh hoặc Email đăng nhập:'
+                  : 'Email đăng nhập:'}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                {mode === 'login' ? (
+                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                ) : (
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                )}
                 <input
-                  type="email"
+                  type={mode === 'login' ? 'text' : 'email'}
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="tennguoidung@taydo.edu.vn"
+                  placeholder={
+                    mode === 'login'
+                      ? 'VD: HS9A101 (Học sinh) hoặc ten@taydo.edu.vn (Giáo viên)'
+                      : 'tennguoidung@taydo.edu.vn'
+                  }
                   className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#006BFF]/20 focus:border-[#006BFF] outline-hidden font-mono"
                 />
               </div>
+              {mode === 'login' && (
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Học sinh nhập <strong>Mã học sinh</strong> (VD: <code>HS9A101</code>). Giáo viên &amp; Quản trị viên nhập <strong>Email</strong>.
+                </p>
+              )}
             </div>
           )}
 
@@ -405,14 +444,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           )}
 
           {mode === 'forgot_password' && (
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1">
-              <div className="flex items-center space-x-1.5 font-bold text-[#082B52]">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#006BFF]" />
-                <span>Lưu ý cấu hình gửi email Supabase Auth:</span>
+            <div className="space-y-2.5">
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-950 leading-relaxed space-y-1">
+                <div className="flex items-center space-x-1.5 font-bold text-amber-900">
+                  <GraduationCap className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Dành cho Học sinh đăng nhập bằng Mã học sinh:</span>
+                </div>
+                <p>
+                  Tài khoản học sinh không sử dụng email cá nhân. Nếu quên mật khẩu, em vui lòng báo cho <strong>Giáo viên chủ nhiệm</strong> hoặc <strong>Quản trị viên</strong> để được cấp lại mật khẩu mới trực tiếp trên hệ thống.
+                </p>
               </div>
-              <p>
-                Hệ thống sử dụng <code>resetPasswordForEmail</code> của Supabase Auth. Nếu chưa nhận được email hoặc báo lỗi gửi thư, quản trị viên cần bật SMTP / Custom SMTP và thêm URL trang web vào mục <strong>Redirect URLs</strong> trong Supabase Dashboard.
-              </p>
+
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1">
+                <div className="flex items-center space-x-1.5 font-bold text-[#082B52]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#006BFF]" />
+                  <span>Dành cho Giáo viên &amp; Quản trị viên (đăng nhập bằng Email):</span>
+                </div>
+                <p>
+                  Nhập email tài khoản bên trên để nhận liên kết đặt lại mật khẩu qua Supabase Auth.
+                </p>
+              </div>
             </div>
           )}
 

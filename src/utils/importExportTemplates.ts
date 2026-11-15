@@ -7,7 +7,6 @@ export interface ParsedStudentImportRow {
   rowNumber: number;
   studentCode: string;
   fullName: string;
-  email: string;
 }
 
 export interface ParsedTeacherImportRow {
@@ -54,19 +53,18 @@ function isRowCompletelyEmpty(record: Record<string, any>): boolean {
 }
 
 /**
- * 1. Tải mẫu Excel nhập học sinh vào lớp (Mã học sinh, Họ và tên, Email đăng nhập)
+ * 1. Tải mẫu Excel nhập học sinh vào lớp (Chuẩn 2 cột: Mã học sinh, Họ và tên — không cần email)
  */
 export function downloadClassStudentsTemplate(className?: string, schoolYear?: string) {
+  const cleanClassTag = sanitizeFilenameSegment(className || '9A1').toUpperCase() || '9A1';
   const sampleRows = [
     {
-      'Mã học sinh': 'HS8A101',
-      'Họ và tên': 'Nguyễn Minh An',
-      'Email đăng nhập': 'an.hs8a1@taydo.edu.vn'
+      'Mã học sinh': `HS${cleanClassTag}01`,
+      'Họ và tên': 'Nguyễn Minh An'
     },
     {
-      'Mã học sinh': 'HS8A102',
-      'Họ và tên': 'Trần Thảo Vy',
-      'Email đăng nhập': 'vy.hs8a1@taydo.edu.vn'
+      'Mã học sinh': `HS${cleanClassTag}02`,
+      'Họ và tên': 'Trần Thảo Vy'
     }
   ];
 
@@ -74,7 +72,8 @@ export function downloadClassStudentsTemplate(className?: string, schoolYear?: s
     {
       'Cột': 'Mã học sinh',
       'Bắt buộc': 'Có',
-      'Ghi chú': 'Mã định danh ổn định của học sinh (VD: HS8A101). Không thay đổi khi học sinh lên lớp.'
+      'Ghi chú':
+        'Mã định danh duy nhất của học sinh, đồng thời là Tên đăng nhập của học sinh (VD: HS9A101). Không cần nhập email học sinh.'
     },
     {
       'Cột': 'Họ và tên',
@@ -82,23 +81,24 @@ export function downloadClassStudentsTemplate(className?: string, schoolYear?: s
       'Ghi chú': 'Họ và tên đầy đủ có dấu của học sinh.'
     },
     {
-      'Cột': 'Email đăng nhập',
-      'Bắt buộc': 'Có',
-      'Ghi chú': 'Email tài khoản Supabase Auth dùng để đăng nhập hoặc gửi lời mời kích hoạt.'
+      'Cột': 'Cơ chế tài khoản & mật khẩu',
+      'Bắt buộc': 'Tự động',
+      'Ghi chú':
+        'Hệ thống tự tạo mật khẩu khởi tạo ngẫu nhiên cho học sinh mới (không gửi email). Tài khoản đã tồn tại được giữ nguyên mật khẩu và chỉ liên kết vào lớp.'
     }
   ];
 
   const wb = XLSX.utils.book_new();
   const wsData = XLSX.utils.json_to_sheet(sampleRows);
-  wsData['!cols'] = [{ wch: 18 }, { wch: 28 }, { wch: 32 }];
+  wsData['!cols'] = [{ wch: 22 }, { wch: 32 }];
   XLSX.utils.book_append_sheet(wb, wsData, 'Danh_Sach_Hoc_Sinh');
 
   const wsGuide = XLSX.utils.json_to_sheet(guideRows);
-  wsGuide['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 64 }];
+  wsGuide['!cols'] = [{ wch: 24 }, { wch: 12 }, { wch: 76 }];
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Huong_Dan');
 
   const clsPart = sanitizeFilenameSegment(className || 'Lop');
-  const yearPart = sanitizeFilenameSegment(schoolYear || '2025_2026');
+  const yearPart = sanitizeFilenameSegment(schoolYear || '2026_2027');
   XLSX.writeFile(wb, `Mau_Nhap_Hoc_Sinh_${clsPart}_${yearPart}.xlsx`);
 }
 
@@ -193,7 +193,7 @@ export function downloadTeachingAssignmentsTemplate(sampleSchoolYear = '2025-202
 }
 
 /**
- * Đọc file Excel (.xlsx / .xls) thành danh sách bản ghi theo loại
+ * Đọc file Excel (.xlsx / .xls) hoặc CSV (.csv UTF-8) thành danh sách bản ghi theo loại
  */
 export async function parseExcelImportFile(
   file: File,
@@ -202,11 +202,18 @@ export async function parseExcelImportFile(
   rows: ParsedStudentImportRow[] | ParsedTeacherImportRow[] | ParsedAssignmentImportRow[];
   sheetName: string;
 }> {
-  const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer, { type: 'array' });
+  const isCsv = file.name.toLowerCase().endsWith('.csv') || file.type === 'text/csv';
+  let workbook: XLSX.WorkBook;
+  if (isCsv) {
+    const text = await file.text();
+    workbook = XLSX.read(text, { type: 'string' });
+  } else {
+    const buffer = await file.arrayBuffer();
+    workbook = XLSX.read(buffer, { type: 'array', codepage: 65001 });
+  }
   const sheetName = workbook.SheetNames[0];
   if (!sheetName) {
-    throw new Error('Tệp Excel không chứa trang tính (sheet) nào.');
+    throw new Error('Tệp tải lên không chứa trang tính (sheet) hoặc dữ liệu hợp lệ.');
   }
   const sheet = workbook.Sheets[sheetName];
   const rawObjects = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, {
@@ -220,9 +227,23 @@ export async function parseExcelImportFile(
       if (isRowCompletelyEmpty(raw)) return;
       rows.push({
         rowNumber: idx + 2,
-        studentCode: findColumnValue(raw, ['Mã học sinh', 'Ma hoc sinh', 'student_code', 'Ma_HS']),
-        fullName: findColumnValue(raw, ['Họ và tên', 'Ho va ten', 'Họ tên', 'full_name']),
-        email: findColumnValue(raw, ['Email đăng nhập', 'Email dang nhap', 'Email', 'email'])
+        studentCode: findColumnValue(raw, [
+          'Mã học sinh',
+          'Ma hoc sinh',
+          'Mã HS',
+          'Ma HS',
+          'student_code',
+          'Ma_HS'
+        ]),
+        fullName: findColumnValue(raw, [
+          'Họ và tên',
+          'Ho va ten',
+          'Họ tên',
+          'Ho ten',
+          'Tên học sinh',
+          'Ten hoc sinh',
+          'full_name'
+        ])
       });
     });
     return { rows, sheetName };
@@ -264,7 +285,7 @@ export interface ImportReportRow {
 }
 
 /**
- * Tải xuống file Excel báo cáo kết quả nhập từng dòng
+ * Tải xuống file Excel báo cáo kết quả nhập từng dòng (KHÔNG lưu mật khẩu trong file báo cáo trạng thái)
  */
 export function downloadImportResultReport(kind: ExcelImportKind, rows: ImportReportRow[]) {
   const sheetRows = rows.map(r => ({
@@ -287,3 +308,48 @@ export function downloadImportResultReport(kind: ExcelImportKind, rows: ImportRe
   const datePart = new Date().toISOString().slice(0, 10);
   XLSX.writeFile(wb, `${prefix}_${datePart}.xlsx`);
 }
+
+export interface StudentInitialCredentialItem {
+  studentCode: string;
+  fullName: string;
+  initialPassword: string;
+}
+
+/**
+ * Tải xuống Phiếu thông tin đăng nhập khởi tạo (chỉ dành cho Quản trị viên trong phiên vừa tạo tài khoản mới)
+ */
+export function downloadStudentInitialCredentialsSheet(
+  className: string,
+  schoolYear: string,
+  items: StudentInitialCredentialItem[]
+) {
+  if (!items || items.length === 0) return;
+
+  const sheetRows = items.map((item, index) => ({
+    'STT': index + 1,
+    'Lớp': className,
+    'Năm học': schoolYear,
+    'Tên đăng nhập (Mã học sinh)': item.studentCode,
+    'Họ và tên': item.fullName,
+    'Mật khẩu khởi tạo': item.initialPassword,
+    'Lưu ý bảo mật': 'Học sinh đăng nhập bằng Mã học sinh và bắt buộc đổi mật khẩu ngay lần đầu.'
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(sheetRows);
+  ws['!cols'] = [
+    { wch: 6 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 26 },
+    { wch: 28 },
+    { wch: 20 },
+    { wch: 56 }
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Thong_Tin_Dang_Nhap_Khoi_Tao');
+
+  const clsPart = sanitizeFilenameSegment(className || 'Lop');
+  const yearPart = sanitizeFilenameSegment(schoolYear || '2026_2027');
+  XLSX.writeFile(wb, `Phieu_Mat_Khau_Khoi_Tao_${clsPart}_${yearPart}.xlsx`);
+}
+

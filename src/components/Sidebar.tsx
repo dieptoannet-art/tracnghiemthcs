@@ -134,6 +134,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
               <FolderOpen className="w-4 h-4 shrink-0" />
               <span>Tài liệu học tập</span>
             </button>
+
+            {currentRole === 'student' && (
+              <button
+                onClick={() => handleNav('teacher_student_call')}
+                className={navItemClass('teacher_student_call')}
+              >
+                <Dices className="w-4 h-4 shrink-0 text-amber-300" />
+                <span>EDU Game Center (Khách)</span>
+              </button>
+            )}
           </div>
         </div>
 
