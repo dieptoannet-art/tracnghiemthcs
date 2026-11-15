@@ -797,6 +797,20 @@ export const INITIAL_CLASSES: ClassRoom[] = [
     ]
   },
   {
+    id: 'cls-9a1',
+    name: 'Lớp 9A1',
+    grade: '9',
+    teacherName: 'Diệp Thanh Toàn',
+    studentCount: 40,
+    inviteCode: 'TAYDO-9A1-2026',
+    students: [
+      { id: 'stu-911', code: 'HS90101', fullName: 'Hoàng Quốc Bảo', email: 'bao.hq@taydo.edu.vn', gender: 'Nam' },
+      { id: 'stu-912', code: 'HS90102', fullName: 'Nguyễn Mai Linh', email: 'linh.nm@taydo.edu.vn', gender: 'Nữ' },
+      { id: 'stu-913', code: 'HS90103', fullName: 'Trần Gia Huy', email: 'huy.tg@taydo.edu.vn', gender: 'Nam' },
+      { id: 'stu-914', code: 'HS90104', fullName: 'Lê Phương Thảo', email: 'thao.lp@taydo.edu.vn', gender: 'Nữ' }
+    ]
+  },
+  {
     id: 'cls-9a3',
     name: 'Lớp 9A3',
     grade: '9',

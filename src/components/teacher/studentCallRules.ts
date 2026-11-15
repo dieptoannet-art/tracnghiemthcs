@@ -10,15 +10,23 @@ export interface StudentCandidate {
 
 export type CallGameMode =
   | 'wheel'           // 1. Vòng quay may mắn
-  | 'gift_box'        // 2. Hộp quà bí mật
-  | 'cards'           // 3. Thẻ bài lật mở
-  | 'flying_envelope' // 4. Bức thư bồ câu
-  | 'magic_sphere'    // 5. Quả cầu bốc thăm
-  | 'rocket'          // 6. Tên lửa không gian
-  | 'call_pair'       // 7. Cặp đôi đối kháng (2 bạn)
-  | 'call_trio'       // 8. Nhóm ba bạn (3 bạn)
-  | 'speed_timer'     // 9. Chiếc nón tốc độ (Kèm đếm ngược)
-  | 'star_of_hope';   // 10. Ngôi sao hi vọng (x2 điểm / trợ giúp)
+  | 'claw_machine'    // 2. Máy gắp thú
+  | 'gift_box'        // 3. Hộp quà bí ẩn
+  | 'cards'           // 4. Bốc thăm thần kỳ
+  | 'duck_race'       // 5. Vịt đua
+  | 'horse_race'      // 6. Đua ngựa
+  | 'rocket'          // 7. Tên lửa không gian
+  | 'balloons'        // 8. Bóng bay may mắn
+  | 'dice'            // 9. Xúc xắc chọn tên
+  | 'secret_card'     // 10. Thẻ bài bí mật
+  | 'number_wheel'    // 11. Bánh xe số
+  | 'robot_picker'    // 12. Robot chọn bạn
+  | 'flying_envelope'
+  | 'magic_sphere'
+  | 'call_pair'
+  | 'call_trio'
+  | 'speed_timer'
+  | 'star_of_hope';
 
 export interface CallGameMeta {
   id: CallGameMode;

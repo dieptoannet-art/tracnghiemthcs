@@ -165,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
                 className={navItemClass('teacher_student_call')}
               >
                 <Dices className="w-4 h-4 shrink-0 text-amber-300" />
-                <span>Trò chơi gọi học sinh</span>
+                <span>Trò chơi giáo dục</span>
               </button>
 
               <button
