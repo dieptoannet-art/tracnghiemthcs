@@ -316,24 +316,29 @@ export function saveMathConstruction(item: MathSavedConstruction): MathSavedCons
 }
 
 /**
- * Lưu danh sách công cụ truy cập gần đây
+ * Lưu danh sách công cụ truy cập gần đây (theo ngữ cảnh người dùng thực tế)
  */
-export function loadRecentMathTools(): MathToolId[] {
+function getRecentToolsStorageKey(userScopeKey?: string): string {
+  const scope = userScopeKey?.trim();
+  return scope ? `${STORAGE_KEYS.RECENT_TOOLS}:${scope}` : STORAGE_KEYS.RECENT_TOOLS;
+}
+
+export function loadRecentMathTools(userScopeKey?: string): MathToolId[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.RECENT_TOOLS);
-    if (!raw) return ['M01', 'M02', 'M08', 'M03'];
+    const raw = localStorage.getItem(getRecentToolsStorageKey(userScopeKey));
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : ['M01', 'M02', 'M08', 'M03'];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return ['M01', 'M02', 'M08', 'M03'];
+    return [];
   }
 }
 
-export function recordRecentMathTool(toolId: MathToolId): MathToolId[] {
+export function recordRecentMathTool(toolId: MathToolId, userScopeKey?: string): MathToolId[] {
   try {
-    const current = loadRecentMathTools().filter((id) => id !== toolId);
+    const current = loadRecentMathTools(userScopeKey).filter((id) => id !== toolId);
     const next = [toolId, ...current].slice(0, 6);
-    localStorage.setItem(STORAGE_KEYS.RECENT_TOOLS, JSON.stringify(next));
+    localStorage.setItem(getRecentToolsStorageKey(userScopeKey), JSON.stringify(next));
     return next;
   } catch {
     return [toolId];

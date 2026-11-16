@@ -176,26 +176,26 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
 
   return (
     <div
-      className={`min-h-[calc(100dvh-2rem)] rounded-2xl border transition-colors flex flex-col overflow-hidden ${
+      className={`min-h-[calc(100dvh-2rem)] rounded-2xl border transition-colors flex flex-col overflow-hidden font-edtech ${
         isDarkTheme
           ? 'bg-slate-950 border-slate-800 text-slate-100'
-          : 'bg-slate-50 border-slate-200 text-slate-900'
+          : 'bg-[#F6F9FD] border-[#E2E8F0] text-[#172B4D]'
       }`}
     >
       {/* THANH ĐIỀU KHIỂN TRÊN CÙNG (TOP COMMAND BAR) */}
       <header
         className={`px-3 sm:px-5 py-2.5 border-b flex flex-wrap items-center justify-between gap-2 ${
-          isDarkTheme ? 'bg-slate-900/95 border-slate-800' : 'bg-white border-slate-200'
+          isDarkTheme ? 'bg-slate-900/95 border-slate-800' : 'bg-white border-[#E2E8F0]'
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
             onClick={onBackToHub}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border transition ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border transition cursor-pointer whitespace-nowrap shrink-0 ${
               isDarkTheme
                 ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
-                : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                : 'bg-[#F6F9FD] border-[#E2E8F0] text-[#102C54] hover:bg-[#EAF3FF]'
             }`}
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
@@ -203,7 +203,7 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
           </button>
 
           <div className="flex items-center gap-2 min-w-0">
-            <span className="px-2 py-0.5 rounded-lg text-xs font-extrabold bg-teal-600 text-white shrink-0">
+            <span className="px-2 py-0.5 rounded-lg text-xs font-extrabold bg-[#1769F4] text-white shrink-0 tabular-nums">
               {tool.id}
             </span>
             <div className="truncate">
@@ -214,7 +214,7 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
               >
                 {tool.nameVi}
               </h1>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate hidden md:block">
+              <p className="text-[11px] text-[#64748B] dark:text-slate-400 truncate hidden md:block">
                 {KNOWLEDGE_STRAND_LABELS[tool.strand]} • Chuẩn GDPT 2018 (Kết nối tri thức)
               </p>
             </div>
@@ -226,7 +226,7 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
           {/* Chọn khối lớp */}
           <div
             className={`inline-flex items-center rounded-xl p-0.5 border ${
-              isDarkTheme ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'
+              isDarkTheme ? 'bg-slate-800 border-slate-700' : 'bg-[#F6F9FD] border-[#E2E8F0]'
             }`}
           >
             {([6, 7, 8, 9] as MathGrade[]).map((g) => {
@@ -237,11 +237,11 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
                   key={g}
                   type="button"
                   onClick={() => onGradeChange(g)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? 'bg-teal-600 text-white shadow-xs'
+                      ? 'bg-[#1769F4] text-white shadow-xs'
                       : supported
-                      ? 'text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700'
+                      ? 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700'
                       : 'text-slate-400 dark:text-slate-500 opacity-60'
                   }`}
                   title={supported ? `Toán lớp ${g}` : `Mở rộng cho lớp ${g}`}
@@ -361,12 +361,12 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
       {/* THANH CHỌN BÀI HỌC / NHIỆM VỤ MẪU */}
       <div
         className={`px-3 sm:px-5 py-2 border-b flex flex-wrap items-center justify-between gap-2 text-xs ${
-          isDarkTheme ? 'bg-slate-900/60 border-slate-800' : 'bg-teal-50/60 border-teal-100'
+          isDarkTheme ? 'bg-slate-900/60 border-slate-800' : 'bg-[#EAF3FF]/65 border-[#C7DCFA]'
         }`}
       >
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-bold text-teal-700 dark:text-teal-400 inline-flex items-center gap-1">
-            <BookOpen className="w-3.5 h-3.5" />
+          <span className="font-bold text-[#102C54] dark:text-sky-300 inline-flex items-center gap-1">
+            <BookOpen className="w-3.5 h-3.5 text-[#1769F4]" />
             Kịch bản bài học mẫu:
           </span>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -377,12 +377,12 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
                   key={act.id}
                   type="button"
                   onClick={() => onActivityChange(act)}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition border ${
+                  className={`px-2.5 py-1 rounded-lg font-semibold transition border cursor-pointer ${
                     active
-                      ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+                      ? 'bg-[#102C54] text-white border-[#102C54] shadow-xs'
                       : isDarkTheme
                       ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
+                      : 'bg-white text-[#172B4D] border-[#E2E8F0] hover:bg-[#EAF3FF]'
                   }`}
                 >
                   {act.title}
@@ -393,7 +393,7 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
         </div>
 
         {selectedClassName && (
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1769F4]/10 text-[#1769F4] dark:text-sky-300 font-semibold tabular-nums">
             <Users className="w-3.5 h-3.5" />
             <span>
               Lớp: {selectedClassName} {studentCount ? `(${studentCount} HS)` : ''}
@@ -419,29 +419,29 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
             className={`${
               showStepDrawerMobile ? 'block' : 'hidden xl:flex'
             } xl:w-96 shrink-0 border-t xl:border-t-0 xl:border-l flex-col overflow-y-auto ${
-              isDarkTheme ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200'
+              isDarkTheme ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-[#E2E8F0]'
             }`}
           >
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+            <div className="p-4 border-b border-[#E2E8F0] dark:border-slate-800">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#1769F4] dark:text-sky-400 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" />
                   Tiến trình khám phá 6 bước
                 </span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-[#12A879] dark:text-emerald-300 tabular-nums">
                   {completedSteps.length}/6 hoàn thành
                 </span>
               </div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h2 className="text-sm font-bold text-[#102C54] dark:text-white">
                 {activeActivity.title}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
                 {activeActivity.relatedLesson}
               </p>
             </div>
 
             {/* Thanh tab 6 bước */}
-            <div className="grid grid-cols-3 gap-1 p-2.5 bg-slate-100/70 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800">
+            <div className="grid grid-cols-3 gap-1 p-2.5 bg-[#F6F9FD] dark:bg-slate-950/60 border-b border-[#E2E8F0] dark:border-slate-800">
               {STEP_ORDER.map((step) => {
                 const isCurrent = currentStep === step;
                 const isDone = completedSteps.includes(step);
@@ -450,12 +450,12 @@ export const MathToolShell: React.FC<MathToolShellProps> = ({
                     key={step}
                     type="button"
                     onClick={() => setCurrentStep(step)}
-                    className={`px-2 py-1.5 rounded-lg text-[11px] font-bold text-left transition flex items-center justify-between ${
+                    className={`px-2 py-1.5 rounded-lg text-[11px] font-bold text-left transition flex items-center justify-between cursor-pointer ${
                       isCurrent
-                        ? 'bg-teal-600 text-white shadow-xs'
+                        ? 'bg-[#1769F4] text-white shadow-xs'
                         : isDone
-                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+                        ? 'bg-emerald-500/15 text-[#12A879] dark:text-emerald-300 border border-emerald-500/30'
+                        : 'bg-white dark:bg-slate-800 text-[#64748B] dark:text-slate-300 hover:bg-[#EAF3FF]'
                     }`}
                   >
                     <span className="truncate">{SIX_STEP_LABELS[step]}</span>

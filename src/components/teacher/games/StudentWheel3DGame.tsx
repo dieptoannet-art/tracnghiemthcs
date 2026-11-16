@@ -880,9 +880,11 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       if (
         !isSupabaseConfigured ||
         !record.teacherId ||
+        record.teacherId.startsWith('demo_') ||
         record.teacherId.startsWith('gsess_') ||
         record.teacherId.startsWith('guest_') ||
-        record.classId === 'guest_mode'
+        record.classId === 'guest_mode' ||
+        record.classId.startsWith('demo-')
       ) {
         return 'saved';
       }

@@ -39,10 +39,10 @@ Yêu cầu định dạng đầu ra:
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-edtech">
       <div>
-        <h2 className="text-2xl font-bold text-[#082B52] flex items-center space-x-2">
-          <Sparkles className="w-6 h-6 text-purple-600" />
+        <h2 className="text-2xl font-bold text-[#102C54] flex items-center space-x-2">
+          <Sparkles className="w-6 h-6 text-[#1769F4]" />
           <span>Trợ lý Gemini theo môn học</span>
         </h2>
         <p className="text-sm text-slate-500">
@@ -51,17 +51,17 @@ Yêu cầu định dạng đầu ra:
       </div>
 
       {pendingMatrixPrompt && (
-        <div className="bg-blue-50/90 border border-blue-200 rounded-2xl p-5 shadow-xs space-y-3">
+        <div className="bg-[#EAF3FF] border border-[#C7DCFA] rounded-2xl p-5 shadow-xs space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center space-x-2 text-[#082B52] font-bold text-sm">
-              <Sparkles className="w-4 h-4 text-[#006BFF]" />
+            <div className="flex items-center space-x-2 text-[#102C54] font-bold text-sm">
+              <Sparkles className="w-4 h-4 text-[#1769F4]" />
               <span>Cấu hình sinh đề nhận từ Ma trận & Bản đặc tả</span>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 type="button"
                 onClick={() => handleCopyPrompt('matrix-handoff', pendingMatrixPrompt)}
-                className="px-3 py-1.5 bg-[#006BFF] text-white rounded-lg text-xs font-bold hover:bg-blue-600 flex items-center space-x-1"
+                className="px-3 py-1.5 bg-[#1769F4] text-white rounded-lg text-xs font-bold hover:bg-[#1255CC] flex items-center space-x-1 whitespace-nowrap shrink-0"
               >
                 {copiedId === 'matrix-handoff' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedId === 'matrix-handoff' ? 'Đã sao chép!' : 'Sao chép cấu hình ma trận'}</span>
@@ -69,7 +69,7 @@ Yêu cầu định dạng đầu ra:
               <button
                 type="button"
                 onClick={() => setPendingMatrixPrompt('')}
-                className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50"
+                className="px-3 py-1.5 bg-white border border-[#E2E8F0] text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50 whitespace-nowrap shrink-0"
               >
                 Đóng
               </button>
@@ -79,16 +79,16 @@ Yêu cầu định dạng đầu ra:
             rows={7}
             readOnly
             value={pendingMatrixPrompt}
-            className="w-full p-3 bg-white border border-blue-200 rounded-xl text-xs font-mono text-slate-800 leading-relaxed"
+            className="w-full p-3 bg-white border border-[#C7DCFA] rounded-xl text-xs font-mono text-slate-800 leading-relaxed"
           />
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Prompt Builder Form (7 cols) */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-xs space-y-4">
-          <h3 className="text-base font-bold text-[#082B52] border-b pb-2 flex items-center space-x-2">
-            <BookOpen className="w-4 h-4 text-[#006BFF]" />
+        <div className="lg:col-span-7 bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-xs space-y-4">
+          <h3 className="text-base font-bold text-[#102C54] border-b border-[#E2E8F0] pb-2 flex items-center space-x-2">
+            <BookOpen className="w-4 h-4 text-[#1769F4]" />
             <span>Biểu mẫu tạo yêu cầu (Prompt Generator)</span>
           </h3>
 
@@ -98,7 +98,7 @@ Yêu cầu định dạng đầu ra:
               <select
                 value={promptGrade}
                 onChange={e => setPromptGrade(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-white"
+                className="w-full p-2 border border-[#E2E8F0] rounded-lg bg-white"
               >
                 <option value="6">Lớp 6</option>
                 <option value="7">Lớp 7</option>
@@ -112,7 +112,7 @@ Yêu cầu định dạng đầu ra:
               <select
                 value={promptSubject}
                 onChange={e => setPromptSubject(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-white"
+                className="w-full p-2 border border-[#E2E8F0] rounded-lg bg-white"
               >
                 <option value="Toán">Toán học</option>
                 <option value="Tin học">Tin học</option>
@@ -127,7 +127,7 @@ Yêu cầu định dạng đầu ra:
               <select
                 value={promptTextbook}
                 onChange={e => setPromptTextbook(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-white"
+                className="w-full p-2 border border-[#E2E8F0] rounded-lg bg-white"
               >
                 <option value="Kết nối tri thức">Kết nối tri thức</option>
                 <option value="Cánh Diều">Cánh Diều</option>
@@ -140,7 +140,7 @@ Yêu cầu định dạng đầu ra:
               <select
                 value={promptType}
                 onChange={e => setPromptType(e.target.value)}
-                className="w-full p-2 border rounded-lg bg-white"
+                className="w-full p-2 border border-[#E2E8F0] rounded-lg bg-white"
               >
                 <option value="Trắc nghiệm 1 đáp án (A, B, C, D)">Trắc nghiệm 1 ĐA</option>
                 <option value="Đúng - Sai nhiều ý (4 ý a, b, c, d)">Đúng - Sai (4 ý)</option>
@@ -157,7 +157,7 @@ Yêu cầu định dạng đầu ra:
                 type="text"
                 value={promptLesson}
                 onChange={e => setPromptLesson(e.target.value)}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border border-[#E2E8F0] rounded-lg"
               />
             </div>
 
@@ -167,7 +167,7 @@ Yêu cầu định dạng đầu ra:
                 type="text"
                 value={promptYccd}
                 onChange={e => setPromptYccd(e.target.value)}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border border-[#E2E8F0] rounded-lg"
               />
             </div>
           </div>
@@ -179,9 +179,9 @@ Yêu cầu định dạng đầu ra:
               <button
                 type="button"
                 onClick={() => handleCopyPrompt('generator', generatedPrompt)}
-                className="flex items-center space-x-1 text-xs text-[#006BFF] font-bold hover:underline"
+                className="flex items-center space-x-1 text-xs text-[#1769F4] font-bold hover:underline whitespace-nowrap shrink-0"
               >
-                {copiedId === 'generator' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedId === 'generator' ? <Check className="w-3.5 h-3.5 text-[#12A879]" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedId === 'generator' ? 'Đã sao chép vào bộ nhớ tạm!' : 'Sao chép yêu cầu'}</span>
               </button>
             </div>
@@ -190,25 +190,25 @@ Yêu cầu định dạng đầu ra:
               rows={6}
               readOnly
               value={generatedPrompt}
-              className="w-full p-3 bg-slate-50 border rounded-xl text-xs font-mono text-slate-800 leading-relaxed"
+              className="w-full p-3 bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl text-xs font-mono text-slate-800 leading-relaxed"
             />
           </div>
         </div>
 
         {/* Right: Assistants Directory (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-4">
-            <h3 className="text-base font-bold text-[#082B52] border-b pb-2 flex items-center space-x-2">
-              <Layers className="w-4 h-4 text-purple-600" />
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs space-y-4">
+            <h3 className="text-base font-bold text-[#102C54] border-b border-[#E2E8F0] pb-2 flex items-center space-x-2">
+              <Layers className="w-4 h-4 text-[#1769F4]" />
               <span>Danh bạ trợ lý Gemini bộ môn</span>
             </h3>
 
             <div className="space-y-3">
               {geminiAssistants.map(asst => (
-                <div key={asst.id} className="p-3.5 rounded-xl border border-slate-200 hover:border-purple-300 transition-all space-y-2">
+                <div key={asst.id} className="p-3.5 rounded-xl border border-[#E2E8F0] hover:border-[#C7DCFA] transition-all space-y-2">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-bold text-xs text-[#082B52]">{asst.name}</h4>
+                      <h4 className="font-bold text-xs text-[#102C54]">{asst.name}</h4>
                       <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{asst.description}</p>
                     </div>
                   </div>
@@ -216,7 +216,7 @@ Yêu cầu định dạng đầu ra:
                   <div className="flex items-center space-x-2 pt-1">
                     <button
                       onClick={() => handleCopyPrompt(asst.id, asst.samplePromptTemplate)}
-                      className="flex-1 py-1.5 px-3 bg-[#F3F8FF] text-[#006BFF] border border-[#DCE8F7] rounded-lg text-xs font-bold hover:bg-blue-50 flex items-center justify-center space-x-1"
+                      className="flex-1 py-1.5 px-3 bg-[#F6F9FD] text-[#1769F4] border border-[#E2E8F0] rounded-lg text-xs font-bold hover:bg-[#EAF3FF] flex items-center justify-center space-x-1 whitespace-nowrap shrink-0"
                     >
                       {copiedId === asst.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedId === asst.id ? 'Đã chép' : 'Sao chép mẫu'}</span>
@@ -227,13 +227,13 @@ Yêu cầu định dạng đầu ra:
                         href={asst.externalUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="py-1.5 px-3 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 flex items-center space-x-1 shrink-0"
+                        className="py-1.5 px-3 bg-[#1769F4] text-white rounded-lg text-xs font-bold hover:bg-[#1255CC] flex items-center space-x-1 whitespace-nowrap shrink-0"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                         <span>Mở Gemini</span>
                       </a>
                     ) : (
-                      <span className="py-1.5 px-3 bg-slate-100 text-slate-400 rounded-lg text-xs font-semibold cursor-not-allowed">
+                      <span className="py-1.5 px-3 bg-slate-100 text-slate-400 rounded-lg text-xs font-semibold cursor-not-allowed whitespace-nowrap shrink-0">
                         Chưa cấu hình link
                       </span>
                     )}

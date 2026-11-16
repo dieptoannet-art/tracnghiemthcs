@@ -405,19 +405,18 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto"
-      style={{ fontFamily: "'Times New Roman', Times, serif" }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#102C54]/70 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto font-edtech"
     >
-      <div className="bg-white w-full max-w-5xl rounded-3xl border-2 border-[#BED8FB] shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
+      <div className="bg-white w-full max-w-5xl rounded-3xl border-2 border-[#C7DCFA] shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
         {/* HEADER */}
-        <div className="bg-gradient-to-r from-[#082B52] via-[#0F3D73] to-[#1769C2] text-white px-5 sm:px-7 py-4 flex items-center justify-between gap-4 shrink-0">
+        <div className="bg-gradient-to-r from-[#102C54] via-[#133A6E] to-[#1769F4] text-white px-5 sm:px-7 py-4 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shadow-inner">
-              <Users className="w-6 h-6 text-amber-300" />
+            <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shadow-inner shrink-0">
+              <Users className="w-6 h-6 text-[#FFCC33]" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-xs font-bold uppercase tracking-wider">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#FFCC33]/20 border border-[#FFCC33]/40 text-[#FFD95E] text-xs font-bold uppercase tracking-wider">
                   EDU Game Center
                 </span>
                 {targetGameCode && (
@@ -426,7 +425,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                   </span>
                 )}
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-wide mt-0.5">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight mt-0.5">
                 CHUẨN BỊ TRÒ CHƠI &amp; DANH SÁCH HỌC SINH
               </h2>
             </div>
@@ -435,7 +434,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0 cursor-pointer"
             title="Đóng cửa sổ"
           >
             <X className="w-5 h-5" />
@@ -443,7 +442,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
         </div>
 
         {/* SCROLLABLE BODY */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-[#F6FAFF]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-[#F6F9FD]">
           {/* STORAGE WARNING IF LOCALSTORAGE BLOCKED */}
           {!storageOk && (
             <div className="bg-amber-50 border border-amber-300 rounded-2xl p-3.5 flex items-center gap-3 text-amber-900 text-sm">
@@ -463,16 +462,16 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                 onChangeRosterMode('guest');
                 setValidationMessage(null);
               }}
-              className={`text-left p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 ${
+              className={`text-left p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 cursor-pointer ${
                 rosterMode === 'guest'
-                  ? 'bg-gradient-to-br from-[#EAF4FF] to-white border-[#006BFF] shadow-md ring-2 ring-[#006BFF]/20'
-                  : 'bg-white border-slate-200 hover:border-blue-300'
+                  ? 'bg-gradient-to-br from-[#EAF3FF] to-white border-[#1769F4] shadow-md ring-2 ring-[#1769F4]/20'
+                  : 'bg-white border-[#E2E8F0] hover:border-[#C7DCFA]'
               }`}
             >
               <div
                 className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 font-bold ${
                   rosterMode === 'guest'
-                    ? 'bg-[#006BFF] text-white shadow-xs'
+                    ? 'bg-[#1769F4] text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600'
                 }`}
               >
@@ -480,11 +479,11 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-base sm:text-lg font-bold text-[#082B52]">
+                  <span className="text-base sm:text-lg font-bold text-[#102C54]">
                     1. CHẾ ĐỘ KHÁCH – Tự nhập danh sách
                   </span>
                   {rosterMode === 'guest' && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#006BFF] text-white text-xs font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#1769F4] text-white text-xs font-bold whitespace-nowrap shrink-0">
                       Đang chọn
                     </span>
                   )}
@@ -502,16 +501,16 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                 onChangeRosterMode('teacher');
                 setValidationMessage(null);
               }}
-              className={`text-left p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 ${
+              className={`text-left p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 cursor-pointer ${
                 rosterMode === 'teacher'
-                  ? 'bg-gradient-to-br from-[#EAF4FF] to-white border-[#006BFF] shadow-md ring-2 ring-[#006BFF]/20'
-                  : 'bg-white border-slate-200 hover:border-blue-300'
+                  ? 'bg-gradient-to-br from-[#EAF3FF] to-white border-[#1769F4] shadow-md ring-2 ring-[#1769F4]/20'
+                  : 'bg-white border-[#E2E8F0] hover:border-[#C7DCFA]'
               }`}
             >
               <div
                 className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 font-bold ${
                   rosterMode === 'teacher'
-                    ? 'bg-[#006BFF] text-white shadow-xs'
+                    ? 'bg-[#1769F4] text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600'
                 }`}
               >
@@ -519,11 +518,11 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-base sm:text-lg font-bold text-[#082B52]">
+                  <span className="text-base sm:text-lg font-bold text-[#102C54]">
                     2. CHẾ ĐỘ GIÁO VIÊN – Dữ liệu hệ thống
                   </span>
                   {rosterMode === 'teacher' && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#006BFF] text-white text-xs font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#1769F4] text-white text-xs font-bold whitespace-nowrap shrink-0">
                       Đang chọn
                     </span>
                   )}
@@ -543,7 +542,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                   ? 'bg-red-50 border-red-200 text-red-800'
                   : validationMessage.type === 'warning'
                   ? 'bg-amber-50 border-amber-200 text-amber-900'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  : 'bg-[#ECFDF7] border-[#12A879]/25 text-[#0B6E4F]'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -552,14 +551,14 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                 ) : validationMessage.type === 'warning' ? (
                   <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
                 ) : (
-                  <Check className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <Check className="w-5 h-5 text-[#12A879] shrink-0" />
                 )}
                 <span>{validationMessage.text}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setValidationMessage(null)}
-                className="text-xs underline opacity-75 hover:opacity-100"
+                className="text-xs underline opacity-75 hover:opacity-100 whitespace-nowrap shrink-0"
               >
                 Đóng
               </button>
@@ -572,19 +571,19 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
           {rosterMode === 'guest' && (
             <div className="space-y-5">
               {/* SECTION A: THÔNG TIN LỚP & CẤU HÌNH PHIÊN KHÁCH */}
-              <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 shadow-xs space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                  <h3 className="text-base sm:text-lg font-bold text-[#082B52] flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#006BFF] text-white text-xs flex items-center justify-center font-bold">
+                  <h3 className="text-base sm:text-lg font-bold text-[#102C54] flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-[#1769F4] text-white text-xs flex items-center justify-center font-bold shrink-0">
                       A
                     </span>
                     Thông tin lớp học / Nhóm học sinh (Chế độ Khách)
                   </h3>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="px-3 py-1 rounded-full bg-blue-50 text-[#006BFF] font-bold border border-blue-200">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm flex-wrap tabular-nums">
+                    <span className="px-3 py-1 rounded-full bg-[#EAF3FF] text-[#1769F4] font-bold border border-[#C7DCFA]">
                       Sĩ số: {guestSession.students.length} HS
                     </span>
-                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+                    <span className="px-3 py-1 rounded-full bg-[#ECFDF7] text-[#0B6E4F] font-bold border border-[#12A879]/25">
                       Tham gia: {participatingStudents.length} HS
                     </span>
                     <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-800 font-bold border border-amber-200">
@@ -603,7 +602,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                       value={guestSession.className}
                       onChange={e => handleMetaChange('className', e.target.value)}
                       placeholder="VD: 6A1, 8A2, Câu lạc bộ Tin học..."
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:border-[#006BFF] focus:outline-none"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:border-[#1769F4] focus:outline-none"
                     />
                   </div>
                   <div>
@@ -615,7 +614,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                       value={guestSession.activityName}
                       onChange={e => handleMetaChange('activityName', e.target.value)}
                       placeholder="VD: Khởi động Bài 5, Ôn tập chương 2..."
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:border-[#006BFF] focus:outline-none"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:border-[#1769F4] focus:outline-none"
                     />
                   </div>
                   <div>
@@ -627,7 +626,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                       value={guestSession.note}
                       onChange={e => handleMetaChange('note', e.target.value)}
                       placeholder="VD: Tiết 2 sáng thứ Hai..."
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:border-[#006BFF] focus:outline-none"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:border-[#1769F4] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -645,9 +644,9 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                             allowRepeat: !e.target.checked,
                           })
                         }
-                        className="w-4 h-4 rounded text-[#006BFF]"
+                        className="w-4 h-4 rounded text-[#1769F4]"
                       />
-                      <span className="font-semibold text-[#082B52]">
+                      <span className="font-semibold text-[#102C54]">
                         Không lặp lại học sinh đã được gọi trong phiên
                       </span>
                     </label>
@@ -662,7 +661,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                             shareAcrossGames: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 rounded text-[#006BFF]"
+                        className="w-4 h-4 rounded text-[#1769F4]"
                       />
                       <span>Giữ nguyên danh sách này khi chuyển sang trò chơi khác</span>
                     </label>
@@ -672,14 +671,14 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                     <button
                       type="button"
                       onClick={() => handleLoadSampleClass(30)}
-                      className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#006BFF] font-bold text-xs border border-blue-200 transition-colors"
+                      className="px-3 py-1.5 rounded-xl bg-[#EAF3FF] hover:bg-[#C7DCFA]/50 text-[#1769F4] font-bold text-xs border border-[#C7DCFA] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       + Tạo nhanh 30 HS mẫu
                     </button>
                     <button
                       type="button"
                       onClick={() => handleLoadSampleClass(45)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 transition-colors"
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-[#E2E8F0] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       + Tạo 45 HS mẫu
                     </button>
@@ -688,10 +687,10 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
               </div>
 
               {/* SECTION B: 3 PHƯƠNG THỨC NHẬP DANH SÁCH HỌC SINH */}
-              <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 shadow-xs space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                  <h3 className="text-base sm:text-lg font-bold text-[#082B52] flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#006BFF] text-white text-xs flex items-center justify-center font-bold">
+                  <h3 className="text-base sm:text-lg font-bold text-[#102C54] flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-[#1769F4] text-white text-xs flex items-center justify-center font-bold shrink-0">
                       B
                     </span>
                     Nhập danh sách học sinh (3 cách linh hoạt)
@@ -701,52 +700,52 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                     <button
                       type="button"
                       onClick={() => setActiveInputTab('direct')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                         activeInputTab === 'direct'
-                          ? 'bg-[#006BFF] text-white shadow-xs'
+                          ? 'bg-[#1769F4] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4 shrink-0" />
                       1. Nhập trực tiếp
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setActiveInputTab('paste_excel')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                         activeInputTab === 'paste_excel'
-                          ? 'bg-[#006BFF] text-white shadow-xs'
+                          ? 'bg-[#1769F4] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      <ClipboardPaste className="w-4 h-4" />
+                      <ClipboardPaste className="w-4 h-4 shrink-0" />
                       2. Dán từ Excel / Google Sheets
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setActiveInputTab('upload_file')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                         activeInputTab === 'upload_file'
-                          ? 'bg-[#006BFF] text-white shadow-xs'
+                          ? 'bg-[#1769F4] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      <FileSpreadsheet className="w-4 h-4" />
+                      <FileSpreadsheet className="w-4 h-4 shrink-0" />
                       3. Tải tệp Excel (.xlsx) / .csv
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setActiveInputTab('history')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 tabular-nums cursor-pointer ${
                         activeInputTab === 'history'
-                          ? 'bg-[#006BFF] text-white shadow-xs'
+                          ? 'bg-[#1769F4] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      <History className="w-4 h-4" />
+                      <History className="w-4 h-4 shrink-0" />
                       Lịch sử gọi ({guestHistory.length})
                     </button>
                   </div>
@@ -756,8 +755,8 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                 {activeInputTab === 'direct' && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Add single student */}
-                    <div className="bg-[#F8FBFF] rounded-2xl p-4 border border-blue-100 space-y-3">
-                      <h4 className="text-sm font-bold text-[#082B52]">
+                    <div className="bg-[#F6F9FD] rounded-2xl p-4 border border-[#C7DCFA] space-y-3">
+                      <h4 className="text-sm font-bold text-[#102C54]">
                         Thêm từng học sinh
                       </h4>
                       <div className="flex flex-col sm:flex-row gap-2">
@@ -772,7 +771,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                             }
                           }}
                           placeholder="Nhập họ và tên (VD: Nguyễn Văn An)..."
-                          className="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:border-[#006BFF] focus:outline-none"
+                          className="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:border-[#1769F4] focus:outline-none"
                         />
                         <input
                           type="text"
@@ -785,12 +784,12 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                             }
                           }}
                           placeholder="Ghi chú (Tổ 1...)"
-                          className="sm:w-36 px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:border-[#006BFF] focus:outline-none"
+                          className="sm:w-36 px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:border-[#1769F4] focus:outline-none"
                         />
                         <button
                           type="button"
                           onClick={handleAddSingleStudent}
-                          className="px-4 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-sm shrink-0 transition-colors"
+                          className="px-4 py-2 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white font-bold text-sm whitespace-nowrap shrink-0 transition-colors cursor-pointer"
                         >
                           + Thêm
                         </button>
@@ -801,15 +800,15 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                     </div>
 
                     {/* Add multiple lines */}
-                    <div className="bg-[#F8FBFF] rounded-2xl p-4 border border-blue-100 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-[#082B52]">
+                    <div className="bg-[#F6F9FD] rounded-2xl p-4 border border-[#C7DCFA] space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="text-sm font-bold text-[#102C54]">
                           Nhập nhiều dòng (Mỗi học sinh 1 dòng)
                         </h4>
                         <button
                           type="button"
                           onClick={handleAddMultiLineDirect}
-                          className="px-3.5 py-1.5 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-xs transition-colors"
+                          className="px-3.5 py-1.5 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white font-bold text-xs whitespace-nowrap shrink-0 transition-colors cursor-pointer"
                         >
                           + Thêm tất cả dòng vào danh sách
                         </button>
@@ -819,7 +818,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                         value={multiLineDirectInput}
                         onChange={e => setMultiLineDirectInput(e.target.value)}
                         placeholder={`Nguyễn Văn An\nTrần Thị Bình\nLê Hoàng Cường\nPhạm Minh Đức`}
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:border-[#006BFF] focus:outline-none"
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:border-[#1769F4] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -828,8 +827,8 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                 {/* TAB 2: DÁN TỪ EXCEL / GOOGLE SHEETS */}
                 {activeInputTab === 'paste_excel' && (
                   <div className="space-y-4">
-                    <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs sm:text-sm text-[#082B52] flex items-start gap-2.5">
-                      <Info className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
+                    <div className="bg-[#EAF3FF] border border-[#C7DCFA] rounded-xl p-3 text-xs sm:text-sm text-[#102C54] flex items-start gap-2.5">
+                      <Info className="w-4 h-4 text-[#1769F4] shrink-0 mt-0.5" />
                       <div>
                         <strong>Hỗ trợ tự động nhận diện từ Excel / Google Sheets:</strong> Bạn có thể bôi đen và copy (Ctrl+C) <strong>1 cột</strong> (Họ và tên), <strong>2 cột</strong> (STT | Họ và tên) hoặc <strong>nhiều cột</strong> (STT | Họ và tên | Ghi chú) rồi dán (Ctrl+V) vào ô bên dưới. Hệ thống tự động bỏ dòng tiêu đề và dòng trống.
                       </div>
@@ -845,19 +844,19 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                           value={excelPasteText}
                           onChange={e => handlePreviewExcelPaste(e.target.value)}
                           placeholder={`STT\tHọ và tên\tGhi chú\n1\tNguyễn Văn An\tTổ 1\n2\tTrần Thị Bình\tTổ 2\n3\tLê Hoàng Cường\tTổ 3`}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:border-[#006BFF] focus:outline-none font-mono"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:border-[#1769F4] focus:outline-none font-mono"
                         />
                       </div>
 
-                      <div className="bg-[#F8FBFF] rounded-2xl border border-blue-200 p-4 flex flex-col justify-between">
+                      <div className="bg-[#F6F9FD] rounded-2xl border border-[#C7DCFA] p-4 flex flex-col justify-between">
                         {pastePreview ? (
                           <div className="space-y-3">
-                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-blue-100 pb-2">
-                              <span className="text-sm font-bold text-[#082B52]">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#C7DCFA]/60 pb-2">
+                              <span className="text-sm font-bold text-[#102C54]">
                                 Xem trước kết quả phân tích:
                               </span>
-                              <div className="flex items-center gap-2 text-xs">
-                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                              <div className="flex items-center gap-2 text-xs tabular-nums">
+                                <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF7] text-[#0B6E4F] border border-[#12A879]/25 font-bold">
                                   Hợp lệ: {pastePreview.validRows.length} HS
                                 </span>
                                 <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 font-semibold">
@@ -873,11 +872,11 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                               </div>
                             )}
 
-                            <div className="max-h-32 overflow-y-auto border border-slate-200 rounded-xl bg-white divide-y divide-slate-100 text-xs">
+                            <div className="max-h-32 overflow-y-auto border border-[#E2E8F0] rounded-xl bg-white divide-y divide-slate-100 text-xs">
                               {pastePreview.validRows.slice(0, 25).map((r, i) => (
                                 <div key={i} className="px-3 py-1.5 flex items-center justify-between">
                                   <span>
-                                    <strong>{i + 1}.</strong> {r.fullName}
+                                    <strong className="tabular-nums">{i + 1}.</strong> {r.fullName}
                                   </span>
                                   <span className="text-slate-400">{r.note || ''}</span>
                                 </div>
@@ -894,7 +893,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                 type="button"
                                 onClick={() => handleConfirmExcelPaste(false)}
                                 disabled={pastePreview.validRows.length === 0}
-                                className="px-4 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 disabled:opacity-50 text-white font-bold text-xs sm:text-sm transition-colors"
+                                className="px-4 py-2 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] disabled:opacity-50 text-white font-bold text-xs sm:text-sm whitespace-nowrap shrink-0 transition-colors cursor-pointer"
                               >
                                 + Thêm nối tiếp ({pastePreview.validRows.length} HS)
                               </button>
@@ -902,7 +901,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                 type="button"
                                 onClick={() => handleConfirmExcelPaste(true)}
                                 disabled={pastePreview.validRows.length === 0}
-                                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm transition-colors"
+                                className="px-4 py-2 rounded-xl bg-[#12A879] hover:bg-[#0F8F67] disabled:opacity-50 text-white font-bold text-xs sm:text-sm whitespace-nowrap shrink-0 transition-colors cursor-pointer"
                               >
                                 Thay thế danh sách hiện tại ({pastePreview.validRows.length} HS)
                               </button>
@@ -925,12 +924,12 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                 {activeInputTab === 'upload_file' && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div className="border-2 border-dashed border-blue-300 bg-[#F8FBFF] rounded-2xl p-6 text-center flex flex-col items-center justify-center space-y-3">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-100 text-[#006BFF] flex items-center justify-center">
+                      <div className="border-2 border-dashed border-[#C7DCFA] bg-[#F6F9FD] rounded-2xl p-6 text-center flex flex-col items-center justify-center space-y-3">
+                        <div className="w-12 h-12 rounded-2xl bg-[#EAF3FF] text-[#1769F4] flex items-center justify-center">
                           <Upload className="w-6 h-6" />
                         </div>
                         <div>
-                          <p className="text-sm sm:text-base font-bold text-[#082B52]">
+                          <p className="text-sm sm:text-base font-bold text-[#102C54]">
                             Chọn tệp danh sách lớp từ máy tính (.xlsx, .xls, .csv)
                           </p>
                           <p className="text-xs text-slate-500 mt-1">
@@ -947,12 +946,12 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="px-5 py-2.5 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-sm shadow-xs transition-colors"
+                          className="px-5 py-2.5 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white font-bold text-sm shadow-xs transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                         >
                           Chọn tệp Excel / CSV
                         </button>
                         {uploadedFileName && (
-                          <p className="text-xs font-semibold text-emerald-700">
+                          <p className="text-xs font-semibold text-[#0B6E4F]">
                             Đã chọn: {uploadedFileName}
                           </p>
                         )}
@@ -963,15 +962,15 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                         )}
                       </div>
 
-                      <div className="bg-[#F8FBFF] rounded-2xl border border-blue-200 p-4 flex flex-col justify-between">
+                      <div className="bg-[#F6F9FD] rounded-2xl border border-[#C7DCFA] p-4 flex flex-col justify-between">
                         {filePreview ? (
                           <div className="space-y-3">
-                            <div className="flex items-center justify-between border-b border-blue-100 pb-2">
-                              <span className="text-sm font-bold text-[#082B52]">
+                            <div className="flex items-center justify-between border-b border-[#C7DCFA]/60 pb-2 gap-2">
+                              <span className="text-sm font-bold text-[#102C54] truncate">
                                 Xem trước tệp: {uploadedFileName}
                               </span>
-                              <div className="flex items-center gap-2 text-xs">
-                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                              <div className="flex items-center gap-2 text-xs tabular-nums shrink-0">
+                                <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF7] text-[#0B6E4F] border border-[#12A879]/25 font-bold">
                                   Hợp lệ: {filePreview.validRows.length} HS
                                 </span>
                                 <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 font-semibold">
@@ -980,11 +979,11 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                               </div>
                             </div>
 
-                            <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-xl bg-white divide-y divide-slate-100 text-xs">
+                            <div className="max-h-36 overflow-y-auto border border-[#E2E8F0] rounded-xl bg-white divide-y divide-slate-100 text-xs">
                               {filePreview.validRows.slice(0, 30).map((r, i) => (
                                 <div key={i} className="px-3 py-1.5 flex items-center justify-between">
                                   <span>
-                                    <strong>{i + 1}.</strong> {r.fullName}
+                                    <strong className="tabular-nums">{i + 1}.</strong> {r.fullName}
                                   </span>
                                   <span className="text-slate-400">{r.note || ''}</span>
                                 </div>
@@ -995,14 +994,14 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleConfirmFileImport(true)}
-                                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition-colors"
+                                className="px-4 py-2 rounded-xl bg-[#12A879] hover:bg-[#0F8F67] text-white font-bold text-xs sm:text-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 Dùng danh sách từ tệp này ({filePreview.validRows.length} HS)
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleConfirmFileImport(false)}
-                                className="px-4 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm transition-colors"
+                                className="px-4 py-2 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white font-bold text-xs sm:text-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 + Ghép nối vào danh sách đang có
                               </button>
@@ -1032,43 +1031,43 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                         <button
                           type="button"
                           onClick={onResetGuestCalledSession}
-                          className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold flex items-center gap-1.5"
+                          className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 tabular-nums cursor-pointer"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" />
+                          <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                           Đặt lại lượt đã gọi ({guestSession.calledStudentIds.length})
                         </button>
                         <button
                           type="button"
                           onClick={handleExportGuestHistoryCsv}
                           disabled={guestHistory.length === 0}
-                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold flex items-center gap-1.5"
+                          className="px-3.5 py-1.5 rounded-xl bg-[#12A879] hover:bg-[#0F8F67] disabled:opacity-40 text-white text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                         >
-                          <Download className="w-3.5 h-3.5" />
+                          <Download className="w-3.5 h-3.5 shrink-0" />
                           Tải lịch sử (.CSV)
                         </button>
                       </div>
                     </div>
 
                     {guestHistory.length === 0 ? (
-                      <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-2xl border border-slate-200 text-sm">
+                      <div className="p-8 text-center text-slate-400 bg-[#F6F9FD] rounded-2xl border border-[#E2E8F0] text-sm">
                         Chưa có lượt gọi học sinh nào trong phiên Khách hiện tại.
                       </div>
                     ) : (
-                      <div className="max-h-48 overflow-y-auto rounded-2xl border border-slate-200 divide-y divide-slate-100 bg-white text-xs sm:text-sm">
+                      <div className="max-h-48 overflow-y-auto rounded-2xl border border-[#E2E8F0] divide-y divide-slate-100 bg-white text-xs sm:text-sm">
                         {guestHistory.slice(0, 50).map((item, idx) => (
                           <div key={item.turnId} className="px-4 py-2.5 flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5">
-                              <span className="w-6 h-6 rounded-full bg-blue-50 text-[#006BFF] font-bold text-xs flex items-center justify-center">
+                              <span className="w-6 h-6 rounded-full bg-[#EAF3FF] text-[#1769F4] font-bold text-xs flex items-center justify-center tabular-nums shrink-0">
                                 {idx + 1}
                               </span>
                               <div>
-                                <span className="font-bold text-[#082B52]">{item.studentName}</span>
+                                <span className="font-bold text-[#102C54]">{item.studentName}</span>
                                 <span className="text-slate-400 text-xs ml-2">
                                   ({item.className} · {item.gameCode} - {item.gameTitle})
                                 </span>
                               </div>
                             </div>
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-slate-500 tabular-nums shrink-0">
                               {new Date(item.timestamp).toLocaleTimeString('vi-VN')}
                             </span>
                           </div>
@@ -1080,13 +1079,13 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
               </div>
 
               {/* SECTION C: BẢNG DANH SÁCH HỌC SINH ĐÃ NHẬP */}
-              <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 sm:p-5 shadow-xs space-y-3.5">
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 shadow-xs space-y-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#006BFF] text-white text-xs flex items-center justify-center font-bold">
+                    <span className="w-6 h-6 rounded-full bg-[#1769F4] text-white text-xs flex items-center justify-center font-bold shrink-0">
                       C
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-[#082B52]">
+                    <h3 className="text-base sm:text-lg font-bold text-[#102C54] tabular-nums">
                       Danh sách học sinh tham gia ({guestSession.students.length} học sinh)
                     </h3>
                   </div>
@@ -1100,7 +1099,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                         value={rosterSearch}
                         onChange={e => setRosterSearch(e.target.value)}
                         placeholder="Tìm kiếm tên HS..."
-                        className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:border-[#006BFF] focus:outline-none"
+                        className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:border-[#1769F4] focus:outline-none"
                       />
                     </div>
 
@@ -1108,9 +1107,9 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                       type="button"
                       onClick={() => handleSelectAllParticipating(true)}
                       disabled={guestSession.students.length === 0}
-                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-bold flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-bold flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer"
                     >
-                      <CheckSquare className="w-3.5 h-3.5 text-[#006BFF]" />
+                      <CheckSquare className="w-3.5 h-3.5 text-[#1769F4] shrink-0" />
                       Chọn tất cả
                     </button>
 
@@ -1118,9 +1117,9 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                       type="button"
                       onClick={() => handleSelectAllParticipating(false)}
                       disabled={guestSession.students.length === 0}
-                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-bold flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-bold flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer"
                     >
-                      <Square className="w-3.5 h-3.5 text-slate-500" />
+                      <Square className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                       Bỏ chọn tất cả
                     </button>
 
@@ -1128,9 +1127,9 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                       <button
                         type="button"
                         onClick={onResetGuestCalledSession}
-                        className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold flex items-center gap-1 whitespace-nowrap shrink-0 tabular-nums cursor-pointer"
                       >
-                        <RotateCcw className="w-3.5 h-3.5" />
+                        <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                         Làm mới lượt gọi ({guestSession.calledStudentIds.length})
                       </button>
                     )}
@@ -1140,9 +1139,9 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                         type="button"
                         onClick={() => setConfirmClearRoster(true)}
                         disabled={guestSession.students.length === 0}
-                        className="px-2.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 disabled:opacity-40 text-red-700 border border-red-200 text-xs font-bold flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 disabled:opacity-40 text-red-700 border border-red-200 text-xs font-bold flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5 shrink-0" />
                         Xóa danh sách
                       </button>
                     ) : (
@@ -1158,14 +1157,14 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                             });
                             setConfirmClearRoster(false);
                           }}
-                          className="px-2 py-0.5 rounded-lg bg-red-600 text-white text-xs font-bold"
+                          className="px-2 py-0.5 rounded-lg bg-red-600 text-white text-xs font-bold whitespace-nowrap cursor-pointer"
                         >
                           Có, xóa
                         </button>
                         <button
                           type="button"
                           onClick={() => setConfirmClearRoster(false)}
-                          className="px-2 py-0.5 rounded-lg bg-white text-slate-700 text-xs font-bold"
+                          className="px-2 py-0.5 rounded-lg bg-white text-slate-700 text-xs font-bold whitespace-nowrap cursor-pointer"
                         >
                           Hủy
                         </button>
@@ -1185,7 +1184,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
 
                 {/* Roster Table */}
                 {guestSession.students.length === 0 ? (
-                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center space-y-3 bg-[#FAFBFD]">
+                  <div className="border-2 border-dashed border-[#E2E8F0] rounded-2xl p-8 text-center space-y-3 bg-[#F6F9FD]">
                     <Users className="w-10 h-10 text-slate-300 mx-auto" />
                     <div>
                       <p className="text-base font-bold text-slate-600">
@@ -1199,16 +1198,16 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                       <button
                         type="button"
                         onClick={() => handleLoadSampleClass(30)}
-                        className="px-4 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm shadow-xs"
+                        className="px-4 py-2 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white font-bold text-xs sm:text-sm shadow-xs whitespace-nowrap cursor-pointer"
                       >
                         + Tạo nhanh lớp mẫu 30 học sinh
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="max-h-60 overflow-y-auto rounded-2xl border border-slate-200">
+                  <div className="max-h-60 overflow-y-auto rounded-2xl border border-[#E2E8F0]">
                     <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                      <thead className="bg-[#F0F6FF] text-[#082B52] sticky top-0 z-10 border-b border-blue-200">
+                      <thead className="bg-[#EAF3FF] text-[#102C54] sticky top-0 z-10 border-b border-[#C7DCFA]">
                         <tr>
                           <th className="py-2.5 px-3 font-bold w-14 text-center">STT</th>
                           <th className="py-2.5 px-3 font-bold">Họ và tên học sinh</th>
@@ -1224,11 +1223,11 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                           return (
                             <tr
                               key={student.guestStudentId}
-                              className={`hover:bg-blue-50/40 transition-colors ${
+                              className={`hover:bg-[#EAF3FF]/40 transition-colors ${
                                 !student.participating ? 'opacity-55 bg-slate-50' : ''
                               }`}
                             >
-                              <td className="py-2 px-3 text-center font-bold text-slate-600">
+                              <td className="py-2 px-3 text-center font-bold text-slate-600 tabular-nums">
                                 {student.stt}
                               </td>
                               <td className="py-2 px-3">
@@ -1237,16 +1236,16 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                     type="text"
                                     value={editingNameValue}
                                     onChange={e => setEditingNameValue(e.target.value)}
-                                    className="w-full px-2.5 py-1 rounded-lg border border-[#006BFF] text-sm font-bold"
+                                    className="w-full px-2.5 py-1 rounded-lg border border-[#1769F4] text-sm font-bold focus:outline-none"
                                     autoFocus
                                   />
                                 ) : (
                                   <div className="flex items-center gap-2">
-                                    <span className="font-bold text-[#082B52]">
+                                    <span className="font-bold text-[#102C54]">
                                       {student.fullName}
                                     </span>
                                     {isAlreadyCalled && (
-                                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">
+                                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold whitespace-nowrap">
                                         Đã gọi
                                       </span>
                                     )}
@@ -1260,7 +1259,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                     value={editingNoteValue}
                                     onChange={e => setEditingNoteValue(e.target.value)}
                                     placeholder="Ghi chú..."
-                                    className="w-full px-2.5 py-1 rounded-lg border border-slate-300 text-xs"
+                                    className="w-full px-2.5 py-1 rounded-lg border border-slate-300 text-xs focus:outline-none"
                                   />
                                 ) : (
                                   student.note || '—'
@@ -1270,9 +1269,9 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleToggleParticipating(student.guestStudentId)}
-                                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
+                                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
                                     student.participating
-                                      ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                      ? 'bg-[#ECFDF7] text-[#0B6E4F] border border-[#12A879]/25 hover:bg-emerald-100'
                                       : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                                   }`}
                                 >
@@ -1285,7 +1284,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                     <button
                                       type="button"
                                       onClick={() => handleSaveEditRow(student.guestStudentId)}
-                                      className="p-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                                      className="p-1.5 rounded-lg bg-[#12A879] text-white hover:bg-[#0F8F67] cursor-pointer"
                                       title="Lưu"
                                     >
                                       <Check className="w-3.5 h-3.5" />
@@ -1293,7 +1292,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                     <button
                                       type="button"
                                       onClick={() => setEditingStudentId(null)}
-                                      className="p-1.5 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300"
+                                      className="p-1.5 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer"
                                       title="Hủy"
                                     >
                                       <X className="w-3.5 h-3.5" />
@@ -1304,7 +1303,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                     <button
                                       type="button"
                                       onClick={() => handleStartEditRow(student)}
-                                      className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-[#006BFF]"
+                                      className="p-1.5 rounded-lg text-slate-600 hover:bg-[#EAF3FF] hover:text-[#1769F4] cursor-pointer"
                                       title="Sửa tên học sinh"
                                     >
                                       <Edit3 className="w-3.5 h-3.5" />
@@ -1312,7 +1311,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteRow(student.guestStudentId)}
-                                      className="p-1.5 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600"
+                                      className="p-1.5 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 cursor-pointer"
                                       title="Xóa học sinh"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -1335,19 +1334,19 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
           {/* CONTENT FOR TEACHER SYSTEM MODE                                */}
           {/* ============================================================== */}
           {rosterMode === 'teacher' && (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base sm:text-lg font-bold text-[#082B52] flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-[#006BFF]" />
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 gap-2">
+                <h3 className="text-base sm:text-lg font-bold text-[#102C54] flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-[#1769F4] shrink-0" />
                   Chọn lớp học từ hệ thống Tây Đô Smart EDU
                 </h3>
                 {!isLoggedInTeacher && onRequestLogin && (
                   <button
                     type="button"
                     onClick={onRequestLogin}
-                    className="px-4 py-1.5 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5"
+                    className="px-4 py-1.5 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                   >
-                    <LogIn className="w-4 h-4" />
+                    <LogIn className="w-4 h-4 shrink-0" />
                     Đăng nhập tài khoản Giáo viên
                   </button>
                 )}
@@ -1363,7 +1362,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                     <button
                       type="button"
                       onClick={() => onChangeRosterMode('guest')}
-                      className="underline font-bold text-[#006BFF]"
+                      className="underline font-bold text-[#1769F4] cursor-pointer"
                     >
                       Chế độ Khách – Tự nhập danh sách
                     </button>{' '}
@@ -1380,17 +1379,17 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                         key={cls.id}
                         type="button"
                         onClick={() => onSelectTeacherClassId(cls.id)}
-                        className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                        className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                           isSelected
-                            ? 'border-[#006BFF] bg-[#EAF4FF] shadow-xs'
-                            : 'border-slate-200 hover:border-blue-300 bg-white'
+                            ? 'border-[#1769F4] bg-[#EAF3FF] shadow-xs'
+                            : 'border-[#E2E8F0] hover:border-[#C7DCFA] bg-white'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-base font-bold text-[#082B52]">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-base font-bold text-[#102C54]">
                             {cls.name}
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#006BFF] text-xs font-bold">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#EAF3FF] text-[#1769F4] text-xs font-bold tabular-nums whitespace-nowrap shrink-0">
                             {count} HS
                           </span>
                         </div>
@@ -1407,7 +1406,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
         </div>
 
         {/* FOOTER CTA */}
-        <div className="bg-white border-t border-[#DCE8F7] px-5 sm:px-7 py-4 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="bg-white border-t border-[#E2E8F0] px-5 sm:px-7 py-4 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2">
             {rosterMode === 'guest' && (
               <>
@@ -1415,7 +1414,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                   <button
                     type="button"
                     onClick={() => setConfirmWipeGuestStorage(true)}
-                    className="px-3 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors"
+                    className="px-3 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors whitespace-nowrap cursor-pointer"
                   >
                     Xóa toàn bộ dữ liệu khách trên trình duyệt
                   </button>
@@ -1434,14 +1433,14 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
                           text: 'Đã xóa toàn bộ dữ liệu khách khỏi trình duyệt.',
                         });
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-red-600 text-white text-xs font-bold"
+                      className="px-2.5 py-1 rounded-lg bg-red-600 text-white text-xs font-bold whitespace-nowrap cursor-pointer"
                     >
                       Xác nhận xóa
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmWipeGuestStorage(false)}
-                      className="px-2.5 py-1 rounded-lg bg-white text-slate-700 text-xs font-bold border border-slate-300"
+                      className="px-2.5 py-1 rounded-lg bg-white text-slate-700 text-xs font-bold border border-slate-300 whitespace-nowrap cursor-pointer"
                     >
                       Hủy
                     </button>
@@ -1455,7 +1454,7 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm hover:bg-slate-50 transition-colors"
+              className="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-slate-700 font-bold text-sm hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               Đóng
             </button>
@@ -1463,9 +1462,9 @@ export const GameRosterSetup: React.FC<GameRosterSetupProps> = ({
             <button
               type="button"
               onClick={handleProceedStartGame}
-              className="px-7 py-3 rounded-2xl bg-gradient-to-r from-[#006BFF] to-[#1769C2] hover:from-blue-600 hover:to-blue-700 text-white font-bold text-base shadow-lg shadow-blue-500/25 flex items-center gap-2 transition-all cursor-pointer"
+              className="px-7 py-3 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white font-bold text-base shadow-lg shadow-[#1769F4]/25 flex items-center gap-2 transition-all whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Play className="w-5 h-5 fill-current" />
+              <Play className="w-5 h-5 fill-current shrink-0" />
               BẮT ĐẦU TRÒ CHƠI
             </button>
           </div>

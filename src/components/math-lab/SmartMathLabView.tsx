@@ -1,36 +1,25 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Activity,
   Award,
-  BarChart3,
   BookOpen,
-  Box,
-  Compass,
-  Dices,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clock,
   Download,
   Filter,
   FlaskConical,
-  GitFork,
-  Grid,
-  Hash,
-  Move,
-  PenTool,
-  PieChart,
   Play,
-  Ruler,
-  Scale,
-  Scaling,
+  RotateCcw,
   Search,
   ShieldCheck,
-  Sparkles,
-  Swords,
-  TrendingUp,
-  Triangle,
   Users,
+  X,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { SMART_MATH_LAB_REGISTRY, getMathToolById } from './MathLabRegistry';
 import { MathLabErrorBoundary } from './MathLabErrorBoundary';
+import { MathLabCardThumbnail3D, SmartMathLabHeroIllustration3D } from './MathLabThumbnails3D';
 import { MathToolShell } from './MathToolShell';
 import {
   KNOWLEDGE_STRAND_LABELS,
@@ -75,37 +64,43 @@ import { M15PythagoreanTool } from './tools/M15PythagoreanTool';
 import { M16SimilarityTool } from './tools/M16SimilarityTool';
 import { M17CountingTreeTool } from './tools/M17CountingTreeTool';
 
-const TOOL_ICON_MAP: Record<MathToolId, React.ReactNode> = {
-  M01: <Compass className="w-5 h-5" />,
-  M02: <TrendingUp className="w-5 h-5" />,
-  M03: <Dices className="w-5 h-5" />,
-  M04: <BarChart3 className="w-5 h-5" />,
-  M05: <PieChart className="w-5 h-5" />,
-  M06: <Scale className="w-5 h-5" />,
-  M07: <Activity className="w-5 h-5" />,
-  M08: <Box className="w-5 h-5" />,
-  M09: <Grid className="w-5 h-5" />,
-  M10: <Triangle className="w-5 h-5" />,
-  M11: <Swords className="w-5 h-5" />,
-  M12: <PenTool className="w-5 h-5" />,
-  M13: <Hash className="w-5 h-5" />,
-  M14: <Move className="w-5 h-5" />,
-  M15: <Ruler className="w-5 h-5" />,
-  M16: <Scaling className="w-5 h-5" />,
-  M17: <GitFork className="w-5 h-5" />,
-};
-
-const STRAND_GRADIENT_MAP: Record<MathKnowledgeStrand, string> = {
-  geometry_measurement: 'from-teal-700 to-emerald-700',
-  number_algebra: 'from-indigo-700 to-blue-700',
-  statistics_prob: 'from-amber-600 to-orange-600',
-  practice_experience: 'from-purple-700 to-indigo-700',
+const STRAND_CHIP_STYLES: Record<MathKnowledgeStrand, { badge: string; dot: string }> = {
+  geometry_measurement: {
+    badge: 'bg-[#E9F7F4] text-[#0D7A5F] border-[#BDE8DC]',
+    dot: 'bg-[#12A879]',
+  },
+  number_algebra: {
+    badge: 'bg-[#EDF3FF] text-[#0856D6] border-[#C9DCFF]',
+    dot: 'bg-[#0866FF]',
+  },
+  statistics_prob: {
+    badge: 'bg-[#FFF5E8] text-[#B45309] border-[#FDE0B6]',
+    dot: 'bg-[#F59E0B]',
+  },
+  practice_experience: {
+    badge: 'bg-[#F1EEFF] text-[#5B3CC4] border-[#DCD4FF]',
+    dot: 'bg-[#6366F1]',
+  },
 };
 
 export const SmartMathLabView: React.FC = () => {
-  const { userProfile, studentUser, classes, questions } = useApp();
+  const {
+    currentRole,
+    userProfile,
+    studentUser,
+    classes,
+    questions,
+    assignmentDataLoading,
+  } = useApp();
+
+  const canAssignToClass = currentRole !== 'student';
   const displayUserName =
-    userProfile?.fullName || studentUser?.fullName || 'Học sinh THCS Tây Đô';
+    userProfile?.fullName || studentUser?.fullName || (canAssignToClass ? 'Giáo viên Toán THCS' : 'Học sinh THCS Tây Đô');
+
+  const userScopeKey = useMemo(() => {
+    const uid = userProfile?.id || studentUser?.id || 'guest';
+    return `${currentRole}_${uid}`;
+  }, [currentRole, userProfile?.id, studentUser?.id]);
 
   const [selectedToolId, setSelectedToolId] = useState<MathToolId | null>(null);
   const [gradeFilter, setGradeFilter] = useState<MathGrade | 'ALL'>('ALL');
@@ -119,9 +114,11 @@ export const SmartMathLabView: React.FC = () => {
   const [resetSignal, setResetSignal] = useState<number>(0);
 
   const [selectedClassId, setSelectedClassId] = useState<string>(
-    classes && classes.length > 0 ? classes[0].id : 'class-default'
+    classes && classes.length > 0 ? classes[0].id : ''
   );
-  const [recentToolIds, setRecentToolIds] = useState<MathToolId[]>(() => loadRecentMathTools());
+  const [recentToolIds, setRecentToolIds] = useState<MathToolId[]>(() =>
+    loadRecentMathTools(userScopeKey)
+  );
   const [resultsHistory, setResultsHistory] = useState<MathActivityResultRecord[]>(() =>
     loadMathActivityResults()
   );
@@ -130,13 +127,55 @@ export const SmartMathLabView: React.FC = () => {
   );
   const [showDiagnosticsModal, setShowDiagnosticsModal] = useState<boolean>(false);
   const [showResultsDrawer, setShowResultsDrawer] = useState<boolean>(false);
+  const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({});
+  const [expandedActivityIds, setExpandedActivityIds] = useState<Record<string, boolean>>({});
+  const [assignFeedback, setAssignFeedback] = useState<string | null>(null);
 
-  const selectedClassObj = useMemo(() => {
-    if (!classes || classes.length === 0) return null;
-    return classes.find((c) => c.id === selectedClassId) || classes[0];
+  useEffect(() => {
+    setRecentToolIds(loadRecentMathTools(userScopeKey));
+  }, [userScopeKey]);
+
+  useEffect(() => {
+    if (!classes || classes.length === 0) {
+      setSelectedClassId('');
+      return;
+    }
+    const stillExists = classes.some((c) => c.id === selectedClassId);
+    if (!stillExists) {
+      setSelectedClassId(classes[0].id);
+    }
   }, [classes, selectedClassId]);
 
+  useEffect(() => {
+    if (!showDiagnosticsModal) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowDiagnosticsModal(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showDiagnosticsModal]);
+
+  const selectedClassObj = useMemo(() => {
+    if (!canAssignToClass || !classes || classes.length === 0) return null;
+    return classes.find((c) => c.id === selectedClassId) || classes[0];
+  }, [canAssignToClass, classes, selectedClassId]);
+
+  const supportedGrades = useMemo(() => {
+    const gradeSet = new Set<MathGrade>();
+    for (const tool of SMART_MATH_LAB_REGISTRY) {
+      for (const g of tool.grades) {
+        const num = Number(g) as MathGrade;
+        if (num === 6 || num === 7 || num === 8 || num === 9) {
+          gradeSet.add(num);
+        }
+      }
+    }
+    return Array.from(gradeSet).sort((a, b) => a - b);
+  }, []);
+
   const diagnosticsReport = useMemo(() => runSmartMathLabUnitTests(), []);
+  const passedChecksCount =
+    diagnosticsReport.totalChecks - diagnosticsReport.failedChecks.length;
 
   const filteredTools = useMemo(() => {
     return SMART_MATH_LAB_REGISTRY.filter((tool) => {
@@ -150,54 +189,98 @@ export const SmartMathLabView: React.FC = () => {
         return false;
       }
       if (searchQuery.trim().length > 0) {
-        const q = searchQuery.toLowerCase();
-        const matchId = tool.id.toLowerCase().includes(q);
+        const q = searchQuery.trim().toLowerCase();
+        const matchId = tool.id.toLowerCase().includes(q) || tool.code.toLowerCase().includes(q);
         const matchName = tool.nameVi.toLowerCase().includes(q);
         const matchDesc = tool.shortDescription.toLowerCase().includes(q);
+        const matchStrand =
+          tool.strandLabel.toLowerCase().includes(q) ||
+          KNOWLEDGE_STRAND_LABELS[tool.strand].toLowerCase().includes(q);
         const matchFeat = tool.features.some((f) => f.toLowerCase().includes(q));
-        return matchId || matchName || matchDesc || matchFeat;
+        const matchAct = tool.sampleActivities.some(
+          (a) => a.title.toLowerCase().includes(q) || a.topic.toLowerCase().includes(q)
+        );
+        return matchId || matchName || matchDesc || matchStrand || matchFeat || matchAct;
       }
       return true;
     });
   }, [gradeFilter, strandFilter, searchQuery]);
 
-  const handleOpenTool = (toolId: MathToolId, preferredGrade?: MathGrade) => {
+  const recentTools = useMemo(() => {
+    return recentToolIds
+      .map((id) => getMathToolById(id))
+      .filter((t): t is NonNullable<typeof t> => Boolean(t));
+  }, [recentToolIds]);
+
+  const hasActiveFilter =
+    gradeFilter !== 'ALL' || strandFilter !== 'ALL' || searchQuery.trim().length > 0;
+
+  const handleResetFilters = () => {
+    setGradeFilter('ALL');
+    setStrandFilter('ALL');
+    setSearchQuery('');
+  };
+
+  const handleOpenTool = (
+    toolId: MathToolId,
+    preferredGrade?: MathGrade,
+    specificActivity?: MathActivitySpec
+  ) => {
     const tool = getMathToolById(toolId);
     if (!tool) return;
     const supportedNums = tool.grades.map((g) => Number(g) as MathGrade);
     const targetGrade: MathGrade =
       preferredGrade && supportedNums.includes(preferredGrade)
         ? preferredGrade
+        : specificActivity && supportedNums.includes(Number(specificActivity.grade) as MathGrade)
+        ? (Number(specificActivity.grade) as MathGrade)
         : gradeFilter !== 'ALL' && supportedNums.includes(gradeFilter)
         ? gradeFilter
         : supportedNums[0] || 8;
 
     const matchingActivity =
+      specificActivity ||
       tool.sampleActivities.find((a) => Number(a.grade) === targetGrade) ||
       tool.sampleActivities[0];
 
+    setAssignFeedback(null);
     setSelectedToolId(toolId);
     setActiveGrade(targetGrade);
     setActiveActivity(matchingActivity);
-    setRecentToolIds(recordRecentMathTool(toolId));
+    setRecentToolIds(recordRecentMathTool(toolId, userScopeKey));
   };
 
   const handleCreateClassroomSession = (toolId: MathToolId) => {
+    if (!canAssignToClass) return;
+    if (!selectedClassObj) {
+      setAssignFeedback('Chưa có lớp giảng dạy để giao hoạt động. Hãy kiểm tra phân công lớp.');
+      return;
+    }
     const tool = getMathToolById(toolId);
     if (!tool) return;
-    const act = tool.sampleActivities[0];
-    const actGrade = (Number(act.grade) || 8) as MathGrade;
+    const supportedNums = tool.grades.map((g) => Number(g) as MathGrade);
+    const preferredFromFilter =
+      gradeFilter !== 'ALL' && supportedNums.includes(gradeFilter) ? gradeFilter : undefined;
+    const act =
+      (preferredFromFilter
+        ? tool.sampleActivities.find((a) => Number(a.grade) === preferredFromFilter)
+        : undefined) || tool.sampleActivities[0];
+    const actGrade = (preferredFromFilter || Number(act.grade) || 8) as MathGrade;
+
     const newSession = createMathClassroomSession({
       toolId,
       activityId: act.id,
       grade: actGrade,
-      classId: selectedClassObj?.id || 'guest-class',
-      className: selectedClassObj?.name || 'Lớp THCS Tây Đô',
+      classId: selectedClassObj.id,
+      className: selectedClassObj.name,
       teacherId: userProfile?.id,
       teacherName: displayUserName,
     });
     setSessions((prev) => [newSession, ...prev]);
-    handleOpenTool(toolId, actGrade);
+    setAssignFeedback(
+      `Đã tạo phiên ${newSession.code} cho Lớp ${selectedClassObj.name} (${tool.code} · ${tool.nameVi}).`
+    );
+    handleOpenTool(toolId, actGrade, act);
   };
 
   const handleExportCSV = () => {
@@ -212,7 +295,25 @@ export const SmartMathLabView: React.FC = () => {
   };
 
   if (selectedToolId) {
-    const activeTool = getMathToolById(selectedToolId)!;
+    const activeTool = getMathToolById(selectedToolId);
+    if (!activeTool) {
+      return (
+        <div
+          role="alert"
+          className="bg-white rounded-[22px] border border-[#D9E7FF] p-8 text-center space-y-4 text-[#102A56]"
+        >
+          <p className="text-base font-bold">Không tìm thấy phòng thí nghiệm mã {selectedToolId}.</p>
+          <button
+            type="button"
+            onClick={() => setSelectedToolId(null)}
+            className="min-h-[44px] px-5 py-2 rounded-xl bg-[#0866FF] text-white text-sm font-bold cursor-pointer"
+          >
+            Quay lại thư viện phòng thí nghiệm
+          </button>
+        </div>
+      );
+    }
+
     const currentActivity = activeActivity || activeTool.sampleActivities[0];
 
     const commonProps = {
@@ -243,8 +344,12 @@ export const SmartMathLabView: React.FC = () => {
         onTogglePresentationMode={() => setIsPresentationMode((v) => !v)}
         isDarkTheme={isDarkTheme}
         onToggleDarkTheme={() => setIsDarkTheme((v) => !v)}
-        selectedClassName={selectedClassObj?.name || 'Lớp học Thực hành'}
-        studentCount={selectedClassObj?.students?.length || 35}
+        selectedClassName={
+          canAssignToClass
+            ? selectedClassObj?.name || 'Chưa chọn lớp'
+            : studentUser?.className || `Lớp ${activeGrade}`
+        }
+        studentCount={selectedClassObj?.students?.length}
         currentUserName={displayUserName}
         onBackToHub={() => setSelectedToolId(null)}
         onResetTool={() => setResetSignal((s) => s + 1)}
@@ -277,185 +382,315 @@ export const SmartMathLabView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 pb-10">
-      {/* BANNER CHÍNH */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-teal-900 via-teal-800 to-indigo-900 text-white p-6 sm:p-8 shadow-lg border border-teal-700/40">
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2.5 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-200 text-xs font-bold">
-              <FlaskConical className="w-3.5 h-3.5" />
-              <span>SMART MATH LAB V1.0 • CHUẨN GDPT 2018 (KẾT NỐI TRI THỨC)</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Phòng Thí Nghiệm Toán Học Tương Tác THCS (Lớp 6 – 9)
-            </h1>
-            <p className="text-sm text-teal-100/90 leading-relaxed">
-              Hệ thống 12 công cụ trực quan hóa Đại số, Hình học phẳng, Hình học không gian 3D, Thống kê & Xác suất thực nghiệm với quy trình khám phá 6 bước chuẩn sư phạm dành cho Giáo viên trình chiếu và Học sinh thực hành.
-            </p>
-          </div>
+    <div
+      className="bg-[#F4F8FF] text-[#102A56] rounded-[24px] p-3 sm:p-5 space-y-5 pb-10"
+      style={{
+        fontFamily:
+          '"Be Vietnam Pro", "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+      }}
+    >
+      {/* 1. BANNER SMART MATH LAB */}
+      <section
+        aria-label="Giới thiệu Smart Math Lab"
+        className="relative overflow-hidden rounded-[22px] border border-[#C6E0FF] bg-gradient-to-r from-[#DCEEFF] via-[#EAF4FF] to-[#D4EAFF] px-5 py-4 sm:px-7 sm:py-5 shadow-[0_8px_24px_rgba(16,42,86,0.06)]"
+      >
+        <div
+          className="pointer-events-none absolute -top-12 left-1/3 w-72 h-40 rounded-full bg-white/60 blur-2xl"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute -bottom-12 right-1/4 w-64 h-36 rounded-full bg-[#0866FF]/10 blur-2xl"
+          aria-hidden="true"
+        />
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
-            <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15 text-center">
-              <div className="text-2xl font-extrabold text-amber-400">
-                {SMART_MATH_LAB_REGISTRY.length}
-              </div>
-              <div className="text-[11px] text-teal-100 font-semibold">
-                Phòng M01–M{SMART_MATH_LAB_REGISTRY.length}
-              </div>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15 text-center">
-              <div className="text-2xl font-extrabold text-emerald-400">4 Khối</div>
-              <div className="text-[11px] text-teal-100 font-semibold">Lớp 6 • 7 • 8 • 9</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowDiagnosticsModal(true)}
-              className="p-3.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-center transition"
-            >
-              <div className="text-xl font-extrabold text-emerald-300 flex items-center justify-center gap-1">
-                <ShieldCheck className="w-5 h-5" />
-                <span>
-                  {diagnosticsReport.totalChecks - diagnosticsReport.failedChecks.length}/
-                  {diagnosticsReport.totalChecks}
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Cột trái: Tiêu đề, phụ đề, mô tả & thống kê thực tế */}
+          <div className="space-y-3 min-w-0 flex-1">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-2xl sm:text-[30px] font-extrabold text-[#102A56] tracking-tight leading-tight">
+                  Smart Math Lab
+                </h1>
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#BBD9FF]/60 border border-[#9EC7FF] text-xs font-bold text-[#0856D6] tabular-nums">
+                  GDPT 2018 • Lớp {supportedGrades[0]}–{supportedGrades[supportedGrades.length - 1]}
                 </span>
               </div>
-              <div className="text-[11px] text-emerald-100 font-semibold">
-                Kiểm định Toán học
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowResultsDrawer((v) => !v)}
-              className="p-3.5 rounded-2xl bg-indigo-500/25 hover:bg-indigo-500/35 border border-indigo-400/40 text-center transition"
-            >
-              <div className="text-2xl font-extrabold text-indigo-200">
-                {resultsHistory.length}
-              </div>
-              <div className="text-[11px] text-indigo-100 font-semibold">
-                Lượt làm bài & CSV
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
+              <p className="text-sm sm:text-base font-bold text-[#102A56]">
+                Phòng thí nghiệm Toán tương tác THCS
+              </p>
+              <p className="text-xs sm:text-sm text-[#526581] font-medium leading-relaxed">
+                Khám phá Toán học qua mô hình trực quan và hoạt động tương tác.
+              </p>
+            </div>
 
-      {/* THANH CHỌN LỚP HỌC, KHỐI LỚP & MẠCH KIẾN THỨC */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-bold text-slate-500 mr-1 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5" />
-              Khối lớp:
-            </span>
-            {(['ALL', 6, 7, 8, 9] as const).map((g) => (
+            {/* Chỉ số thư viện từ nguồn dữ liệu thống nhất + nút kiểm thử & kết quả/CSV */}
+            <div
+              className="flex flex-wrap items-center gap-2 text-xs sm:text-[13px] tabular-nums"
+              aria-label="Thông số phòng thí nghiệm và công cụ kiểm tra"
+            >
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 border border-[#C7DCFA] text-[#102A56] font-bold shadow-2xs">
+                <FlaskConical className="w-3.5 h-3.5 text-[#0866FF] shrink-0" aria-hidden="true" />
+                <span>{SMART_MATH_LAB_REGISTRY.length} phòng thí nghiệm</span>
+              </span>
+
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 border border-[#C7DCFA] text-[#102A56] font-bold shadow-2xs">
+                <BookOpen className="w-3.5 h-3.5 text-[#0866FF] shrink-0" aria-hidden="true" />
+                <span>{supportedGrades.length} khối lớp</span>
+              </span>
+
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 border border-[#C7DCFA] text-[#102A56] font-bold shadow-2xs">
+                <Users className="w-3.5 h-3.5 text-[#0866FF] shrink-0" aria-hidden="true" />
+                <span>Lớp {supportedGrades.join(' • ')}</span>
+              </span>
+
               <button
-                key={String(g)}
                 type="button"
-                onClick={() => setGradeFilter(g)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                  gradeFilter === g
-                    ? 'bg-teal-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                onClick={() => setShowDiagnosticsModal(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 hover:bg-white border border-[#C7DCFA] hover:border-[#0866FF] text-[#102A56] font-semibold shadow-2xs transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF]"
+                title="Xem chi tiết kết quả tự kiểm thử thuật toán Toán học"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-[#12A879] shrink-0" aria-hidden="true" />
+                <span>
+                  Tự kiểm thử: {passedChecksCount}/{diagnosticsReport.totalChecks}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowResultsDrawer((v) => !v)}
+                aria-expanded={showResultsDrawer}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border font-semibold shadow-2xs transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] ${
+                  showResultsDrawer
+                    ? 'bg-[#0866FF] text-white border-[#0866FF]'
+                    : 'bg-white/95 hover:bg-white border-[#C7DCFA] hover:border-[#0866FF] text-[#102A56]'
                 }`}
               >
-                {g === 'ALL' ? 'Tất cả khối (6–9)' : `Toán Lớp ${g}`}
+                <Award
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    showResultsDrawer ? 'text-white' : 'text-[#0866FF]'
+                  }`}
+                  aria-hidden="true"
+                />
+                <span>
+                  Lượt làm bài{canAssignToClass ? ' & CSV' : ''} ({resultsHistory.length})
+                </span>
               </button>
-            ))}
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="font-bold text-slate-600 flex items-center gap-1">
-              <Users className="w-4 h-4 text-teal-600" />
-              Lớp giảng dạy:
-            </span>
-            <select
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              aria-label="Chọn lớp học"
-              className="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-800 outline-none"
-            >
-              {classes && classes.length > 0 ? (
-                classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    Lớp {c.name} ({c.students?.length || 0} học sinh)
-                  </option>
-                ))
-              ) : (
-                <option value="class-default">Lớp Thực hành THCS Tây Đô (35 HS)</option>
-              )}
-            </select>
+          {/* Cột phải: Cụm minh họa 3D compa, lập phương trong suốt, thước êke, mặt phẳng tọa độ, xúc xắc */}
+          <div className="hidden md:flex items-center justify-end shrink-0 -my-1">
+            <SmartMathLabHeroIllustration3D />
+          </div>
+        </div>
+      </section>
 
-            {sessions.length > 0 && (
-              <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-800 font-bold">
-                Mã phiên gần nhất: {sessions[0].code}
-              </span>
+      {/* 2. BỘ LỌC HAI HÀNG */}
+      <section
+        aria-label="Bộ lọc và tìm kiếm phòng thí nghiệm"
+        className="bg-white rounded-[20px] border border-[#D9E7FF] p-4 sm:p-5 shadow-[0_6px_20px_rgba(16,42,86,0.04)] space-y-3.5"
+      >
+        {/* Hàng 1: Khối lớp + Lớp giảng dạy (theo đúng vai trò) */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Lọc theo khối lớp">
+            <span className="text-xs sm:text-[13px] font-bold text-[#526581] mr-1 inline-flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-[#0866FF]" aria-hidden="true" />
+              <span>Khối lớp:</span>
+            </span>
+
+            {(['ALL', ...supportedGrades] as const).map((g) => {
+              const isSelected = gradeFilter === g;
+              return (
+                <button
+                  key={String(g)}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => setGradeFilter(g)}
+                  className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold border transition-all inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] focus-visible:ring-offset-1 ${
+                    isSelected
+                      ? 'bg-[#0866FF] text-white border-[#0866FF] shadow-[0_4px_12px_rgba(8,102,255,0.24)]'
+                      : 'bg-[#F4F8FF] text-[#102A56] border-[#D9E7FF] hover:bg-[#EAF2FF] hover:border-[#9CC2FF]'
+                  }`}
+                >
+                  {isSelected && <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />}
+                  <span>{g === 'ALL' ? 'Tất cả' : `Lớp ${g}`}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {canAssignToClass && (
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-[13px]">
+              <label
+                htmlFor="smart-math-lab-class-select"
+                className="font-bold text-[#526581] inline-flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <Users className="w-4 h-4 text-[#0866FF]" aria-hidden="true" />
+                <span>Lớp giảng dạy:</span>
+              </label>
+
+              {assignmentDataLoading && (!classes || classes.length === 0) ? (
+                <span className="px-3 py-2 rounded-full bg-[#F4F8FF] border border-[#D9E7FF] text-xs font-semibold text-[#526581]">
+                  Đang tải danh sách lớp...
+                </span>
+              ) : classes && classes.length > 0 ? (
+                <select
+                  id="smart-math-lab-class-select"
+                  value={selectedClassId}
+                  onChange={(e) => setSelectedClassId(e.target.value)}
+                  className="min-h-[38px] px-3.5 py-1.5 rounded-full border border-[#CFE0FB] bg-[#F4F8FF] text-[#102A56] text-xs sm:text-[13px] font-bold outline-hidden focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0866FF] focus-visible:border-[#0866FF] cursor-pointer"
+                >
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      Lớp {c.name} ({c.students?.length || c.studentCount || 0} học sinh)
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-semibold text-[#526581]">
+                  Chưa có lớp giảng dạy
+                </span>
+              )}
+
+              {sessions.length > 0 && (
+                <span className="px-3 py-1 rounded-full bg-[#FFF7E6] border border-[#FCD996] text-[#9A5B00] text-xs font-bold tabular-nums">
+                  Mã phiên gần nhất: {sessions[0].code}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Hàng 2: Mạch kiến thức + Ô tìm kiếm */}
+        <div className="pt-3.5 border-t border-[#EAF2FF] flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+          <div
+            className="flex flex-wrap items-center gap-2"
+            role="group"
+            aria-label="Lọc theo mạch kiến thức"
+          >
+            <span className="text-xs sm:text-[13px] font-bold text-[#526581] mr-1 inline-flex items-center gap-1.5">
+              <span>Mạch kiến thức:</span>
+            </span>
+
+            <button
+              type="button"
+              aria-pressed={strandFilter === 'ALL'}
+              onClick={() => setStrandFilter('ALL')}
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold border transition-all inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] focus-visible:ring-offset-1 ${
+                strandFilter === 'ALL'
+                  ? 'bg-[#0866FF] text-white border-[#0866FF] shadow-[0_4px_12px_rgba(8,102,255,0.24)]'
+                  : 'bg-[#F4F8FF] text-[#526581] border-[#D9E7FF] hover:bg-[#EAF2FF] hover:text-[#102A56]'
+              }`}
+            >
+              {strandFilter === 'ALL' && <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />}
+              <span>Tất cả mạch kiến thức</span>
+            </button>
+
+            {(Object.keys(KNOWLEDGE_STRAND_LABELS) as MathKnowledgeStrand[]).map((strand) => {
+              const isSelected = strandFilter === strand;
+              return (
+                <button
+                  key={strand}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => setStrandFilter(strand)}
+                  className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold border transition-all inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] focus-visible:ring-offset-1 ${
+                    isSelected
+                      ? 'bg-[#0866FF] text-white border-[#0866FF] shadow-[0_4px_12px_rgba(8,102,255,0.24)]'
+                      : 'bg-[#F4F8FF] text-[#526581] border-[#D9E7FF] hover:bg-[#EAF2FF] hover:text-[#102A56]'
+                  }`}
+                >
+                  {isSelected && <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />}
+                  <span>{KNOWLEDGE_STRAND_LABELS[strand]}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-2 xl:min-w-[290px]">
+            <div className="relative flex-1 min-w-0">
+              <Search
+                className="w-4 h-4 text-[#526581] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Tìm phòng thí nghiệm theo mã, tên, mô tả hoặc tính năng"
+                placeholder="Tìm phòng thí nghiệm..."
+                className="w-full min-h-[40px] pl-10 pr-9 py-1.5 rounded-full border border-[#CFE0FB] bg-[#F4F8FF] text-xs sm:text-[13px] font-medium text-[#102A56] placeholder-[#526581]/80 focus:bg-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] focus-visible:border-[#0866FF]"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Xóa từ khóa tìm kiếm"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-[#526581] hover:text-[#102A56] hover:bg-[#E4EEFF] cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF]"
+                >
+                  <X className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+
+            {hasActiveFilter && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="min-h-[40px] px-3 py-1.5 rounded-full border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold inline-flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-rose-500"
+              >
+                <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+                <span className="hidden sm:inline">Đặt lại</span>
+              </button>
             )}
           </div>
         </div>
+      </section>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-slate-100">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setStrandFilter('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                strandFilter === 'ALL'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              Tất cả mạch kiến thức
-            </button>
-            {(Object.keys(KNOWLEDGE_STRAND_LABELS) as MathKnowledgeStrand[]).map((strand) => (
-              <button
-                key={strand}
-                type="button"
-                onClick={() => setStrandFilter(strand)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                  strandFilter === strand
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {KNOWLEDGE_STRAND_LABELS[strand]}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative min-w-[260px]">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm mã M01..M17, Số nguyên tố, Quy tắc đếm, Thalès, Pythagore..."
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-teal-600"
-            />
-          </div>
+      {/* THÔNG BÁO GIAO LỚP (NẾU CÓ) */}
+      {assignFeedback && (
+        <div
+          role="status"
+          className="bg-white rounded-2xl border border-[#C6E0FF] px-4 py-3 flex items-center justify-between gap-3 text-xs sm:text-sm text-[#102A56] shadow-2xs"
+        >
+          <span className="font-semibold">{assignFeedback}</span>
+          <button
+            type="button"
+            onClick={() => setAssignFeedback(null)}
+            aria-label="Đóng thông báo"
+            className="p-1 rounded-lg text-[#526581] hover:bg-[#F4F8FF] cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* BẢNG KẾT QUẢ & XUẤT CSV */}
+      {/* BẢNG KẾT QUẢ & XUẤT CSV (MỞ KHI NGƯỜI DÙNG BẤM) */}
       {showResultsDrawer && (
-        <div className="bg-white rounded-2xl border border-indigo-200 p-4 shadow-sm space-y-3">
+        <section
+          aria-label="Lịch sử kết quả thực hành Toán học"
+          className="bg-white rounded-[20px] border border-[#C7DCFA] p-4 sm:p-5 shadow-[0_6px_20px_rgba(16,42,86,0.06)] space-y-3"
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-extrabold text-indigo-900 flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-500" />
+            <h2 className="text-sm sm:text-base font-extrabold text-[#102A56] flex items-center gap-2">
+              <Award className="w-4 h-4 text-[#F59E0B]" aria-hidden="true" />
               <span>Lịch sử Kết quả Thực hành Toán học ({resultsHistory.length} bản ghi)</span>
             </h2>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleExportCSV}
-                className="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold inline-flex items-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Xuất bảng điểm CSV (Excel)</span>
-              </button>
+              {resultsHistory.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#12A879] hover:bg-[#0E8F66] text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#12A879]"
+                >
+                  <Download className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Xuất bảng điểm CSV (Excel)</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setShowResultsDrawer(false)}
-                className="px-2.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold"
+                className="min-h-[38px] px-3 py-1.5 rounded-xl bg-[#F4F8FF] hover:bg-[#E7F0FF] border border-[#D9E7FF] text-[#102A56] text-xs font-bold cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF]"
               >
                 Đóng
               </button>
@@ -463,37 +698,35 @@ export const SmartMathLabView: React.FC = () => {
           </div>
 
           {resultsHistory.length === 0 ? (
-            <p className="text-xs text-slate-500">
-              Chưa có bản ghi kết quả nào. Hãy mở một công cụ và hoàn thành Bước 6 (Luyện tập) để lưu điểm!
+            <p className="text-xs sm:text-sm text-[#526581]">
+              Chưa có bản ghi kết quả nào. Hãy mở một phòng thí nghiệm và hoàn thành Bước 6 (Luyện tập) để lưu điểm.
             </p>
           ) : (
-            <div className="overflow-x-auto max-h-60">
+            <div className="overflow-x-auto max-h-60 rounded-xl border border-[#E2EDFF]">
               <table className="w-full text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-100 text-left">
-                    <th className="p-2 border border-slate-200">Công cụ</th>
-                    <th className="p-2 border border-slate-200">Học sinh</th>
-                    <th className="p-2 border border-slate-200">Lớp</th>
-                    <th className="p-2 border border-slate-200">Tiến độ 6 bước</th>
-                    <th className="p-2 border border-slate-200">Điểm</th>
-                    <th className="p-2 border border-slate-200">Thời gian</th>
+                  <tr className="bg-[#EAF3FF] text-left text-[#102A56]">
+                    <th className="p-2.5 border-b border-[#D9E7FF]">Phòng</th>
+                    <th className="p-2.5 border-b border-[#D9E7FF]">Học sinh</th>
+                    <th className="p-2.5 border-b border-[#D9E7FF]">Lớp</th>
+                    <th className="p-2.5 border-b border-[#D9E7FF]">Tiến độ 6 bước</th>
+                    <th className="p-2.5 border-b border-[#D9E7FF]">Điểm</th>
+                    <th className="p-2.5 border-b border-[#D9E7FF]">Thời gian</th>
                   </tr>
                 </thead>
                 <tbody>
                   {resultsHistory.slice(0, 15).map((r) => (
-                    <tr key={r.id}>
-                      <td className="p-2 border border-slate-200 font-bold text-teal-700">
-                        {r.toolId}
-                      </td>
-                      <td className="p-2 border border-slate-200 font-semibold">{r.studentName}</td>
-                      <td className="p-2 border border-slate-200">{r.className}</td>
-                      <td className="p-2 border border-slate-200">
+                    <tr key={r.id} className="hover:bg-[#F4F8FF] border-b border-[#F1F5F9] last:border-b-0">
+                      <td className="p-2.5 font-bold text-[#0866FF]">{r.toolId}</td>
+                      <td className="p-2.5 font-semibold text-[#102A56]">{r.studentName}</td>
+                      <td className="p-2.5 text-[#526581]">{r.className}</td>
+                      <td className="p-2.5 tabular-nums text-[#526581]">
                         {r.completedSteps.length}/6 bước
                       </td>
-                      <td className="p-2 border border-slate-200 font-extrabold text-emerald-700">
+                      <td className="p-2.5 font-bold text-[#12A879] tabular-nums">
                         {r.score}/{r.maxScore}
                       </td>
-                      <td className="p-2 border border-slate-200 text-slate-500">
+                      <td className="p-2.5 text-[#526581] tabular-nums">
                         {new Date(r.completedAt).toLocaleString('vi-VN')}
                       </td>
                     </tr>
@@ -502,135 +735,285 @@ export const SmartMathLabView: React.FC = () => {
               </table>
             </div>
           )}
-        </div>
+        </section>
       )}
 
-      {/* TRUY CẬP NHANH GẦN ĐÂY */}
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-bold text-slate-500 flex items-center gap-1">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          Truy cập nhanh gần đây:
-        </span>
-        {recentToolIds.map((id) => {
-          const t = getMathToolById(id);
-          if (!t) return null;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => handleOpenTool(id)}
-              className="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-teal-500 text-slate-700 font-bold shadow-2xs transition"
+      {/* 3. TRUY CẬP GẦN ĐÂY (DỮ LIỆU THỰC TẾ THEO NGƯỜI DÙNG) */}
+      <section aria-label="Phòng thí nghiệm truy cập gần đây" className="px-1">
+        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-[13px]">
+          <span className="font-bold text-[#526581] inline-flex items-center gap-1.5 shrink-0">
+            <Clock className="w-3.5 h-3.5 text-[#0866FF]" aria-hidden="true" />
+            <span>Truy cập gần đây:</span>
+          </span>
+
+          {recentTools.length > 0 ? (
+            recentTools.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => handleOpenTool(t.id)}
+                className="min-h-[34px] px-3.5 py-1 rounded-full bg-white border border-[#D9E7FF] hover:border-[#0866FF] hover:bg-[#EAF2FF] text-[#102A56] hover:text-[#0866FF] font-semibold shadow-2xs transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF]"
+              >
+                <span className="font-bold tabular-nums">{t.code}</span>
+                <span className="mx-1.5 text-[#94A3B8]" aria-hidden="true">
+                  •
+                </span>
+                <span>{t.nameVi}</span>
+              </button>
+            ))
+          ) : (
+            <span className="text-xs text-[#526581]">
+              Chưa có phòng thí nghiệm nào được mở gần đây — hãy chọn một phòng bên dưới để bắt đầu.
+            </span>
+          )}
+        </div>
+      </section>
+
+      {/* 4. LƯỚI THƯ VIỆN: KHÁM PHÁ PHÒNG THÍ NGHIỆM (M01–M17) */}
+      <section aria-labelledby="smart-math-lab-grid-heading" className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="w-8 h-8 rounded-xl bg-[#EAF2FF] border border-[#CFE2FF] text-[#0866FF] flex items-center justify-center shrink-0">
+              <FlaskConical className="w-4 h-4" aria-hidden="true" />
+            </span>
+            <h2
+              id="smart-math-lab-grid-heading"
+              className="text-lg sm:text-xl font-extrabold text-[#102A56] tracking-tight"
             >
-              {t.id} • {t.nameVi}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* LƯỚI 12 CÔNG CỤ DẠY HỌC TOÁN THCS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filteredTools.map((tool) => (
-          <div
-            key={tool.id}
-            className="bg-white rounded-2xl border border-slate-200 hover:border-teal-500/60 shadow-xs hover:shadow-md transition flex flex-col justify-between overflow-hidden group"
-          >
-            <div>
-              <div
-                className={`p-4 bg-gradient-to-r ${STRAND_GRADIENT_MAP[tool.strand]} text-white flex items-center justify-between`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
-                    {TOOL_ICON_MAP[tool.id]}
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-black/25">
-                      {tool.id}
-                    </span>
-                    <h3 className="text-base font-extrabold mt-0.5">{tool.nameVi}</h3>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  {tool.grades.map((g) => (
-                    <span
-                      key={g}
-                      className="px-2 py-0.5 rounded-md bg-white/20 text-white text-[11px] font-extrabold"
-                    >
-                      L{g}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-4 space-y-3">
-                <div className="text-xs font-bold text-teal-700">
-                  {KNOWLEDGE_STRAND_LABELS[tool.strand]}
-                </div>
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                  {tool.shortDescription}
-                </p>
-
-                <div className="space-y-1 pt-1">
-                  <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-                    <BookOpen className="w-3 h-3" />
-                    Kịch bản thực hành mẫu ({tool.sampleActivities.length} bài):
-                  </div>
-                  {tool.sampleActivities.slice(0, 2).map((act) => (
-                    <button
-                      key={act.id}
-                      type="button"
-                      onClick={() =>
-                        handleOpenTool(tool.id, (Number(act.grade) || 8) as MathGrade)
-                      }
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-teal-50 text-xs text-slate-700 hover:text-teal-800 font-medium truncate transition flex items-center justify-between"
-                    >
-                      <span className="truncate">• {act.title}</span>
-                      <span className="text-[10px] font-bold text-teal-600 ml-2 shrink-0">
-                        Mở →
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => handleOpenTool(tool.id)}
-                className="flex-1 py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition shadow-2xs"
-              >
-                <Play className="w-3.5 h-3.5" />
-                <span>Mở Phòng thí nghiệm</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleCreateClassroomSession(tool.id)}
-                className="py-2 px-3 rounded-xl bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold transition"
-                title="Giao phiên hoạt động cho lớp đang chọn"
-              >
-                Giao lớp
-              </button>
-            </div>
+              Khám phá phòng thí nghiệm
+            </h2>
+            <span className="text-[#CBD5E1] font-light" aria-hidden="true">
+              |
+            </span>
+            <span className="text-sm text-[#526581] font-semibold tabular-nums">
+              <strong className="text-[#102A56] font-extrabold">{filteredTools.length}</strong> phòng phù hợp
+            </span>
           </div>
-        ))}
-      </div>
 
-      {/* MODAL BÁO CÁO KIỂM ĐỊNH ĐỘ CHÍNH XÁC TOÁN HỌC TỰ ĐỘNG */}
+          {hasActiveFilter && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0866FF] hover:underline whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] rounded-lg px-2 py-1"
+            >
+              <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Xem tất cả {SMART_MATH_LAB_REGISTRY.length} phòng</span>
+            </button>
+          )}
+        </div>
+
+        {filteredTools.length === 0 ? (
+          <div
+            role="status"
+            className="bg-white rounded-[22px] border border-[#D9E7FF] p-10 sm:p-12 text-center shadow-[0_6px_20px_rgba(16,42,86,0.04)] space-y-3.5"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-[#EAF2FF] text-[#0866FF] flex items-center justify-center mx-auto">
+              <FlaskConical className="w-7 h-7" aria-hidden="true" />
+            </div>
+            <h3 className="text-base sm:text-lg font-extrabold text-[#102A56]">
+              Không tìm thấy phòng thí nghiệm phù hợp
+            </h3>
+            <p className="text-sm text-[#526581] max-w-md mx-auto leading-relaxed">
+              Không có phòng thí nghiệm nào khớp với bộ lọc khối lớp, mạch kiến thức hoặc từ khóa đang chọn.
+            </p>
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-5 py-2 bg-[#0866FF] hover:bg-[#0055E0] text-white text-xs sm:text-sm font-bold rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] focus-visible:ring-offset-2"
+            >
+              <RotateCcw className="w-4 h-4" aria-hidden="true" />
+              <span>Xóa bộ lọc</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {filteredTools.map((tool) => {
+              const strandStyle = STRAND_CHIP_STYLES[tool.strand];
+              const isDescExpanded = Boolean(expandedDescIds[tool.id]);
+              const isActsExpanded = Boolean(expandedActivityIds[tool.id]);
+              const visibleActivities = isActsExpanded
+                ? tool.sampleActivities
+                : tool.sampleActivities.slice(0, 2);
+              const hasMoreDesc = tool.shortDescription.length > 98;
+
+              return (
+                <article
+                  key={tool.id}
+                  className="bg-white rounded-[20px] border border-[#D9E7FF] hover:border-[#7BB2FF] p-3.5 sm:p-4 shadow-[0_6px_20px_rgba(16,42,86,0.05)] hover:shadow-[0_12px_28px_rgba(8,102,255,0.11)] transition-all flex flex-col justify-between gap-3.5"
+                >
+                  <div className="space-y-3">
+                    {/* A. Thumbnail 3D nền pastel theo nội dung + mã phòng + khối lớp */}
+                    <MathLabCardThumbnail3D
+                      toolId={tool.id}
+                      strand={tool.strand}
+                      grades={tool.grades}
+                      code={tool.code}
+                    />
+
+                    {/* B. Nội dung thông tin phòng thí nghiệm */}
+                    <div className="px-1 space-y-2">
+                      <h3 className="text-[16px] sm:text-[17px] font-extrabold text-[#102A56] leading-snug break-words">
+                        {tool.nameVi}
+                      </h3>
+
+                      <div>
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${strandStyle.badge}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${strandStyle.dot}`} aria-hidden="true" />
+                          <span>{KNOWLEDGE_STRAND_LABELS[tool.strand]}</span>
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <p
+                          title={tool.shortDescription}
+                          className={`text-xs sm:text-[13px] text-[#526581] leading-relaxed ${
+                            isDescExpanded ? '' : 'line-clamp-2'
+                          }`}
+                        >
+                          {tool.shortDescription}
+                        </p>
+                        {hasMoreDesc && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedDescIds((prev) => ({
+                                ...prev,
+                                [tool.id]: !prev[tool.id],
+                              }))
+                            }
+                            aria-expanded={isDescExpanded}
+                            className="inline-flex items-center gap-0.5 text-[11px] font-bold text-[#0866FF] hover:underline cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] rounded-sm"
+                          >
+                            <span>{isDescExpanded ? 'Thu gọn mô tả' : 'Xem đầy đủ mô tả'}</span>
+                            {isDescExpanded ? (
+                              <ChevronUp className="w-3 h-3" aria-hidden="true" />
+                            ) : (
+                              <ChevronDown className="w-3 h-3" aria-hidden="true" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* C. Kịch bản thực hành mẫu (1-2 ví dụ đầu + mở rộng nếu có nhiều hơn) */}
+                      {tool.sampleActivities.length > 0 && (
+                        <div className="pt-1 space-y-1.5">
+                          <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-[#526581]">
+                            <span className="inline-flex items-center gap-1">
+                              <BookOpen className="w-3 h-3 text-[#0866FF]" aria-hidden="true" />
+                              <span>Hoạt động mẫu ({tool.sampleActivities.length})</span>
+                            </span>
+                            {tool.sampleActivities.length > 2 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedActivityIds((prev) => ({
+                                    ...prev,
+                                    [tool.id]: !prev[tool.id],
+                                  }))
+                                }
+                                aria-expanded={isActsExpanded}
+                                className="text-[#0866FF] hover:underline cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] rounded-sm"
+                              >
+                                {isActsExpanded
+                                  ? 'Thu gọn'
+                                  : `Xem tất cả (${tool.sampleActivities.length})`}
+                              </button>
+                            )}
+                          </div>
+
+                          {visibleActivities.map((act) => (
+                            <button
+                              key={act.id}
+                              type="button"
+                              onClick={() =>
+                                handleOpenTool(
+                                  tool.id,
+                                  (Number(act.grade) || 8) as MathGrade,
+                                  act
+                                )
+                              }
+                              title={`Mở hoạt động: ${act.title}`}
+                              className="w-full min-h-[36px] text-left px-3 py-1.5 rounded-xl bg-[#F4F8FF] hover:bg-[#EAF2FF] border border-[#E2ECFF] hover:border-[#9CC2FF] text-xs text-[#102A56] hover:text-[#0866FF] font-semibold transition-colors flex items-center justify-between gap-2 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF]"
+                            >
+                              <span className="truncate">Ví dụ: {act.title}</span>
+                              <span className="text-[11px] font-bold text-[#0866FF] shrink-0">
+                                Mở →
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* D. Nút hành động cuối thẻ */}
+                  <div className="pt-3 border-t border-[#EAF2FF] px-1 flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenTool(tool.id)}
+                      className="flex-1 min-h-[44px] px-4 py-2 rounded-xl bg-[#0866FF] hover:bg-[#0055E0] text-white text-xs sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5 transition-all shadow-[0_6px_16px_rgba(8,102,255,0.24)] cursor-pointer whitespace-nowrap focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] focus-visible:ring-offset-1"
+                    >
+                      <Play className="w-4 h-4 shrink-0" aria-hidden="true" />
+                      <span>Mở phòng thí nghiệm</span>
+                    </button>
+
+                    {canAssignToClass && (
+                      <button
+                        type="button"
+                        disabled={!selectedClassObj}
+                        onClick={() => handleCreateClassroomSession(tool.id)}
+                        title={
+                          selectedClassObj
+                            ? `Giao phiên hoạt động cho Lớp ${selectedClassObj.name}`
+                            : 'Chưa có lớp giảng dạy để giao'
+                        }
+                        className={`min-h-[44px] px-4 py-2 rounded-xl border text-xs sm:text-[13px] font-bold transition-colors whitespace-nowrap shrink-0 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] ${
+                          selectedClassObj
+                            ? 'bg-white hover:bg-[#EAF2FF] text-[#102A56] border-[#CFE0FB] hover:border-[#0866FF] cursor-pointer'
+                            : 'bg-[#F8FAFC] text-[#94A3B8] border-[#E2E8F0] cursor-not-allowed'
+                        }`}
+                      >
+                        Giao lớp
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* MODAL BÁO CÁO KIỂM THỬ ENGINE TOÁN HỌC TỰ ĐỘNG */}
       {showDiagnosticsModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 max-w-2xl w-full p-6 shadow-xl space-y-4 max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-6 h-6 text-emerald-600" />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="math-lab-diagnostics-title"
+          className="fixed inset-0 z-50 bg-[#091B36]/55 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowDiagnosticsModal(false);
+          }}
+        >
+          <div className="bg-white rounded-[22px] border border-[#D9E7FF] max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <span className="w-10 h-10 rounded-xl bg-[#ECFDF5] border border-[#BDE8DC] text-[#12A879] flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5" aria-hidden="true" />
+                </span>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">
-                    Báo cáo Tự Kiểm định Engine Toán học (Smart Math Lab V1.0)
+                  <h3
+                    id="math-lab-diagnostics-title"
+                    className="text-base sm:text-lg font-extrabold text-[#102A56]"
+                  >
+                    Kết quả tự kiểm thử Engine Toán học
                   </h3>
-                  <p className="text-xs text-slate-500">
-                    Đã kiểm tra {diagnosticsReport.totalChecks} nhóm kiểm thử biên & công thức chuẩn GDPT 2018 • Trạng thái:{' '}
-                    <strong className="text-emerald-600">
-                      {diagnosticsReport.passed ? '100% PASS' : 'CÓ LỖI'}
+                  <p className="text-xs sm:text-[13px] text-[#526581] mt-0.5 tabular-nums">
+                    Đã chạy {diagnosticsReport.totalChecks} kiểm thử đơn vị trong bộ nhớ • Đạt:{' '}
+                    <strong className={diagnosticsReport.passed ? 'text-[#12A879]' : 'text-rose-600'}>
+                      {passedChecksCount}/{diagnosticsReport.totalChecks}
                     </strong>
                   </p>
                 </div>
@@ -638,11 +1021,25 @@ export const SmartMathLabView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowDiagnosticsModal(false)}
-                className="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold"
+                className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#F4F8FF] hover:bg-[#EAF2FF] border border-[#D9E7FF] text-[#102A56] text-xs font-bold cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF]"
               >
                 Đóng
               </button>
             </div>
+
+            {diagnosticsReport.failedChecks.length > 0 && (
+              <div
+                role="alert"
+                className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 space-y-1"
+              >
+                <p className="font-bold">Phát hiện kiểm thử chưa đạt:</p>
+                <ul className="list-disc pl-4">
+                  {diagnosticsReport.failedChecks.map((msg, i) => (
+                    <li key={i}>{msg}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-xs">
               {[
@@ -654,19 +1051,25 @@ export const SmartMathLabView: React.FC = () => {
                 '6. Hình học không gian 3D (7 khối chuẩn GDPT 2018 & chặn trải phẳng mặt cầu theo định lý Gauss)',
                 '7. Kiểm định Tương đương Đa thức đa điểm (Không dùng so khớp chuỗi thô)',
                 '8. Hình học phẳng động 2D (Độ dài, góc nội tiếp, diện tích đa giác & tổng 3 góc tam giác = 180°)',
-                '9. M13 Số học & Số nguyên tố (Sàng Eratosthenes N=100 → 25 số nguyên tố, prime(0/1/2/97/100), factor(60), gcd(24,36), lcm(12,18), gcd(0,5), lcm(0,5), gcd(0,0) UNDEFINED)',
-                '10. M14 Phép biến hình (Tịnh tiến, Đối xứng Ox/Oy/O/đường thẳng bất kỳ, Quay 90°/360°, Xử lý đường suy biến, Bảo toàn khoảng cách & Phép vị tự k = -2)',
-                '11. M15 Định lý Pythagore (Bộ ba 3-4-5, 5-12-13, 6-8-10, 3²+4²=5², Định lý đảo 2-3-4, Chặn a=0/b=0/c<a, Ghép mảnh Perigal & (a+b)² bảo toàn diện tích)',
-                '12. M16 Đồng dạng & Tỉ lệ (Định lý Thalès, Thalès đảo, Đường trung bình, Tam giác đồng dạng C.C.C/C.G.C/G.G, Đường phân giác & Đo gián tiếp bóng nắng)',
-                '13. M17 Quy tắc đếm & Sơ đồ cây (Sơ đồ cây Ω, Lập số có/không lặp, Quy tắc cộng/nhân, Hoán vị/Chỉnh hợp/Tổ hợp C(n,k) & Chặn tràn số)',
+                '9. M13 Số học & Số nguyên tố (Sàng Eratosthenes N=100 → 25 số nguyên tố, prime, factor, ƯCLN/BCNN Euclid)',
+                '10. M14 Phép biến hình (Tịnh tiến, Đối xứng, Quay, Bảo toàn khoảng cách & Phép vị tự)',
+                '11. M15 Định lý Pythagore (Bộ ba Pythagore, Định lý đảo, Chặn biên & Ghép mảnh Perigal)',
+                '12. M16 Đồng dạng & Tỉ lệ (Định lý Thalès, Thalès đảo, Đường trung bình, Tam giác đồng dạng)',
+                '13. M17 Quy tắc đếm & Sơ đồ cây (Sơ đồ cây Ω, Lập số, Quy tắc cộng/nhân, Tổ hợp C(n,k))',
               ].map((label, idx) => (
                 <div
                   key={idx}
-                  className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between"
+                  className="p-3 rounded-xl border border-[#E2EDFF] bg-[#F4F8FF] flex items-center justify-between gap-3"
                 >
-                  <span className="font-semibold text-slate-800">{label}</span>
-                  <span className="px-2.5 py-0.5 rounded-full font-extrabold bg-emerald-500/15 text-emerald-700">
-                    PASS
+                  <span className="font-semibold text-[#102A56] leading-snug">{label}</span>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full font-extrabold shrink-0 ${
+                      diagnosticsReport.passed
+                        ? 'bg-[#ECFDF5] text-[#0D7A5F] border border-[#BDE8DC]'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {diagnosticsReport.passed ? 'ĐẠT' : 'KIỂM TRA'}
                   </span>
                 </div>
               ))}

@@ -189,24 +189,24 @@ export const WrongQuestionsBook: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-serif">
+    <div className="space-y-6 font-edtech">
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#082B52] flex items-center space-x-2">
-            <AlertOctagon className="w-6 h-6 text-red-500" />
-            <span>Sổ câu sai & Khắc phục lỗ hổng kiến thức</span>
+          <h2 className="text-2xl font-bold text-[#102C54] tracking-tight flex items-center space-x-2">
+            <AlertOctagon className="w-6 h-6 text-red-500 shrink-0" />
+            <span>Sổ câu sai &amp; Khắc phục lỗ hổng kiến thức</span>
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Tự động lưu trữ câu hỏi làm sai từ các phiên luyện tập để học sinh ôn lại và củng cố vững chắc
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 shrink-0">
           {storedWrongIds.length > 0 && (
             <button
               onClick={handleClearAllWrong}
-              className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-xl text-xs font-semibold border border-slate-200 transition-colors"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-xl text-xs font-semibold border border-slate-200 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               <span>Xóa tất cả câu đã thuộc</span>
@@ -215,7 +215,7 @@ export const WrongQuestionsBook: React.FC = () => {
 
           <button
             onClick={() => setCurrentView('student_practice')}
-            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs transition-colors"
+            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] shadow-xs transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Luyện tập ngay</span>
@@ -224,20 +224,20 @@ export const WrongQuestionsBook: React.FC = () => {
       </div>
 
       {/* Bộ lọc Khối & Môn */}
-      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-bold text-slate-700 flex items-center space-x-1">
-            <Filter className="w-3.5 h-3.5 text-[#006BFF]" />
+          <span className="font-bold text-[#102C54] flex items-center space-x-1">
+            <Filter className="w-3.5 h-3.5 text-[#1769F4]" />
             <span>Lọc theo khối:</span>
           </span>
           {['all', '6', '7', '8', '9'].map(g => (
             <button
               key={g}
               onClick={() => setSelectedGrade(g)}
-              className={`px-2.5 py-1 rounded-lg font-semibold border transition-all ${
+              className={`px-3 py-1.5 rounded-lg font-semibold border transition-all whitespace-nowrap cursor-pointer ${
                 selectedGrade === g
-                  ? 'bg-[#006BFF] text-white border-[#006BFF]'
-                  : 'bg-[#F3F8FF] text-slate-600 border-[#DCE8F7] hover:bg-slate-100'
+                  ? 'bg-[#1769F4] text-white border-[#1769F4]'
+                  : 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA] hover:bg-[#DCEBFF]'
               }`}
             >
               {g === 'all' ? 'Tất cả khối' : `Lớp ${g}`}
@@ -246,11 +246,11 @@ export const WrongQuestionsBook: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="font-bold text-slate-700">Môn học:</span>
+          <span className="font-bold text-[#102C54]">Môn học:</span>
           <select
             value={selectedSubject}
             onChange={e => setSelectedSubject(e.target.value)}
-            className="px-3 py-1 rounded-lg border border-[#DCE8F7] bg-white text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-[#006BFF]"
+            className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
           >
             <option value="all">Tất cả môn học</option>
             <option value="Tin học">Tin học</option>
@@ -263,18 +263,18 @@ export const WrongQuestionsBook: React.FC = () => {
 
       {/* Main List */}
       {wrongQuestions.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center space-y-3">
-          <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-8 text-center space-y-3">
+          <div className="w-12 h-12 bg-[#ECFDF7] text-[#12A879] rounded-2xl flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h4 className="text-base font-bold text-[#082B52]">Không có câu hỏi sai nào trong danh mục!</h4>
+          <h4 className="text-base font-bold text-[#102C54]">Không có câu hỏi sai nào trong danh mục!</h4>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             Tuyệt vời! Bạn chưa có câu làm sai nào trong bộ lọc này, hoặc bạn đã khắc phục xong toàn bộ câu sai.
           </p>
           <div className="pt-2">
             <button
               onClick={() => setCurrentView('student_practice')}
-              className="px-4 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors"
+              className="px-4 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] transition-colors whitespace-nowrap cursor-pointer"
             >
               Làm bài luyện tập mới
             </button>
@@ -288,15 +288,15 @@ export const WrongQuestionsBook: React.FC = () => {
               className="bg-white rounded-2xl border border-red-100 p-5 shadow-xs space-y-4 hover:border-red-300 transition-colors"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-bold text-xs">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200 font-bold">
                     Cần ôn tập
                   </span>
-                  <span className="font-mono font-bold text-xs text-[#082B52]">[{q.code}]</span>
-                  <span className="text-xs text-slate-500">• Khối {q.grade} • {q.subject} • {q.lesson}</span>
+                  <span className="font-mono font-bold text-[#102C54]">[{q.code}]</span>
+                  <span className="text-slate-500">· Khối {q.grade} · {q.subject} · {q.lesson}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-800">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-[#EAF3FF] text-[#1769F4]">
                     {q.type === 'single_choice'
                       ? 'Trắc nghiệm ABCD'
                       : q.type === 'true_false_group'
@@ -307,7 +307,7 @@ export const WrongQuestionsBook: React.FC = () => {
                   </span>
                   <button
                     onClick={() => handleRemoveFromWrongBook(q.id)}
-                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                     title="Xóa câu này khỏi sổ (đã hiểu rõ)"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -316,35 +316,35 @@ export const WrongQuestionsBook: React.FC = () => {
               </div>
 
               {/* Question Stem */}
-              <div className="text-sm sm:text-base font-bold text-[#12345B]">
+              <div className="text-sm sm:text-base font-bold text-[#102C54]">
                 <MathView content={q.stem} />
               </div>
 
               {/* Explanation & Rubric */}
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-2">
-                <div className="flex items-center space-x-1.5 text-blue-900 font-bold uppercase tracking-wider">
-                  <Eye className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Gợi ý chuẩn & Phương pháp giải:</span>
+              <div className="p-3.5 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0] text-xs text-slate-700 space-y-2">
+                <div className="flex items-center space-x-1.5 text-[#102C54] font-bold">
+                  <Eye className="w-3.5 h-3.5 text-[#1769F4]" />
+                  <span>Gợi ý chuẩn &amp; Phương pháp giải:</span>
                 </div>
 
                 {q.type === 'essay' && (q.sampleAnswer || q.rubric) && (
-                  <div className="p-2.5 bg-white rounded-lg border border-slate-200 space-y-1.5">
+                  <div className="p-2.5 bg-white rounded-lg border border-[#E2E8F0] space-y-1.5">
                     {q.sampleAnswer && (
                       <div>
-                        <b className="text-emerald-800 block">Đáp án mẫu:</b>
+                        <b className="text-[#0B6E4F] block">Đáp án mẫu:</b>
                         <MathView content={q.sampleAnswer} />
                       </div>
                     )}
                     {q.rubric && (
                       <div>
-                        <b className="text-blue-900 block">Barem điểm:</b>
+                        <b className="text-[#102C54] block">Barem điểm:</b>
                         <MathView content={typeof q.rubric === 'string' ? q.rubric : JSON.stringify(q.rubric)} />
                       </div>
                     )}
                   </div>
                 )}
 
-                <div className="leading-relaxed bg-white p-2.5 rounded-lg border border-slate-200">
+                <div className="leading-relaxed bg-white p-2.5 rounded-lg border border-[#E2E8F0]">
                   <MathView content={q.explanation} />
                 </div>
               </div>
@@ -353,7 +353,7 @@ export const WrongQuestionsBook: React.FC = () => {
               <div className="flex items-center justify-between pt-2">
                 <button
                   onClick={() => handleStartRetry(q.id)}
-                  className="inline-flex items-center space-x-1.5 text-xs font-bold text-[#006BFF] hover:underline"
+                  className="inline-flex items-center space-x-1.5 text-xs font-bold text-[#1769F4] hover:underline whitespace-nowrap cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>{practicingId === q.id ? 'Ẩn khung làm lại' : 'Làm lại câu này'}</span>
@@ -361,7 +361,7 @@ export const WrongQuestionsBook: React.FC = () => {
 
                 <button
                   onClick={() => setCurrentView('student_practice')}
-                  className="inline-flex items-center space-x-1.5 text-xs font-medium text-emerald-700 hover:text-emerald-800"
+                  className="inline-flex items-center space-x-1.5 text-xs font-semibold text-[#0B6E4F] hover:text-[#12A879] whitespace-nowrap cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Luyện bộ câu tương tự</span>
@@ -370,16 +370,16 @@ export const WrongQuestionsBook: React.FC = () => {
 
               {/* Inline Retry Box */}
               {practicingId === q.id && (
-                <div className="mt-3 p-4 bg-blue-50/70 border border-blue-200 rounded-xl space-y-3">
-                  <h5 className="text-xs font-bold text-blue-900">Thực hành làm lại câu hỏi:</h5>
+                <div className="mt-3 p-4 bg-[#EAF3FF] border border-[#C7DCFA] rounded-xl space-y-3">
+                  <h5 className="text-xs font-bold text-[#102C54]">Thực hành làm lại câu hỏi:</h5>
                   {q.type === 'single_choice' && q.options && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {q.options.map((opt: any) => (
                         <button
                           key={opt.id}
                           onClick={() => setRetryAnswer(opt.label)}
-                          className={`p-2.5 rounded-lg text-xs font-semibold border text-left transition-colors ${
-                            retryAnswer === opt.label ? 'bg-[#006BFF] text-white border-[#006BFF]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                          className={`p-2.5 rounded-lg text-xs font-semibold border text-left transition-colors cursor-pointer ${
+                            retryAnswer === opt.label ? 'bg-[#1769F4] text-white border-[#1769F4]' : 'bg-white text-slate-700 border-[#E2E8F0] hover:bg-slate-50'
                           }`}
                         >
                           <b>{opt.label}.</b> <MathView content={opt.text} />
@@ -394,7 +394,7 @@ export const WrongQuestionsBook: React.FC = () => {
                       value={retryAnswer}
                       onChange={e => setRetryAnswer(e.target.value)}
                       placeholder="Nhập câu trả lời ngắn..."
-                      className="w-full px-3 py-2 text-xs rounded-lg border bg-white focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-[#E2E8F0] bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
                     />
                   )}
 
@@ -404,7 +404,7 @@ export const WrongQuestionsBook: React.FC = () => {
                       value={retryAnswer}
                       onChange={e => setRetryAnswer(e.target.value)}
                       placeholder="Trình bày bài giải tự luận hoặc lập luận của bạn..."
-                      className="w-full px-3 py-2 text-xs rounded-lg border bg-white focus:ring-1 focus:ring-blue-500 leading-relaxed"
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-[#E2E8F0] bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769F4] leading-relaxed"
                     />
                   )}
 
@@ -412,13 +412,13 @@ export const WrongQuestionsBook: React.FC = () => {
                     <button
                       onClick={() => handleCheckRetry(q)}
                       disabled={!retryAnswer}
-                      className="px-4 py-1.5 bg-[#006BFF] text-white rounded-lg text-xs font-bold hover:bg-blue-600 disabled:opacity-40 transition-colors"
+                      className="px-4 py-1.5 bg-[#1769F4] text-white rounded-lg text-xs font-bold hover:bg-[#1255CC] disabled:opacity-40 transition-colors whitespace-nowrap cursor-pointer"
                     >
                       Kiểm tra kết quả
                     </button>
                     <button
                       onClick={() => setPracticingId(null)}
-                      className="text-xs text-slate-500 hover:underline"
+                      className="text-xs text-slate-500 hover:underline cursor-pointer"
                     >
                       Đóng
                     </button>
@@ -426,9 +426,9 @@ export const WrongQuestionsBook: React.FC = () => {
 
                   {retryResult && (
                     <div className={`p-2.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 ${
-                      retryResult.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                      retryResult.isCorrect ? 'bg-[#ECFDF7] text-[#0B6E4F] border border-[#12A879]/25' : 'bg-red-50 text-red-800 border border-red-200'
                     }`}>
-                      {retryResult.isCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                      {retryResult.isCorrect ? <Check className="w-4 h-4 text-[#12A879]" /> : <X className="w-4 h-4" />}
                       <span>{retryResult.message}</span>
                     </div>
                   )}

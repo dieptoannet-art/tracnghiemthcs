@@ -1,0 +1,86 @@
+/* ============================================================================
+   TÂY ĐÔ SMART EDU – PREMIUM DESIGN SYSTEM 2027 TOKENS
+   Palette: Primary Navy #102C54 · Royal Blue #1769F4 · Soft Blue #EAF3FF
+   Canvas: #F6F9FD · Surface: #FFFFFF · Ink: #172B4D · Muted: #64748B
+   Semantic: Success #12A879 · Warning #F59E0B · Danger #EF4444
+   ============================================================================ */
+
+:root {
+  /* Brand & Navigation */
+  --td-navy-950: #091B36;
+  --td-navy-900: #102C54;
+  --td-navy-800: #15396B;
+  --td-blue-600: #1769F4;
+  --td-blue-700: #0F56D3;
+  --td-blue-500: #3B82F6;
+  --td-blue-100: #DCEBFF;
+  --td-blue-50: #EAF3FF;
+
+  /* Surfaces & Canvas */
+  --td-bg-canvas: #F6F9FD;
+  --td-surface: #FFFFFF;
+  --td-surface-muted: #F8FAFC;
+  --td-border-subtle: #E2E8F0;
+  --td-border-blue: #C7DCFA;
+
+  /* Typography Ink */
+  --td-text-primary: #172B4D;
+  --td-text-secondary: #64748B;
+  --td-text-muted: #94A3B8;
+
+  /* Semantic Status */
+  --td-success: #12A879;
+  --td-success-bg: #ECFDF5;
+  --td-warning: #F59E0B;
+  --td-warning-bg: #FFFBEB;
+  --td-danger: #EF4444;
+  --td-danger-bg: #FEF2F2;
+
+  /* Radii & Tactile 3D Elevation */
+  --td-radius-sm: 10px;
+  --td-radius-md: 14px;
+  --td-radius-lg: 18px;
+  --td-radius-xl: 24px;
+  --td-shadow-card: 0 8px 24px -10px rgba(16, 44, 84, 0.08), 0 1px 3px rgba(16, 44, 84, 0.04);
+  --td-shadow-card-hover: 0 16px 34px -12px rgba(23, 105, 244, 0.16), 0 4px 10px -2px rgba(16, 44, 84, 0.06);
+  --td-shadow-primary-btn: 0 6px 16px -4px rgba(23, 105, 244, 0.36);
+
+  /* Fonts */
+  --td-font-sans: "Be Vietnam Pro", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --td-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --td-font-editorial: "Lora", "Noto Serif", "Times New Roman", serif;
+}
+
+/* Chế độ Premium Design System 2027 (mặc định bật) */
+html[data-ui-theme="2027"] body {
+  background-color: var(--td-bg-canvas);
+  color: var(--td-text-primary);
+  font-family: var(--td-font-sans);
+}
+
+/* Hỗ trợ căn số liệu thẳng hàng trong bảng & dashboard */
+.td-tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chữ editorial chỉ dùng cho trích dẫn Ngữ văn hoặc bản in đề thi */
+.font-editorial {
+  font-family: var(--td-font-editorial);
+}
+
+/* Bề mặt thẻ nổi nhẹ 2027 */
+.td-card-2027 {
+  background-color: var(--td-surface);
+  border: 1px solid var(--td-border-subtle);
+  border-radius: var(--td-radius-lg);
+  box-shadow: var(--td-shadow-card);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 180ms ease;
+}
+
+.td-card-2027-interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(23, 105, 244, 0.38);
+  box-shadow: var(--td-shadow-card-hover);
+}
