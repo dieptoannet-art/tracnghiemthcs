@@ -931,13 +931,13 @@ export const CreateExamModal: React.FC = () => {
   const activeSubjectInfo = getSubjectOption(draftSubject);
 
   return (
-    <div className="space-y-5 font-serif">
+    <div className="space-y-5 font-edtech">
       {/* Header & Step Switcher */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#082B52] flex items-center gap-2.5">
-            <FileEdit className="w-6 h-6 text-[#006BFF]" />
-            <span>Tạo đề kiểm tra & Giao bài theo lớp</span>
+          <h2 className="text-2xl font-bold text-[#102C54] flex items-center gap-2.5">
+            <FileEdit className="w-6 h-6 text-[#1769F4] shrink-0" />
+            <span>Tạo đề kiểm tra &amp; Giao bài theo lớp</span>
           </h2>
           <p className="text-sm text-slate-600 mt-0.5">
             Chọn khối, môn và phạm vi từ danh mục chuẩn để soạn đề; sau khi lưu đề mới chọn lớp nhận bài.
@@ -945,17 +945,17 @@ export const CreateExamModal: React.FC = () => {
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             {isUsingDemoAssignmentsData ? (
               <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-md">
-                <MonitorSmartphone className="w-3.5 h-3.5" />
+                <MonitorSmartphone className="w-3.5 h-3.5 shrink-0" />
                 <span>Chế độ Demo cục bộ (Lưu trên trình duyệt này)</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
-                <Cloud className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#0B6E4F] bg-[#ECFDF7] border border-[#12A879]/30 px-2.5 py-0.5 rounded-md">
+                <Cloud className="w-3.5 h-3.5 shrink-0" />
                 <span>Đồng bộ trực tiếp lên Supabase</span>
               </span>
             )}
             {loadingBank && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-[#006BFF] font-semibold">
+              <span className="inline-flex items-center gap-1 text-[11px] text-[#1769F4] font-semibold">
                 <RefreshCw className="w-3 h-3 animate-spin" />
                 <span>Đang đồng bộ ngân hàng câu hỏi...</span>
               </span>
@@ -964,24 +964,24 @@ export const CreateExamModal: React.FC = () => {
         </div>
 
         {/* 2-Step Workflow Switcher */}
-        <div className="inline-flex bg-[#F3F8FF] p-1 rounded-xl border border-[#DCE8F7] self-start lg:self-auto">
+        <div className="inline-flex bg-[#EAF3FF] p-1 rounded-xl border border-[#C7DCFA] self-start lg:self-auto">
           <button
             type="button"
             onClick={() => {
               setWorkflowStep('compose');
               setActionError(null);
             }}
-            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer ${
               workflowStep === 'compose'
-                ? 'bg-[#006BFF] text-white shadow-xs'
-                : 'text-[#082B52] hover:bg-white'
+                ? 'bg-[#1769F4] text-white shadow-xs'
+                : 'text-[#102C54] hover:bg-white'
             }`}
           >
             <span>1. Soạn đề kiểm tra</span>
             {draftQuestions.length > 0 && (
               <span
-                className={`px-1.5 py-0.5 rounded text-[10px] ${
-                  workflowStep === 'compose' ? 'bg-white/20 text-white' : 'bg-blue-100 text-[#006BFF]'
+                className={`px-1.5 py-0.5 rounded text-[10px] tabular-nums ${
+                  workflowStep === 'compose' ? 'bg-white/20 text-white' : 'bg-[#EAF3FF] text-[#1769F4]'
                 }`}
               >
                 {draftQuestions.length} câu
@@ -994,10 +994,10 @@ export const CreateExamModal: React.FC = () => {
               setWorkflowStep('assign');
               setActionError(null);
             }}
-            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 tabular-nums cursor-pointer ${
               workflowStep === 'assign'
-                ? 'bg-[#006BFF] text-white shadow-xs'
-                : 'text-[#082B52] hover:bg-white'
+                ? 'bg-[#1769F4] text-white shadow-xs'
+                : 'text-[#102C54] hover:bg-white'
             }`}
           >
             <span>2. Giao bài cho lớp ({assignableExams.length})</span>
@@ -1020,7 +1020,7 @@ export const CreateExamModal: React.FC = () => {
           <button
             type="button"
             onClick={() => openAuthModal('login')}
-            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shrink-0"
+            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shrink-0 whitespace-nowrap cursor-pointer"
           >
             Đăng nhập Supabase
           </button>
@@ -1043,7 +1043,7 @@ export const CreateExamModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setActionError(null)}
-            className="text-xs font-bold underline shrink-0"
+            className="text-xs font-bold underline shrink-0 whitespace-nowrap cursor-pointer"
           >
             Đóng
           </button>
@@ -1053,16 +1053,16 @@ export const CreateExamModal: React.FC = () => {
       {actionSuccessMsg && (
         <div
           role="status"
-          className="p-3.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-2xl flex items-center justify-between gap-3 text-xs sm:text-sm font-bold"
+          className="p-3.5 bg-[#ECFDF7] border border-[#12A879]/30 text-[#0B6E4F] rounded-2xl flex items-center justify-between gap-3 text-xs sm:text-sm font-bold"
         >
           <div className="flex items-center gap-2.5">
-            <Check className="w-5 h-5 text-emerald-700 shrink-0" />
+            <Check className="w-5 h-5 text-[#12A879] shrink-0" />
             <span>{actionSuccessMsg}</span>
           </div>
           <button
             type="button"
             onClick={() => setActionSuccessMsg(null)}
-            className="text-xs underline shrink-0"
+            className="text-xs underline shrink-0 whitespace-nowrap cursor-pointer"
           >
             Đóng
           </button>
@@ -1074,14 +1074,13 @@ export const CreateExamModal: React.FC = () => {
       {/* ===================================================================== */}
       {workflowStep === 'compose' && (
         <div className="space-y-4">
-          {/* Thanh thông số đầu màn hình soạn đề: Khối lớp, Môn học, Bộ sách (nếu có > 1), Tên đề, Mã đề, Đợt kiểm tra, Thời lượng */}
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 sm:p-5 shadow-xs space-y-4">
+          {/* Thanh thông số đầu màn hình soạn đề */}
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 shadow-xs space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {/* Khối lớp */}
               <div>
                 <label
                   htmlFor="exam-grade-select"
-                  className="block text-xs font-bold text-[#082B52] mb-1"
+                  className="block text-xs font-bold text-[#102C54] mb-1"
                 >
                   Khối lớp:
                 </label>
@@ -1089,7 +1088,7 @@ export const CreateExamModal: React.FC = () => {
                   id="exam-grade-select"
                   value={draftGrade}
                   onChange={e => requestGradeChange(e.target.value as Grade)}
-                  className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl bg-[#FBFDFF] font-bold text-[#082B52] focus:outline-none focus:border-[#006BFF]"
+                  className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl bg-[#F6F9FD] font-bold text-[#102C54] focus:outline-none focus:border-[#1769F4]"
                 >
                   {EXAM_GRADES.map(g => (
                     <option key={g} value={g}>
@@ -1099,11 +1098,10 @@ export const CreateExamModal: React.FC = () => {
                 </select>
               </div>
 
-              {/* Môn học */}
               <div>
                 <label
                   htmlFor="exam-subject-select"
-                  className="block text-xs font-bold text-[#082B52] mb-1"
+                  className="block text-xs font-bold text-[#102C54] mb-1"
                 >
                   Môn học:
                 </label>
@@ -1111,7 +1109,7 @@ export const CreateExamModal: React.FC = () => {
                   id="exam-subject-select"
                   value={draftSubject}
                   onChange={e => requestSubjectChange(e.target.value as SubjectId)}
-                  className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl bg-[#FBFDFF] font-bold text-[#082B52] focus:outline-none focus:border-[#006BFF]"
+                  className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl bg-[#F6F9FD] font-bold text-[#102C54] focus:outline-none focus:border-[#1769F4]"
                 >
                   {subjectOptionsForGrade.map(sub => (
                     <option key={sub.id} value={sub.id}>
@@ -1121,12 +1119,11 @@ export const CreateExamModal: React.FC = () => {
                 </select>
               </div>
 
-              {/* Bộ sách (chỉ hiện khi Khối & Môn có từ 2 bộ sách trở lên) */}
               {showTextbookSelector && (
                 <div>
                   <label
                     htmlFor="exam-textbook-select"
-                    className="block text-xs font-bold text-[#082B52] mb-1"
+                    className="block text-xs font-bold text-[#102C54] mb-1"
                   >
                     Bộ sách:
                   </label>
@@ -1134,7 +1131,7 @@ export const CreateExamModal: React.FC = () => {
                     id="exam-textbook-select"
                     value={selectedTextbook}
                     onChange={e => requestTextbookChange(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl bg-[#FBFDFF] font-semibold text-[#082B52] focus:outline-none focus:border-[#006BFF]"
+                    className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl bg-[#F6F9FD] font-semibold text-[#102C54] focus:outline-none focus:border-[#1769F4]"
                   >
                     {availableTextbooks.map(tb => (
                       <option key={tb} value={tb}>
@@ -1146,11 +1143,10 @@ export const CreateExamModal: React.FC = () => {
                 </div>
               )}
 
-              {/* Đợt kiểm tra */}
               <div>
                 <label
                   htmlFor="exam-period-select"
-                  className="block text-xs font-bold text-[#082B52] mb-1"
+                  className="block text-xs font-bold text-[#102C54] mb-1"
                 >
                   Đợt kiểm tra:
                 </label>
@@ -1158,7 +1154,7 @@ export const CreateExamModal: React.FC = () => {
                   id="exam-period-select"
                   value={draftPeriod}
                   onChange={e => setDraftPeriod(e.target.value as ExamPeriod)}
-                  className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl bg-white text-[#082B52] focus:outline-none focus:border-[#006BFF]"
+                  className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] focus:outline-none focus:border-[#1769F4]"
                 >
                   {EXAM_PERIOD_META.map(p => (
                     <option key={p.id} value={p.id}>
@@ -1168,11 +1164,10 @@ export const CreateExamModal: React.FC = () => {
                 </select>
               </div>
 
-              {/* Thời lượng */}
               <div>
                 <label
                   htmlFor="exam-duration-select"
-                  className="block text-xs font-bold text-[#082B52] mb-1"
+                  className="block text-xs font-bold text-[#102C54] mb-1"
                 >
                   Thời lượng làm bài:
                 </label>
@@ -1180,7 +1175,7 @@ export const CreateExamModal: React.FC = () => {
                   id="exam-duration-select"
                   value={duration}
                   onChange={e => setDuration(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl bg-white text-[#082B52] focus:outline-none focus:border-[#006BFF]"
+                  className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] focus:outline-none focus:border-[#1769F4]"
                 >
                   <option value={15}>15 phút (Thường xuyên)</option>
                   <option value={45}>45 phút (1 tiết)</option>
@@ -1194,7 +1189,7 @@ export const CreateExamModal: React.FC = () => {
               <div className="md:col-span-8">
                 <label
                   htmlFor="exam-title-input"
-                  className="block text-xs font-bold text-slate-700 mb-1"
+                  className="block text-xs font-bold text-[#102C54] mb-1"
                 >
                   Tên bài kiểm tra:
                 </label>
@@ -1207,13 +1202,13 @@ export const CreateExamModal: React.FC = () => {
                     setExamTitle(e.target.value);
                   }}
                   placeholder="Ví dụ: Kiểm tra Giữa kỳ I – Toán 8"
-                  className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl focus:outline-none focus:border-[#006BFF]"
+                  className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl text-[#102C54] focus:outline-none focus:border-[#1769F4]"
                 />
               </div>
               <div className="md:col-span-4">
                 <label
                   htmlFor="exam-code-input"
-                  className="block text-xs font-bold text-slate-700 mb-1"
+                  className="block text-xs font-bold text-[#102C54] mb-1"
                 >
                   Mã đề thi:
                 </label>
@@ -1226,7 +1221,7 @@ export const CreateExamModal: React.FC = () => {
                     setExamCode(e.target.value);
                   }}
                   placeholder="VD: TOAN8-GK1-01"
-                  className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl font-mono uppercase focus:outline-none focus:border-[#006BFF]"
+                  className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl font-mono uppercase text-[#102C54] focus:outline-none focus:border-[#1769F4]"
                 />
               </div>
             </div>
@@ -1237,12 +1232,12 @@ export const CreateExamModal: React.FC = () => {
             {/* CỘT 1: PHẠM VI ĐỀ */}
             <section
               aria-label="Phạm vi đề"
-              className="xl:col-span-4 bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-col space-y-3"
+              className="xl:col-span-4 bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs flex flex-col space-y-3"
             >
               <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                 <div>
-                  <h3 className="text-sm font-bold text-[#082B52] flex items-center gap-1.5">
-                    <Layers className="w-4 h-4 text-[#006BFF]" />
+                  <h3 className="text-sm font-bold text-[#102C54] flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-[#1769F4] shrink-0" />
                     <span>Phạm vi đề</span>
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
@@ -1254,13 +1249,13 @@ export const CreateExamModal: React.FC = () => {
                 </div>
 
                 {scopeCatalog.hasCatalog && (
-                  <div className="flex items-center gap-2 text-[11px] font-bold">
+                  <div className="flex items-center gap-2 text-[11px] font-bold shrink-0">
                     <button
                       type="button"
                       onClick={() =>
                         setExpandedGroupIds(new Set(scopeCatalog.groups.map(g => g.id)))
                       }
-                      className="text-[#006BFF] hover:underline"
+                      className="text-[#1769F4] hover:underline whitespace-nowrap cursor-pointer"
                     >
                       Mở hết
                     </button>
@@ -1268,7 +1263,7 @@ export const CreateExamModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setExpandedGroupIds(new Set())}
-                      className="text-slate-500 hover:underline"
+                      className="text-slate-500 hover:underline whitespace-nowrap cursor-pointer"
                     >
                       Thu gọn
                     </button>
@@ -1276,7 +1271,6 @@ export const CreateExamModal: React.FC = () => {
                 )}
               </div>
 
-              {/* Tìm kiếm trong phạm vi */}
               {scopeCatalog.hasCatalog && (
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1285,14 +1279,13 @@ export const CreateExamModal: React.FC = () => {
                     value={scopeSearch}
                     onChange={e => setScopeSearch(e.target.value)}
                     placeholder="Tìm chương, chủ đề hoặc bài học..."
-                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#DCE8F7] rounded-xl bg-[#FBFDFF] focus:outline-none focus:border-[#006BFF]"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#E2E8F0] rounded-xl bg-[#F6F9FD] focus:outline-none focus:border-[#1769F4]"
                   />
                 </div>
               )}
 
-              {/* Thanh trạng thái gợi ý đợt kiểm tra (chỉ hiện khi giáo viên đã lưu hoặc đang chọn phạm vi) */}
               {scopeCatalog.hasCatalog && (presetBannerMsg || hasScopeSelection) && (
-                <div className="p-2.5 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] text-[11px] text-[#082B52] space-y-1.5">
+                <div className="p-2.5 rounded-xl bg-[#EAF3FF] border border-[#C7DCFA] text-[11px] text-[#102C54] space-y-1.5">
                   {presetBannerMsg && <p className="leading-snug">{presetBannerMsg}</p>}
                   <div className="flex flex-wrap items-center gap-2">
                     {hasScopeSelection && (
@@ -1300,9 +1293,9 @@ export const CreateExamModal: React.FC = () => {
                         <button
                           type="button"
                           onClick={handleSavePeriodSuggestion}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-[#DCE8F7] text-[#006BFF] font-bold hover:bg-blue-50"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-[#C7DCFA] text-[#1769F4] font-bold hover:bg-[#EAF3FF] whitespace-nowrap shrink-0 cursor-pointer"
                         >
-                          <Bookmark className="w-3 h-3" />
+                          <Bookmark className="w-3 h-3 shrink-0" />
                           <span>
                             Lưu gợi ý{' '}
                             {EXAM_PERIOD_META.find(p => p.id === draftPeriod)?.label || ''}
@@ -1314,7 +1307,7 @@ export const CreateExamModal: React.FC = () => {
                             setSelectedGroupIds(new Set());
                             setSelectedLessonIds(new Set());
                           }}
-                          className="px-2 py-1 rounded-lg text-slate-600 hover:bg-white font-semibold"
+                          className="px-2 py-1 rounded-lg text-slate-600 hover:bg-white font-semibold tabular-nums whitespace-nowrap shrink-0 cursor-pointer"
                         >
                           Bỏ chọn ({selectedGroupIds.size} chương, {selectedLessonIds.size} bài)
                         </button>
@@ -1324,7 +1317,7 @@ export const CreateExamModal: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleClearPeriodSuggestion}
-                        className="px-2 py-1 rounded-lg text-red-700 hover:bg-red-50 font-semibold"
+                        className="px-2 py-1 rounded-lg text-red-700 hover:bg-red-50 font-semibold whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         Xóa gợi ý đợt
                       </button>
@@ -1333,17 +1326,16 @@ export const CreateExamModal: React.FC = () => {
                 </div>
               )}
 
-              {/* Cây danh mục Chương / Chủ đề / Bài học */}
               {!scopeCatalog.hasCatalog ? (
-                <div className="p-6 text-center rounded-xl border border-dashed border-[#DCE8F7] bg-[#F3F8FF]/60 space-y-2">
-                  <BookOpen className="w-7 h-7 text-[#006BFF] mx-auto opacity-80" />
-                  <p className="text-xs font-bold text-[#082B52]">{NO_CATALOG_MESSAGE}</p>
+                <div className="p-6 text-center rounded-xl border border-dashed border-[#C7DCFA] bg-[#EAF3FF]/60 space-y-2">
+                  <BookOpen className="w-7 h-7 text-[#1769F4] mx-auto opacity-80" />
+                  <p className="text-xs font-bold text-[#102C54]">{NO_CATALOG_MESSAGE}</p>
                   <p className="text-[11px] text-slate-500">
                     Bạn vẫn có thể xem và chọn các câu hỏi đã duyệt của môn {activeSubjectInfo.name} Khối {draftGrade} ở cột Ngân hàng câu hỏi.
                   </p>
                 </div>
               ) : filteredCatalogGroups.length === 0 ? (
-                <div className="p-5 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="p-5 text-center text-xs text-slate-500 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0]">
                   Không tìm thấy chương hoặc bài học khớp từ khóa &quot;{scopeSearch}&quot;.
                 </div>
               ) : (
@@ -1363,22 +1355,22 @@ export const CreateExamModal: React.FC = () => {
                     return (
                       <React.Fragment key={group.id}>
                         {showVolumeDivider && (
-                          <div className="pt-1 pb-0.5 text-[11px] font-bold uppercase tracking-wider text-[#006BFF]">
+                          <div className="pt-1 pb-0.5 text-[11px] font-bold uppercase tracking-wider text-[#1769F4]">
                             Tập {group.volume}
                           </div>
                         )}
                         <div
                           className={`rounded-xl border transition-colors ${
                             isGroupChecked || hasPartialLessons
-                              ? 'border-[#006BFF] bg-[#F3F8FF]/70'
-                              : 'border-slate-200 bg-white'
+                              ? 'border-[#1769F4] bg-[#EAF3FF]/70'
+                              : 'border-[#E2E8F0] bg-white'
                           }`}
                         >
                           <div className="flex items-start gap-2 p-2.5">
                             <button
                               type="button"
                               onClick={() => toggleExpandGroup(group.id)}
-                              className="p-0.5 text-slate-500 hover:text-[#082B52] mt-0.5 shrink-0"
+                              className="p-0.5 text-slate-500 hover:text-[#102C54] mt-0.5 shrink-0 cursor-pointer"
                               aria-label={isExpanded ? `Thu gọn ${group.label}` : `Mở rộng ${group.label}`}
                             >
                               {isExpanded ? (
@@ -1396,17 +1388,17 @@ export const CreateExamModal: React.FC = () => {
                                   if (el) el.indeterminate = hasPartialLessons;
                                 }}
                                 onChange={() => toggleSelectGroup(group.id)}
-                                className="w-4 h-4 text-[#006BFF] rounded-sm mt-0.5 shrink-0"
+                                className="w-4 h-4 accent-[#1769F4] rounded-sm mt-0.5 shrink-0"
                               />
-                              <span className="text-xs font-bold text-[#082B52] leading-snug">
+                              <span className="text-xs font-bold text-[#102C54] leading-snug">
                                 {group.label}
                               </span>
                             </label>
 
                             <span
-                              className={`text-[11px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-md shrink-0 tabular-nums ${
                                 groupCount > 0
-                                  ? 'bg-blue-50 text-[#006BFF]'
+                                  ? 'bg-[#EAF3FF] text-[#1769F4]'
                                   : 'bg-slate-100 text-slate-500'
                               }`}
                             >
@@ -1425,23 +1417,23 @@ export const CreateExamModal: React.FC = () => {
                                 return (
                                   <label
                                     key={lesson.id}
-                                    className="flex items-start justify-between gap-2 pl-5 pr-1 py-1 rounded-lg hover:bg-[#F3F8FF]/80 cursor-pointer text-xs"
+                                    className="flex items-start justify-between gap-2 pl-5 pr-1 py-1 rounded-lg hover:bg-[#EAF3FF]/80 cursor-pointer text-xs"
                                   >
                                     <span className="flex items-start gap-2 min-w-0">
                                       <input
                                         type="checkbox"
                                         checked={isLessonChecked}
                                         onChange={() => toggleSelectLesson(group.id, lesson.id)}
-                                        className="w-3.5 h-3.5 text-[#006BFF] rounded-sm mt-0.5 shrink-0"
+                                        className="w-3.5 h-3.5 accent-[#1769F4] rounded-sm mt-0.5 shrink-0"
                                       />
                                       <span className="text-slate-700 leading-snug">
                                         {lesson.label}
                                       </span>
                                     </span>
                                     <span
-                                      className={`text-[11px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${
+                                      className={`text-[11px] font-semibold px-1.5 py-0.5 rounded shrink-0 tabular-nums ${
                                         lessonCount > 0
-                                          ? 'bg-emerald-50 text-emerald-700'
+                                          ? 'bg-[#ECFDF7] text-[#0B6E4F]'
                                           : 'bg-slate-100 text-slate-500'
                                       }`}
                                     >
@@ -1463,23 +1455,22 @@ export const CreateExamModal: React.FC = () => {
             {/* CỘT 2: NGÂN HÀNG CÂU HỎI */}
             <section
               aria-label="Ngân hàng câu hỏi"
-              className="xl:col-span-4 bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-col space-y-3"
+              className="xl:col-span-4 bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs flex flex-col space-y-3"
             >
               <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                 <div>
-                  <h3 className="text-sm font-bold text-[#082B52]">Ngân hàng câu hỏi</h3>
+                  <h3 className="text-sm font-bold text-[#102C54]">Ngân hàng câu hỏi</h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     {hasScopeSelection
                       ? `Đang lọc theo phạm vi đã chọn • Chỉ câu đã duyệt`
                       : `Toàn bộ ${activeSubjectInfo.name} ${draftGrade} • Chỉ câu đã duyệt`}
                   </p>
                 </div>
-                <span className="text-xs font-bold text-[#006BFF] bg-[#F3F8FF] border border-[#DCE8F7] px-2.5 py-1 rounded-lg shrink-0">
+                <span className="text-xs font-bold text-[#1769F4] bg-[#EAF3FF] border border-[#C7DCFA] px-2.5 py-1 rounded-lg shrink-0 tabular-nums">
                   {filteredBankQuestions.length} câu
                 </span>
               </div>
 
-              {/* Bộ lọc Dạng câu, Mức độ, Từ khóa */}
               <div className="space-y-2">
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1488,7 +1479,7 @@ export const CreateExamModal: React.FC = () => {
                     value={bankSearch}
                     onChange={e => setBankSearch(e.target.value)}
                     placeholder="Tìm mã câu, nội dung câu hỏi..."
-                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#DCE8F7] rounded-xl bg-[#FBFDFF] focus:outline-none focus:border-[#006BFF]"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#E2E8F0] rounded-xl bg-[#F6F9FD] focus:outline-none focus:border-[#1769F4]"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -1496,7 +1487,7 @@ export const CreateExamModal: React.FC = () => {
                     aria-label="Lọc theo dạng câu"
                     value={questionTypeFilter}
                     onChange={e => setQuestionTypeFilter(e.target.value as 'all' | QuestionType)}
-                    className="px-2.5 py-1.5 text-xs border border-[#DCE8F7] rounded-xl bg-white text-[#082B52]"
+                    className="px-2.5 py-1.5 text-xs border border-[#E2E8F0] rounded-xl bg-white text-[#102C54]"
                   >
                     <option value="all">Tất cả dạng câu</option>
                     <option value="single_choice">TNKQ 4 lựa chọn</option>
@@ -1508,7 +1499,7 @@ export const CreateExamModal: React.FC = () => {
                     aria-label="Lọc theo mức độ"
                     value={levelFilter}
                     onChange={e => setLevelFilter(e.target.value as 'all' | CognitiveLevel)}
-                    className="px-2.5 py-1.5 text-xs border border-[#DCE8F7] rounded-xl bg-white text-[#082B52]"
+                    className="px-2.5 py-1.5 text-xs border border-[#E2E8F0] rounded-xl bg-white text-[#102C54]"
                   >
                     <option value="all">Tất cả mức độ</option>
                     <option value="know">Nhận biết</option>
@@ -1519,13 +1510,13 @@ export const CreateExamModal: React.FC = () => {
 
                 {filteredBankQuestions.length > 0 && (
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-500">
+                    <span className="text-slate-500 tabular-nums">
                       Hiển thị {filteredBankQuestions.length} câu đủ điều kiện
                     </span>
                     <button
                       type="button"
                       onClick={handleAddAllFilteredToDraft}
-                      className="inline-flex items-center gap-1 font-bold text-[#006BFF] hover:underline"
+                      className="inline-flex items-center gap-1 font-bold text-[#1769F4] hover:underline whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       <CheckSquare className="w-3.5 h-3.5" />
                       <span>Thêm tất cả đang lọc</span>
@@ -1534,7 +1525,6 @@ export const CreateExamModal: React.FC = () => {
                 )}
               </div>
 
-              {/* Danh sách câu hỏi từ ngân hàng */}
               <div className="space-y-2.5 max-h-[540px] overflow-y-auto pr-1">
                 {filteredBankQuestions.map(q => {
                   const isAdded = draftQuestionIds.includes(q.id);
@@ -1543,15 +1533,15 @@ export const CreateExamModal: React.FC = () => {
                       key={q.id}
                       className={`p-3 rounded-xl border transition-all text-xs space-y-2 ${
                         isAdded
-                          ? 'border-[#006BFF] bg-[#F3F8FF]/60'
-                          : 'border-slate-200 bg-white hover:border-blue-300'
+                          ? 'border-[#1769F4] bg-[#EAF3FF]/60'
+                          : 'border-[#E2E8F0] bg-white hover:border-[#C7DCFA]'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-1.5 font-bold text-[#082B52]">
+                          <div className="flex flex-wrap items-center gap-1.5 font-bold text-[#102C54]">
                             <span className="font-mono">[{q.code}]</span>
-                            <span className="text-emerald-700">({q.points}đ)</span>
+                            <span className="text-[#0B6E4F] tabular-nums">({q.points}đ)</span>
                           </div>
                           <p className="text-[11px] text-slate-500 mt-0.5">
                             {QUESTION_TYPE_LABELS[q.type]} • {QUESTION_LEVEL_LABELS[q.level]}
@@ -1561,10 +1551,10 @@ export const CreateExamModal: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => toggleQuestionInDraft(q.id)}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 inline-flex items-center gap-1 transition-colors ${
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 inline-flex items-center gap-1 transition-colors whitespace-nowrap cursor-pointer ${
                             isAdded
-                              ? 'bg-emerald-100 text-emerald-800 hover:bg-red-100 hover:text-red-800'
-                              : 'bg-[#006BFF] text-white hover:bg-blue-600'
+                              ? 'bg-[#ECFDF7] text-[#0B6E4F] hover:bg-red-100 hover:text-red-800'
+                              : 'bg-[#1769F4] text-white hover:bg-[#1255CC]'
                           }`}
                         >
                           {isAdded ? (
@@ -1596,8 +1586,8 @@ export const CreateExamModal: React.FC = () => {
                 })}
 
                 {filteredBankQuestions.length === 0 && (
-                  <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                    <p className="font-bold text-slate-700">
+                  <div className="p-6 text-center text-xs text-slate-500 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0] space-y-1.5">
+                    <p className="font-bold text-[#102C54]">
                       Không có câu hỏi phù hợp với bộ lọc hiện tại
                     </p>
                     <p>
@@ -1608,17 +1598,17 @@ export const CreateExamModal: React.FC = () => {
               </div>
             </section>
 
-            {/* CỘT 3: ĐỀ ĐANG SOẠN (CHỈ HIỆN CÂU GIÁO VIÊN ĐÃ THÊM) */}
+            {/* CỘT 3: ĐỀ ĐANG SOẠN */}
             <section
               aria-label="Đề đang soạn"
-              className="xl:col-span-4 bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-col space-y-3"
+              className="xl:col-span-4 bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs flex flex-col space-y-3"
             >
               <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                 <div>
-                  <h3 className="text-sm font-bold text-[#082B52]">
+                  <h3 className="text-sm font-bold text-[#102C54] tabular-nums">
                     Đề đang soạn ({draftQuestions.length} câu)
                   </h3>
-                  <p className="text-[11px] text-emerald-700 font-bold mt-0.5">
+                  <p className="text-[11px] text-[#0B6E4F] font-bold mt-0.5 tabular-nums">
                     Tổng điểm: {draftTotalPoints.toFixed(2)} điểm
                   </p>
                 </div>
@@ -1628,9 +1618,9 @@ export const CreateExamModal: React.FC = () => {
                     type="button"
                     disabled={draftQuestions.length === 0}
                     onClick={() => setIsPreviewOpen(true)}
-                    className="px-2.5 py-1.5 rounded-lg border border-[#DCE8F7] bg-[#F3F8FF] text-[#082B52] text-xs font-bold hover:bg-blue-100 disabled:opacity-40 inline-flex items-center gap-1"
+                    className="px-2.5 py-1.5 rounded-lg border border-[#C7DCFA] bg-[#EAF3FF] text-[#102C54] text-xs font-bold hover:bg-blue-100 disabled:opacity-40 inline-flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-[#006BFF]" />
+                    <Eye className="w-3.5 h-3.5 text-[#1769F4]" />
                     <span>Xem trước</span>
                   </button>
                   {draftQuestions.length > 0 && (
@@ -1640,7 +1630,7 @@ export const CreateExamModal: React.FC = () => {
                         setDraftQuestionIds([]);
                         setLockedIds({});
                       }}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
                       title="Xóa toàn bộ câu khỏi đề đang soạn"
                       aria-label="Xóa toàn bộ câu khỏi đề đang soạn"
                     >
@@ -1650,27 +1640,25 @@ export const CreateExamModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Thống kê mức độ trong đề đang soạn */}
-              <div className="grid grid-cols-3 gap-1.5 text-center text-[11px] bg-[#F3F8FF] p-2 rounded-xl border border-[#DCE8F7]">
+              <div className="grid grid-cols-3 gap-1.5 text-center text-[11px] bg-[#EAF3FF] p-2 rounded-xl border border-[#C7DCFA] tabular-nums">
                 <div>
-                  <span className="text-slate-500 block">Nhận biết</span>
-                  <b className="text-[#082B52]">{draftStats.byLevel.know} câu</b>
+                  <span className="text-slate-600 block">Nhận biết</span>
+                  <b className="text-[#102C54]">{draftStats.byLevel.know} câu</b>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Thông hiểu</span>
-                  <b className="text-[#082B52]">{draftStats.byLevel.understand} câu</b>
+                  <span className="text-slate-600 block">Thông hiểu</span>
+                  <b className="text-[#102C54]">{draftStats.byLevel.understand} câu</b>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Vận dụng</span>
-                  <b className="text-[#082B52]">{draftStats.byLevel.apply} câu</b>
+                  <span className="text-slate-600 block">Vận dụng</span>
+                  <b className="text-[#102C54]">{draftStats.byLevel.apply} câu</b>
                 </div>
               </div>
 
-              {/* Danh sách câu đã thêm */}
               <div className="space-y-2 max-h-[430px] overflow-y-auto pr-1">
                 {draftQuestions.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300 space-y-1.5">
-                    <p className="font-bold text-[#082B52]">Đề đang soạn chưa có câu hỏi</p>
+                  <div className="p-6 text-center text-xs text-slate-500 bg-[#F6F9FD] rounded-xl border border-dashed border-slate-300 space-y-1.5">
+                    <p className="font-bold text-[#102C54]">Đề đang soạn chưa có câu hỏi</p>
                     <p>
                       Chọn phạm vi ở cột bên trái và bấm <b>&quot;Thêm vào đề&quot;</b> tại cột Ngân hàng câu hỏi.
                     </p>
@@ -1681,15 +1669,15 @@ export const CreateExamModal: React.FC = () => {
                     return (
                       <div
                         key={q.id}
-                        className="p-2.5 rounded-xl border border-[#DCE8F7] bg-[#FBFDFF] text-xs space-y-1.5"
+                        className="p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] text-xs space-y-1.5"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 font-bold text-[#082B52] min-w-0">
-                            <span className="px-1.5 py-0.5 rounded bg-[#006BFF] text-white text-[10px] shrink-0">
+                          <div className="flex items-center gap-1.5 font-bold text-[#102C54] min-w-0">
+                            <span className="px-1.5 py-0.5 rounded bg-[#1769F4] text-white text-[10px] shrink-0 tabular-nums">
                               Câu {idx + 1}
                             </span>
                             <span className="font-mono truncate">[{q.code}]</span>
-                            <span className="text-emerald-700 shrink-0">({q.points}đ)</span>
+                            <span className="text-[#0B6E4F] shrink-0 tabular-nums">({q.points}đ)</span>
                           </div>
 
                           <div className="flex items-center gap-1 shrink-0">
@@ -1697,7 +1685,7 @@ export const CreateExamModal: React.FC = () => {
                               type="button"
                               onClick={() => moveDraftQuestion(idx, -1)}
                               disabled={idx === 0}
-                              className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                              className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
                               title="Chuyển lên"
                               aria-label="Chuyển lên"
                             >
@@ -1707,7 +1695,7 @@ export const CreateExamModal: React.FC = () => {
                               type="button"
                               onClick={() => moveDraftQuestion(idx, 1)}
                               disabled={idx === draftQuestions.length - 1}
-                              className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                              className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
                               title="Chuyển xuống"
                               aria-label="Chuyển xuống"
                             >
@@ -1716,7 +1704,7 @@ export const CreateExamModal: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => toggleLock(q.id)}
-                              className={`p-1 rounded ${
+                              className={`p-1 rounded cursor-pointer ${
                                 isLocked
                                   ? 'text-amber-800 bg-amber-100'
                                   : 'text-slate-400 hover:text-slate-600'
@@ -1736,7 +1724,7 @@ export const CreateExamModal: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => toggleQuestionInDraft(q.id)}
-                              className="px-1.5 py-0.5 rounded text-red-600 hover:bg-red-50 font-bold"
+                              className="px-1.5 py-0.5 rounded text-red-600 hover:bg-red-50 font-bold whitespace-nowrap cursor-pointer"
                               title="Bỏ khỏi đề"
                             >
                               Bỏ
@@ -1753,12 +1741,11 @@ export const CreateExamModal: React.FC = () => {
                 )}
               </div>
 
-              {/* Nút Lưu đề & Chuyển sang bước Giao bài (chọn Lớp nhận bài ở Bước 2) */}
               <button
                 type="button"
                 onClick={handleSaveExamDraft}
                 disabled={isSavingExam || draftQuestions.length === 0}
-                className="w-full py-3 bg-[#006BFF] text-white text-sm font-bold rounded-xl shadow-xs hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+                className="w-full py-3 bg-[#1769F4] text-white text-sm font-bold rounded-xl shadow-xs hover:bg-[#1255CC] transition-colors flex items-center justify-center gap-2 disabled:opacity-40 whitespace-nowrap cursor-pointer"
               >
                 {isSavingExam ? (
                   <>
@@ -1783,15 +1770,15 @@ export const CreateExamModal: React.FC = () => {
       {workflowStep === 'assign' && (
         <div className="space-y-6">
           <form onSubmit={handlePublishAssignment} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7 bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-xs space-y-5">
+            <div className="lg:col-span-7 bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-xs space-y-5">
               <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                <h3 className="text-base font-bold text-[#082B52]">
+                <h3 className="text-base font-bold text-[#102C54]">
                   2. Giao đề đã lưu cho lớp học
                 </h3>
                 <button
                   type="button"
                   onClick={() => setWorkflowStep('compose')}
-                  className="text-xs font-bold text-[#006BFF] hover:underline inline-flex items-center gap-1"
+                  className="text-xs font-bold text-[#1769F4] hover:underline inline-flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Quay lại soạn đề mới</span>
@@ -1802,12 +1789,12 @@ export const CreateExamModal: React.FC = () => {
               <div>
                 <label
                   htmlFor="saved-exam-select"
-                  className="block text-xs font-bold text-slate-700 mb-1"
+                  className="block text-xs font-bold text-[#102C54] mb-1"
                 >
                   Đề kiểm tra đã lưu:
                 </label>
                 {assignableExams.length === 0 ? (
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                  <div className="p-3.5 rounded-xl bg-[#F6F9FD] border border-[#E2E8F0] text-xs text-slate-600">
                     Chưa có đề kiểm tra nào được lưu. Hãy hoàn tất soạn đề ở Bước 1 và bấm &quot;Lưu đề &amp; Sang bước giao bài&quot;.
                   </div>
                 ) : (
@@ -1816,7 +1803,7 @@ export const CreateExamModal: React.FC = () => {
                       id="saved-exam-select"
                       value={selectedExistingExamId}
                       onChange={e => setSelectedExistingExamId(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl font-semibold text-[#082B52]"
+                      className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl font-semibold text-[#102C54]"
                     >
                       {assignableExams.map(ex => (
                         <option key={ex.id} value={ex.id}>
@@ -1843,7 +1830,7 @@ export const CreateExamModal: React.FC = () => {
                 <div>
                   <label
                     htmlFor="target-class-select"
-                    className="block text-xs font-bold text-[#082B52] mb-1"
+                    className="block text-xs font-bold text-[#102C54] mb-1"
                   >
                     Lớp nhận bài:
                   </label>
@@ -1855,7 +1842,7 @@ export const CreateExamModal: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setCurrentView('admin_accounts')}
-                            className="font-bold underline text-[#006BFF] shrink-0"
+                            className="font-bold underline text-[#1769F4] shrink-0 whitespace-nowrap cursor-pointer"
                           >
                             Mở Quản lý lớp &amp; tài khoản
                           </button>
@@ -1875,7 +1862,7 @@ export const CreateExamModal: React.FC = () => {
                         id="target-class-select"
                         value={targetClassId}
                         onChange={e => setTargetClassId(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl font-semibold text-[#082B52]"
+                        className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl font-semibold text-[#102C54]"
                       >
                         {eligibleClasses.map(c => (
                           <option key={c.id} value={c.id}>
@@ -1897,7 +1884,7 @@ export const CreateExamModal: React.FC = () => {
                 <div>
                   <label
                     htmlFor="round-label-input"
-                    className="block text-xs font-bold text-slate-700 mb-1"
+                    className="block text-xs font-bold text-[#102C54] mb-1"
                   >
                     Nhãn đợt giao bài (giao nhiều đợt):
                   </label>
@@ -1907,7 +1894,7 @@ export const CreateExamModal: React.FC = () => {
                     value={roundLabel}
                     onChange={e => setRoundLabel(e.target.value)}
                     placeholder="Ví dụ: Đợt 1, Đợt kiểm tra bù..."
-                    className="w-full px-3 py-2 text-sm border border-[#DCE8F7] rounded-xl"
+                    className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl text-[#102C54]"
                   />
                 </div>
               </div>
@@ -1915,31 +1902,31 @@ export const CreateExamModal: React.FC = () => {
               {/* Thời gian mở / đóng / số lần làm */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-[#102C54] mb-1">
                     Thời gian mở đề:
                   </label>
                   <input
                     type="datetime-local"
                     value={openTimeLocal}
                     onChange={e => setOpenTimeLocal(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl"
+                    className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl tabular-nums"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-[#102C54] mb-1">
                     Hạn nộp bài:
                   </label>
                   <input
                     type="datetime-local"
                     value={closeTimeLocal}
                     onChange={e => setCloseTimeLocal(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl"
+                    className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl tabular-nums"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-[#102C54] mb-1">
                     Số lần làm bài:
                   </label>
                   <input
@@ -1948,14 +1935,14 @@ export const CreateExamModal: React.FC = () => {
                     max={10}
                     value={attemptsAllowed}
                     onChange={e => setAttemptsAllowed(Math.max(1, Number(e.target.value) || 1))}
-                    className="w-full px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl"
+                    className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl tabular-nums"
                   />
                 </div>
               </div>
 
               {/* Cấu hình chống gian lận */}
               <div className="space-y-2.5 pt-2 border-t border-slate-100">
-                <span className="text-xs font-bold text-slate-700 block">
+                <span className="text-xs font-bold text-[#102C54] block">
                   Cấu hình chống gian lận &amp; Trộn đề:
                 </span>
 
@@ -1964,7 +1951,7 @@ export const CreateExamModal: React.FC = () => {
                     type="checkbox"
                     checked={shuffleQuestions}
                     onChange={e => setShuffleQuestions(e.target.checked)}
-                    className="w-4 h-4 text-[#006BFF] rounded-sm"
+                    className="w-4 h-4 accent-[#1769F4] rounded-sm"
                   />
                   <span>
                     <b>Xáo trộn thứ tự câu hỏi</b> ngẫu nhiên theo từng học sinh
@@ -1976,7 +1963,7 @@ export const CreateExamModal: React.FC = () => {
                     type="checkbox"
                     checked={shuffleOptions}
                     onChange={e => setShuffleOptions(e.target.checked)}
-                    className="w-4 h-4 text-[#006BFF] rounded-sm"
+                    className="w-4 h-4 accent-[#1769F4] rounded-sm"
                   />
                   <span>
                     <b>Xáo trộn thứ tự các phương án A, B, C, D</b>
@@ -1988,7 +1975,7 @@ export const CreateExamModal: React.FC = () => {
                     type="checkbox"
                     checked={showSolutionAfterSubmit}
                     onChange={e => setShowSolutionAfterSubmit(e.target.checked)}
-                    className="w-4 h-4 text-[#006BFF] rounded-sm"
+                    className="w-4 h-4 accent-[#1769F4] rounded-sm"
                   />
                   <span>
                     Cho phép học sinh <b>xem lời giải chi tiết ngay sau khi nộp</b>
@@ -2000,7 +1987,7 @@ export const CreateExamModal: React.FC = () => {
                     type="checkbox"
                     checked={isComputerLabMode}
                     onChange={e => setIsComputerLabMode(e.target.checked)}
-                    className="w-4 h-4 text-[#006BFF] rounded-sm"
+                    className="w-4 h-4 accent-[#1769F4] rounded-sm"
                   />
                   <span>
                     <b>Chế độ phòng máy:</b> Tự động đăng xuất tài khoản sau khi nộp bài
@@ -2010,13 +1997,13 @@ export const CreateExamModal: React.FC = () => {
             </div>
 
             {/* Tóm tắt đề & Nút phát hành */}
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-xs flex flex-col justify-between space-y-5">
+            <div className="lg:col-span-5 bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-xs flex flex-col justify-between space-y-5">
               <div className="space-y-3">
-                <h3 className="text-base font-bold text-[#082B52] border-b border-slate-100 pb-2">
+                <h3 className="text-base font-bold text-[#102C54] border-b border-slate-100 pb-2">
                   Tóm tắt đề kiểm tra sẽ giao
                 </h3>
                 {selectedSavedExam ? (
-                  <div className="p-4 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] space-y-2 text-xs text-[#082B52]">
+                  <div className="p-4 rounded-xl bg-[#EAF3FF] border border-[#C7DCFA] space-y-2 text-xs text-[#102C54] tabular-nums">
                     <p className="font-bold text-sm">{selectedSavedExam.title}</p>
                     <p>
                       Mã đề: <b className="font-mono">{selectedSavedExam.code}</b>
@@ -2039,7 +2026,7 @@ export const CreateExamModal: React.FC = () => {
                       Thời lượng: <b>{selectedSavedExam.durationMinutes} phút</b>
                     </p>
                     {selectedClass && (
-                      <p className="pt-1 border-t border-blue-200">
+                      <p className="pt-1 border-t border-[#C7DCFA]">
                         Lớp nhận bài: <b>{selectedClass.name}</b> ({selectedClass.studentCount} HS)
                       </p>
                     )}
@@ -2052,7 +2039,7 @@ export const CreateExamModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={isPublishing || !selectedClass || !selectedSavedExam}
-                className="w-full py-3 bg-[#006BFF] text-white font-bold rounded-xl shadow-xs hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+                className="w-full py-3 bg-[#1769F4] text-white font-bold rounded-xl shadow-xs hover:bg-[#1255CC] transition-colors flex items-center justify-center gap-2 disabled:opacity-40 whitespace-nowrap cursor-pointer"
               >
                 {isPublishing ? (
                   <>
@@ -2071,10 +2058,10 @@ export const CreateExamModal: React.FC = () => {
 
           {/* Danh sách lượt đã giao cho lớp */}
           {selectedClass && (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-3">
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-[#082B52] flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#006BFF]" />
+                <h3 className="text-sm font-bold text-[#102C54] flex items-center gap-2 tabular-nums">
+                  <Users className="w-4 h-4 text-[#1769F4]" />
                   <span>
                     Các lượt bài đã giao cho {selectedClass.name} ({classAssignments.length})
                   </span>
@@ -2087,18 +2074,18 @@ export const CreateExamModal: React.FC = () => {
                   {classAssignments.map(asg => (
                     <div
                       key={asg.id}
-                      className="p-3.5 rounded-xl border border-[#DCE8F7] bg-[#FBFDFF] text-xs space-y-1"
+                      className="p-3.5 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] text-xs space-y-1"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-bold text-[#082B52] truncate">{asg.examTitle}</span>
+                        <span className="font-bold text-[#102C54] truncate">{asg.examTitle}</span>
                         {asg.roundLabel && (
-                          <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#006BFF] font-bold shrink-0">
+                          <span className="px-2 py-0.5 rounded-md bg-[#EAF3FF] text-[#1769F4] font-bold shrink-0">
                             {asg.roundLabel}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <CalendarClock className="w-3.5 h-3.5 text-[#006BFF]" />
+                      <div className="flex items-center gap-1.5 text-slate-600 tabular-nums">
+                        <CalendarClock className="w-3.5 h-3.5 text-[#1769F4]" />
                         <span>
                           Hạn nộp: {formatAssignmentDeadline(asg.closeTime) || asg.closeTime}
                         </span>
@@ -2115,22 +2102,22 @@ export const CreateExamModal: React.FC = () => {
       {/* Modal xác nhận khi đổi Khối/Môn/Bộ sách lúc Đề đang soạn đã có câu */}
       {pendingContextChange && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 backdrop-blur-xs p-4 font-serif"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 backdrop-blur-xs p-4 font-edtech"
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-switch-title"
         >
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] shadow-2xl max-w-md w-full p-6 space-y-4">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-start gap-3">
               <div className="p-2.5 rounded-xl bg-amber-100 text-amber-800 shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h3 id="confirm-switch-title" className="text-base font-bold text-[#082B52]">
+                <h3 id="confirm-switch-title" className="text-base font-bold text-[#102C54]">
                   Xác nhận thay đổi cấu hình đề
                 </h3>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Đề đang soạn hiện có <b>{draftQuestionIds.length} câu hỏi</b>. Khi đổi{' '}
+                  Đề đang soạn hiện có <b className="tabular-nums">{draftQuestionIds.length} câu hỏi</b>. Khi đổi{' '}
                   {pendingContextChange.type === 'grade'
                     ? `sang Khối ${pendingContextChange.nextGrade}`
                     : pendingContextChange.type === 'subject'
@@ -2145,14 +2132,14 @@ export const CreateExamModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setPendingContextChange(null)}
-                className="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                className="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 whitespace-nowrap shrink-0 cursor-pointer"
               >
                 Giữ đề hiện tại
               </button>
               <button
                 type="button"
                 onClick={() => applyContextSwitch(pendingContextChange)}
-                className="px-4 py-2 rounded-xl bg-[#006BFF] text-white text-xs font-bold hover:bg-blue-600"
+                className="px-4 py-2 rounded-xl bg-[#1769F4] text-white text-xs font-bold hover:bg-[#1255CC] whitespace-nowrap shrink-0 cursor-pointer"
               >
                 Xác nhận đổi &amp; Xóa câu đã chọn
               </button>

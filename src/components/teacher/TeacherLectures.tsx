@@ -598,9 +598,9 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
   const getItemTypeLabel = (type: string): { label: string; colorClass: string } => {
     switch (type) {
       case 'lesson':
-        return { label: 'Bài học', colorClass: 'text-[#1769C2]' };
+        return { label: 'Bài học', colorClass: 'text-[#1769F4]' };
       case 'practice':
-        return { label: 'Luyện tập', colorClass: 'text-emerald-700' };
+        return { label: 'Luyện tập', colorClass: 'text-[#0B6E4F]' };
       case 'chapter_review':
         return { label: 'Cuối chương', colorClass: 'text-purple-700' };
       case 'activity':
@@ -617,17 +617,17 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
     return (
       <div
         ref={containerRef}
-        className={`flex flex-col bg-slate-900 text-slate-100 font-serif ${
-          isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen' : 'h-[calc(100vh-80px)] rounded-xl overflow-hidden border border-[#CFDCED]'
+        className={`flex flex-col bg-slate-900 text-slate-100 font-edtech ${
+          isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen' : 'h-[calc(100vh-80px)] rounded-xl overflow-hidden border border-[#E2E8F0]'
         }`}
       >
         {/* Top Control Bar */}
-        <div className="bg-[#0F2D52] border-b border-blue-900/60 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-md shrink-0">
+        <div className="bg-[#102C54] border-b border-white/10 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-md shrink-0">
           {/* Left: Back & Title */}
           <div className="flex items-center space-x-3 min-w-0">
             <button
               onClick={() => setSelectedLecture(null)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0 cursor-pointer"
               title="Quay lại danh sách bài giảng"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -661,7 +661,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
                 className="flex items-center space-x-1.5 text-emerald-300"
                 title={verification.message}
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <CheckCircle2 className="w-4 h-4 text-[#12A879]" />
                 <span className="font-medium">
                   {verification.foundId
                     ? `Học liệu chuẩn (${verification.foundId})`
@@ -687,7 +687,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
                 aria-label="Chuyển nhanh tới phần bài giảng"
                 onChange={(e) => handleScrollToSection(Number(e.target.value))}
                 defaultValue=""
-                className="bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg px-2.5 py-1.5 border border-white/15 focus:outline-hidden focus:ring-1 focus:ring-blue-400 cursor-pointer max-w-[120px] sm:max-w-[160px] truncate"
+                className="bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg px-2.5 py-1.5 border border-white/15 focus:outline-hidden focus:ring-1 focus:ring-[#1769F4] cursor-pointer max-w-[120px] sm:max-w-[160px] truncate"
               >
                 <option value="" disabled className="text-slate-900 bg-white">
                   Chuyển phần...
@@ -709,7 +709,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
                 setFontSizePercent(nextVal);
                 applyFontScaleToIframe(nextVal);
               }}
-              className="flex items-center space-x-1 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/15 text-xs transition-colors cursor-pointer"
+              className="flex items-center space-x-1 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/15 text-xs transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               title="Thay đổi cỡ chữ trình chiếu"
             >
               <Type className="w-3.5 h-3.5" />
@@ -719,9 +719,9 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
             {/* Toggle Solutions */}
             <button
               onClick={handleToggleSolutions}
-              className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                 solutionsExpanded
-                  ? 'bg-amber-500/25 text-amber-200 border border-amber-400/50'
+                  ? 'bg-[#FFCC33]/20 text-[#FFCC33] border border-[#FFCC33]/50'
                   : 'bg-white/10 hover:bg-white/20 text-white'
               }`}
               title={solutionsExpanded ? 'Thu gọn lời giải' : 'Mở tất cả lời giải và gợi ý'}
@@ -734,7 +734,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
             <button
               onClick={handleReloadIframe}
-              className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors shrink-0 cursor-pointer"
               title="Tải lại học liệu"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -742,7 +742,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
             <button
               onClick={() => window.open(selectedLecture.htmlUrl, '_blank')}
-              className="flex items-center space-x-1 px-2.5 py-1.5 bg-[#1769C2] hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
+              className="flex items-center space-x-1 px-2.5 py-1.5 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-lg text-xs font-bold transition-all shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
               title="Mở bài giảng trong tab trình duyệt mới"
             >
               <ExternalLink className="w-3.5 h-3.5" />
@@ -751,7 +751,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
             <button
               onClick={handleToggleFullscreen}
-              className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors shrink-0 cursor-pointer"
               title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình trình chiếu'}
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -768,7 +768,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
             </div>
             <button
               onClick={() => window.open(selectedLecture.htmlUrl, '_blank')}
-              className="underline hover:text-white font-bold shrink-0 cursor-pointer"
+              className="underline hover:text-white font-bold whitespace-nowrap shrink-0 cursor-pointer"
             >
               Mở đường dẫn trực tiếp
             </button>
@@ -803,9 +803,9 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
     searchQuery.trim() !== '';
 
   return (
-    <div className="space-y-6 pb-12 font-serif">
+    <div className="space-y-6 pb-12 font-edtech">
       {/* 1. Dynamic Library Banner */}
-      <div className="bg-gradient-to-r from-[#0F2D52] via-[#134278] to-[#1769C2] rounded-2xl p-6 sm:p-8 text-white shadow-md">
+      <div className="bg-gradient-to-r from-[#102C54] via-[#134278] to-[#1769F4] rounded-2xl p-6 sm:p-8 text-white shadow-md">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2.5 max-w-3xl">
             <p className="text-xs sm:text-sm font-medium text-blue-200 tracking-wide">
@@ -855,7 +855,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
       </div>
 
       {/* 2. Cascading Filters Panel (Khối lớp -> Môn học -> Tập sách -> Chương/Chủ đề -> Bài giảng) */}
-      <div className="bg-white rounded-2xl border border-[#CFDCED] p-4 sm:p-5 shadow-xs space-y-4">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 shadow-xs space-y-4">
         <div
           className={`grid grid-cols-1 sm:grid-cols-2 ${
             showVolumeFilter ? 'lg:grid-cols-5' : 'lg:grid-cols-4'
@@ -863,14 +863,14 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
         >
           {/* 1. Khối lớp */}
           <div className="space-y-1">
-            <label htmlFor="filter-grade" className="block text-xs font-bold text-[#0F2D52]">
+            <label htmlFor="filter-grade" className="block text-xs font-bold text-[#102C54]">
               Khối lớp
             </label>
             <select
               id="filter-grade"
               value={selectedGrade}
               onChange={(e) => handleGradeChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-[#F6FAFF] border border-[#CFDCED] rounded-xl text-[#0F2D52] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769C2] cursor-pointer"
+              className="w-full px-3 py-2 text-sm bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl text-[#102C54] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769F4] cursor-pointer"
             >
               <option value="all">Tất cả khối</option>
               {availableGrades.map((g) => (
@@ -883,14 +883,14 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
           {/* 2. Môn học */}
           <div className="space-y-1">
-            <label htmlFor="filter-subject" className="block text-xs font-bold text-[#0F2D52]">
+            <label htmlFor="filter-subject" className="block text-xs font-bold text-[#102C54]">
               Môn học
             </label>
             <select
               id="filter-subject"
               value={selectedSubject}
               onChange={(e) => handleSubjectChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-[#F6FAFF] border border-[#CFDCED] rounded-xl text-[#0F2D52] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769C2] cursor-pointer"
+              className="w-full px-3 py-2 text-sm bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl text-[#102C54] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769F4] cursor-pointer"
             >
               <option value="all">Tất cả môn</option>
               {availableSubjects.map((sub) => (
@@ -904,14 +904,14 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
           {/* 3. Tập sách (Ẩn khi môn học không chia tập) */}
           {showVolumeFilter && (
             <div className="space-y-1">
-              <label htmlFor="filter-volume" className="block text-xs font-bold text-[#0F2D52]">
+              <label htmlFor="filter-volume" className="block text-xs font-bold text-[#102C54]">
                 Tập sách
               </label>
               <select
                 id="filter-volume"
                 value={selectedVolume}
                 onChange={(e) => handleVolumeChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-[#F6FAFF] border border-[#CFDCED] rounded-xl text-[#0F2D52] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769C2] cursor-pointer"
+                className="w-full px-3 py-2 text-sm bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl text-[#102C54] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769F4] cursor-pointer"
               >
                 <option value="all">Tất cả tập</option>
                 {availableVolumes.map((v) => (
@@ -925,14 +925,14 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
           {/* 4. Chương/Chủ đề */}
           <div className="space-y-1">
-            <label htmlFor="filter-chapter" className="block text-xs font-bold text-[#0F2D52]">
+            <label htmlFor="filter-chapter" className="block text-xs font-bold text-[#102C54]">
               Chương/Chủ đề
             </label>
             <select
               id="filter-chapter"
               value={selectedChapter}
               onChange={(e) => handleChapterChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-[#F6FAFF] border border-[#CFDCED] rounded-xl text-[#0F2D52] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769C2] cursor-pointer truncate"
+              className="w-full px-3 py-2 text-sm bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl text-[#102C54] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769F4] cursor-pointer truncate"
             >
               <option value="all">Tất cả</option>
               {availableChapters.map((ch) => (
@@ -946,14 +946,14 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
           {/* 5. Bài giảng */}
           <div className="space-y-1">
-            <label htmlFor="filter-lesson" className="block text-xs font-bold text-[#0F2D52]">
+            <label htmlFor="filter-lesson" className="block text-xs font-bold text-[#102C54]">
               Bài giảng
             </label>
             <select
               id="filter-lesson"
               value={selectedLessonId}
               onChange={(e) => handleLessonChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-[#F6FAFF] border border-[#CFDCED] rounded-xl text-[#0F2D52] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769C2] cursor-pointer truncate"
+              className="w-full px-3 py-2 text-sm bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl text-[#102C54] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769F4] cursor-pointer truncate"
             >
               <option value="all">Tất cả</option>
               {itemsAfterChapter.map((item) => (
@@ -975,12 +975,12 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm theo tên bài, số bài hoặc mã bài..."
-              className="w-full pl-10 pr-12 py-2 text-sm bg-[#F6FAFF] border border-[#CFDCED] rounded-xl text-[#0F2D52] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769C2]"
+              className="w-full pl-10 pr-12 py-2 text-sm bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl text-[#102C54] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 hover:text-[#0F2D52] cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 hover:text-[#102C54] cursor-pointer"
               >
                 Xóa
               </button>
@@ -992,10 +992,10 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
             <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 rounded-xl text-xs">
               <button
                 onClick={() => setActiveTypeFilter('all')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer tabular-nums ${
+                className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer tabular-nums ${
                   effectiveTypeFilter === 'all'
-                    ? 'bg-white text-[#0F2D52] font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-[#0F2D52]'
+                    ? 'bg-white text-[#102C54] font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-[#102C54]'
                 }`}
               >
                 Tất cả ({stats.total})
@@ -1003,10 +1003,10 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
               {stats.lesson > 0 && (
                 <button
                   onClick={() => setActiveTypeFilter('lesson')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer tabular-nums ${
+                  className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer tabular-nums ${
                     effectiveTypeFilter === 'lesson'
-                      ? 'bg-white text-[#1769C2] font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-[#0F2D52]'
+                      ? 'bg-white text-[#1769F4] font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-[#102C54]'
                   }`}
                 >
                   Bài học ({stats.lesson})
@@ -1015,10 +1015,10 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
               {stats.practice > 0 && (
                 <button
                   onClick={() => setActiveTypeFilter('practice')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer tabular-nums ${
+                  className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer tabular-nums ${
                     effectiveTypeFilter === 'practice'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-[#0F2D52]'
+                      ? 'bg-white text-[#0B6E4F] font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-[#102C54]'
                   }`}
                 >
                   Luyện tập ({stats.practice})
@@ -1027,10 +1027,10 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
               {stats.chapterReview > 0 && (
                 <button
                   onClick={() => setActiveTypeFilter('chapter_review')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer tabular-nums ${
+                  className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer tabular-nums ${
                     effectiveTypeFilter === 'chapter_review'
                       ? 'bg-white text-purple-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-[#0F2D52]'
+                      : 'text-slate-600 hover:text-[#102C54]'
                   }`}
                 >
                   Cuối chương ({stats.chapterReview})
@@ -1039,10 +1039,10 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
               {stats.activity > 0 && (
                 <button
                   onClick={() => setActiveTypeFilter('activity')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer tabular-nums ${
+                  className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer tabular-nums ${
                     effectiveTypeFilter === 'activity'
                       ? 'bg-white text-amber-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-[#0F2D52]'
+                      : 'text-slate-600 hover:text-[#102C54]'
                   }`}
                 >
                   Trải nghiệm ({stats.activity})
@@ -1057,12 +1057,12 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-slate-600 px-1">
           <span className="tabular-nums">
-            Hiển thị <strong className="text-[#0F2D52]">{filteredLectures.length}</strong> bài giảng phù hợp
+            Hiển thị <strong className="text-[#102C54]">{filteredLectures.length}</strong> bài giảng phù hợp
           </span>
           {hasAnyActiveFilter && (
             <button
               onClick={handleResetAllFilters}
-              className="inline-flex items-center space-x-1 text-xs font-semibold text-[#1769C2] hover:underline cursor-pointer"
+              className="inline-flex items-center space-x-1 text-xs font-semibold text-[#1769F4] hover:underline whitespace-nowrap shrink-0 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Đặt lại bộ lọc</span>
@@ -1072,9 +1072,9 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
         {/* Empty State */}
         {filteredLectures.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#CFDCED] p-10 sm:p-12 text-center space-y-3">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-10 sm:p-12 text-center space-y-3">
             <BookOpen className="w-12 h-12 text-slate-300 mx-auto" />
-            <h3 className="text-base font-bold text-[#0F2D52]">
+            <h3 className="text-base font-bold text-[#102C54]">
               Không tìm thấy bài giảng phù hợp
             </h3>
             <p className="text-sm text-slate-500 max-w-md mx-auto">
@@ -1082,7 +1082,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
             </p>
             <button
               onClick={handleResetAllFilters}
-              className="px-4 py-2 bg-[#EAF5FF] text-[#1769C2] text-xs font-bold rounded-xl hover:bg-blue-100 transition-colors cursor-pointer"
+              className="px-4 py-2 bg-[#EAF3FF] text-[#1769F4] text-xs font-bold rounded-xl hover:bg-[#C7DCFA]/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               Đặt lại bộ lọc
             </button>
@@ -1094,7 +1094,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-2xl border border-[#CFDCED] hover:border-[#1769C2] p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                  className="bg-white rounded-2xl border border-[#E2E8F0] hover:border-[#1769F4] p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
                 >
                   <div className="space-y-2.5">
                     {/* Top Kicker: Course + Item Type */}
@@ -1109,7 +1109,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-base sm:text-lg font-bold text-[#0F2D52] group-hover:text-[#1769C2] transition-colors leading-snug">
+                    <h3 className="text-base sm:text-lg font-bold text-[#102C54] group-hover:text-[#1769F4] transition-colors leading-snug">
                       {item.lessonLabel}
                     </h3>
 
@@ -1137,7 +1137,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
                     <div className="flex items-center space-x-1.5 shrink-0">
                       <button
                         onClick={() => window.open(item.htmlUrl, '_blank')}
-                        className="p-2 text-slate-500 hover:text-[#1769C2] hover:bg-[#EAF5FF] rounded-lg transition-colors cursor-pointer"
+                        className="p-2 text-slate-500 hover:text-[#1769F4] hover:bg-[#EAF3FF] rounded-lg transition-colors shrink-0 cursor-pointer"
                         title="Mở trong tab riêng"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -1149,7 +1149,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
                           setVerification({ status: 'checking', message: 'Đang chuẩn bị học liệu...' });
                           setSolutionsExpanded(false);
                         }}
-                        className="px-3.5 py-2 bg-[#1769C2] hover:bg-[#12549e] text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-xs cursor-pointer"
+                        className="px-3.5 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         <Presentation className="w-3.5 h-3.5" />
                         <span>Mở bài giảng</span>

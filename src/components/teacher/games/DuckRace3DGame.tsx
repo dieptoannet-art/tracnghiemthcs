@@ -1083,6 +1083,8 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
       if (
         !isSupabaseConfigured ||
         selectedSourceKey === 'guest_mode' ||
+        selectedSourceKey.startsWith('demo-') ||
+        teacherId.startsWith('demo_') ||
         teacherId.startsWith('gsess_') ||
         teacherId.startsWith('guest_')
       ) {

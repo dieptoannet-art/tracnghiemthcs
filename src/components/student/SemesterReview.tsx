@@ -492,22 +492,23 @@ export const SemesterReview: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-serif">
+    <div className="space-y-6 font-edtech">
       {/* 1. HEADER CHÍNH */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#006BFF] font-bold text-xs">
-              GDPT 2018 • Khối {selectedGrade}
+          <div className="flex items-center space-x-2 text-xs">
+            <span className="font-bold text-[#1769F4] tabular-nums">
+              GDPT 2018 · Khối {selectedGrade}
             </span>
-            <span className="text-xs text-slate-500">Môn: <b>{selectedSubject}</b></span>
+            <span className="text-slate-400" aria-hidden="true">·</span>
+            <span className="text-slate-600">Môn: <b className="text-[#102C54]">{selectedSubject}</b></span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#082B52] mt-1 flex items-center space-x-2.5">
-            <GraduationCap className="w-8 h-8 text-[#006BFF]" />
-            <span>Ôn tập & Thi thử Học kỳ</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#102C54] tracking-tight mt-1 flex items-center space-x-2.5">
+            <GraduationCap className="w-8 h-8 text-[#1769F4] shrink-0" />
+            <span>Ôn tập &amp; Thi thử Học kỳ</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Bộ đề cương tổng hợp, ma trận kiểm tra và phòng thi thử trực tuyến chuẩn cấu trúc Bộ GD&ĐT
+            Bộ đề cương tổng hợp, ma trận kiểm tra và phòng thi thử trực tuyến chuẩn cấu trúc Bộ GD&amp;ĐT
           </p>
         </div>
 
@@ -516,7 +517,7 @@ export const SemesterReview: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenStudyOutline}
-              className="px-3.5 py-2 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#006BFF] rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="px-3.5 py-2 border border-[#C7DCFA] bg-[#EAF3FF] hover:bg-[#DCEBFF] text-[#1769F4] rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0"
             >
               <FileText className="w-4 h-4" />
               <span>Xem đề cương</span>
@@ -524,10 +525,10 @@ export const SemesterReview: React.FC = () => {
 
             <button
               onClick={() => setCurrentView('student_practice')}
-              className="px-3.5 py-2 border border-[#DCE8F7] bg-white text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50 flex items-center space-x-1.5 transition-colors"
+              className="px-3.5 py-2 border border-[#E2E8F0] bg-white text-[#102C54] rounded-xl text-xs font-semibold hover:bg-[#F6F9FD] flex items-center space-x-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <BookOpen className="w-4 h-4 text-blue-600" />
-              <span>Luyện theo bài & chương</span>
+              <BookOpen className="w-4 h-4 text-[#1769F4]" />
+              <span>Luyện theo bài &amp; chương</span>
             </button>
           </div>
           {noOutlineNotice && (
@@ -553,10 +554,10 @@ export const SemesterReview: React.FC = () => {
               setSelectedPeriod(item.id as ExamPeriod);
               setIsExamRunning(false);
             }}
-            className={`p-3.5 rounded-2xl border text-left transition-all ${
+            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
               selectedPeriod === item.id
-                ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-300'
-                : 'bg-white text-slate-700 border-[#DCE8F7] hover:border-blue-300 hover:bg-[#F3F8FF]'
+                ? 'bg-[#1769F4] text-white border-[#1769F4] shadow-sm ring-2 ring-[#1769F4]/25'
+                : 'bg-white text-slate-700 border-[#E2E8F0] hover:border-[#1769F4]/50 hover:bg-[#EAF3FF]'
             }`}
           >
             <div className="flex items-center space-x-1.5 text-xs font-bold">
@@ -571,9 +572,9 @@ export const SemesterReview: React.FC = () => {
       </div>
 
       {/* 3. BỘ LỌC KHỐI LỚP & MÔN HỌC */}
-      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-bold text-[#082B52]">Khối lớp:</span>
+          <span className="font-bold text-[#102C54]">Khối lớp:</span>
           {['6', '7', '8', '9'].map(g => (
             <button
               key={g}
@@ -582,10 +583,10 @@ export const SemesterReview: React.FC = () => {
                 setSelectedGrade(g);
                 setIsExamRunning(false);
               }}
-              className={`px-3 py-1.5 rounded-xl font-bold border transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-bold border transition-all whitespace-nowrap cursor-pointer ${
                 selectedGrade === g
-                  ? 'bg-[#006BFF] text-white border-[#006BFF] shadow-xs'
-                  : 'bg-[#F3F8FF] text-slate-600 border-[#DCE8F7] hover:bg-slate-100'
+                  ? 'bg-[#1769F4] text-white border-[#1769F4] shadow-xs'
+                  : 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA] hover:bg-[#DCEBFF]'
               }`}
             >
               Lớp {g}
@@ -594,21 +595,21 @@ export const SemesterReview: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-bold text-[#082B52]">Môn học:</span>
+          <span className="font-bold text-[#102C54]">Môn học:</span>
           <select
             value={selectedSubject}
             onChange={e => {
               setSelectedSubject(e.target.value);
               setIsExamRunning(false);
             }}
-            className="px-3 py-1.5 rounded-xl border border-[#DCE8F7] bg-white text-xs font-bold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
+            className="px-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-white text-xs font-bold text-[#102C54] focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
           >
             <option value="Toán">Toán học</option>
             <option value="Tin học">Tin học</option>
             <option value="Khoa học tự nhiên">Khoa học tự nhiên</option>
             <option value="Ngữ văn">Ngữ văn</option>
             <option value="Tiếng Anh">Tiếng Anh</option>
-            <option value="Lịch sử và Địa lí">Lịch sử & Địa lí</option>
+            <option value="Lịch sử và Địa lí">Lịch sử &amp; Địa lí</option>
             <option value="Công nghệ">Công nghệ</option>
             <option value="Giáo dục công dân">GDCD</option>
           </select>
@@ -617,10 +618,10 @@ export const SemesterReview: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsConfigModalOpen(true)}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-bold text-xs transition-all shadow-2xs cursor-pointer"
+            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#EAF3FF] hover:bg-[#DCEBFF] text-[#1769F4] border border-[#C7DCFA] rounded-xl font-bold text-xs transition-all shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
             title="Tùy chỉnh số lượng câu hỏi và ma trận đề thi"
           >
-            <Sliders className="w-3.5 h-3.5 text-indigo-600" />
+            <Sliders className="w-3.5 h-3.5 text-[#1769F4]" />
             <span>Tùy chỉnh số câu ({selectedSubject})</span>
           </button>
         </div>
@@ -628,13 +629,13 @@ export const SemesterReview: React.FC = () => {
 
       {/* 4. TABS PHÂN HỆ ÔN TẬP HỌC KỲ */}
       {!isExamRunning && (
-        <div className="flex border-b border-[#DCE8F7] space-x-4 text-xs font-bold">
+        <div className="flex border-b border-[#E2E8F0] space-x-4 text-xs font-bold overflow-x-auto">
           <button
             onClick={() => setActiveTab('mock_exam')}
-            className={`pb-3 border-b-2 flex items-center space-x-1.5 transition-colors ${
+            className={`pb-3 border-b-2 flex items-center space-x-1.5 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'mock_exam'
-                ? 'border-[#006BFF] text-[#006BFF]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-[#1769F4] text-[#1769F4]'
+                : 'border-transparent text-slate-500 hover:text-[#102C54]'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -643,10 +644,10 @@ export const SemesterReview: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('curriculum_guide')}
-            className={`pb-3 border-b-2 flex items-center space-x-1.5 transition-colors ${
+            className={`pb-3 border-b-2 flex items-center space-x-1.5 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'curriculum_guide'
-                ? 'border-[#006BFF] text-[#006BFF]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-[#1769F4] text-[#1769F4]'
+                : 'border-transparent text-slate-500 hover:text-[#102C54]'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -655,14 +656,14 @@ export const SemesterReview: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('matrix_spec')}
-            className={`pb-3 border-b-2 flex items-center space-x-1.5 transition-colors ${
+            className={`pb-3 border-b-2 flex items-center space-x-1.5 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'matrix_spec'
-                ? 'border-[#006BFF] text-[#006BFF]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-[#1769F4] text-[#1769F4]'
+                : 'border-transparent text-slate-500 hover:text-[#102C54]'
             }`}
           >
             <BarChart3 className="w-4 h-4" />
-            <span>3. Ma trận & Đặc tả GDPT 2018</span>
+            <span>3. Ma trận &amp; Đặc tả GDPT 2018</span>
           </button>
         </div>
       )}
@@ -672,27 +673,27 @@ export const SemesterReview: React.FC = () => {
         activeTab === 'mock_exam' ? (
           /* TAB 1: PHÒNG THI THỬ HỌC KỲ */
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg space-y-4">
+            <div className="bg-gradient-to-r from-[#102C54] via-[#133A6E] to-[#1769F4] rounded-3xl p-6 sm:p-8 text-white shadow-lg space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-2 max-w-xl">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-semibold backdrop-blur-xs">
-                      Đề thi thử chuẩn cấu trúc GDPT 2018 • {structureConfig.durationMinutes} phút
+                    <span className="text-xs font-semibold text-blue-100 tabular-nums">
+                      Đề thi thử chuẩn cấu trúc GDPT 2018 · {structureConfig.durationMinutes} phút
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsConfigModalOpen(true)}
-                      className="px-2.5 py-0.5 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-full text-[11px] font-bold shadow-xs transition-colors inline-flex items-center space-x-1 cursor-pointer"
+                      className="px-2.5 py-1 bg-[#FFCC33] hover:bg-[#FFD95E] text-[#102C54] rounded-lg text-[11px] font-bold shadow-xs transition-colors inline-flex items-center space-x-1 cursor-pointer whitespace-nowrap"
                     >
-                      <Sliders className="w-3 h-3 text-slate-900" />
+                      <Sliders className="w-3 h-3 text-[#102C54]" />
                       <span>Tùy chỉnh số câu</span>
                     </button>
                   </div>
-                  <h3 className="text-2xl sm:text-3xl font-bold">
+                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">
                     Đề kiểm tra {formatPeriodName(selectedPeriod)}
                   </h3>
                   <p className="text-blue-100 text-xs sm:text-sm leading-relaxed">
-                    Môn: <b>{selectedSubject}</b> • Lớp <b>{selectedGrade}</b> • Cấu trúc gồm:{' '}
+                    Môn: <b>{selectedSubject}</b> · Lớp <b>{selectedGrade}</b> · Cấu trúc gồm:{' '}
                     <b>{structureConfig.singleChoiceCount} câu Trắc nghiệm ABCD</b> ({(structureConfig.singleChoicePoints * 10).toFixed(0)}%),{' '}
                     <b>{structureConfig.trueFalseCount} câu Đúng - Sai 4 ý</b> ({(structureConfig.trueFalsePoints * 10).toFixed(0)}%), và{' '}
                     <b>{structureConfig.essayCount} câu Tự luận/Trả lời ngắn</b> ({(structureConfig.essayPoints * 10).toFixed(0)}%).{' '}
@@ -704,24 +705,24 @@ export const SemesterReview: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setIsConfigModalOpen(true)}
-                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-xl text-xs font-bold border border-white/30 backdrop-blur-xs transition-colors cursor-pointer"
+                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold border border-white/25 backdrop-blur-xs transition-colors cursor-pointer whitespace-nowrap"
                     >
                       <Sliders className="w-3.5 h-3.5" />
-                      <span>⚙️ Giáo viên tùy chỉnh số câu & ma trận ({selectedSubject})</span>
+                      <span>Giáo viên tùy chỉnh số câu &amp; ma trận ({selectedSubject})</span>
                     </button>
                   </div>
                 </div>
 
                 <div className="shrink-0 text-center bg-white/10 p-5 rounded-2xl border border-white/20 backdrop-blur-md">
-                  <div className="text-xs text-blue-200 uppercase font-semibold">Tổng số câu hỏi</div>
-                  <div className="text-4xl font-extrabold text-white mt-1">
+                  <div className="text-xs text-blue-200 font-semibold">Tổng số câu hỏi</div>
+                  <div className="text-4xl font-extrabold text-white mt-1 tabular-nums">
                     {semesterMockExamQuestions.length}
                   </div>
-                  <div className="text-xs text-blue-200 mt-1">Thời gian: {structureConfig.durationMinutes} phút</div>
+                  <div className="text-xs text-blue-200 mt-1 tabular-nums">Thời gian: {structureConfig.durationMinutes} phút</div>
                   <button
                     onClick={handleStartSemesterExam}
                     disabled={semesterMockExamQuestions.length === 0}
-                    className="mt-4 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center space-x-1.5 w-full cursor-pointer disabled:opacity-40"
+                    className="mt-4 px-6 py-2.5 bg-[#12A879] hover:bg-[#0F8F67] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center space-x-1.5 w-full cursor-pointer disabled:opacity-40 whitespace-nowrap"
                   >
                     <Play className="w-4 h-4 fill-white" />
                     <span>Vào thi thử ngay</span>
@@ -732,37 +733,37 @@ export const SemesterReview: React.FC = () => {
 
             {/* Danh sách các đề ôn tập số 1, 2, 3 */}
             <div className="space-y-3">
-              <h4 className="text-sm font-bold text-[#082B52] flex items-center space-x-2">
-                <FileCheck className="w-4 h-4 text-[#006BFF]" />
+              <h4 className="text-sm font-bold text-[#102C54] flex items-center space-x-2">
+                <FileCheck className="w-4 h-4 text-[#1769F4]" />
                 <span>Các bộ đề thi thử có sẵn cho kỳ này:</span>
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                  { id: 1, title: 'Đề số 01 - Đề chuẩn cơ bản', level: 'Chuẩn ma trận Bộ GD&ĐT', duration: '45 phút', count: semesterMockExamQuestions.length },
-                  { id: 2, title: 'Đề số 02 - Đề nâng cao phân hóa', level: 'Tăng cường câu vận dụng', duration: '45 phút', count: semesterMockExamQuestions.length },
-                  { id: 3, title: 'Đề số 03 - Đề tổng ôn trọng điểm', level: 'Quét toàn bộ đơn vị kiến thức', duration: '45 phút', count: semesterMockExamQuestions.length }
+                  { id: 1, title: 'Đề số 01 - Đề chuẩn cơ bản', level: 'Chuẩn ma trận Bộ GD&ĐT', duration: `${structureConfig.durationMinutes} phút`, count: semesterMockExamQuestions.length },
+                  { id: 2, title: 'Đề số 02 - Đề nâng cao phân hóa', level: 'Tăng cường câu vận dụng', duration: `${structureConfig.durationMinutes} phút`, count: semesterMockExamQuestions.length },
+                  { id: 3, title: 'Đề số 03 - Đề tổng ôn trọng điểm', level: 'Quét toàn bộ đơn vị kiến thức', duration: `${structureConfig.durationMinutes} phút`, count: semesterMockExamQuestions.length }
                 ].map(examItem => (
                   <div
                     key={examItem.id}
-                    className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-3 hover:border-blue-300 transition-all flex flex-col justify-between"
+                    className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs space-y-3 hover:border-[#1769F4]/60 transition-all flex flex-col justify-between"
                   >
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-[#1769F4] tabular-nums">
                           Mã đề: TĐ-0{examItem.id}
                         </span>
-                        <span className="text-xs text-slate-400 font-medium">{examItem.duration}</span>
+                        <span className="text-slate-500 font-medium tabular-nums">{examItem.duration}</span>
                       </div>
-                      <h5 className="font-bold text-sm text-[#082B52]">{examItem.title}</h5>
+                      <h5 className="font-bold text-sm text-[#102C54]">{examItem.title}</h5>
                       <p className="text-xs text-slate-500">{examItem.level}</p>
                     </div>
 
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#006BFF]">{examItem.count} câu hỏi</span>
+                      <span className="text-xs font-bold text-[#1769F4] tabular-nums">{examItem.count} câu hỏi</span>
                       <button
                         onClick={handleStartSemesterExam}
-                        className="px-3.5 py-1.5 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-colors"
+                        className="px-3.5 py-1.5 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         Bắt đầu
                       </button>
@@ -774,14 +775,14 @@ export const SemesterReview: React.FC = () => {
           </div>
         ) : activeTab === 'curriculum_guide' ? (
           /* TAB 2: ĐỀ CƯƠNG KIẾN THỨC CỐT LÕI */
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h4 className="text-base font-bold text-[#082B52]">
+                <h4 className="text-base font-bold text-[#102C54]">
                   Đề cương ôn tập trọng tâm: {formatPeriodName(selectedPeriod)}
                 </h4>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Môn {selectedSubject} - Lớp {selectedGrade} • Căn cứ theo chương trình giáo dục phổ thông 2018
+                  Môn {selectedSubject} - Lớp {selectedGrade} · Căn cứ theo chương trình giáo dục phổ thông 2018
                 </p>
               </div>
 
@@ -789,7 +790,7 @@ export const SemesterReview: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleOpenStudyOutline}
-                  className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <FileText className="w-4 h-4" />
                   <span>Xem đề cương</span>
@@ -797,9 +798,9 @@ export const SemesterReview: React.FC = () => {
 
                 <button
                   onClick={() => window.print()}
-                  className="inline-flex items-center space-x-1.5 px-4 py-2 border border-[#DCE8F7] bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors"
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 border border-[#E2E8F0] bg-[#F6F9FD] hover:bg-[#EAF3FF] rounded-xl text-xs font-bold text-[#102C54] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <Printer className="w-4 h-4 text-blue-600" />
+                  <Printer className="w-4 h-4 text-[#1769F4]" />
                   <span>In đề cương ôn tập</span>
                 </button>
               </div>
@@ -813,8 +814,8 @@ export const SemesterReview: React.FC = () => {
             )}
 
             <div className="space-y-4 text-xs text-slate-700 leading-relaxed">
-              <div className="p-4 bg-blue-50/70 rounded-xl border border-blue-200 space-y-2">
-                <b className="text-blue-900 text-sm block">A. NỘI DUNG LÝ THUYẾT TRỌNG TÂM:</b>
+              <div className="p-4 bg-[#EAF3FF] rounded-xl border border-[#C7DCFA] space-y-2">
+                <b className="text-[#102C54] text-sm block">A. Nội dung lý thuyết trọng tâm:</b>
                 <ul className="list-disc list-inside space-y-1.5 pl-2">
                   <li><b>Chủ đề 1: Máy tính và cộng đồng</b> – Thông tin và dữ liệu, các dạng thông tin cơ bản, vật mang tin; Đơn vị đo dung lượng thông tin (Bit, Byte, KB, MB, GB).</li>
                   <li><b>Chủ đề 2: Mạng máy tính và Internet</b> – Khái niệm mạng máy tính, các thiết bị mạng cơ bản (Switch, Router, Modem, Cáp mạng, Wi-Fi); Lợi ích và các dịch vụ phổ biến trên Internet.</li>
@@ -823,8 +824,8 @@ export const SemesterReview: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-2">
-                <b className="text-emerald-900 text-sm block">B. CÁC DẠNG BÀI TẬP VÀ THỰC HÀNH HAY XUẤT HIỆN TRONG ĐỀ THI:</b>
+              <div className="p-4 bg-[#ECFDF7] rounded-xl border border-[#12A879]/25 space-y-2">
+                <b className="text-[#0B6E4F] text-sm block">B. Các dạng bài tập và thực hành hay xuất hiện trong đề thi:</b>
                 <ul className="list-disc list-inside space-y-1.5 pl-2">
                   <li><b>Dạng 1:</b> Quy đổi các đơn vị đo dung lượng thông tin (Ví dụ: Một thẻ nhớ 16GB chứa được khoảng bao nhiêu bức ảnh 2MB?).</li>
                   <li><b>Dạng 2:</b> Nhận biết và phân loại các thiết bị mạng có dây và không dây trong phòng tin học thực tế.</li>
@@ -836,51 +837,51 @@ export const SemesterReview: React.FC = () => {
           </div>
         ) : (
           /* TAB 3: MA TRẬN & ĐẶC TẢ ĐỀ THI */
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-xs space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h4 className="text-base font-bold text-[#082B52]">
+                <h4 className="text-base font-bold text-[#102C54]">
                   Khung Ma trận Đề kiểm tra Học kỳ: Môn {selectedSubject} - Lớp {selectedGrade}
                 </h4>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Chuẩn hóa theo công văn hướng dẫn của Bộ GD&ĐT • Thang điểm 10.0
+                  Chuẩn hóa theo công văn hướng dẫn của Bộ GD&amp;ĐT · Thang điểm 10.0
                 </p>
               </div>
 
               <button
                 onClick={() => setIsConfigModalOpen(true)}
-                className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-[#006BFF] border border-blue-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-[#EAF3FF] hover:bg-[#DCEBFF] text-[#1769F4] border border-[#C7DCFA] rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Sliders className="w-4 h-4" />
-                <span>⚙️ Tùy chỉnh ma trận & số câu</span>
+                <span>Tùy chỉnh ma trận &amp; số câu</span>
               </button>
             </div>
 
             {/* Bảng tỉ lệ nhận thức */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="p-4 bg-[#F3F8FF] rounded-xl border border-[#DCE8F7] text-center">
-                <span className="text-[11px] font-bold text-slate-500 uppercase">Nhận biết</span>
-                <div className="text-2xl font-extrabold text-[#006BFF] mt-1">{structureConfig.knowPercent}%</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Tương đương {(structureConfig.knowPercent / 10).toFixed(1)} điểm</div>
+              <div className="p-4 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0] text-center">
+                <span className="text-xs font-bold text-slate-500">Nhận biết</span>
+                <div className="text-2xl font-extrabold text-[#1769F4] mt-1 tabular-nums">{structureConfig.knowPercent}%</div>
+                <div className="text-[11px] text-slate-500 mt-0.5 tabular-nums">Tương đương {(structureConfig.knowPercent / 10).toFixed(1)} điểm</div>
               </div>
 
-              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 text-center">
-                <span className="text-[11px] font-bold text-blue-700 uppercase">Thông hiểu</span>
-                <div className="text-2xl font-extrabold text-blue-700 mt-1">{structureConfig.understandPercent}%</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Tương đương {(structureConfig.understandPercent / 10).toFixed(1)} điểm</div>
+              <div className="p-4 bg-[#EAF3FF] rounded-xl border border-[#C7DCFA] text-center">
+                <span className="text-xs font-bold text-[#1769F4]">Thông hiểu</span>
+                <div className="text-2xl font-extrabold text-[#102C54] mt-1 tabular-nums">{structureConfig.understandPercent}%</div>
+                <div className="text-[11px] text-slate-500 mt-0.5 tabular-nums">Tương đương {(structureConfig.understandPercent / 10).toFixed(1)} điểm</div>
               </div>
 
               <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-200 text-center">
-                <span className="text-[11px] font-bold text-indigo-700 uppercase">Vận dụng</span>
-                <div className="text-2xl font-extrabold text-indigo-700 mt-1">{structureConfig.applyPercent}%</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Tương đương {(structureConfig.applyPercent / 10).toFixed(1)} điểm</div>
+                <span className="text-xs font-bold text-indigo-700">Vận dụng</span>
+                <div className="text-2xl font-extrabold text-indigo-700 mt-1 tabular-nums">{structureConfig.applyPercent}%</div>
+                <div className="text-[11px] text-slate-500 mt-0.5 tabular-nums">Tương đương {(structureConfig.applyPercent / 10).toFixed(1)} điểm</div>
               </div>
             </div>
 
             {/* Bảng cấu trúc chi tiết */}
-            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+            <div className="overflow-x-auto border border-[#E2E8F0] rounded-xl">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[#F3F8FF] text-[#082B52] font-bold">
+                <thead className="bg-[#EAF3FF] text-[#102C54] font-bold">
                   <tr>
                     <th className="p-3">Phần thi</th>
                     <th className="p-3">Dạng câu hỏi</th>
@@ -892,35 +893,35 @@ export const SemesterReview: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   <tr>
-                    <td className="p-3 font-bold text-blue-900">Phần I</td>
+                    <td className="p-3 font-bold text-[#102C54]">Phần I</td>
                     <td className="p-3">Trắc nghiệm ABCD (1 ĐA đúng)</td>
-                    <td className="p-3 font-semibold">{structureConfig.singleChoiceCount} câu</td>
-                    <td className="p-3 font-semibold">{structureConfig.singleChoicePoints.toFixed(1)} điểm ({structureConfig.singleChoiceCount > 0 ? (structureConfig.singleChoicePoints / structureConfig.singleChoiceCount).toFixed(2) : 0}đ/câu)</td>
-                    <td className="p-3 font-bold text-[#006BFF]">{(structureConfig.singleChoicePoints * 10).toFixed(0)}%</td>
+                    <td className="p-3 font-semibold tabular-nums">{structureConfig.singleChoiceCount} câu</td>
+                    <td className="p-3 font-semibold tabular-nums">{structureConfig.singleChoicePoints.toFixed(1)} điểm ({structureConfig.singleChoiceCount > 0 ? (structureConfig.singleChoicePoints / structureConfig.singleChoiceCount).toFixed(2) : 0}đ/câu)</td>
+                    <td className="p-3 font-bold text-[#1769F4] tabular-nums">{(structureConfig.singleChoicePoints * 10).toFixed(0)}%</td>
                     <td className="p-3 text-slate-500">Bao quát toàn bộ bài học cốt lõi</td>
                   </tr>
                   <tr>
-                    <td className="p-3 font-bold text-blue-900">Phần II</td>
+                    <td className="p-3 font-bold text-[#102C54]">Phần II</td>
                     <td className="p-3">Trắc nghiệm Đúng – Sai (4 ý a, b, c, d)</td>
-                    <td className="p-3 font-semibold">{structureConfig.trueFalseCount} câu ({structureConfig.trueFalseCount * 4} ý)</td>
-                    <td className="p-3 font-semibold">{structureConfig.trueFalsePoints.toFixed(1)} điểm ({structureConfig.trueFalseCount > 0 ? (structureConfig.trueFalsePoints / structureConfig.trueFalseCount).toFixed(2) : 0}đ/câu)</td>
-                    <td className="p-3 font-bold text-blue-700">{(structureConfig.trueFalsePoints * 10).toFixed(0)}%</td>
+                    <td className="p-3 font-semibold tabular-nums">{structureConfig.trueFalseCount} câu ({structureConfig.trueFalseCount * 4} ý)</td>
+                    <td className="p-3 font-semibold tabular-nums">{structureConfig.trueFalsePoints.toFixed(1)} điểm ({structureConfig.trueFalseCount > 0 ? (structureConfig.trueFalsePoints / structureConfig.trueFalseCount).toFixed(2) : 0}đ/câu)</td>
+                    <td className="p-3 font-bold text-[#1769F4] tabular-nums">{(structureConfig.trueFalsePoints * 10).toFixed(0)}%</td>
                     <td className="p-3 text-slate-500">Đúng 1=0.1đ, 2=0.25đ, 3=0.5đ, 4=1.0đ</td>
                   </tr>
                   <tr>
-                    <td className="p-3 font-bold text-blue-900">Phần III</td>
+                    <td className="p-3 font-bold text-[#102C54]">Phần III</td>
                     <td className="p-3">Tự luận / Trả lời ngắn</td>
-                    <td className="p-3 font-semibold">{structureConfig.essayCount} câu</td>
-                    <td className="p-3 font-semibold">{structureConfig.essayPoints.toFixed(1)} điểm ({structureConfig.essayCount > 0 ? (structureConfig.essayPoints / structureConfig.essayCount).toFixed(2) : 0}đ/câu)</td>
-                    <td className="p-3 font-bold text-indigo-700">{(structureConfig.essayPoints * 10).toFixed(0)}%</td>
+                    <td className="p-3 font-semibold tabular-nums">{structureConfig.essayCount} câu</td>
+                    <td className="p-3 font-semibold tabular-nums">{structureConfig.essayPoints.toFixed(1)} điểm ({structureConfig.essayCount > 0 ? (structureConfig.essayPoints / structureConfig.essayCount).toFixed(2) : 0}đ/câu)</td>
+                    <td className="p-3 font-bold text-indigo-700 tabular-nums">{(structureConfig.essayPoints * 10).toFixed(0)}%</td>
                     <td className="p-3 text-slate-500">Lập luận, giải thích, vẽ sơ đồ, tính toán</td>
                   </tr>
-                  <tr className="bg-slate-50 font-bold">
-                    <td colSpan={2} className="p-3 text-[#082B52]">Tổng cộng toàn đề</td>
-                    <td className="p-3 text-[#006BFF]">{structureConfig.singleChoiceCount + structureConfig.trueFalseCount + structureConfig.essayCount} câu</td>
-                    <td className="p-3 text-emerald-700">10.0 điểm</td>
-                    <td className="p-3 text-emerald-700">100%</td>
-                    <td className="p-3 text-slate-500">Thời gian làm bài: {structureConfig.durationMinutes} phút</td>
+                  <tr className="bg-[#F6F9FD] font-bold">
+                    <td colSpan={2} className="p-3 text-[#102C54]">Tổng cộng toàn đề</td>
+                    <td className="p-3 text-[#1769F4] tabular-nums">{structureConfig.singleChoiceCount + structureConfig.trueFalseCount + structureConfig.essayCount} câu</td>
+                    <td className="p-3 text-[#0B6E4F] tabular-nums">10.0 điểm</td>
+                    <td className="p-3 text-[#0B6E4F] tabular-nums">100%</td>
+                    <td className="p-3 text-slate-500 tabular-nums">Thời gian làm bài: {structureConfig.durationMinutes} phút</td>
                   </tr>
                 </tbody>
               </table>
@@ -934,52 +935,52 @@ export const SemesterReview: React.FC = () => {
         <div className="space-y-4 max-w-4xl mx-auto">
           {isExamSubmitted ? (
             /* KẾT QUẢ THI THỬ HỌC KỲ */
-            <div className="bg-white rounded-3xl border border-[#DCE8F7] p-8 shadow-md text-center space-y-6 animate-fadeIn">
-              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-xs">
+            <div className="bg-white rounded-3xl border border-[#E2E8F0] p-8 shadow-md text-center space-y-6 animate-fadeIn">
+              <div className="w-20 h-20 bg-[#ECFDF7] text-[#12A879] rounded-full flex items-center justify-center mx-auto shadow-xs">
                 <Award className="w-10 h-10" />
               </div>
 
               <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">
+                <span className="text-xs font-bold text-slate-400 block">
                   Kết quả thi thử {formatPeriodName(selectedPeriod)}
                 </span>
-                <h3 className="text-3xl font-extrabold text-[#082B52] mt-1">
-                  Điểm tổng kết: <span className="text-[#006BFF]">{examResult.scaledScore}</span> / 10
+                <h3 className="text-3xl font-extrabold text-[#102C54] mt-1 tabular-nums">
+                  Điểm tổng kết: <span className="text-[#1769F4]">{examResult.scaledScore}</span> / 10
                 </h3>
-                <div className={`mt-2 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold border ${examResult.rankBadge}`}>
+                <div className={`mt-2 inline-flex items-center space-x-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${examResult.rankBadge}`}>
                   <span>Xếp loại học lực: <b>{examResult.rank}</b></span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto text-xs">
-                <div className="p-3 bg-[#F3F8FF] rounded-xl border border-[#DCE8F7]">
+                <div className="p-3 bg-[#EAF3FF] rounded-xl border border-[#C7DCFA]">
                   <span className="text-slate-500 block">Số câu đúng</span>
-                  <b className="text-emerald-600 text-lg">{examResult.correctCount}</b>
+                  <b className="text-[#12A879] text-lg tabular-nums">{examResult.correctCount}</b>
                 </div>
                 <div className="p-3 bg-rose-50 rounded-xl border border-rose-200">
                   <span className="text-rose-600 block">Số câu sai</span>
-                  <b className="text-rose-700 text-lg">{examResult.wrongCount}</b>
+                  <b className="text-rose-700 text-lg tabular-nums">{examResult.wrongCount}</b>
                 </div>
-                <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                  <span className="text-blue-700 block">Đã trả lời</span>
-                  <b className="text-blue-900 text-lg">{Object.keys(examAnswers).length} / {semesterMockExamQuestions.length}</b>
+                <div className="p-3 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0]">
+                  <span className="text-[#1769F4] block">Đã trả lời</span>
+                  <b className="text-[#102C54] text-lg tabular-nums">{Object.keys(examAnswers).length} / {semesterMockExamQuestions.length}</b>
                 </div>
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
                   <span className="text-amber-700 block">Thời gian làm</span>
-                  <b className="text-amber-800 text-lg">{formatMinutes(structureConfig.durationMinutes * 60 - examSecondsLeft)}</b>
+                  <b className="text-amber-800 text-lg tabular-nums">{formatMinutes(structureConfig.durationMinutes * 60 - examSecondsLeft)}</b>
                 </div>
               </div>
 
-              <div className="flex justify-center gap-3 pt-4 border-t">
+              <div className="flex justify-center gap-3 pt-4 border-t border-slate-100">
                 <button
                   onClick={handleStartSemesterExam}
-                  className="px-5 py-2.5 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors shadow-xs"
+                  className="px-5 py-2.5 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] transition-colors shadow-xs whitespace-nowrap cursor-pointer"
                 >
                   Thi lại đề này
                 </button>
                 <button
                   onClick={() => setIsExamRunning(false)}
-                  className="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50 transition-colors"
+                  className="px-5 py-2.5 border border-[#E2E8F0] text-[#102C54] rounded-xl text-xs font-semibold hover:bg-[#F6F9FD] transition-colors whitespace-nowrap cursor-pointer"
                 >
                   Quay lại trang đề cương học kỳ
                 </button>
@@ -989,9 +990,9 @@ export const SemesterReview: React.FC = () => {
             /* ĐANG LÀM BÀI THI THỬ HỌC KỲ */
             <div className="space-y-4">
               {/* Header đồng hồ đếm ngược kỳ thi */}
-              <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="px-3 py-1 bg-blue-100 text-[#006BFF] rounded-lg text-xs font-bold">
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-3 min-w-0">
+                  <span className="px-3 py-1 bg-[#EAF3FF] text-[#1769F4] rounded-lg text-xs font-bold tabular-nums whitespace-nowrap">
                     Câu {examIndex + 1} / {semesterMockExamQuestions.length}
                   </span>
                   <span className="text-xs text-slate-600 font-semibold truncate max-w-xs">
@@ -999,8 +1000,8 @@ export const SemesterReview: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-mono font-bold">
+                <div className="flex items-center space-x-3 shrink-0">
+                  <div className="flex items-center space-x-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-mono font-bold tabular-nums">
                     <Clock className="w-3.5 h-3.5 text-amber-600" />
                     <span>{formatMinutes(examSecondsLeft)}</span>
                   </div>
@@ -1011,7 +1012,7 @@ export const SemesterReview: React.FC = () => {
                         setIsExamSubmitted(true);
                       }
                     }}
-                    className="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 shadow-xs"
+                    className="px-4 py-1.5 bg-[#12A879] text-white rounded-lg text-xs font-bold hover:bg-[#0F8F67] shadow-xs whitespace-nowrap cursor-pointer"
                   >
                     Nộp bài thi
                   </button>
@@ -1019,7 +1020,7 @@ export const SemesterReview: React.FC = () => {
               </div>
 
               {/* Bản đồ câu hỏi thi học kỳ */}
-              <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3 shadow-xs">
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3 shadow-xs">
                 <div className="text-[11px] font-bold text-slate-500 mb-1.5">Bản đồ câu hỏi thi:</div>
                 <div className="flex flex-wrap gap-1.5">
                   {semesterMockExamQuestions.map((q, idx) => {
@@ -1029,11 +1030,11 @@ export const SemesterReview: React.FC = () => {
                       <button
                         key={q.id}
                         onClick={() => setExamIndex(idx)}
-                        className={`w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center border transition-all ${
+                        className={`w-7 h-7 rounded-lg text-xs font-bold tabular-nums flex items-center justify-center border transition-all cursor-pointer ${
                           isCur
-                            ? 'bg-[#006BFF] text-white border-[#006BFF] ring-2 ring-blue-300'
+                            ? 'bg-[#1769F4] text-white border-[#1769F4] ring-2 ring-[#1769F4]/30'
                             : isAns
-                            ? 'bg-blue-100 text-[#006BFF] border-blue-300'
+                            ? 'bg-[#EAF3FF] text-[#1769F4] border-[#C7DCFA]'
                             : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
                         }`}
                       >
@@ -1058,18 +1059,18 @@ export const SemesterReview: React.FC = () => {
                   : `Phần III: Tự luận (${ptsPerEssay}đ)`;
 
                 return (
-                  <div className="bg-white rounded-2xl border border-[#DCE8F7] p-6 sm:p-8 shadow-xs space-y-5">
-                    <div className="flex items-center justify-between border-b pb-3 text-xs">
+                  <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 sm:p-8 shadow-xs space-y-5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3 text-xs">
                       <div className="flex items-center space-x-2">
-                        <span className="font-mono font-bold text-blue-600">[{cur.code}]</span>
+                        <span className="font-mono font-bold text-[#1769F4]">[{cur.code}]</span>
                         <span className="font-semibold text-slate-500">
                           {partLabel}
                         </span>
                       </div>
-                      <span className="font-bold text-[#082B52]">{cur.points || 0.5} điểm</span>
+                      <span className="font-bold text-[#102C54] tabular-nums">{cur.points || 0.5} điểm</span>
                     </div>
 
-                    <div className="text-base sm:text-lg font-bold text-[#12345B]">
+                    <div className="text-base sm:text-lg font-bold text-[#102C54]">
                       <MathView content={cur.stem} />
                     </div>
 
@@ -1083,14 +1084,14 @@ export const SemesterReview: React.FC = () => {
                               key={opt.id || opt.label}
                               type="button"
                               onClick={() => handleSelectExamOption(cur.id, opt.label)}
-                              className={`w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 transition-all ${
+                              className={`w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 transition-all cursor-pointer ${
                                 isSel
-                                  ? 'bg-blue-50 border-[#006BFF] ring-1 ring-[#006BFF] text-blue-900 font-semibold'
-                                  : 'bg-white border-[#DCE8F7] hover:bg-slate-50'
+                                  ? 'bg-[#EAF3FF] border-[#1769F4] ring-1 ring-[#1769F4] text-[#102C54] font-semibold'
+                                  : 'bg-white border-[#E2E8F0] hover:bg-[#F6F9FD]'
                               }`}
                             >
                               <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 border ${
-                                isSel ? 'bg-[#006BFF] text-white border-[#006BFF]' : 'bg-slate-100 text-slate-700'
+                                isSel ? 'bg-[#1769F4] text-white border-[#1769F4]' : 'bg-slate-100 text-slate-700 border-slate-200'
                               }`}>
                                 {opt.label}
                               </span>
@@ -1109,9 +1110,9 @@ export const SemesterReview: React.FC = () => {
                         {cur.subItems.map((sub: any, sIdx: number) => {
                           const currVal = examAnswers[cur.id]?.[sub.id];
                           return (
-                            <div key={sub.id || sIdx} className="p-3.5 rounded-xl border border-[#DCE8F7] bg-[#FBFDFF] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <div key={sub.id || sIdx} className="p-3.5 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                               <div className="font-medium flex-1">
-                                <b className="text-blue-600 mr-2">{sub.label || String.fromCharCode(97 + sIdx)})</b>
+                                <b className="text-[#1769F4] mr-2">{sub.label || String.fromCharCode(97 + sIdx)})</b>
                                 <MathView content={sub.text} />
                               </div>
                               <div className="flex items-center space-x-2 shrink-0">
@@ -1121,8 +1122,8 @@ export const SemesterReview: React.FC = () => {
                                     const old = examAnswers[cur.id] || {};
                                     handleSelectExamOption(cur.id, { ...old, [sub.id]: true });
                                   }}
-                                  className={`px-3 py-1.5 rounded-lg font-bold border transition-colors ${
-                                    currVal === true ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700'
+                                  className={`px-3 py-1.5 rounded-lg font-bold border transition-colors whitespace-nowrap cursor-pointer ${
+                                    currVal === true ? 'bg-[#1769F4] text-white border-[#1769F4]' : 'bg-white text-slate-700 border-slate-300'
                                   }`}
                                 >
                                   Đúng
@@ -1133,8 +1134,8 @@ export const SemesterReview: React.FC = () => {
                                     const old = examAnswers[cur.id] || {};
                                     handleSelectExamOption(cur.id, { ...old, [sub.id]: false });
                                   }}
-                                  className={`px-3 py-1.5 rounded-lg font-bold border transition-colors ${
-                                    currVal === false ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-700'
+                                  className={`px-3 py-1.5 rounded-lg font-bold border transition-colors whitespace-nowrap cursor-pointer ${
+                                    currVal === false ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-700 border-slate-300'
                                   }`}
                                 >
                                   Sai
@@ -1149,7 +1150,7 @@ export const SemesterReview: React.FC = () => {
                     {/* Dạng Tự luận / Trả lời ngắn với hỗ trợ nhập text & đính kèm ảnh/file */}
                     {(cur.type === 'essay' || cur.type === 'short_answer') && (
                       <div className="space-y-3">
-                        <label className="block text-xs font-bold text-slate-700">
+                        <label className="block text-xs font-bold text-[#102C54]">
                           Nhập bài giải tự luận hoặc đính kèm ảnh/file bài làm:
                         </label>
                         <textarea
@@ -1164,17 +1165,17 @@ export const SemesterReview: React.FC = () => {
                             }
                           }}
                           placeholder="Trình bày chi tiết lời giải, cách tính toán hoặc các bước thực hiện..."
-                          className="w-full px-4 py-3 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] text-sm focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
+                          className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
                         />
 
                         {/* Upload ảnh / file bài làm */}
                         <div className="p-3.5 bg-slate-50 rounded-xl border border-dashed border-slate-300 space-y-2">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <span className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">
-                              <Camera className="w-4 h-4 text-blue-600" />
+                              <Camera className="w-4 h-4 text-[#1769F4]" />
                               <span>Đính kèm ảnh chụp bài giải viết tay hoặc file tệp:</span>
                             </span>
-                            <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-[#DCE8F7] hover:border-blue-400 rounded-lg text-xs font-bold text-[#006BFF] shadow-2xs">
+                            <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-[#E2E8F0] hover:border-[#1769F4] rounded-lg text-xs font-bold text-[#1769F4] shadow-2xs whitespace-nowrap">
                               <Upload className="w-3.5 h-3.5" />
                               <span>Chọn ảnh / tệp</span>
                               <input
@@ -1210,11 +1211,11 @@ export const SemesterReview: React.FC = () => {
                             return (
                               <div className="flex flex-wrap gap-2 pt-2">
                                 {files.map((f, fIdx) => (
-                                  <div key={fIdx} className="relative group rounded-lg border border-blue-200 bg-white p-1.5 flex items-center space-x-2">
+                                  <div key={fIdx} className="relative group rounded-lg border border-[#C7DCFA] bg-white p-1.5 flex items-center space-x-2">
                                     {f.url.startsWith('data:image') ? (
-                                      <img src={f.url} alt={f.name} className="w-10 h-10 object-cover rounded-md" />
+                                      <img src={f.url} alt={f.name} referrerPolicy="no-referrer" className="w-10 h-10 object-cover rounded-md" />
                                     ) : (
-                                      <FileText className="w-6 h-6 text-blue-600" />
+                                      <FileText className="w-6 h-6 text-[#1769F4]" />
                                     )}
                                     <div className="text-[11px] max-w-[120px] truncate text-slate-700 font-medium">
                                       {f.name}
@@ -1229,7 +1230,7 @@ export const SemesterReview: React.FC = () => {
                                           files: updatedFiles
                                         });
                                       }}
-                                      className="p-1 text-slate-400 hover:text-rose-600 rounded-md"
+                                      className="p-1 text-slate-400 hover:text-rose-600 rounded-md cursor-pointer"
                                       title="Xóa tệp"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -1244,12 +1245,12 @@ export const SemesterReview: React.FC = () => {
                     )}
 
                     {/* Nút chuyển câu */}
-                    <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={() => setExamIndex(p => Math.max(0, p - 1))}
                         disabled={examIndex === 0}
-                        className="px-4 py-2 border rounded-xl text-xs font-bold disabled:opacity-30 flex items-center space-x-1"
+                        className="px-4 py-2 border border-[#E2E8F0] rounded-xl text-xs font-bold text-[#102C54] hover:bg-[#F6F9FD] disabled:opacity-30 flex items-center space-x-1 whitespace-nowrap cursor-pointer"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         <span>Câu trước</span>
@@ -1259,7 +1260,7 @@ export const SemesterReview: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setExamIndex(p => p + 1)}
-                          className="px-5 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 flex items-center space-x-1"
+                          className="px-5 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] flex items-center space-x-1 whitespace-nowrap cursor-pointer"
                         >
                           <span>Câu tiếp theo</span>
                           <ChevronRight className="w-4 h-4" />
@@ -1268,7 +1269,7 @@ export const SemesterReview: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setIsExamSubmitted(true)}
-                          className="px-6 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-xs"
+                          className="px-6 py-2 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0F8F67] shadow-xs whitespace-nowrap cursor-pointer"
                         >
                           Nộp bài thi ngay
                         </button>

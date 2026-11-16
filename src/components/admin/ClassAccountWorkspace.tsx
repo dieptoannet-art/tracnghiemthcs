@@ -1384,9 +1384,9 @@ export const ClassAccountWorkspace: React.FC = () => {
 
   if (currentRole !== 'admin') {
     return (
-      <div className="bg-white rounded-2xl border border-red-200 p-8 text-center max-w-lg mx-auto space-y-3 font-serif">
+      <div className="bg-white rounded-2xl border border-red-200 p-8 text-center max-w-lg mx-auto space-y-3 font-edtech">
         <Shield className="w-10 h-10 text-red-600 mx-auto" />
-        <h3 className="text-lg font-bold text-[#082B52]">Không có quyền truy cập (403 Forbidden)</h3>
+        <h3 className="text-lg font-bold text-[#102C54]">Không có quyền truy cập (403 Forbidden)</h3>
         <p className="text-xs text-slate-600">
           Chức năng Quản lý lớp &amp; tài khoản chỉ dành riêng cho Quản trị viên trường THCS Tây Đô.
         </p>
@@ -1395,12 +1395,12 @@ export const ClassAccountWorkspace: React.FC = () => {
   }
 
   return (
-    <div className="space-y-5 font-serif">
+    <div className="space-y-5 font-edtech">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#082B52] flex items-center gap-2.5">
-            <Users className="w-6 h-6 text-[#006BFF]" />
+          <h2 className="text-2xl font-bold text-[#102C54] flex items-center gap-2.5">
+            <Users className="w-6 h-6 text-[#1769F4]" />
             <span>Quản lý lớp &amp; tài khoản</span>
           </h2>
           <p className="text-sm text-slate-600 mt-0.5">
@@ -1413,9 +1413,9 @@ export const ClassAccountWorkspace: React.FC = () => {
             type="button"
             onClick={refreshAll}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#F3F8FF] text-[#082B52] border border-[#DCE8F7] rounded-xl text-xs font-bold hover:bg-[#E4F0FF] disabled:opacity-50 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#EAF3FF] text-[#102C54] border border-[#E2E8F0] rounded-xl text-xs font-bold hover:bg-[#E4F0FF] disabled:opacity-50 whitespace-nowrap"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#006BFF] ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[#1769F4] ${loading ? 'animate-spin' : ''}`} />
             <span>Làm mới dữ liệu</span>
           </button>
 
@@ -1424,8 +1424,8 @@ export const ClassAccountWorkspace: React.FC = () => {
             onClick={() => setActiveTab(activeTab === 'accounts_audit' ? 'classes' : 'accounts_audit')}
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border whitespace-nowrap ${
               activeTab === 'accounts_audit'
-                ? 'bg-[#082B52] text-white border-[#082B52]'
-                : 'bg-white text-[#082B52] border-[#DCE8F7] hover:bg-slate-50'
+                ? 'bg-[#102C54] text-white border-[#102C54]'
+                : 'bg-white text-[#102C54] border-[#E2E8F0] hover:bg-slate-50'
             }`}
           >
             <ClipboardList className="w-3.5 h-3.5" />
@@ -1449,11 +1449,11 @@ export const ClassAccountWorkspace: React.FC = () => {
 
       {/* Notice if Server Service Role Key is not configured */}
       {(!serviceRoleConfigured || serverMissingKey) && (
-        <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs text-[#082B52] space-y-1.5">
+        <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs text-[#102C54] space-y-1.5">
           <div className="flex items-start gap-2.5">
-            <Info className="w-5 h-5 text-[#006BFF] shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-[#1769F4] shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-sm text-[#082B52]">
+              <p className="font-bold text-sm text-[#102C54]">
                 Đang vận hành bằng quyền Quản trị viên xác thực qua RLS (JWT Admin)
               </p>
               <p className="text-slate-700 mt-0.5 leading-relaxed">
@@ -1465,21 +1465,21 @@ export const ClassAccountWorkspace: React.FC = () => {
       )}
 
       {/* Collapsible First Admin Guide */}
-      <div className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
         <button
           type="button"
           onClick={() => setShowAdminGuide(v => !v)}
-          className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-bold text-[#082B52] hover:bg-[#F8FBFF]"
+          className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-bold text-[#102C54] hover:bg-[#F6F9FD]"
         >
           <span className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-[#006BFF]" />
+            <Info className="w-4 h-4 text-[#1769F4]" />
             <span>Kiểm tra tài khoản Quản trị viên theo Auth UUID</span>
           </span>
           {showAdminGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
 
         {showAdminGuide && (
-          <div className="px-4 pb-4 pt-2 border-t border-slate-100 text-xs text-slate-700 space-y-2.5 bg-[#FBFDFF]">
+          <div className="px-4 pb-4 pt-2 border-t border-slate-100 text-xs text-slate-700 space-y-2.5 bg-[#F6F9FD]">
             <p>
               Tài khoản đang đăng nhập: <strong>{userProfile?.fullName}</strong> ({user?.email}) · Auth UUID:{' '}
               <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">{user?.id || '—'}</code> · Vai trò:{' '}
@@ -1551,65 +1551,65 @@ export const ClassAccountWorkspace: React.FC = () => {
 
       {/* Summary KPI Cards: Lớp học | Giáo viên | Phân công giảng dạy | Tổng số tài khoản */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold text-slate-500">Tổng số lớp học</p>
-            <p className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+            <p className="text-xl font-bold text-[#102C54] tabular-nums mt-0.5">
               {loading ? '...' : classes.length}
             </p>
           </div>
-          <div className="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-center justify-center text-[#006BFF]">
+          <div className="w-9 h-9 rounded-xl bg-[#EAF3FF] border border-[#E2E8F0] flex items-center justify-center text-[#1769F4]">
             <BookOpen className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold text-slate-500">Đội ngũ giáo viên</p>
-            <p className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+            <p className="text-xl font-bold text-[#102C54] tabular-nums mt-0.5">
               {loading ? '...' : teacherAccounts.length}
             </p>
           </div>
-          <div className="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-center justify-center text-[#006BFF]">
+          <div className="w-9 h-9 rounded-xl bg-[#EAF3FF] border border-[#E2E8F0] flex items-center justify-center text-[#1769F4]">
             <Users className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold text-slate-500">Phân công giảng dạy</p>
-            <p className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+            <p className="text-xl font-bold text-[#102C54] tabular-nums mt-0.5">
               {loading ? '...' : teachingAssignments.filter(t => t.status === 'active').length}
             </p>
           </div>
-          <div className="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-center justify-center text-[#006BFF]">
+          <div className="w-9 h-9 rounded-xl bg-[#EAF3FF] border border-[#E2E8F0] flex items-center justify-center text-[#1769F4]">
             <Layers className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold text-slate-500">Tổng số tài khoản</p>
-            <p className="text-xl font-bold text-[#082B52] tabular-nums mt-0.5">
+            <p className="text-xl font-bold text-[#102C54] tabular-nums mt-0.5">
               {loading ? '...' : accounts.length}
             </p>
           </div>
-          <div className="w-9 h-9 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-center justify-center text-[#006BFF]">
+          <div className="w-9 h-9 rounded-xl bg-[#EAF3FF] border border-[#E2E8F0] flex items-center justify-center text-[#1769F4]">
             <Shield className="w-4 h-4" />
           </div>
         </div>
       </div>
 
       {/* Primary 3-Tab Navigation Bar: Lớp học | Giáo viên | Phân công giảng dạy */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-[#DCE8F7]">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-[#E2E8F0]">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={() => setActiveTab('classes')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap ${
               activeTab === 'classes'
-                ? 'bg-[#006BFF] text-white shadow-xs'
-                : 'text-[#082B52] hover:bg-[#F3F8FF]'
+                ? 'bg-[#1769F4] text-white shadow-xs'
+                : 'text-[#102C54] hover:bg-[#EAF3FF]'
             }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -1621,8 +1621,8 @@ export const ClassAccountWorkspace: React.FC = () => {
             onClick={() => setActiveTab('teachers')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap ${
               activeTab === 'teachers'
-                ? 'bg-[#006BFF] text-white shadow-xs'
-                : 'text-[#082B52] hover:bg-[#F3F8FF]'
+                ? 'bg-[#1769F4] text-white shadow-xs'
+                : 'text-[#102C54] hover:bg-[#EAF3FF]'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -1634,8 +1634,8 @@ export const ClassAccountWorkspace: React.FC = () => {
             onClick={() => setActiveTab('assignments')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap ${
               activeTab === 'assignments'
-                ? 'bg-[#006BFF] text-white shadow-xs'
-                : 'text-[#082B52] hover:bg-[#F3F8FF]'
+                ? 'bg-[#1769F4] text-white shadow-xs'
+                : 'text-[#102C54] hover:bg-[#EAF3FF]'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -1649,7 +1649,7 @@ export const ClassAccountWorkspace: React.FC = () => {
         </div>
 
         <div className="text-[11px] text-slate-500 px-2 tabular-nums">
-          Tổng tài khoản: <strong className="text-[#082B52]">{accounts.length}</strong>
+          Tổng tài khoản: <strong className="text-[#102C54]">{accounts.length}</strong>
         </div>
       </div>
 
@@ -1659,7 +1659,7 @@ export const ClassAccountWorkspace: React.FC = () => {
       {activeTab === 'classes' && (
         <div className="space-y-4">
           {/* Toolbar */}
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5 flex-1">
               <div className="relative flex-1 min-w-[200px] max-w-xs">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -1668,14 +1668,14 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={classSearch}
                   onChange={e => setClassSearch(e.target.value)}
                   placeholder="Tìm tên lớp, mã lớp, mã mời..."
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-[#DCE8F7] rounded-xl focus:border-[#006BFF] outline-hidden"
+                  className="w-full pl-9 pr-3 py-2 text-xs border border-[#E2E8F0] rounded-xl focus:border-[#1769F4] outline-hidden"
                 />
               </div>
 
               <select
                 value={classYearFilter}
                 onChange={e => setClassYearFilter(e.target.value)}
-                className="px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl bg-white font-semibold text-[#082B52]"
+                className="px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
               >
                 <option value="all">Tất cả năm học</option>
                 {schoolYearOptions.map(y => (
@@ -1688,7 +1688,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <select
                 value={classGradeFilter}
                 onChange={e => setClassGradeFilter(e.target.value as 'all' | Grade)}
-                className="px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl bg-white font-semibold text-[#082B52]"
+                className="px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
               >
                 <option value="all">Tất cả khối</option>
                 <option value="6">Khối 6</option>
@@ -1706,7 +1706,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 setNewClassSchoolYear(schoolYearOptions[0] || '2025-2026');
                 setCreateClassOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold disabled:opacity-40 whitespace-nowrap self-start lg:self-auto"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-xs font-bold disabled:opacity-40 whitespace-nowrap self-start lg:self-auto"
             >
               <Plus className="w-4 h-4" />
               <span>Tạo lớp mới</span>
@@ -1714,14 +1714,14 @@ export const ClassAccountWorkspace: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-12 text-center text-xs text-slate-500">
-              <RefreshCw className="w-6 h-6 text-[#006BFF] animate-spin mx-auto mb-2" />
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-12 text-center text-xs text-slate-500">
+              <RefreshCw className="w-6 h-6 text-[#1769F4] animate-spin mx-auto mb-2" />
               Đang tải danh sách lớp học và học sinh...
             </div>
           ) : filteredClasses.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-10 text-center space-y-3">
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-10 text-center space-y-3">
               <BookOpen className="w-10 h-10 text-[#1769C2] mx-auto" />
-              <h3 className="text-base font-bold text-[#082B52]">Chưa có lớp học nào khớp bộ lọc</h3>
+              <h3 className="text-base font-bold text-[#102C54]">Chưa có lớp học nào khớp bộ lọc</h3>
               <p className="text-xs text-slate-600">
                 Hãy bấm &quot;Tạo lớp mới&quot; để khởi tạo lớp theo năm học và khối.
               </p>
@@ -1729,8 +1729,8 @@ export const ClassAccountWorkspace: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
               {/* Left Master List */}
-              <div className="lg:col-span-4 bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden">
-                <div className="px-4 py-3 bg-[#F3F8FF] border-b border-[#DCE8F7] text-xs font-bold text-[#082B52]">
+              <div className="lg:col-span-4 bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
+                <div className="px-4 py-3 bg-[#EAF3FF] border-b border-[#E2E8F0] text-xs font-bold text-[#102C54]">
                   Danh sách lớp ({filteredClasses.length})
                 </div>
                 <div className="divide-y divide-slate-100 max-h-[560px] overflow-y-auto">
@@ -1746,17 +1746,17 @@ export const ClassAccountWorkspace: React.FC = () => {
                         onClick={() => setSelectedClassId(cls.id)}
                         className={`w-full text-left px-4 py-3 transition-colors flex items-center justify-between gap-2 ${
                           isSelected
-                            ? 'bg-[#EAF3FD] text-[#082B52]'
-                            : 'hover:bg-[#F8FBFF] text-slate-700'
+                            ? 'bg-[#EAF3FF] text-[#102C54]'
+                            : 'hover:bg-[#F6F9FD] text-slate-700'
                         }`}
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm text-[#082B52] truncate">
+                            <span className="font-bold text-sm text-[#102C54] truncate">
                               {cls.name}
                             </span>
                             {cls.classCode && (
-                              <span className="font-mono text-[11px] font-bold text-[#006BFF]">
+                              <span className="font-mono text-[11px] font-bold text-[#1769F4]">
                                 {cls.classCode}
                               </span>
                             )}
@@ -1769,7 +1769,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                             <span>{taCount} môn phân công</span>
                           </div>
                         </div>
-                        <span className="text-xs font-bold text-[#082B52] tabular-nums shrink-0">
+                        <span className="text-xs font-bold text-[#102C54] tabular-nums shrink-0">
                           {cls.memberCount} HS
                         </span>
                       </button>
@@ -1782,28 +1782,28 @@ export const ClassAccountWorkspace: React.FC = () => {
               {activeClass && (
                 <div className="lg:col-span-8 space-y-4">
                   {/* Class Info Card */}
-                  <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 space-y-4">
+                  <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-xl font-bold text-[#082B52]">{activeClass.name}</h3>
+                          <h3 className="text-xl font-bold text-[#102C54]">{activeClass.name}</h3>
                           <span className="text-xs text-slate-500">·</span>
-                          <span className="text-xs font-bold text-[#082B52]">
+                          <span className="text-xs font-bold text-[#102C54]">
                             Khối {activeClass.grade}
                           </span>
                           <span className="text-xs text-slate-500">·</span>
-                          <span className="text-xs font-bold text-[#006BFF]">
+                          <span className="text-xs font-bold text-[#1769F4]">
                             Năm học {activeClass.schoolYear}
                           </span>
                         </div>
                         <div className="text-xs text-slate-600 flex flex-wrap items-center gap-3">
                           <span>
                             Mã lớp:{' '}
-                            <strong className="font-mono text-[#082B52]">
+                            <strong className="font-mono text-[#102C54]">
                               {activeClass.classCode || 'Chưa đặt'}
                             </strong>
                           </span>
-                          <span className="inline-flex items-center gap-1 font-mono text-[#006BFF]">
+                          <span className="inline-flex items-center gap-1 font-mono text-[#1769F4]">
                             <Key className="w-3.5 h-3.5" />
                             <span>Mã mời: {activeClass.inviteCode || '—'}</span>
                           </span>
@@ -1816,9 +1816,9 @@ export const ClassAccountWorkspace: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => openEditClassModal(activeClass)}
-                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#DCE8F7] bg-white hover:bg-[#F3F8FF] text-xs font-bold text-[#082B52] whitespace-nowrap"
+                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:bg-[#EAF3FF] text-xs font-bold text-[#102C54] whitespace-nowrap"
                             >
-                              <Edit3 className="w-3.5 h-3.5 text-[#006BFF]" />
+                              <Edit3 className="w-3.5 h-3.5 text-[#1769F4]" />
                               <span>Sửa lớp</span>
                             </button>
 
@@ -1841,9 +1841,9 @@ export const ClassAccountWorkspace: React.FC = () => {
                           onClick={() =>
                             downloadClassStudentsTemplate(activeClass.name, activeClass.schoolYear)
                           }
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-[#E4F0FF] text-xs font-bold text-[#082B52] whitespace-nowrap"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-[#EAF3FF] hover:bg-[#E4F0FF] text-xs font-bold text-[#102C54] whitespace-nowrap"
                         >
-                          <Download className="w-3.5 h-3.5 text-[#006BFF]" />
+                          <Download className="w-3.5 h-3.5 text-[#1769F4]" />
                           <span>Tải mẫu Excel</span>
                         </button>
 
@@ -1863,7 +1863,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                               }
                             })
                           }
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
                         >
                           <FileSpreadsheet className="w-3.5 h-3.5" />
                           <span>Nhập học sinh</span>
@@ -1873,7 +1873,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           type="button"
                           disabled={readOnlyMode}
                           onClick={openCreateStudentInClass}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#082B52] hover:bg-[#0d3a6d] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#102C54] hover:bg-[#153766] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
                         >
                           <UserPlus className="w-3.5 h-3.5" />
                           <span>Thêm 1 học sinh</span>
@@ -1884,13 +1884,13 @@ export const ClassAccountWorkspace: React.FC = () => {
                     {/* Assigned Teachers by Subject */}
                     <div className="pt-3 border-t border-slate-100 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#082B52]">
+                        <span className="text-xs font-bold text-[#102C54]">
                           Giáo viên giảng dạy tại lớp ({activeClassTeachingAssignments.length} phân công)
                         </span>
                         <button
                           type="button"
                           onClick={() => setActiveTab('assignments')}
-                          className="text-xs font-bold text-[#006BFF] hover:underline"
+                          className="text-xs font-bold text-[#1769F4] hover:underline"
                         >
                           Quản lý phân công →
                         </button>
@@ -1907,7 +1907,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
                                 ta.needsSubjectCompletion
                                   ? 'bg-amber-50 border-amber-300 text-amber-900'
-                                  : 'bg-[#F3F8FF] border-[#CBE2FB] text-[#082B52]'
+                                  : 'bg-[#EAF3FF] border-[#C7DCFA] text-[#102C54]'
                               }`}
                             >
                               <strong>
@@ -1916,7 +1916,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                               <span aria-hidden="true">·</span>
                               <span>{ta.teacherName || 'Giáo viên'}</span>
                               {ta.teacherCode ? (
-                                <span className="font-mono text-[11px] text-[#006BFF]">
+                                <span className="font-mono text-[11px] text-[#1769F4]">
                                   ({ta.teacherCode})
                                 </span>
                               ) : null}
@@ -1929,7 +1929,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                     {/* Explicit Class Manager / Homeroom Roles (class_roles — separate from subject teaching) */}
                     <div className="pt-3 border-t border-slate-100 space-y-2.5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-[#082B52]">
+                        <span className="text-xs font-bold text-[#102C54]">
                           Vai trò phụ trách / chủ nhiệm lớp (class_roles — {activeClassRoles.length} đang hiệu lực)
                         </span>
                         <span className="text-[11px] text-slate-500">
@@ -1979,7 +1979,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           <select
                             value={classRoleTeacherId}
                             onChange={e => setClassRoleTeacherId(e.target.value)}
-                            className="px-3 py-1.5 border border-[#DCE8F7] rounded-xl bg-white text-[#082B52] font-semibold"
+                            className="px-3 py-1.5 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-semibold"
                           >
                             <option value="">-- Chọn giáo viên phụ trách lớp --</option>
                             {teacherAccounts.map(t => (
@@ -1992,7 +1992,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           <select
                             value={classRoleType}
                             onChange={e => setClassRoleType(e.target.value as ClassRoleType)}
-                            className="px-3 py-1.5 border border-[#DCE8F7] rounded-xl bg-white text-[#082B52] font-semibold"
+                            className="px-3 py-1.5 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-semibold"
                           >
                             <option value="homeroom">Chủ nhiệm lớp (homeroom)</option>
                             <option value="class_manager">Quản lý danh sách lớp (class_manager)</option>
@@ -2001,7 +2001,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           <button
                             type="submit"
                             disabled={savingClassRole || !classRoleTeacherId}
-                            className="px-3.5 py-1.5 rounded-xl bg-[#082B52] hover:bg-[#0d3a6d] text-white font-bold disabled:opacity-40"
+                            className="px-3.5 py-1.5 rounded-xl bg-[#102C54] hover:bg-[#153766] text-white font-bold disabled:opacity-40"
                           >
                             {savingClassRole ? 'Đang lưu...' : 'Cấp vai trò lớp'}
                           </button>
@@ -2011,9 +2011,9 @@ export const ClassAccountWorkspace: React.FC = () => {
                   </div>
 
                   {/* Class Student Roster */}
-                  <div className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-[#F8FBFF]">
-                      <span className="text-xs font-bold text-[#082B52]">
+                  <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-[#F6F9FD]">
+                      <span className="text-xs font-bold text-[#102C54]">
                         Danh sách học sinh lớp {activeClass.name} ({activeClass.students.length} học sinh)
                       </span>
                       <span className="text-[11px] text-slate-500">
@@ -2023,7 +2023,7 @@ export const ClassAccountWorkspace: React.FC = () => {
 
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs text-left">
-                        <thead className="bg-[#F3F8FF] text-[#12345B] font-bold border-b border-[#DCE8F7]">
+                        <thead className="bg-[#EAF3FF] text-[#102C54] font-bold border-b border-[#E2E8F0]">
                           <tr>
                             <th className="py-2.5 px-4 w-12 text-center">STT</th>
                             <th className="py-2.5 px-4">Mã học sinh</th>
@@ -2043,14 +2043,14 @@ export const ClassAccountWorkspace: React.FC = () => {
                             activeClass.students.map((st, idx) => {
                               const matchedAcc = accounts.find(a => a.id === st.id);
                               return (
-                                <tr key={st.id} className="hover:bg-[#F8FBFF]">
+                                <tr key={st.id} className="hover:bg-[#F6F9FD]">
                                   <td className="py-2.5 px-4 text-center text-slate-400 tabular-nums">
                                     {idx + 1}
                                   </td>
-                                  <td className="py-2.5 px-4 font-mono font-bold text-[#006BFF]">
+                                  <td className="py-2.5 px-4 font-mono font-bold text-[#1769F4]">
                                     {st.code || '—'}
                                   </td>
-                                  <td className="py-2.5 px-4 font-bold text-[#082B52]">
+                                  <td className="py-2.5 px-4 font-bold text-[#102C54]">
                                     {st.fullName}
                                   </td>
                                   <td className="py-2.5 px-4 font-mono text-slate-600">
@@ -2061,7 +2061,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                       <button
                                         type="button"
                                         onClick={() => openInspectDrawer(matchedAcc)}
-                                        className="px-2.5 py-1 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] text-[#082B52] font-bold hover:bg-[#E4F0FF]"
+                                        className="px-2.5 py-1 rounded-lg bg-[#EAF3FF] border border-[#E2E8F0] text-[#102C54] font-bold hover:bg-[#E4F0FF]"
                                       >
                                         Hồ sơ
                                       </button>
@@ -2101,7 +2101,7 @@ export const ClassAccountWorkspace: React.FC = () => {
       {/* =================================================================== */}
       {activeTab === 'teachers' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5 flex-1">
               <div className="relative flex-1 min-w-[210px] max-w-sm">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -2110,14 +2110,14 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={teacherSearch}
                   onChange={e => setTeacherSearch(e.target.value)}
                   placeholder="Tìm mã giáo viên, họ tên, email..."
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-[#DCE8F7] rounded-xl focus:border-[#006BFF] outline-hidden"
+                  className="w-full pl-9 pr-3 py-2 text-xs border border-[#E2E8F0] rounded-xl focus:border-[#1769F4] outline-hidden"
                 />
               </div>
 
               <select
                 value={teacherStatusFilter}
                 onChange={e => setTeacherStatusFilter(e.target.value as 'all' | RealAuthStatus)}
-                className="px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl bg-white font-semibold text-[#082B52]"
+                className="px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
               >
                 <option value="all">Tất cả trạng thái Auth</option>
                 <option value="active">Đã kích hoạt</option>
@@ -2130,9 +2130,9 @@ export const ClassAccountWorkspace: React.FC = () => {
               <button
                 type="button"
                 onClick={downloadTeachersTemplate}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-[#E4F0FF] text-xs font-bold text-[#082B52] whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-[#EAF3FF] hover:bg-[#E4F0FF] text-xs font-bold text-[#102C54] whitespace-nowrap"
               >
-                <Download className="w-3.5 h-3.5 text-[#006BFF]" />
+                <Download className="w-3.5 h-3.5 text-[#1769F4]" />
                 <span>Tải mẫu Excel</span>
               </button>
 
@@ -2146,7 +2146,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                     targetClass: null
                   })
                 }
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#082B52] hover:bg-[#0d3a6d] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#102C54] hover:bg-[#153766] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 <span>Nhập danh sách giáo viên</span>
@@ -2156,7 +2156,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 type="button"
                 disabled={readOnlyMode}
                 onClick={openCreateTeacherModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>Thêm giáo viên</span>
@@ -2164,10 +2164,10 @@ export const ClassAccountWorkspace: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
             {loading ? (
               <div className="p-10 text-center text-xs text-slate-500">
-                <RefreshCw className="w-6 h-6 text-[#006BFF] animate-spin mx-auto mb-2" />
+                <RefreshCw className="w-6 h-6 text-[#1769F4] animate-spin mx-auto mb-2" />
                 Đang tải danh sách giáo viên...
               </div>
             ) : filteredTeachers.length === 0 ? (
@@ -2177,7 +2177,7 @@ export const ClassAccountWorkspace: React.FC = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#F3F8FF] text-[#12345B] font-bold border-b border-[#DCE8F7]">
+                  <thead className="bg-[#EAF3FF] text-[#102C54] font-bold border-b border-[#E2E8F0]">
                     <tr>
                       <th className="py-3 px-4">Mã GV</th>
                       <th className="py-3 px-4">Họ và tên</th>
@@ -2196,11 +2196,11 @@ export const ClassAccountWorkspace: React.FC = () => {
                         !readOnlyMode &&
                         (t.authStatus === 'invited' || t.authStatus === 'unconfirmed');
                       return (
-                        <tr key={t.id} className="hover:bg-[#F8FBFF]">
-                          <td className="py-3 px-4 font-mono font-bold text-[#006BFF]">
+                        <tr key={t.id} className="hover:bg-[#F6F9FD]">
+                          <td className="py-3 px-4 font-mono font-bold text-[#1769F4]">
                             {t.teacherCode || '—'}
                           </td>
-                          <td className="py-3 px-4 font-bold text-[#082B52]">{t.fullName}</td>
+                          <td className="py-3 px-4 font-bold text-[#102C54]">{t.fullName}</td>
                           <td className="py-3 px-4 font-mono text-slate-600">{t.email}</td>
                           <td className="py-3 px-4">
                             {activeTas.length > 0 ? (
@@ -2208,7 +2208,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                 {activeTas.map(ta => (
                                   <span
                                     key={ta.id}
-                                    className="inline-block px-2 py-0.5 rounded-md bg-[#EAF5FF] border border-[#CBE2FB] text-[#082B52] font-semibold"
+                                    className="inline-block px-2 py-0.5 rounded-md bg-[#EAF3FF] border border-[#C7DCFA] text-[#102C54] font-semibold"
                                   >
                                     {ta.className} ·{' '}
                                     {ta.subject ? getSubjectDisplayName(ta.subject) : 'Chưa gán môn'}
@@ -2220,7 +2220,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                 {t.teachingClasses.map((c, idx) => (
                                   <span
                                     key={`${c.id}-${idx}`}
-                                    className="inline-block px-2 py-0.5 rounded-md bg-[#EAF5FF] border border-[#CBE2FB] text-[#082B52] font-semibold"
+                                    className="inline-block px-2 py-0.5 rounded-md bg-[#EAF3FF] border border-[#C7DCFA] text-[#102C54] font-semibold"
                                   >
                                     {c.name}
                                     {c.subjectLabel ? ` · ${c.subjectLabel}` : ''}
@@ -2246,7 +2246,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                 type="button"
                                 disabled={resendingId === t.id}
                                 onClick={() => handleResendInvite(t)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-blue-200 text-[#006BFF] font-bold hover:bg-blue-50 disabled:opacity-40"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-blue-200 text-[#1769F4] font-bold hover:bg-blue-50 disabled:opacity-40"
                               >
                                 <Send className="w-3 h-3" />
                                 <span>{resendingId === t.id ? 'Đang gửi...' : 'Gửi lại mời'}</span>
@@ -2255,7 +2255,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => openInspectDrawer(t)}
-                              className="px-2.5 py-1 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] text-[#082B52] font-bold hover:bg-[#E4F0FF]"
+                              className="px-2.5 py-1 rounded-lg bg-[#EAF3FF] border border-[#E2E8F0] text-[#102C54] font-bold hover:bg-[#E4F0FF]"
                             >
                               Chi tiết
                             </button>
@@ -2311,11 +2311,11 @@ export const ClassAccountWorkspace: React.FC = () => {
 
           {/* Cutover Readiness Check before enabling Migration 05 */}
           {cutoverReadiness && (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 space-y-3 text-xs">
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 space-y-3 text-xs">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-[#006BFF]" />
-                  <h3 className="text-sm font-bold text-[#082B52]">
+                  <Shield className="w-4 h-4 text-[#1769F4]" />
+                  <h3 className="text-sm font-bold text-[#102C54]">
                     Kiểm tra sẵn sàng trước khi bật Bước 5 (05_enable_subject_rls_and_hardening.sql)
                   </h3>
                 </div>
@@ -2334,12 +2334,12 @@ export const ClassAccountWorkspace: React.FC = () => {
 
               {cutoverReadiness.missingSubjectItems.length > 0 && (
                 <div className="space-y-2">
-                  <p className="font-bold text-[#082B52]">
+                  <p className="font-bold text-[#102C54]">
                     1. Danh sách &quot;Thiếu môn&quot; cần bổ sung đúng Giáo viên – Lớp – Môn – Năm học:
                   </p>
                   <div className="overflow-x-auto border border-slate-200 rounded-xl">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[#F3F8FF] text-[#12345B] font-bold">
+                      <thead className="bg-[#EAF3FF] text-[#102C54] font-bold">
                         <tr>
                           <th className="py-2 px-3">Giáo viên</th>
                           <th className="py-2 px-3">Lớp</th>
@@ -2354,7 +2354,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           const matchedTa = teachingAssignments.find(t => t.id === item.teachingAssignmentId);
                           return (
                             <tr key={item.teachingAssignmentId} className="hover:bg-slate-50">
-                              <td className="py-2 px-3 font-semibold text-[#082B52]">
+                              <td className="py-2 px-3 font-semibold text-[#102C54]">
                                 {item.teacherName}
                               </td>
                               <td className="py-2 px-3 font-bold">{item.className}</td>
@@ -2370,7 +2370,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => openEditTaModal(matchedTa)}
-                                    className="px-2.5 py-1 rounded-lg bg-[#006BFF] text-white font-bold hover:bg-blue-600"
+                                    className="px-2.5 py-1 rounded-lg bg-[#1769F4] text-white font-bold hover:bg-[#1255CC]"
                                   >
                                     Bổ sung môn
                                   </button>
@@ -2387,12 +2387,12 @@ export const ClassAccountWorkspace: React.FC = () => {
 
               {cutoverReadiness.impactedClasses.length > 0 && (
                 <div className="space-y-2">
-                  <p className="font-bold text-[#082B52]">
+                  <p className="font-bold text-[#102C54]">
                     2. Lớp sẽ bị ảnh hưởng quyền truy cập khi chuyển sang Bước 5:
                   </p>
                   <div className="overflow-x-auto border border-slate-200 rounded-xl">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[#F3F8FF] text-[#12345B] font-bold">
+                      <thead className="bg-[#EAF3FF] text-[#102C54] font-bold">
                         <tr>
                           <th className="py-2 px-3">Lớp học</th>
                           <th className="py-2 px-3">Năm học</th>
@@ -2406,7 +2406,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                       <tbody className="divide-y divide-slate-100">
                         {cutoverReadiness.impactedClasses.map(cls => (
                           <tr key={cls.classId} className="hover:bg-slate-50">
-                            <td className="py-2 px-3 font-bold text-[#082B52]">{cls.className}</td>
+                            <td className="py-2 px-3 font-bold text-[#102C54]">{cls.className}</td>
                             <td className="py-2 px-3 tabular-nums">{cls.schoolYear}</td>
                             <td className="py-2 px-3">{cls.legacyTeacherName || '—'}</td>
                             <td className="py-2 px-3 text-center tabular-nums">
@@ -2423,7 +2423,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                   setSelectedClassId(cls.classId);
                                   setActiveTab('classes');
                                 }}
-                                className="px-2.5 py-1 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] text-[#082B52] font-bold hover:bg-[#E4F0FF]"
+                                className="px-2.5 py-1 rounded-lg bg-[#EAF3FF] border border-[#E2E8F0] text-[#102C54] font-bold hover:bg-[#E4F0FF]"
                               >
                                 Mở chi tiết lớp
                               </button>
@@ -2445,17 +2445,17 @@ export const ClassAccountWorkspace: React.FC = () => {
           )}
 
           {/* Toolbar */}
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5">
               {/* View mode toggle */}
-              <div className="inline-flex p-1 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7]">
+              <div className="inline-flex p-1 rounded-xl bg-[#EAF3FF] border border-[#E2E8F0]">
                 <button
                   type="button"
                   onClick={() => setAssignViewMode('by_teacher')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
                     assignViewMode === 'by_teacher'
-                      ? 'bg-[#082B52] text-white'
-                      : 'text-[#082B52] hover:bg-white'
+                      ? 'bg-[#102C54] text-white'
+                      : 'text-[#102C54] hover:bg-white'
                   }`}
                 >
                   Theo giáo viên
@@ -2465,8 +2465,8 @@ export const ClassAccountWorkspace: React.FC = () => {
                   onClick={() => setAssignViewMode('by_class')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
                     assignViewMode === 'by_class'
-                      ? 'bg-[#082B52] text-white'
-                      : 'text-[#082B52] hover:bg-white'
+                      ? 'bg-[#102C54] text-white'
+                      : 'text-[#102C54] hover:bg-white'
                   }`}
                 >
                   Theo lớp
@@ -2476,7 +2476,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <select
                 value={assignYearFilter}
                 onChange={e => setAssignYearFilter(e.target.value)}
-                className="px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl bg-white font-semibold text-[#082B52]"
+                className="px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
               >
                 <option value="all">Tất cả năm học</option>
                 {schoolYearOptions.map(y => (
@@ -2489,7 +2489,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <select
                 value={assignSubjectFilter}
                 onChange={e => setAssignSubjectFilter(e.target.value)}
-                className="px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl bg-white font-semibold text-[#082B52]"
+                className="px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
               >
                 <option value="all">Tất cả môn</option>
                 {CANONICAL_SUBJECT_CATALOG.map(s => (
@@ -2502,7 +2502,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <select
                 value={assignStatusFilter}
                 onChange={e => setAssignStatusFilter(e.target.value as 'active' | 'ended' | 'all')}
-                className="px-3 py-2 text-xs border border-[#DCE8F7] rounded-xl bg-white font-semibold text-[#082B52]"
+                className="px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
               >
                 <option value="active">Đang giảng dạy</option>
                 <option value="ended">Đã kết thúc</option>
@@ -2514,9 +2514,9 @@ export const ClassAccountWorkspace: React.FC = () => {
               <button
                 type="button"
                 onClick={() => downloadTeachingAssignmentsTemplate(schoolYearOptions[0] || '2025-2026')}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-[#E4F0FF] text-xs font-bold text-[#082B52] whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-[#EAF3FF] hover:bg-[#E4F0FF] text-xs font-bold text-[#102C54] whitespace-nowrap"
               >
-                <Download className="w-3.5 h-3.5 text-[#006BFF]" />
+                <Download className="w-3.5 h-3.5 text-[#1769F4]" />
                 <span>Tải mẫu Excel</span>
               </button>
 
@@ -2530,7 +2530,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                     targetClass: null
                   })
                 }
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#082B52] hover:bg-[#0d3a6d] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#102C54] hover:bg-[#153766] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 <span>Nhập phân công</span>
@@ -2540,7 +2540,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 type="button"
                 disabled={readOnlyMode || !teachingSchemaReady}
                 onClick={openCreateTeachingAssignmentModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white text-xs font-bold disabled:opacity-40 whitespace-nowrap"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Thêm phân công</span>
@@ -2549,14 +2549,14 @@ export const ClassAccountWorkspace: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-10 text-center text-xs text-slate-500">
-              <RefreshCw className="w-6 h-6 text-[#006BFF] animate-spin mx-auto mb-2" />
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-10 text-center text-xs text-slate-500">
+              <RefreshCw className="w-6 h-6 text-[#1769F4] animate-spin mx-auto mb-2" />
               Đang tải dữ liệu phân công giảng dạy...
             </div>
           ) : filteredTeachingAssignments.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-10 text-center space-y-2.5">
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-10 text-center space-y-2.5">
               <Layers className="w-9 h-9 text-[#1769C2] mx-auto" />
-              <h3 className="text-base font-bold text-[#082B52]">
+              <h3 className="text-base font-bold text-[#102C54]">
                 Chưa có phân công giảng dạy nào khớp bộ lọc
               </h3>
               <p className="text-xs text-slate-500">
@@ -2568,13 +2568,13 @@ export const ClassAccountWorkspace: React.FC = () => {
               {assignmentsGroupedByTeacher.map(group => (
                 <div
                   key={group.teacherId}
-                  className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden"
+                  className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden"
                 >
-                  <div className="px-4 py-3 bg-[#F3F8FF] border-b border-[#DCE8F7] flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="px-4 py-3 bg-[#EAF3FF] border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#082B52]">{group.teacherName}</span>
+                      <span className="font-bold text-sm text-[#102C54]">{group.teacherName}</span>
                       {group.teacherCode && (
-                        <span className="font-mono font-bold text-[#006BFF]">
+                        <span className="font-mono font-bold text-[#1769F4]">
                           {group.teacherCode}
                         </span>
                       )}
@@ -2582,14 +2582,14 @@ export const ClassAccountWorkspace: React.FC = () => {
                         <span className="text-slate-500 font-mono">· {group.teacherEmail}</span>
                       )}
                     </div>
-                    <span className="font-bold text-[#082B52] tabular-nums">
+                    <span className="font-bold text-[#102C54] tabular-nums">
                       {group.rows.length} phân công
                     </span>
                   </div>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left">
-                      <thead className="text-[#12345B] bg-[#FBFDFF] border-b border-slate-100 font-bold">
+                      <thead className="text-[#102C54] bg-[#F6F9FD] border-b border-slate-100 font-bold">
                         <tr>
                           <th className="py-2 px-4">Năm học</th>
                           <th className="py-2 px-4">Lớp</th>
@@ -2600,21 +2600,21 @@ export const ClassAccountWorkspace: React.FC = () => {
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {group.rows.map(ta => (
-                          <tr key={ta.id} className="hover:bg-[#F8FBFF]">
+                          <tr key={ta.id} className="hover:bg-[#F6F9FD]">
                             <td className="py-2.5 px-4 tabular-nums font-semibold text-slate-700">
                               {ta.schoolYear}
                             </td>
-                            <td className="py-2.5 px-4 font-bold text-[#082B52]">
+                            <td className="py-2.5 px-4 font-bold text-[#102C54]">
                               {ta.className}{' '}
                               {ta.classCode ? (
-                                <span className="font-mono text-[#006BFF] font-normal">
+                                <span className="font-mono text-[#1769F4] font-normal">
                                   ({ta.classCode})
                                 </span>
                               ) : null}
                             </td>
                             <td className="py-2.5 px-4">
                               {ta.subject ? (
-                                <span className="font-bold text-[#082B52]">
+                                <span className="font-bold text-[#102C54]">
                                   {getSubjectDisplayName(ta.subject)}
                                 </span>
                               ) : (
@@ -2635,7 +2635,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => openEditTaModal(ta)}
-                                  className="px-2.5 py-1 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] text-[#082B52] font-bold hover:bg-[#E4F0FF]"
+                                  className="px-2.5 py-1 rounded-lg bg-[#EAF3FF] border border-[#E2E8F0] text-[#102C54] font-bold hover:bg-[#E4F0FF]"
                                 >
                                   {ta.needsSubjectCompletion ? 'Bổ sung môn' : 'Sửa'}
                                 </button>
@@ -2663,25 +2663,25 @@ export const ClassAccountWorkspace: React.FC = () => {
               {assignmentsGroupedByClass.map(group => (
                 <div
                   key={group.classId}
-                  className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden"
+                  className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden"
                 >
-                  <div className="px-4 py-3 bg-[#F3F8FF] border-b border-[#DCE8F7] flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="px-4 py-3 bg-[#EAF3FF] border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#082B52]">{group.className}</span>
+                      <span className="font-bold text-sm text-[#102C54]">{group.className}</span>
                       {group.classCode && (
-                        <span className="font-mono font-bold text-[#006BFF]">{group.classCode}</span>
+                        <span className="font-mono font-bold text-[#1769F4]">{group.classCode}</span>
                       )}
                       {group.grade && <span className="text-slate-500">· Khối {group.grade}</span>}
                       <span className="text-slate-500">· Năm học {group.schoolYear}</span>
                     </div>
-                    <span className="font-bold text-[#082B52] tabular-nums">
+                    <span className="font-bold text-[#102C54] tabular-nums">
                       {group.rows.length} phân công
                     </span>
                   </div>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left">
-                      <thead className="text-[#12345B] bg-[#FBFDFF] border-b border-slate-100 font-bold">
+                      <thead className="text-[#102C54] bg-[#F6F9FD] border-b border-slate-100 font-bold">
                         <tr>
                           <th className="py-2 px-4">Môn giảng dạy</th>
                           <th className="py-2 px-4">Giáo viên</th>
@@ -2692,8 +2692,8 @@ export const ClassAccountWorkspace: React.FC = () => {
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {group.rows.map(ta => (
-                          <tr key={ta.id} className="hover:bg-[#F8FBFF]">
-                            <td className="py-2.5 px-4 font-bold text-[#082B52]">
+                          <tr key={ta.id} className="hover:bg-[#F6F9FD]">
+                            <td className="py-2.5 px-4 font-bold text-[#102C54]">
                               {ta.subject ? (
                                 getSubjectDisplayName(ta.subject)
                               ) : (
@@ -2702,10 +2702,10 @@ export const ClassAccountWorkspace: React.FC = () => {
                                 </span>
                               )}
                             </td>
-                            <td className="py-2.5 px-4 font-semibold text-[#082B52]">
+                            <td className="py-2.5 px-4 font-semibold text-[#102C54]">
                               {ta.teacherName || 'Giáo viên'}
                             </td>
-                            <td className="py-2.5 px-4 font-mono text-[#006BFF]">
+                            <td className="py-2.5 px-4 font-mono text-[#1769F4]">
                               {ta.teacherCode || '—'}
                             </td>
                             <td className="py-2.5 px-4">
@@ -2720,7 +2720,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => openEditTaModal(ta)}
-                                  className="px-2.5 py-1 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] text-[#082B52] font-bold hover:bg-[#E4F0FF]"
+                                  className="px-2.5 py-1 rounded-lg bg-[#EAF3FF] border border-[#E2E8F0] text-[#102C54] font-bold hover:bg-[#E4F0FF]"
                                 >
                                   {ta.needsSubjectCompletion ? 'Bổ sung môn' : 'Sửa'}
                                 </button>
@@ -2752,15 +2752,15 @@ export const ClassAccountWorkspace: React.FC = () => {
       {/* =================================================================== */}
       {activeTab === 'accounts_audit' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowAuditInsideAccounts(false)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border ${
                   !showAuditInsideAccounts
-                    ? 'bg-[#082B52] text-white border-[#082B52]'
-                    : 'bg-white text-[#082B52] border-[#DCE8F7]'
+                    ? 'bg-[#102C54] text-white border-[#102C54]'
+                    : 'bg-white text-[#102C54] border-[#E2E8F0]'
                 }`}
               >
                 Tất cả hồ sơ ({accounts.length})
@@ -2770,8 +2770,8 @@ export const ClassAccountWorkspace: React.FC = () => {
                 onClick={() => setShowAuditInsideAccounts(true)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border ${
                   showAuditInsideAccounts
-                    ? 'bg-[#082B52] text-white border-[#082B52]'
-                    : 'bg-white text-[#082B52] border-[#DCE8F7]'
+                    ? 'bg-[#102C54] text-white border-[#102C54]'
+                    : 'bg-white text-[#102C54] border-[#E2E8F0]'
                 }`}
               >
                 Nhật ký quản trị ({auditLogs.length})
@@ -2787,13 +2787,13 @@ export const ClassAccountWorkspace: React.FC = () => {
                     value={accountSearch}
                     onChange={e => setAccountSearch(e.target.value)}
                     placeholder="Tìm tên, email, mã HS/GV..."
-                    className="pl-8 pr-3 py-1.5 text-xs border border-[#DCE8F7] rounded-xl"
+                    className="pl-8 pr-3 py-1.5 text-xs border border-[#E2E8F0] rounded-xl"
                   />
                 </div>
                 <select
                   value={accountRoleFilter}
                   onChange={e => setAccountRoleFilter(e.target.value as 'all' | UserRole)}
-                  className="px-3 py-1.5 text-xs border border-[#DCE8F7] rounded-xl bg-white font-semibold"
+                  className="px-3 py-1.5 text-xs border border-[#E2E8F0] rounded-xl bg-white font-semibold"
                 >
                   <option value="all">Tất cả vai trò</option>
                   <option value="student">Học sinh</option>
@@ -2806,10 +2806,10 @@ export const ClassAccountWorkspace: React.FC = () => {
           </div>
 
           {!showAuditInsideAccounts ? (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#F3F8FF] text-[#12345B] font-bold border-b border-[#DCE8F7]">
+                  <thead className="bg-[#EAF3FF] text-[#102C54] font-bold border-b border-[#E2E8F0]">
                     <tr>
                       <th className="py-2.5 px-4">Họ và tên</th>
                       <th className="py-2.5 px-4">Mã HS / GV</th>
@@ -2821,9 +2821,9 @@ export const ClassAccountWorkspace: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredAllAccounts.map(acc => (
-                      <tr key={acc.id} className="hover:bg-[#F8FBFF]">
-                        <td className="py-2.5 px-4 font-bold text-[#082B52]">{acc.fullName}</td>
-                        <td className="py-2.5 px-4 font-mono text-[#006BFF]">
+                      <tr key={acc.id} className="hover:bg-[#F6F9FD]">
+                        <td className="py-2.5 px-4 font-bold text-[#102C54]">{acc.fullName}</td>
+                        <td className="py-2.5 px-4 font-mono text-[#1769F4]">
                           {acc.teacherCode || acc.studentCode || '—'}
                         </td>
                         <td className="py-2.5 px-4 font-mono text-slate-600">
@@ -2851,7 +2851,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => openInspectDrawer(acc)}
-                            className="px-2.5 py-1 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] text-[#082B52] font-bold hover:bg-[#E4F0FF]"
+                            className="px-2.5 py-1 rounded-lg bg-[#EAF3FF] border border-[#E2E8F0] text-[#102C54] font-bold hover:bg-[#E4F0FF]"
                           >
                             Chi tiết &amp; Vai trò
                           </button>
@@ -2863,7 +2863,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
               {auditWarning && (
                 <div className="p-3 bg-amber-50 border-b border-amber-200 text-xs text-amber-900">
                   {auditWarning}
@@ -2871,7 +2871,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               )}
               <div className="overflow-x-auto max-h-[500px]">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#F3F8FF] text-[#12345B] font-bold border-b border-[#DCE8F7] sticky top-0">
+                  <thead className="bg-[#EAF3FF] text-[#102C54] font-bold border-b border-[#E2E8F0] sticky top-0">
                     <tr>
                       <th className="py-2.5 px-4">Thời gian</th>
                       <th className="py-2.5 px-4">Người thực hiện</th>
@@ -2893,8 +2893,8 @@ export const ClassAccountWorkspace: React.FC = () => {
                           <td className="py-2.5 px-4 text-slate-500 tabular-nums whitespace-nowrap">
                             {formatDateTime(log.timestamp)}
                           </td>
-                          <td className="py-2.5 px-4 font-bold text-[#082B52]">{log.actor}</td>
-                          <td className="py-2.5 px-4 font-semibold text-[#006BFF]">{log.action}</td>
+                          <td className="py-2.5 px-4 font-bold text-[#102C54]">{log.actor}</td>
+                          <td className="py-2.5 px-4 font-semibold text-[#1769F4]">{log.action}</td>
                           <td className="py-2.5 px-4 font-mono">{log.target}</td>
                           <td className="py-2.5 px-4 text-slate-600">{log.details}</td>
                         </tr>
@@ -2919,10 +2919,10 @@ export const ClassAccountWorkspace: React.FC = () => {
         >
           <form
             onSubmit={handleCreateClassSubmit}
-            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4"
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-[#082B52]">Tạo lớp học mới</h3>
+              <h3 className="text-lg font-bold text-[#102C54]">Tạo lớp học mới</h3>
               <button
                 type="button"
                 onClick={() => setCreateClassOpen(false)}
@@ -2949,7 +2949,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={newClassSchoolYear}
                   onChange={e => setNewClassSchoolYear(e.target.value)}
                   placeholder="2025-2026"
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl"
                 />
               </div>
               <div>
@@ -2959,7 +2959,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 <select
                   value={newClassGrade}
                   onChange={e => setNewClassGrade(e.target.value as Grade)}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
                 >
                   <option value="6">Khối 6</option>
                   <option value="7">Khối 7</option>
@@ -2980,7 +2980,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={newClassName}
                   onChange={e => setNewClassName(e.target.value)}
                   placeholder="VD: Lớp 8A1"
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl"
                 />
               </div>
               <div>
@@ -2992,7 +2992,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={newClassCode}
                   onChange={e => setNewClassCode(e.target.value)}
                   placeholder="VD: 8A1"
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl font-mono"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl font-mono"
                 />
               </div>
             </div>
@@ -3013,7 +3013,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <button
                 type="submit"
                 disabled={creatingClass || !newClassName.trim()}
-                className="px-5 py-2 text-xs font-bold bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl disabled:opacity-40"
+                className="px-5 py-2 text-xs font-bold bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl disabled:opacity-40"
               >
                 {creatingClass ? 'Đang tạo lớp...' : 'Tạo lớp'}
               </button>
@@ -3033,10 +3033,10 @@ export const ClassAccountWorkspace: React.FC = () => {
         >
           <form
             onSubmit={handleUpdateClassSubmit}
-            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4"
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-[#082B52]">Cập nhật thông tin lớp học</h3>
+              <h3 className="text-lg font-bold text-[#102C54]">Cập nhật thông tin lớp học</h3>
               <button
                 type="button"
                 onClick={() => setEditingClass(null)}
@@ -3063,7 +3063,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={editClassSchoolYear}
                   onChange={e => setEditClassSchoolYear(e.target.value)}
                   placeholder="2025-2026"
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl"
                 />
               </div>
               <div>
@@ -3073,7 +3073,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 <select
                   value={editClassGrade}
                   onChange={e => setEditClassGrade(e.target.value as Grade)}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
                 >
                   <option value="6">Khối 6</option>
                   <option value="7">Khối 7</option>
@@ -3094,7 +3094,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={editClassName}
                   onChange={e => setEditClassName(e.target.value)}
                   placeholder="VD: Lớp 8A1"
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl"
                 />
               </div>
               <div>
@@ -3106,7 +3106,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={editClassCode}
                   onChange={e => setEditClassCode(e.target.value)}
                   placeholder="VD: 8A1"
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl font-mono"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl font-mono"
                 />
               </div>
             </div>
@@ -3123,7 +3123,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <button
                 type="submit"
                 disabled={updatingClass || !editClassName.trim()}
-                className="px-5 py-2 text-xs font-bold bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl disabled:opacity-40"
+                className="px-5 py-2 text-xs font-bold bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl disabled:opacity-40"
               >
                 {updatingClass ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
@@ -3141,11 +3141,11 @@ export const ClassAccountWorkspace: React.FC = () => {
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 text-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 text-xs">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-[#082B52]">
+                <h3 className="text-base font-bold text-[#102C54]">
                   Xác nhận xóa lớp học {deletingClassTarget.name}
                 </h3>
                 <p className="text-slate-600 leading-relaxed">
@@ -3196,10 +3196,10 @@ export const ClassAccountWorkspace: React.FC = () => {
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 my-8">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 my-8">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-lg font-bold text-[#082B52]">
+                <h3 className="text-lg font-bold text-[#102C54]">
                   {splitCreatedAccount
                     ? 'Hoàn tất gán lớp cho học sinh vừa tạo'
                     : formRole === 'student'
@@ -3236,7 +3236,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 <select
                   value={splitRetryClassId}
                   onChange={e => setSplitRetryClassId(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
                 >
                   {classes.map(c => (
                     <option key={c.id} value={c.id}>
@@ -3256,7 +3256,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                     type="button"
                     disabled={retryingClassAssign}
                     onClick={handleRetrySplitClassAssign}
-                    className="px-4 py-2 bg-[#006BFF] text-white rounded-xl font-bold disabled:opacity-40"
+                    className="px-4 py-2 bg-[#1769F4] text-white rounded-xl font-bold disabled:opacity-40"
                   >
                     {retryingClassAssign ? 'Đang gán...' : 'Thử gán lớp lại'}
                   </button>
@@ -3274,21 +3274,21 @@ export const ClassAccountWorkspace: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#F8FBFF] border border-[#DCE8F7] space-y-2.5">
+                <div className="p-4 rounded-xl bg-[#F6F9FD] border border-[#E2E8F0] space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Họ và tên học sinh:</span>
-                    <strong className="text-[#082B52]">{createdStudentCredentials.fullName}</strong>
+                    <strong className="text-[#102C54]">{createdStudentCredentials.fullName}</strong>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Tên đăng nhập (Mã học sinh):</span>
-                    <code className="px-2 py-0.5 rounded bg-white border border-[#DCE8F7] font-mono font-bold text-[#006BFF]">
+                    <code className="px-2 py-0.5 rounded bg-white border border-[#E2E8F0] font-mono font-bold text-[#1769F4]">
                       {createdStudentCredentials.studentCode}
                     </code>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Mật khẩu khởi tạo (1 lần):</span>
                     <div className="inline-flex items-center gap-1.5">
-                      <code className="px-2.5 py-1 rounded bg-amber-50 border border-amber-300 font-mono font-bold text-sm text-[#082B52]">
+                      <code className="px-2.5 py-1 rounded bg-amber-50 border border-amber-300 font-mono font-bold text-sm text-[#102C54]">
                         {createdStudentCredentials.initialPassword}
                       </code>
                       <button
@@ -3302,9 +3302,9 @@ export const ClassAccountWorkspace: React.FC = () => {
                             setTimeout(() => setCopiedToken(null), 2000);
                           }
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#DCE8F7] hover:bg-[#F3F8FF] font-bold text-[#082B52]"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#E2E8F0] hover:bg-[#EAF3FF] font-bold text-[#102C54]"
                       >
-                        <Copy className="w-3.5 h-3.5 text-[#006BFF]" />
+                        <Copy className="w-3.5 h-3.5 text-[#1769F4]" />
                         <span>{copiedToken === 'created_student_pw' ? 'Đã chép' : 'Sao chép'}</span>
                       </button>
                     </div>
@@ -3318,7 +3318,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                       setCreatedStudentCredentials(null);
                       setCreateAccountOpen(false);
                     }}
-                    className="px-5 py-2 bg-[#082B52] hover:bg-[#0d3a6d] text-white font-bold rounded-xl"
+                    className="px-5 py-2 bg-[#102C54] hover:bg-[#153766] text-white font-bold rounded-xl"
                   >
                     Đã lưu thông tin — Đóng
                   </button>
@@ -3357,7 +3357,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           : setFormTeacherCode(e.target.value)
                       }
                       placeholder={formRole === 'student' ? 'VD: HS9A101' : 'VD: GV001'}
-                      className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl font-mono"
+                      className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl font-mono"
                     />
                   </div>
                   <div>
@@ -3370,7 +3370,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                       value={formFullName}
                       onChange={e => setFormFullName(e.target.value)}
                       placeholder="Họ và tên đầy đủ"
-                      className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                      className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl"
                     />
                   </div>
                 </div>
@@ -3386,22 +3386,22 @@ export const ClassAccountWorkspace: React.FC = () => {
                       value={formEmail}
                       onChange={e => setFormEmail(e.target.value)}
                       placeholder="ten@taydo.edu.vn"
-                      className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl font-mono"
+                      className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl font-mono"
                     />
                   </div>
                 )}
 
-                <div className="p-3 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] text-[11px] text-[#12345B] flex items-start gap-2">
+                <div className="p-3 rounded-xl bg-[#EAF3FF] border border-[#E2E8F0] text-[11px] text-[#102C54] flex items-start gap-2">
                   {formRole === 'student' ? (
                     <>
-                      <Key className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
+                      <Key className="w-4 h-4 text-[#1769F4] shrink-0 mt-0.5" />
                       <span>
                         Học sinh <strong>không cần email</strong>. Hệ thống tạo tài khoản trực tiếp bằng <strong>Mã học sinh</strong> và sinh mật khẩu khởi tạo ngẫu nhiên (hoặc giữ nguyên mật khẩu hiện có nếu học sinh đã có tài khoản từ trước).
                       </span>
                     </>
                   ) : (
                     <>
-                      <Mail className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
+                      <Mail className="w-4 h-4 text-[#1769F4] shrink-0 mt-0.5" />
                       <span>
                         Hệ thống gửi email mời kích hoạt Supabase Auth để giáo viên tự đặt mật khẩu. Không dùng tên hiển thị để suy đoán quyền.
                       </span>
@@ -3425,7 +3425,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                       !formFullName.trim() ||
                       (formRole === 'student' ? !formStudentCode.trim() : !formEmail.trim())
                     }
-                    className="px-5 py-2 font-bold bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl disabled:opacity-40"
+                    className="px-5 py-2 font-bold bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl disabled:opacity-40"
                   >
                     {submittingCreate
                       ? 'Đang xử lý...'
@@ -3451,11 +3451,11 @@ export const ClassAccountWorkspace: React.FC = () => {
         >
           <form
             onSubmit={handleCreateTeachingAssignmentSubmit}
-            className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 my-8"
+            className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 my-8"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-lg font-bold text-[#082B52]">Thêm phân công giảng dạy</h3>
+                <h3 className="text-lg font-bold text-[#102C54]">Thêm phân công giảng dạy</h3>
                 <p className="text-xs text-slate-500">
                   Chọn 1 giáo viên, 1 môn chuẩn và nhiều lớp giảng dạy trong cùng năm học.
                 </p>
@@ -3484,7 +3484,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                     setTaSchoolYear(e.target.value);
                     setTaClassIds([]);
                   }}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
                 >
                   {schoolYearOptions.map(y => (
                     <option key={y} value={y}>
@@ -3499,7 +3499,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 <select
                   value={taSubject}
                   onChange={e => setTaSubject(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
                 >
                   {CANONICAL_SUBJECT_CATALOG.map(s => (
                     <option key={s.id} value={s.id}>
@@ -3515,7 +3515,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <select
                 value={taTeacherId}
                 onChange={e => setTaTeacherId(e.target.value)}
-                className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
               >
                 <option value="">-- Chọn giáo viên --</option>
                 {teacherAccounts.map(t => (
@@ -3542,7 +3542,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           : classesMatchingTaYear.map(c => c.id)
                       )
                     }
-                    className="text-[#006BFF] font-bold hover:underline"
+                    className="text-[#1769F4] font-bold hover:underline"
                   >
                     {taClassIds.length === classesMatchingTaYear.length
                       ? 'Bỏ chọn tất cả'
@@ -3556,7 +3556,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   Chưa có lớp học nào thuộc năm học {taSchoolYear}.
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2.5 border border-[#DCE8F7] rounded-xl bg-[#FBFDFF]">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2.5 border border-[#E2E8F0] rounded-xl bg-[#F6F9FD]">
                   {classesMatchingTaYear.map(cls => {
                     const checked = taClassIds.includes(cls.id);
                     return (
@@ -3564,7 +3564,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                         key={cls.id}
                         className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border cursor-pointer transition-colors ${
                           checked
-                            ? 'bg-[#EAF3FD] border-[#006BFF] text-[#082B52] font-bold'
+                            ? 'bg-[#EAF3FF] border-[#1769F4] text-[#102C54] font-bold'
                             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                         }`}
                       >
@@ -3572,7 +3572,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggleTaClassSelection(cls.id)}
-                          className="w-3.5 h-3.5 text-[#006BFF]"
+                          className="w-3.5 h-3.5 text-[#1769F4]"
                         />
                         <span className="truncate">
                           {cls.name}
@@ -3592,7 +3592,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 value={taNotes}
                 onChange={e => setTaNotes(e.target.value)}
                 placeholder="VD: Phân công học kỳ I – II năm học 2025-2026"
-                className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl"
               />
             </div>
 
@@ -3608,7 +3608,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <button
                 type="submit"
                 disabled={savingTa || !taTeacherId || taClassIds.length === 0}
-                className="px-5 py-2 text-xs font-bold bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl disabled:opacity-40"
+                className="px-5 py-2 text-xs font-bold bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl disabled:opacity-40"
               >
                 {savingTa ? 'Đang lưu...' : `Lưu phân công (${taClassIds.length} lớp)`}
               </button>
@@ -3628,11 +3628,11 @@ export const ClassAccountWorkspace: React.FC = () => {
         >
           <form
             onSubmit={handleUpdateTaSubmit}
-            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 text-xs"
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 text-xs"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-base font-bold text-[#082B52]">
+                <h3 className="text-base font-bold text-[#102C54]">
                   {editingTa.needsSubjectCompletion
                     ? 'Bổ sung môn cho phân công chuyển tiếp'
                     : 'Cập nhật phân công giảng dạy'}
@@ -3663,7 +3663,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   type="text"
                   value={editTaSchoolYear}
                   onChange={e => setEditTaSchoolYear(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl"
                 />
               </div>
 
@@ -3672,7 +3672,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 <select
                   value={editTaClassId}
                   onChange={e => setEditTaClassId(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
                 >
                   {classes.map(c => (
                     <option key={c.id} value={c.id}>
@@ -3687,7 +3687,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                 <select
                   value={editTaSubject}
                   onChange={e => setEditTaSubject(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
                 >
                   {CANONICAL_SUBJECT_CATALOG.map(s => (
                     <option key={s.id} value={s.id}>
@@ -3703,7 +3703,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   type="text"
                   value={editTaNotes}
                   onChange={e => setEditTaNotes(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#DCE8F7] rounded-xl"
+                  className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl"
                 />
               </div>
             </div>
@@ -3720,7 +3720,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <button
                 type="submit"
                 disabled={updatingTa}
-                className="px-5 py-2 font-bold bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl disabled:opacity-40"
+                className="px-5 py-2 font-bold bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl disabled:opacity-40"
               >
                 {updatingTa ? 'Đang lưu...' : 'Lưu cập nhật'}
               </button>
@@ -3738,11 +3738,11 @@ export const ClassAccountWorkspace: React.FC = () => {
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 text-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 text-xs">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0" />
               <div>
-                <h3 className="text-base font-bold text-[#082B52]">
+                <h3 className="text-base font-bold text-[#102C54]">
                   Xác nhận kết thúc phân công giảng dạy
                 </h3>
                 <p className="text-slate-600 mt-1 leading-relaxed">
@@ -3789,10 +3789,10 @@ export const ClassAccountWorkspace: React.FC = () => {
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 my-8 text-xs">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 my-8 text-xs">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-lg font-bold text-[#082B52]">{selectedAccount.fullName}</h3>
+                <h3 className="text-lg font-bold text-[#102C54]">{selectedAccount.fullName}</h3>
                 <p className="text-slate-500 font-mono mt-0.5">
                   {formatAccountLoginDisplay(
                     selectedAccount.email,
@@ -3827,10 +3827,10 @@ export const ClassAccountWorkspace: React.FC = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-3 gap-3 bg-[#F8FBFF] border border-[#DCE8F7] rounded-xl p-3">
+            <div className="grid grid-cols-3 gap-3 bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl p-3">
               <div>
                 <span className="text-slate-500 block">Trạng thái Auth</span>
-                <strong className="text-[#082B52]">{selectedAccount.authStatusLabel}</strong>
+                <strong className="text-[#102C54]">{selectedAccount.authStatusLabel}</strong>
               </div>
               <div>
                 <span className="text-slate-500 block">Gửi mời lúc</span>
@@ -3847,9 +3847,9 @@ export const ClassAccountWorkspace: React.FC = () => {
             </div>
 
             {/* Role Management */}
-            <div className="border border-[#DCE8F7] rounded-xl p-3.5 space-y-2">
-              <div className="font-bold text-[#082B52] flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-[#006BFF]" />
+            <div className="border border-[#E2E8F0] rounded-xl p-3.5 space-y-2">
+              <div className="font-bold text-[#102C54] flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-[#1769F4]" />
                 <span>Vai trò trên cơ sở dữ liệu (public.profiles.role)</span>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -3857,7 +3857,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   value={pendingRole}
                   disabled={readOnlyMode || updatingRole}
                   onChange={e => setPendingRole(e.target.value as UserRole)}
-                  className="flex-1 px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white font-semibold"
+                  className="flex-1 px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white font-semibold"
                 >
                   <option value="student">Học sinh</option>
                   <option value="teacher">Giáo viên</option>
@@ -3868,7 +3868,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                   type="button"
                   disabled={readOnlyMode || updatingRole || pendingRole === selectedAccount.role}
                   onClick={handleUpdateRoleInDrawer}
-                  className="px-4 py-2 bg-[#082B52] text-white font-bold rounded-xl disabled:opacity-40 whitespace-nowrap"
+                  className="px-4 py-2 bg-[#102C54] text-white font-bold rounded-xl disabled:opacity-40 whitespace-nowrap"
                 >
                   {updatingRole ? 'Đang lưu...' : 'Lưu vai trò'}
                 </button>
@@ -3877,11 +3877,11 @@ export const ClassAccountWorkspace: React.FC = () => {
 
             {/* Student Password Reset by Admin */}
             {selectedAccount.role === 'student' && !readOnlyMode && (
-              <div className="border border-[#DCE8F7] rounded-xl p-3.5 space-y-2.5 bg-[#FBFDFF]">
+              <div className="border border-[#E2E8F0] rounded-xl p-3.5 space-y-2.5 bg-[#F6F9FD]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <div className="font-bold text-[#082B52] flex items-center gap-1.5">
-                      <Key className="w-4 h-4 text-[#006BFF]" />
+                    <div className="font-bold text-[#102C54] flex items-center gap-1.5">
+                      <Key className="w-4 h-4 text-[#1769F4]" />
                       <span>Cấp lại mật khẩu học sinh (khi quên mật khẩu)</span>
                     </div>
                     <p className="text-[11px] text-slate-600 mt-0.5">
@@ -3906,12 +3906,12 @@ export const ClassAccountWorkspace: React.FC = () => {
                     <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-amber-200">
                       <div className="space-x-2">
                         <span className="text-slate-600">Mã HS:</span>
-                        <code className="font-mono font-bold text-[#006BFF]">
+                        <code className="font-mono font-bold text-[#1769F4]">
                           {resetPasswordResult.studentCode || '—'}
                         </code>
                         <span className="text-slate-300">|</span>
                         <span className="text-slate-600">Mật khẩu mới:</span>
-                        <code className="font-mono font-bold text-sm text-[#082B52]">
+                        <code className="font-mono font-bold text-sm text-[#102C54]">
                           {resetPasswordResult.initialPassword}
                         </code>
                       </div>
@@ -3924,9 +3924,9 @@ export const ClassAccountWorkspace: React.FC = () => {
                             setTimeout(() => setCopiedToken(null), 2000);
                           }
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F3F8FF] border border-[#DCE8F7] hover:bg-[#E4F0FF] font-bold text-[#082B52]"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#EAF3FF] border border-[#E2E8F0] hover:bg-[#E4F0FF] font-bold text-[#102C54]"
                       >
-                        <Copy className="w-3.5 h-3.5 text-[#006BFF]" />
+                        <Copy className="w-3.5 h-3.5 text-[#1769F4]" />
                         <span>{copiedToken === 'drawer_reset_pw' ? 'Đã chép' : 'Sao chép'}</span>
                       </button>
                     </div>
@@ -3937,13 +3937,13 @@ export const ClassAccountWorkspace: React.FC = () => {
 
             {/* Student Class Assignment */}
             {selectedAccount.role === 'student' && (
-              <div className="border border-[#DCE8F7] rounded-xl p-3.5 space-y-2.5">
-                <div className="font-bold text-[#082B52]">Các lớp học sinh đã tham gia</div>
+              <div className="border border-[#E2E8F0] rounded-xl p-3.5 space-y-2.5">
+                <div className="font-bold text-[#102C54]">Các lớp học sinh đã tham gia</div>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedAccount.enrolledClasses.map(c => (
                     <span
                       key={c.id}
-                      className="px-2.5 py-1 rounded-lg bg-[#EAF5FF] border border-[#CBE2FB] font-bold text-[#082B52]"
+                      className="px-2.5 py-1 rounded-lg bg-[#EAF3FF] border border-[#C7DCFA] font-bold text-[#102C54]"
                     >
                       {c.name} ({c.schoolYear || '2025-2026'})
                     </span>
@@ -3958,7 +3958,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                     <select
                       value={assignClassIdInDrawer}
                       onChange={e => setAssignClassIdInDrawer(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white"
+                      className="flex-1 px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white"
                     >
                       <option value="">-- Chọn lớp để gán thêm --</option>
                       {classes.map(c => (
@@ -3971,7 +3971,7 @@ export const ClassAccountWorkspace: React.FC = () => {
                       type="button"
                       disabled={assigningClassInDrawer || !assignClassIdInDrawer}
                       onClick={handleAssignClassInDrawer}
-                      className="px-4 py-2 bg-[#006BFF] text-white font-bold rounded-xl disabled:opacity-40"
+                      className="px-4 py-2 bg-[#1769F4] text-white font-bold rounded-xl disabled:opacity-40"
                     >
                       {assigningClassInDrawer ? 'Đang gán...' : 'Gán lớp'}
                     </button>
@@ -3984,7 +3984,7 @@ export const ClassAccountWorkspace: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedAccount(null)}
-                className="px-5 py-2 bg-[#082B52] text-white font-bold rounded-xl"
+                className="px-5 py-2 bg-[#102C54] text-white font-bold rounded-xl"
               >
                 Đóng
               </button>

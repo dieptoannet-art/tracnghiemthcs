@@ -305,19 +305,19 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto font-serif"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto font-edtech"
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-5 my-6 max-h-[92vh] flex flex-col">
+      <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-5 my-6 max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-100 pb-3.5 shrink-0">
           <div className="flex items-start gap-3">
-            <div className="p-2.5 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] text-[#006BFF]">
+            <div className="p-2.5 rounded-xl bg-[#EAF3FF] border border-[#C7DCFA] text-[#1769F4]">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[#082B52]">{meta.title}</h3>
+              <h3 className="text-lg font-bold text-[#102C54]">{meta.title}</h3>
               <p className="text-xs text-slate-600 mt-0.5">{meta.subtitle}</p>
             </div>
           </div>
@@ -325,7 +325,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
             type="button"
             onClick={handleClose}
             disabled={busy}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
             aria-label="Đóng"
           >
             <X className="w-5 h-5" />
@@ -333,32 +333,32 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         </div>
 
         {/* 3-step indicator */}
-        <div className="flex items-center gap-2 text-xs font-bold shrink-0">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-bold shrink-0 tabular-nums">
           <span
-            className={`px-3 py-1.5 rounded-lg border ${
+            className={`px-3 py-1.5 rounded-lg border whitespace-nowrap ${
               step === 'upload'
-                ? 'bg-[#082B52] text-white border-[#082B52]'
-                : 'bg-[#F3F8FF] text-[#082B52] border-[#DCE8F7]'
+                ? 'bg-[#102C54] text-white border-[#102C54]'
+                : 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA]'
             }`}
           >
             1. Tải lên
           </span>
           <span className="text-slate-400">→</span>
           <span
-            className={`px-3 py-1.5 rounded-lg border ${
+            className={`px-3 py-1.5 rounded-lg border whitespace-nowrap ${
               step === 'preview'
-                ? 'bg-[#082B52] text-white border-[#082B52]'
-                : 'bg-[#F3F8FF] text-[#082B52] border-[#DCE8F7]'
+                ? 'bg-[#102C54] text-white border-[#102C54]'
+                : 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA]'
             }`}
           >
             2. Xem trước
           </span>
           <span className="text-slate-400">→</span>
           <span
-            className={`px-3 py-1.5 rounded-lg border ${
+            className={`px-3 py-1.5 rounded-lg border whitespace-nowrap ${
               step === 'result'
-                ? 'bg-[#082B52] text-white border-[#082B52]'
-                : 'bg-[#F3F8FF] text-[#082B52] border-[#DCE8F7]'
+                ? 'bg-[#102C54] text-white border-[#102C54]'
+                : 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA]'
             }`}
           >
             3. Kết quả nhập
@@ -367,17 +367,17 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
         {/* Target class banner for student import */}
         {kind === 'students' && targetClass && (
-          <div className="p-3.5 rounded-xl bg-[#F3F8FF] border border-[#CBE2FB] flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
-            <div className="text-[#082B52] space-y-0.5">
-              <p className="font-bold text-sm">
+          <div className="p-3.5 rounded-xl bg-[#EAF3FF] border border-[#C7DCFA] flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+            <div className="text-[#102C54] space-y-0.5">
+              <p className="font-bold text-sm tabular-nums">
                 Lớp đích: {targetClass.name} (Khối {targetClass.grade})
               </p>
-              <p className="text-slate-600">
-                Năm học: <strong className="text-[#082B52]">{targetClass.schoolYear}</strong>
+              <p className="text-slate-600 tabular-nums">
+                Năm học: <strong className="text-[#102C54]">{targetClass.schoolYear}</strong>
                 {targetClass.classCode ? (
                   <>
                     {' '}
-                    · Mã lớp: <strong className="font-mono text-[#006BFF]">{targetClass.classCode}</strong>
+                    · Mã lớp: <strong className="font-mono text-[#1769F4]">{targetClass.classCode}</strong>
                   </>
                 ) : null}
               </p>
@@ -423,12 +423,12 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 </div>
               )}
 
-              <div className="p-5 rounded-2xl border border-dashed border-[#9EC5F8] bg-[#F8FBFF] text-center space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-white border border-[#DCE8F7] text-[#006BFF] flex items-center justify-center mx-auto">
+              <div className="p-5 rounded-2xl border border-dashed border-[#C7DCFA] bg-[#F6F9FD] text-center space-y-4">
+                <div className="w-12 h-12 rounded-xl bg-white border border-[#E2E8F0] text-[#1769F4] flex items-center justify-center mx-auto">
                   {busy ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-[#082B52]">
+                  <p className="text-sm font-bold text-[#102C54]">
                     {busy ? 'Đang đọc và kiểm tra dữ liệu với Supabase...' : 'Chọn tệp Excel (.xlsx, .xls) hoặc CSV (.csv) để kiểm tra trước'}
                   </p>
                   <p className="text-xs text-slate-600 max-w-lg mx-auto">
@@ -443,13 +443,13 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                     type="button"
                     onClick={handleDownloadTemplate}
                     disabled={busy}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#DCE8F7] bg-white hover:bg-slate-50 text-xs font-bold text-[#082B52] whitespace-nowrap"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 text-xs font-bold text-[#102C54] whitespace-nowrap shrink-0 cursor-pointer"
                   >
-                    <Download className="w-4 h-4 text-[#006BFF]" />
+                    <Download className="w-4 h-4 text-[#1769F4]" />
                     <span>{kind === 'students' ? 'Tải mẫu Excel 2 cột (.xlsx)' : 'Tải mẫu Excel (.xlsx)'}</span>
                   </button>
 
-                  <label className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#006BFF] hover:bg-blue-600 text-white text-xs font-bold cursor-pointer whitespace-nowrap">
+                  <label className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#1769F4] hover:bg-[#1255CC] text-white text-xs font-bold cursor-pointer whitespace-nowrap shrink-0">
                     <Upload className="w-4 h-4" />
                     <span>{busy ? 'Đang kiểm tra...' : 'Chọn tệp Excel / CSV'}</span>
                     <input
@@ -469,24 +469,24 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
             <div className="space-y-4">
               {/* Summary Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
-                <div className="p-3 rounded-xl border border-[#DCE8F7] bg-[#F8FBFF]">
+                <div className="p-3 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD]">
                   <span className="text-slate-500 block">Tổng số dòng</span>
-                  <strong className="text-lg text-[#082B52] tabular-nums">{activeData.summary.totalRows}</strong>
+                  <strong className="text-lg text-[#102C54] tabular-nums">{activeData.summary.totalRows}</strong>
                 </div>
                 {step === 'preview' ? (
-                  <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/70">
-                    <span className="text-emerald-800 block">Sẵn sàng nhập</span>
-                    <strong className="text-lg text-emerald-900 tabular-nums">{activeData.summary.readyToApply}</strong>
+                  <div className="p-3 rounded-xl border border-[#12A879]/30 bg-[#ECFDF7]">
+                    <span className="text-[#0B6E4F] block">Sẵn sàng nhập</span>
+                    <strong className="text-lg text-[#0B6E4F] tabular-nums">{activeData.summary.readyToApply}</strong>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/70">
-                    <span className="text-emerald-800 block">Tạo mới</span>
-                    <strong className="text-lg text-emerald-900 tabular-nums">{activeData.summary.createdCount}</strong>
+                  <div className="p-3 rounded-xl border border-[#12A879]/30 bg-[#ECFDF7]">
+                    <span className="text-[#0B6E4F] block">Tạo mới</span>
+                    <strong className="text-lg text-[#0B6E4F] tabular-nums">{activeData.summary.createdCount}</strong>
                   </div>
                 )}
-                <div className="p-3 rounded-xl border border-blue-200 bg-blue-50/60">
-                  <span className="text-blue-800 block">{step === 'preview' ? 'Ghi chú / Tệp' : 'Dùng lại / Xếp lớp'}</span>
-                  <strong className="text-lg text-[#082B52] tabular-nums">
+                <div className="p-3 rounded-xl border border-[#C7DCFA] bg-[#EAF3FF]">
+                  <span className="text-[#1769F4] block">{step === 'preview' ? 'Ghi chú / Tệp' : 'Dùng lại / Xếp lớp'}</span>
+                  <strong className="text-lg text-[#102C54] tabular-nums">
                     {step === 'preview' ? fileName.slice(0, 14) : activeData.summary.reusedCount}
                   </strong>
                 </div>
@@ -553,7 +553,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                               }))
                           )
                         }
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#082B52] hover:bg-[#0d3a6d] text-white font-bold shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#102C54] hover:bg-[#153766] text-white font-bold shadow-2xs whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Tải phiếu mật khẩu khởi tạo (.xlsx)</span>
@@ -566,16 +566,16 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-950 flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                   <span>
-                    Có <strong>{activeData.summary.partialFailedCount}</strong> học sinh đã được tạo tài khoản thành công nhưng bước gán vào lớp bị gián đoạn. Bấm <strong>Thử gán lớp lại</strong> ngay trên từng dòng bên dưới.
+                    Có <strong className="tabular-nums">{activeData.summary.partialFailedCount}</strong> học sinh đã được tạo tài khoản thành công nhưng bước gán vào lớp bị gián đoạn. Bấm <strong>Thử gán lớp lại</strong> ngay trên từng dòng bên dưới.
                   </span>
                 </div>
               )}
 
               {/* Row Table */}
-              <div className="border border-[#DCE8F7] rounded-xl overflow-hidden">
+              <div className="border border-[#E2E8F0] rounded-xl overflow-hidden">
                 <div className="overflow-x-auto max-h-[340px]">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-[#F3F8FF] text-[#12345B] font-bold border-b border-[#DCE8F7] sticky top-0">
+                    <thead className="bg-[#EAF3FF] text-[#102C54] font-bold border-b border-[#C7DCFA] sticky top-0">
                       <tr>
                         <th className="py-2.5 px-3 whitespace-nowrap">Dòng</th>
                         {columnKeys.map(col => (
@@ -595,10 +595,10 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {activeData.rows.map(row => (
-                        <tr key={row.rowNumber} className="hover:bg-[#F8FBFF]">
+                        <tr key={row.rowNumber} className="hover:bg-[#F6F9FD]">
                           <td className="py-2 px-3 font-mono text-slate-500 tabular-nums">{row.rowNumber}</td>
                           {columnKeys.map(col => (
-                            <td key={col} className="py-2 px-3 text-[#082B52] font-medium whitespace-nowrap">
+                            <td key={col} className="py-2 px-3 text-[#102C54] font-medium whitespace-nowrap">
                               {row.columns[col] || '—'}
                             </td>
                           ))}
@@ -615,7 +615,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                             <td className="py-2 px-3 whitespace-nowrap">
                               {row.initialPassword ? (
                                 <div className="inline-flex items-center gap-1.5">
-                                  <code className="px-2 py-0.5 rounded bg-amber-50 border border-amber-200 font-mono font-bold text-[#082B52]">
+                                  <code className="px-2 py-0.5 rounded bg-amber-50 border border-amber-200 font-mono font-bold text-[#102C54]">
                                     {showInitialPasswords ? row.initialPassword : '••••••••••'}
                                   </code>
                                   <button
@@ -627,7 +627,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                                         setTimeout(() => setCopiedRowNum(null), 1800);
                                       }
                                     }}
-                                    className="p-1 rounded hover:bg-slate-100 text-slate-600 hover:text-[#006BFF]"
+                                    className="p-1 rounded hover:bg-slate-100 text-slate-600 hover:text-[#1769F4] cursor-pointer"
                                     title="Sao chép mật khẩu khởi tạo"
                                   >
                                     <Copy className="w-3.5 h-3.5" />
@@ -716,7 +716,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                   type="button"
                   disabled={busy || previewResult.summary.readyToApply === 0}
                   onClick={handleConfirmImport}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl disabled:opacity-40 whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl disabled:opacity-40 whitespace-nowrap shrink-0 tabular-nums cursor-pointer"
                 >
                   {busy ? (
                     <>
@@ -750,9 +750,9 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                       }))
                     )
                   }
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#082B52] border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-[#E4F0FF] rounded-xl whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#102C54] border border-[#C7DCFA] bg-[#EAF3FF] hover:bg-[#DCEAFE] rounded-xl whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5 text-[#006BFF]" />
+                  <Download className="w-3.5 h-3.5 text-[#1769F4]" />
                   <span>Tải báo cáo kết quả (.xlsx)</span>
                 </button>
 
@@ -773,7 +773,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                             }))
                         )
                       }
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-amber-950 border border-amber-300 bg-amber-100 hover:bg-amber-200/80 rounded-xl whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-amber-950 border border-amber-300 bg-amber-100 hover:bg-amber-200/80 rounded-xl whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       <KeyRound className="w-3.5 h-3.5 text-amber-800" />
                       <span>Tải phiếu mật khẩu khởi tạo (.xlsx)</span>
@@ -784,7 +784,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-5 py-2 text-xs font-bold bg-[#082B52] hover:bg-[#0d3a6d] text-white rounded-xl"
+                className="px-5 py-2 text-xs font-bold bg-[#102C54] hover:bg-[#153766] text-white rounded-xl whitespace-nowrap shrink-0 cursor-pointer"
               >
                 Hoàn tất
               </button>

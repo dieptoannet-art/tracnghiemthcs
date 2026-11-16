@@ -69,9 +69,43 @@ import {
   isValidStudentCode,
   normalizeStudentCode
 } from '../utils/studentAuthHelper';
+import {
+  AccessMode,
+  DemoRole,
+  buildNavigationUrlForView,
+  resolveRouteFromLocation
+} from '../types/accessMode';
+import {
+  DemoSandboxState,
+  buildDemoClassRoles,
+  buildDemoTeachingAssignments,
+  buildDemoUserProfile,
+  ensureDemo50GuestRosterSeeded,
+  loadDemoSandboxState,
+  resetDemoSandboxAll,
+  saveDemoSandboxState
+} from '../data/demoSandboxData';
 
 interface AppContextType {
   // Mode & Auth
+  accessMode: AccessMode;
+  setAccessMode: (mode: AccessMode) => void;
+  isDemoSandbox: boolean;
+  enterPublicGuest: () => void;
+  enterDemoRole: (role: DemoRole, targetView?: string) => void;
+  enterKhktShowcase: (presentation?: boolean) => void;
+  exitDemoToWorkspace: (targetView?: string) => void;
+  resetDemoSandbox: () => void;
+  reducedMotion: boolean;
+  setReducedMotion: (val: boolean) => void;
+  coreKnowledgeTargetLessonId: string | null;
+  openCoreKnowledgeLesson: (lessonId: string) => void;
+  clearCoreKnowledgeTargetLesson: () => void;
+  preferredDemoAssignmentId: string | null;
+  setPreferredDemoAssignmentId: (id: string | null) => void;
+  khktPresentationStep: number;
+  setKhktPresentationStep: (step: number) => void;
+
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
   isDemoMode: boolean;
@@ -94,6 +128,9 @@ interface AppContextType {
 
   user: User | null;
   userProfile: UserProfile | null;
+  authenticatedProdUser: User | null;
+  authenticatedProdProfile: UserProfile | null;
+  authenticatedProdRole: UserRole;
   profileStatus: 'idle' | 'loading' | 'loaded' | 'not_found' | 'error';
   profileError: string | null;
   retryLoadProfile: () => Promise<void>;
@@ -329,32 +366,94 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const resolveInitialViewFromUrl = (): string => {
-    if (typeof window === 'undefined') return 'dashboard';
+    if (typeof window === 'undefined') return 'home_portal';
+    return resolveRouteFromLocation(
+      window.location.pathname,
+      window.location.search,
+      window.location.hash
+    ).view;
+  };
+
+  const resolveInitialAccessMode = (): AccessMode => {
+    if (typeof window === 'undefined') return 'PUBLIC_GUEST';
+    const resolved = resolveRouteFromLocation(
+      window.location.pathname,
+      window.location.search,
+      window.location.hash
+    );
+    if (resolved.suggestedAccessMode) return resolved.suggestedAccessMode;
     try {
-      const params = new URLSearchParams(window.location.search);
-      const qView = params.get('view');
-      if (qView && qView.trim()) return qView.trim();
-
-      const rawPath = window.location.pathname.replace(/\/+$/, '').toLowerCase();
-      if (rawPath === '/admin' || rawPath === '/admin/accounts') return 'admin_accounts';
-      if (rawPath === '/admin/approval') return 'admin_approval';
-      if (rawPath === '/admin/settings') return 'admin_settings';
-      if (rawPath === '/teacher/classes') return 'teacher_classes';
-      if (rawPath === '/teacher/create-exam') return 'teacher_create_exam';
-      if (rawPath === '/student/assignments') return 'student_assignments';
-
-      const hash = window.location.hash.replace(/^#\/?/, '').trim();
+      const savedMode = sessionStorage.getItem('taydo_access_mode');
       if (
-        hash &&
-        !hash.includes('access_token=') &&
-        !hash.includes('refresh_token=') &&
-        !hash.includes('type=')
+        savedMode === 'PUBLIC_GUEST' ||
+        savedMode === 'DEMO_TEACHER' ||
+        savedMode === 'DEMO_STUDENT' ||
+        savedMode === 'KHKT_SHOWCASE'
       ) {
-        return hash;
+        return savedMode;
       }
     } catch {}
-    return 'dashboard';
+    return 'PUBLIC_GUEST';
   };
+
+  const [accessMode, setAccessModeState] = useState<AccessMode>(resolveInitialAccessMode);
+  const accessModeRef = useRef<AccessMode>(accessMode);
+  useEffect(() => {
+    accessModeRef.current = accessMode;
+    try {
+      sessionStorage.setItem('taydo_access_mode', accessMode);
+    } catch {}
+  }, [accessMode]);
+
+  const setAccessMode = useCallback((mode: AccessMode) => {
+    setAccessModeState(mode);
+  }, []);
+
+  const [demoState, setDemoState] = useState<DemoSandboxState>(() => {
+    ensureDemo50GuestRosterSeeded();
+    return loadDemoSandboxState();
+  });
+
+  useEffect(() => {
+    saveDemoSandboxState(demoState);
+  }, [demoState]);
+
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = localStorage.getItem('taydo_reduced_motion');
+      if (saved === 'true') return true;
+      if (saved === 'false') return false;
+      return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('taydo_reduced_motion', String(reducedMotion));
+    } catch {}
+  }, [reducedMotion]);
+
+  const [coreKnowledgeTargetLessonId, setCoreKnowledgeTargetLessonId] = useState<string | null>(null);
+  const [preferredDemoAssignmentId, setPreferredDemoAssignmentId] = useState<string | null>(null);
+  const [khktPresentationStep, setKhktPresentationStepState] = useState<number>(() => {
+    if (typeof window === 'undefined') return 1;
+    try {
+      const saved = Number(sessionStorage.getItem('taydo_khkt_pres_step') || '1');
+      if (saved >= 1 && saved <= 6) return saved;
+    } catch {}
+    return 1;
+  });
+
+  const setKhktPresentationStep = useCallback((step: number) => {
+    const clamped = Math.max(1, Math.min(6, Math.round(step)));
+    setKhktPresentationStepState(clamped);
+    try {
+      sessionStorage.setItem('taydo_khkt_pres_step', String(clamped));
+    } catch {}
+  }, []);
 
   const [selectedGrade, setSelectedGrade] = useState<Grade>('8');
   const [selectedSubject, setSelectedSubject] = useState<SubjectId>('math');
@@ -365,21 +464,82 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentViewState(view);
     if (typeof window !== 'undefined') {
       try {
-        const url = new URL(window.location.href);
-        if (view === 'dashboard') {
-          url.searchParams.delete('view');
-        } else {
-          url.searchParams.set('view', view);
-        }
-        window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+        const nextUrl = buildNavigationUrlForView(view, window.location.href);
+        window.history.replaceState({}, '', nextUrl);
       } catch {}
     }
+  }, []);
+
+  const openCoreKnowledgeLesson = useCallback(
+    (lessonId: string) => {
+      setCoreKnowledgeTargetLessonId(lessonId);
+      setCurrentView('student_core_knowledge');
+    },
+    [setCurrentView]
+  );
+
+  const clearCoreKnowledgeTargetLesson = useCallback(() => {
+    setCoreKnowledgeTargetLessonId(null);
+  }, []);
+
+  const enterPublicGuest = useCallback(() => {
+    ensureDemo50GuestRosterSeeded();
+    setAccessModeState('PUBLIC_GUEST');
+    setCurrentView('public_explore');
+  }, [setCurrentView]);
+
+  const enterDemoRole = useCallback(
+    (role: DemoRole, targetView?: string) => {
+      ensureDemo50GuestRosterSeeded();
+      setAccessModeState(role === 'teacher' ? 'DEMO_TEACHER' : 'DEMO_STUDENT');
+      if (targetView) {
+        setCurrentView(targetView);
+      } else {
+        setCurrentView('public_explore');
+      }
+    },
+    [setCurrentView]
+  );
+
+  const enterKhktShowcase = useCallback(
+    (presentation: boolean = false) => {
+      ensureDemo50GuestRosterSeeded();
+      setAccessModeState('KHKT_SHOWCASE');
+      setCurrentView(presentation ? 'khkt_presentation' : 'khkt_showcase');
+    },
+    [setCurrentView]
+  );
+
+  const exitDemoToWorkspace = useCallback(
+    (targetView: string = 'dashboard') => {
+      if (userRef.current) {
+        setAccessModeState('PRODUCTION_USER');
+        setCurrentView(targetView);
+      } else {
+        setCurrentView('login_portal');
+      }
+    },
+    [setCurrentView]
+  );
+
+  const resetDemoSandbox = useCallback(() => {
+    const fresh = resetDemoSandboxAll();
+    setDemoState(fresh);
+    setPreferredDemoAssignmentId(null);
   }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handlePopState = () => {
-      setCurrentViewState(resolveInitialViewFromUrl());
+      const resolved = resolveRouteFromLocation(
+        window.location.pathname,
+        window.location.search,
+        window.location.hash
+      );
+      setCurrentViewState(resolved.view);
+      if (resolved.suggestedAccessMode) {
+        setAccessModeState(resolved.suggestedAccessMode);
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -477,8 +637,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [yccdCatalog]);
 
   const [enrolledClassIds, setEnrolledClassIds] = useState<string[] | null>(null);
-  const isAuthenticatedSupabase = Boolean(isSupabaseConfigured && user);
-  const isUsingDemoAssignmentsData = !isAuthenticatedSupabase;
+  const isDemoSandbox = accessMode !== 'PRODUCTION_USER';
+  const isAuthenticatedSupabase = Boolean(isSupabaseConfigured && user && !isDemoSandbox);
+  const isUsingDemoAssignmentsData = isDemoSandbox || !isAuthenticatedSupabase;
 
   const isUsingDemoRef = useRef<boolean>(isUsingDemoAssignmentsData);
   useEffect(() => {
@@ -697,7 +858,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const openStudyMaterialsWithIntent = useCallback((intent: StudyMaterialNavIntent) => {
     setStudyMaterialNavIntent(intent);
     setCurrentView('student_study_materials');
-  }, []);
+  }, [setCurrentView]);
 
   const clearStudyMaterialNavIntent = useCallback(() => {
     setStudyMaterialNavIntent(null);
@@ -986,6 +1147,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (session?.user) {
         setUser(session.user);
         setAuthVerified(true);
+        // Preserve KHKT / Explore route if user specifically loaded those Showcase URLs; otherwise enter Production Workspace
+        const initialResolved = resolveRouteFromLocation(
+          window.location.pathname,
+          window.location.search,
+          window.location.hash
+        );
+        const stayInShowcaseOrExplore =
+          initialResolved.view === 'khkt_showcase' ||
+          initialResolved.view === 'khkt_presentation' ||
+          initialResolved.view === 'public_explore';
+        if (!stayInShowcaseOrExplore) {
+          setAccessModeState('PRODUCTION_USER');
+        }
         if (isInviteOrRecoveryLink || session.user.user_metadata?.must_change_password === true) {
           setAuthModalMode('set_password');
           setAuthModalOpen(true);
@@ -1015,6 +1189,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (session?.user) {
           setUser(session.user);
           setAuthVerified(true);
+          setAccessModeState('PRODUCTION_USER');
           await loadProfile(session.user.id, session.user);
         }
         setAuthModalMode('set_password');
@@ -1040,6 +1215,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setProfileStatus('idle');
         setProfileError(null);
         setIsDemoMode(true);
+        if (accessModeRef.current === 'PRODUCTION_USER') {
+          setAccessModeState('PUBLIC_GUEST');
+        }
         await Promise.all([
           loadAssignmentsForSession(null, 'student'),
           loadStudyMaterialsForSession(null, 'student')
@@ -1052,7 +1230,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [loadProfile]);
+  }, [loadProfile, loadAssignmentsForSession, loadStudyMaterialsForSession]);
 
   // Supabase Auth Actions
   const signIn = async (
@@ -1104,7 +1282,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               if (activeUser) {
                 setUser(activeUser);
                 await loadProfile(activeUser.id, activeUser);
+                setAccessModeState('PRODUCTION_USER');
                 setIsDemoMode(false);
+                if (currentView === 'login_portal' || currentView === 'home_portal') {
+                  setCurrentView('dashboard');
+                }
                 const mustChange = Boolean(
                   payload.mustChangePassword || activeUser.user_metadata?.must_change_password
                 );
@@ -1147,7 +1329,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
           setUser(fallbackData.user);
           await loadProfile(fallbackData.user.id, fallbackData.user);
+          setAccessModeState('PRODUCTION_USER');
           setIsDemoMode(false);
+          if (currentView === 'login_portal' || currentView === 'home_portal') {
+            setCurrentView('dashboard');
+          }
           const mustChange = Boolean(fallbackData.user.user_metadata?.must_change_password);
           if (mustChange) {
             setAuthModalMode('set_password');
@@ -1178,7 +1364,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (data.user) {
           setUser(data.user);
           await loadProfile(data.user.id, data.user);
+          setAccessModeState('PRODUCTION_USER');
           setIsDemoMode(false);
+          if (currentView === 'login_portal' || currentView === 'home_portal') {
+            setCurrentView('dashboard');
+          }
           const mustChange = Boolean(data.user.user_metadata?.must_change_password);
           if (mustChange) {
             setAuthModalMode('set_password');
@@ -1450,7 +1640,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProfileStatus('idle');
     setProfileError(null);
     setIsDemoMode(true);
-    setCurrentView('dashboard');
+    setAccessModeState('PUBLIC_GUEST');
+    setCurrentView('home_portal');
     await Promise.all([
       loadAssignmentsForSession(null, 'student'),
       loadStudyMaterialsForSession(null, 'student')
@@ -1458,33 +1649,78 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog('Đăng xuất', 'Hệ thống', 'Người dùng đã đăng xuất khỏi phiên làm việc');
   };
 
-  // Student Profile representation
-  const studentUser = {
-    id: userProfile?.id || (user ? user.id : 'stu-01'),
-    code: userProfile?.studentCode || 'HS80101',
-    fullName: userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : 'Học sinh'),
-    className: userProfile?.grade ? `Lớp ${userProfile.grade}A1` : 'Lớp 8A1',
-    school: userProfile?.schoolName || 'Trường THCS Tây Đô'
-  };
+  // Effective projection: isolates Demo Sandbox (PUBLIC_GUEST / DEMO_TEACHER / DEMO_STUDENT / KHKT_SHOWCASE)
+  // completely from authenticated Production data and prevents any accidental Supabase reads/writes in Demo mode.
+  const effectiveRole: UserRole = isDemoSandbox
+    ? accessMode === 'DEMO_TEACHER'
+      ? 'teacher'
+      : 'student'
+    : currentRole;
 
-  // Actions
+  const effectiveUser: User | null = isDemoSandbox ? null : user;
+  const effectiveUserProfile: UserProfile | null = isDemoSandbox
+    ? buildDemoUserProfile(accessMode === 'DEMO_TEACHER' ? 'teacher' : 'student')
+    : userProfile;
+
+  const effectiveQuestions = isDemoSandbox ? demoState.questions : questions;
+  const effectiveClasses = isDemoSandbox ? demoState.classes : classes;
+  const effectiveMatrices = isDemoSandbox ? demoState.matrices : matrices;
+  const effectiveExams = isDemoSandbox ? demoState.exams : exams;
+  const effectiveAssignments = isDemoSandbox ? demoState.assignments : assignments;
+  const effectiveSubmissions = isDemoSandbox ? demoState.submissions : submissions;
+  const effectiveStudyDocs = isDemoSandbox ? demoState.studyDocs : studyDocs;
+  const effectiveAuditLogs = isDemoSandbox ? demoState.auditLogs : auditLogs;
+  const effectiveTeachingAssignments = isDemoSandbox
+    ? buildDemoTeachingAssignments(demoState.classes)
+    : teachingAssignments;
+  const effectiveClassRoles = isDemoSandbox
+    ? buildDemoClassRoles(demoState.classes)
+    : classRoles;
+
+  // Student Profile representation
+  const studentUser = isDemoSandbox
+    ? {
+        id: 'demo-stu-01',
+        code: 'DM8001',
+        fullName: 'Nguyễn Minh An (HS Demo)',
+        className: '8A1 (Demo 50 HS)',
+        school: 'THCS Tây Đô (Môi trường Demo)'
+      }
+    : {
+        id: userProfile?.id || (user ? user.id : 'stu-01'),
+        code: userProfile?.studentCode || 'HS80101',
+        fullName: userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : 'Học sinh'),
+        className: userProfile?.grade ? `Lớp ${userProfile.grade}A1` : 'Lớp 8A1',
+        school: userProfile?.schoolName || 'Trường THCS Tây Đô'
+      };
+
+  // Actions (Strict Demo vs Production isolation)
   const addAuditLog = (action: string, target: string, details: string) => {
-    const actorName = userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : currentRole === 'admin' ? 'Quản trị viên' : studentUser.fullName);
+    const actorName = effectiveUserProfile?.fullName || (effectiveRole === 'teacher' ? 'Giáo viên' : effectiveRole === 'admin' ? 'Quản trị viên' : studentUser.fullName);
     const newLog: AuditLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toLocaleString('vi-VN'),
       actor: actorName,
-      role: currentRole,
+      role: effectiveRole,
       action,
       target,
       details
     };
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, auditLogs: [newLog, ...prev.auditLogs].slice(0, 200) }));
+      return;
+    }
     setAuditLogs(prev => [newLog, ...prev]);
   };
 
   const addQuestion = (q: Question) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép thêm câu hỏi vào ngân hàng.');
+      return;
+    }
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, questions: [q, ...prev.questions] }));
+      addAuditLog('Thêm câu hỏi mới (Demo)', q.code, `Thêm câu hỏi dạng ${q.type} vào Sandbox Demo`);
       return;
     }
     setQuestions(prev => [q, ...prev]);
@@ -1492,8 +1728,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateQuestion = (q: Question) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép cập nhật câu hỏi.');
+      return;
+    }
+    if (isDemoSandbox) {
+      setDemoState(prev => ({
+        ...prev,
+        questions: prev.questions.map(item => (item.id === q.id ? q : item))
+      }));
+      addAuditLog('Cập nhật câu hỏi (Demo)', q.code, `Cập nhật câu hỏi Demo v${q.version}`);
       return;
     }
     setQuestions(prev => prev.map(item => item.id === q.id ? q : item));
@@ -1501,8 +1745,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteQuestion = (id: string) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép xóa câu hỏi.');
+      return;
+    }
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, questions: prev.questions.filter(q => q.id !== id) }));
       return;
     }
     const target = questions.find(q => q.id === id);
@@ -1513,8 +1761,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const approveQuestion = (id: string) => {
-    if (currentRole !== 'admin' && currentRole !== 'reviewer') {
-      console.warn('Truy cập trái quyền: Chỉ Quản trị viên hoặc Người kiểm duyệt mới có quyền duyệt câu hỏi.');
+    if (isDemoSandbox || (currentRole !== 'admin' && currentRole !== 'reviewer')) {
+      console.warn('Truy cập trái quyền: Chỉ Quản trị viên hoặc Người kiểm duyệt trong Không gian Thật mới có quyền duyệt câu hỏi.');
       return;
     }
     setQuestions(prev =>
@@ -1527,7 +1775,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const importQuestionsBatch = (newQuestions: Partial<Question>[]) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép nhập file câu hỏi.');
       return;
     }
@@ -1546,7 +1794,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       points: nq.points || 0.25,
       explanation: nq.explanation || 'Lời giải chi tiết',
       status: 'pending',
-      author: userProfile?.fullName || 'Nhập khẩu từ Excel',
+      author: effectiveUserProfile?.fullName || 'Nhập khẩu từ Excel',
       version: 1,
       options: nq.options || [
         { id: 'opt-a', label: 'A', text: 'Phương án A' },
@@ -1557,12 +1805,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       correctAnswer: nq.correctAnswer || 'A'
     }));
 
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, questions: [...formatted, ...prev.questions] }));
+      addAuditLog('Nhập câu hỏi (Demo)', `${formatted.length} câu`, 'Nhập vào Sandbox Demo cục bộ');
+      return;
+    }
     setQuestions(prev => [...formatted, ...prev]);
     addAuditLog('Nhập file câu hỏi', `${formatted.length} câu`, 'Nhập hàng loạt câu hỏi từ file');
   };
 
   const importYccdItems = (incoming: YccdItem[]): { inserted: number; updated: number; unchanged: number } => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép nhập danh mục YCCĐ.');
       return { inserted: 0, updated: 0, unchanged: 0 };
     }
@@ -1582,7 +1835,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Thêm mới ${inserted}, cập nhật ${updated}, giữ nguyên ${unchanged}`
     );
 
-    if (isSupabaseConfigured && user && upsertedItems.length > 0) {
+    if (!isDemoSandbox && isSupabaseConfigured && user && upsertedItems.length > 0) {
       const payload = upsertedItems.map(item => ({
         stable_key: item.stableKey,
         subject: item.subject,
@@ -1620,11 +1873,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createMatrix = (matrix: ExamMatrix) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép tạo ma trận đề thi.');
       return;
     }
-    setMatrices(prev => {
+    const updateList = (prev: ExamMatrix[]) => {
       const idx = prev.findIndex(m => m.id === matrix.id);
       if (idx >= 0) {
         const next = [...prev];
@@ -1632,22 +1885,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return next;
       }
       return [matrix, ...prev];
-    });
+    };
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, matrices: updateList(prev.matrices) }));
+      addAuditLog('Tạo ma trận (Demo)', matrix.title, `Ma trận Demo tổng điểm ${matrix.totalPoints}đ`);
+      return;
+    }
+    setMatrices(updateList);
     addAuditLog('Tạo ma trận', matrix.title, `Thiết lập ma trận tổng điểm ${matrix.totalPoints}đ`);
   };
 
   const saveMatrixDraft = async (
     matrix: ExamMatrix
   ): Promise<{ savedToSupabase: boolean; error?: string }> => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       return { savedToSupabase: false, error: 'Học sinh không có quyền lưu ma trận đề.' };
     }
     const enriched: ExamMatrix = {
       ...matrix,
       updatedAt: new Date().toISOString(),
-      authorId: user?.id || userProfile?.id,
-      authorName: userProfile?.fullName || matrix.authorName || 'Giáo viên'
+      authorId: isDemoSandbox ? 'demo-teacher-01' : (user?.id || userProfile?.id),
+      authorName: effectiveUserProfile?.fullName || matrix.authorName || 'Giáo viên'
     };
+
+    if (isDemoSandbox) {
+      setDemoState(prev => {
+        const idx = prev.matrices.findIndex(m => m.id === enriched.id);
+        const next =
+          idx >= 0
+            ? prev.matrices.map((item, i) => (i === idx ? enriched : item))
+            : [enriched, ...prev.matrices];
+        return { ...prev, matrices: next };
+      });
+      addAuditLog(
+        'Lưu bản nháp ma trận (Demo)',
+        enriched.title,
+        `Tổng ${enriched.totalPoints.toFixed(2)}đ • ${enriched.durationMinutes} phút (chỉ lưu cục bộ Demo)`
+      );
+      return { savedToSupabase: false };
+    }
 
     setMatrices(prev => {
       const idx = prev.findIndex(m => m.id === enriched.id);
@@ -1700,7 +1976,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteMatrixDraft = async (matrixId: string): Promise<void> => {
-    if (currentRole === 'student') return;
+    if (effectiveRole === 'student') return;
+    if (isDemoSandbox) {
+      setDemoState(prev => ({
+        ...prev,
+        matrices: prev.matrices.filter(m => m.id !== matrixId)
+      }));
+      return;
+    }
     setMatrices(prev => {
       const next = prev.filter(m => m.id !== matrixId);
       try {
@@ -1715,8 +1998,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createExam = (exam: Exam) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép tạo đề kiểm tra.');
+      return;
+    }
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, exams: [exam, ...prev.exams] }));
+      addAuditLog('Tạo đề kiểm tra (Demo)', exam.code, `Tạo đề Demo ${exam.code}`);
       return;
     }
     setExams(prev => [exam, ...prev]);
@@ -1726,14 +2014,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const saveExamAsync = async (
     params: Omit<SaveExamDraftParams, 'teacherId' | 'teacherRole' | 'teacherName'>
   ): Promise<{ success: boolean; exam?: Exam; isDemo?: boolean; error?: string }> => {
-    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+    if (effectiveRole !== 'teacher' && effectiveRole !== 'admin') {
       return { success: false, error: 'Học sinh không có quyền tạo hoặc lưu đề kiểm tra.' };
     }
     if (!params.newExamDraft.questions || params.newExamDraft.questions.length === 0) {
       return { success: false, error: 'Vui lòng chọn ít nhất 1 câu hỏi vào đề.' };
     }
 
-    if (isSupabaseConfigured && user) {
+    if (!isDemoSandbox && isSupabaseConfigured && user) {
       const res = await syncSaveExamOnSupabase({
         ...params,
         teacherId: user.id,
@@ -1755,13 +2043,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: true, exam: res.exam, isDemo: false };
     }
 
-    const existingDemo = exams.find(e => e.clientRequestId && e.clientRequestId === params.examRequestId);
+    const currentExamsList = isDemoSandbox ? demoState.exams : exams;
+    const existingDemo = currentExamsList.find(e => e.clientRequestId && e.clientRequestId === params.examRequestId);
     if (existingDemo) {
       return { success: true, exam: existingDemo, isDemo: true };
     }
 
     const demoExam: Exam = {
-      id: `exam-${Date.now()}`,
+      id: `demo-exam-${Date.now()}`,
       code: params.newExamDraft.code.trim().toUpperCase(),
       title: params.newExamDraft.title.trim(),
       grade: params.newExamDraft.grade,
@@ -1773,10 +2062,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       questionCount: params.newExamDraft.questions.length,
       totalPoints: params.newExamDraft.totalPoints,
       createdAt: new Date().toISOString().split('T')[0],
-      author: userProfile?.fullName || 'Giáo viên',
+      author: effectiveUserProfile?.fullName || 'Giáo viên Demo',
       clientRequestId: params.examRequestId
     };
-    setExams(prev => [demoExam, ...prev]);
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, exams: [demoExam, ...prev.exams] }));
+    } else {
+      setExams(prev => [demoExam, ...prev]);
+    }
     addAuditLog(
       'Lưu đề kiểm tra (Demo)',
       demoExam.code,
@@ -1786,8 +2079,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createAssignment = (asg: Assignment) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép giao bài kiểm tra.');
+      return;
+    }
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, assignments: [asg, ...prev.assignments] }));
       return;
     }
     setAssignments(prev => [asg, ...prev]);
@@ -1797,11 +2094,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const publishExamAssignmentAsync = async (
     params: Omit<PublishExamAssignmentParams, 'teacherId' | 'teacherRole' | 'teacherName'>
   ): Promise<{ success: boolean; exam?: Exam; assignment?: Assignment; isDemo?: boolean; error?: string }> => {
-    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+    if (effectiveRole !== 'teacher' && effectiveRole !== 'admin') {
       return { success: false, error: 'Học sinh không có quyền tạo đề hoặc giao bài.' };
     }
 
-    if (isSupabaseConfigured && user) {
+    if (!isDemoSandbox && isSupabaseConfigured && user) {
       const res = await syncPublishExamAssignmentOnSupabase({
         ...params,
         teachingAssignments,
@@ -1831,10 +2128,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: true, exam: res.exam, assignment: res.assignment, isDemo: false };
     }
 
-    // Demo / local fallback ONLY when not authenticated on Supabase
-    const duplicateLocal = assignments.find(a => a.clientRequestId === params.publishRequestId);
+    const currentAssignmentsList = isDemoSandbox ? demoState.assignments : assignments;
+    const currentExamsList = isDemoSandbox ? demoState.exams : exams;
+    const duplicateLocal = currentAssignmentsList.find(a => a.clientRequestId === params.publishRequestId);
     if (duplicateLocal) {
-      const existingExamLocal = exams.find(e => e.id === duplicateLocal.examId);
+      const existingExamLocal = currentExamsList.find(e => e.id === duplicateLocal.examId);
       return { success: true, exam: existingExamLocal, assignment: duplicateLocal, isDemo: true };
     }
 
@@ -1844,7 +2142,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return { success: false, error: 'Vui lòng chọn ít nhất 1 câu hỏi vào đề.' };
       }
       resolvedExam = {
-        id: `exam-${Date.now()}`,
+        id: `demo-exam-${Date.now()}`,
         code: params.newExamDraft.code.trim().toUpperCase(),
         title: params.newExamDraft.title.trim(),
         grade: params.newExamDraft.grade,
@@ -1855,10 +2153,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         questionCount: params.newExamDraft.questions.length,
         totalPoints: params.newExamDraft.totalPoints,
         createdAt: new Date().toISOString().split('T')[0],
-        author: userProfile?.fullName || 'Giáo viên',
+        author: effectiveUserProfile?.fullName || 'Giáo viên Demo',
         clientRequestId: params.examRequestId
       };
-      setExams(prev => [resolvedExam!, ...prev]);
+      if (isDemoSandbox) {
+        setDemoState(prev => ({ ...prev, exams: [resolvedExam!, ...prev.exams] }));
+      } else {
+        setExams(prev => [resolvedExam!, ...prev]);
+      }
     }
 
     if (!resolvedExam) {
@@ -1866,7 +2168,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const localAssignment: Assignment = {
-      id: `asg-${Date.now()}`,
+      id: `demo-asg-${Date.now()}`,
       examId: resolvedExam.id,
       examTitle: resolvedExam.title,
       classId: params.targetClass.id,
@@ -1886,7 +2188,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       roundLabel: params.assignmentSettings.roundLabel,
       clientRequestId: params.publishRequestId
     };
-    setAssignments(prev => [localAssignment, ...prev]);
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, assignments: [localAssignment, ...prev.assignments] }));
+    } else {
+      setAssignments(prev => [localAssignment, ...prev]);
+    }
     addAuditLog(
       'Giao bài kiểm tra (Demo)',
       localAssignment.className,
@@ -1896,7 +2202,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const submitExamSession = (sub: Submission) => {
-    setSubmissions(prev => {
+    const updateSubs = (prev: Submission[]) => {
       const existing = prev.findIndex(s => s.assignmentId === sub.assignmentId && s.studentId === sub.studentId);
       if (existing >= 0) {
         const copy = [...prev];
@@ -1904,17 +2210,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return copy;
       }
       return [sub, ...prev];
-    });
+    };
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, submissions: updateSubs(prev.submissions) }));
+      addAuditLog('Nộp bài kiểm tra (Demo)', sub.examTitle, `Học sinh Demo nộp bài đạt ${sub.score.toFixed(2)}đ`);
+      return;
+    }
+    setSubmissions(updateSubs);
     addAuditLog('Nộp bài kiểm tra', sub.examTitle, `Học sinh ${sub.studentName} nộp bài đạt ${sub.score.toFixed(2)}đ`);
   };
 
   const gradeEssayQuestion = (submissionId: string, questionId: string, pointsAwarded: number, feedback: string) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép chấm bài tự luận.');
       return;
     }
     const nowIso = new Date().toISOString();
-    setSubmissions(prev =>
+    const applyGrade = (prev: Submission[]) =>
       prev.map(sub => {
         if (sub.id !== submissionId) return sub;
         const currentAns = sub.answers[questionId];
@@ -1934,7 +2246,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           [questionId]: {
             pointsAwarded: clampedPts,
             teacherFeedback: feedback,
-            gradedBy: user?.id,
+            gradedBy: isDemoSandbox ? 'demo-teacher-01' : user?.id,
             gradedAt: nowIso
           }
         };
@@ -1946,19 +2258,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           answers: newAnswers,
           gradingDetails: nextGradingDetails,
           teacherFeedback: feedback,
-          gradedBy: user?.id,
+          gradedBy: isDemoSandbox ? 'demo-teacher-01' : user?.id,
           gradedAt: nowIso,
           score: Math.min(maxScore, Math.max(0, total)),
-          status: 'graded'
+          status: 'graded' as const
         };
-      })
-    );
+      });
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, submissions: applyGrade(prev.submissions) }));
+      addAuditLog('Chấm bài tự luận (Demo)', submissionId, `Chấm điểm Demo: ${pointsAwarded} điểm`);
+      return;
+    }
+    setSubmissions(applyGrade);
     addAuditLog('Chấm bài tự luận', submissionId, `Chấm điểm câu hỏi tự luận: ${pointsAwarded} điểm`);
   };
 
   const addClassRoom = (cls: ClassRoom) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép tạo lớp học.');
+      return;
+    }
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, classes: [cls, ...prev.classes] }));
       return;
     }
     setClasses(prev => [cls, ...prev]);
@@ -1966,11 +2287,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addStudentToClass = (classId: string, student: { id: string; code: string; fullName: string; email: string; gender: 'Nam' | 'Nữ' }) => {
-    if (currentRole === 'student') {
+    if (effectiveRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép thêm học sinh vào lớp.');
       return;
     }
-    setClasses(prev =>
+    const applyEnroll = (prev: ClassRoom[]) =>
       prev.map(c => {
         if (c.id !== classId) return c;
         return {
@@ -1978,8 +2299,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           studentCount: c.studentCount + 1,
           students: [...c.students, student]
         };
-      })
-    );
+      });
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, classes: applyEnroll(prev.classes) }));
+      return;
+    }
+    setClasses(applyEnroll);
     addAuditLog('Thêm học sinh', student.fullName, `Thêm vào lớp ${classId}`);
   };
 
@@ -1988,7 +2313,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     grade: Grade;
     schoolYear?: string;
   }): Promise<{ success: boolean; classRoom?: ClassRoom; isDemo?: boolean; error?: string }> => {
-    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+    if (effectiveRole !== 'teacher' && effectiveRole !== 'admin') {
       return { success: false, error: 'Chỉ Giáo viên hoặc Quản trị viên mới có quyền tạo lớp học.' };
     }
     const cleanName = params.name.trim();
@@ -2003,7 +2328,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .replace(/[^a-zA-Z0-9]/g, '')
       .toUpperCase()}-${new Date().getFullYear().toString().slice(-2)}${Math.floor(10 + Math.random() * 89)}`;
 
-    if (isSupabaseConfigured && user) {
+    if (!isDemoSandbox && isSupabaseConfigured && user) {
       const res = await syncCreateClassOnSupabase({
         name: cleanName,
         grade: params.grade,
@@ -2021,15 +2346,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const demoCls: ClassRoom = {
-      id: `cls-${Date.now()}`,
+      id: `demo-cls-${Date.now()}`,
       name: cleanName,
       grade: params.grade,
-      teacherName: userProfile?.fullName || 'Giáo viên',
+      teacherName: effectiveUserProfile?.fullName || 'Giáo viên Demo',
       studentCount: 0,
       inviteCode,
       students: []
     };
-    setClasses(prev => [demoCls, ...prev]);
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, classes: [demoCls, ...prev.classes] }));
+    } else {
+      setClasses(prev => [demoCls, ...prev]);
+    }
     addAuditLog('Tạo lớp học (Demo)', demoCls.name, `Tạo lớp mẫu ${demoCls.name}`);
     return { success: true, classRoom: demoCls, isDemo: true };
   };
@@ -2039,11 +2368,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     identifier: string;
     demoFallback?: { code: string; fullName: string; gender: 'Nam' | 'Nữ' };
   }): Promise<{ success: boolean; isDemo?: boolean; error?: string }> => {
-    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+    if (effectiveRole !== 'teacher' && effectiveRole !== 'admin') {
       return { success: false, error: 'Chỉ Giáo viên hoặc Quản trị viên mới có quyền thêm học sinh vào lớp.' };
     }
 
-    if (isSupabaseConfigured && user) {
+    if (!isDemoSandbox && isSupabaseConfigured && user) {
       const res = await syncEnrollStudentOnSupabase(params.classId, params.identifier);
       if (!res.success || !res.student) {
         return { success: false, error: res.error || 'Không thể thêm học sinh vào lớp trên Supabase.' };
@@ -2070,19 +2399,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     const cleanCode = fallback.code.trim().toUpperCase();
     const newStu = {
-      id: `stu-${Date.now()}`,
+      id: `demo-stu-${Date.now()}`,
       code: cleanCode,
       fullName: fallback.fullName.trim(),
-      email: `${cleanCode.toLowerCase()}@taydo.edu.vn`,
+      email: `${cleanCode.toLowerCase()}@demo.taydo.local`,
       gender: fallback.gender
     };
-    setClasses(prev =>
+    const applyDemoEnroll = (prev: ClassRoom[]) =>
       prev.map(c => {
         if (c.id !== params.classId) return c;
         const nextStudents = [...c.students, newStu];
         return { ...c, studentCount: nextStudents.length, students: nextStudents };
-      })
-    );
+      });
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, classes: applyDemoEnroll(prev.classes) }));
+    } else {
+      setClasses(applyDemoEnroll);
+    }
     addAuditLog('Thêm học sinh (Demo)', newStu.fullName, `Thêm vào lớp mẫu ${params.classId}`);
     return { success: true, isDemo: true };
   };
@@ -2090,10 +2423,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const joinClassByInviteCodeAsync = async (
     inviteCode: string
   ): Promise<{ success: boolean; className?: string; error?: string }> => {
-    if (!isSupabaseConfigured || !user) {
+    if (isDemoSandbox || !isSupabaseConfigured || !user) {
       return {
         success: false,
-        error: 'Vui lòng đăng nhập tài khoản học sinh Supabase để tham gia lớp bằng mã mời.'
+        error: 'Chức năng tham gia lớp qua mã mời thật chỉ hoạt động khi đăng nhập tài khoản Học sinh trong Không gian Chính thức.'
       };
     }
     const res = await syncJoinClassByInviteCode(inviteCode);
@@ -2108,7 +2441,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const saveStudyMaterialAsync = async (
     payload: Omit<SaveStudyMaterialPayload, 'author' | 'authorId'> & { author?: string }
   ): Promise<{ success: boolean; material?: StudyDocument; isDemo?: boolean; error?: string }> => {
-    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+    if (effectiveRole !== 'teacher' && effectiveRole !== 'admin') {
       return { success: false, error: 'Chỉ Giáo viên hoặc Quản trị viên mới có quyền quản lý tài liệu.' };
     }
 
@@ -2117,9 +2450,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, error: 'Vui lòng nhập tên tài liệu.' };
     }
 
+    const activeStudyDocs = isDemoSandbox ? demoState.studyDocs : studyDocs;
     const existingDoc =
       payload.existingMaterial ||
-      (payload.id ? studyDocs.find(d => d.id === payload.id) || null : null);
+      (payload.id ? activeStudyDocs.find(d => d.id === payload.id) || null : null);
 
     const hasIncomingFile = Boolean(
       payload.selectedFile ||
@@ -2134,9 +2468,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    const authorName = payload.author?.trim() || userProfile?.fullName || 'Giáo viên';
+    const authorName = payload.author?.trim() || effectiveUserProfile?.fullName || 'Giáo viên';
 
-    if (isSupabaseConfigured && user) {
+    if (!isDemoSandbox && isSupabaseConfigured && user) {
       const res = await saveStudyMaterialToSupabase({
         ...payload,
         title: cleanTitle,
@@ -2200,7 +2534,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    const preservedId = existingDoc?.id || payload.id || `doc-${Date.now()}`;
+    const preservedId = existingDoc?.id || payload.id || `demo-doc-${Date.now()}`;
     const nowIso = new Date().toISOString();
     const isLinkedToTerm = payload.materialType === 'de_cuong' || payload.materialType === 'de_tham_khao';
     const isLinkedToLesson = payload.materialType === 'phieu_bai_tap' || payload.materialType === 'tep_thuc_hanh';
@@ -2218,7 +2552,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       chapterLabel: isLinkedToLesson ? (payload.chapterLabel || null) : null,
       lessonLabel: isLinkedToLesson ? (payload.lessonLabel || null) : null,
       author: authorName,
-      authorId: userProfile?.id,
+      authorId: effectiveUserProfile?.id,
       description: payload.description.trim(),
       usageInstructions: payload.usageInstructions?.trim() || null,
       fileName,
@@ -2232,25 +2566,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     const nextList = (() => {
-      const idx = studyDocs.findIndex(item => item.id === savedLocal.id);
+      const idx = activeStudyDocs.findIndex(item => item.id === savedLocal.id);
       if (idx >= 0) {
-        return studyDocs.map((item, i) => (i === idx ? savedLocal : item));
+        return activeStudyDocs.map((item, i) => (i === idx ? savedLocal : item));
       }
-      return [savedLocal, ...studyDocs];
+      return [savedLocal, ...activeStudyDocs];
     })();
+
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, studyDocs: nextList }));
+      return { success: true, material: savedLocal, isDemo: true };
+    }
 
     setStudyDocs(nextList);
     try {
-      // Do not persist ephemeral blob: URLs across reloads
       const persistable = nextList.map(item =>
         item.fileUrl && item.fileUrl.startsWith('blob:')
           ? { ...item, fileUrl: null }
           : item
       );
       localStorage.setItem(LOCAL_STUDY_MATERIALS_KEY, JSON.stringify(persistable));
-    } catch {
-      // Ignore quota error for oversized files in demo mode
-    }
+    } catch {}
 
     addAuditLog(
       savedLocal.status === 'published' ? 'Công bố tài liệu (Cục bộ)' : 'Lưu nháp tài liệu (Cục bộ)',
@@ -2264,20 +2600,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteStudyMaterialAsync = async (
     id: string
   ): Promise<{ success: boolean; error?: string }> => {
-    if (currentRole !== 'teacher' && currentRole !== 'admin') {
+    if (effectiveRole !== 'teacher' && effectiveRole !== 'admin') {
       return { success: false, error: 'Chỉ Giáo viên hoặc Quản trị viên mới có quyền xóa tài liệu.' };
     }
-    const target = studyDocs.find(d => d.id === id);
+    const activeStudyDocs = isDemoSandbox ? demoState.studyDocs : studyDocs;
+    const target = activeStudyDocs.find(d => d.id === id);
     if (!target) return { success: false, error: 'Không tìm thấy tài liệu cần xóa.' };
 
-    if (isSupabaseConfigured && user) {
+    if (!isDemoSandbox && isSupabaseConfigured && user) {
       const res = await deleteStudyMaterialFromSupabase(target);
       if (!res.success) {
         return { success: false, error: res.error || 'Không thể xóa tài liệu trên Supabase.' };
       }
     }
 
-    const nextList = studyDocs.filter(d => d.id !== id);
+    const nextList = activeStudyDocs.filter(d => d.id !== id);
+    if (isDemoSandbox) {
+      setDemoState(prev => ({ ...prev, studyDocs: nextList }));
+      return { success: true };
+    }
+
     setStudyDocs(nextList);
     if (!isSupabaseConfigured || !user) {
       try {
@@ -2289,6 +2631,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetDemoData = () => {
+    if (isDemoSandbox) {
+      resetDemoSandbox();
+      return;
+    }
     if (currentRole === 'student') {
       console.warn('Truy cập trái quyền: Học sinh không được phép khôi phục dữ liệu gốc.');
       return;
@@ -2311,9 +2657,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider
       value={{
-        currentRole,
+        accessMode,
+        setAccessMode,
+        isDemoSandbox,
+        enterPublicGuest,
+        enterDemoRole,
+        enterKhktShowcase,
+        exitDemoToWorkspace,
+        resetDemoSandbox,
+        reducedMotion,
+        setReducedMotion,
+        coreKnowledgeTargetLessonId,
+        openCoreKnowledgeLesson,
+        clearCoreKnowledgeTargetLesson,
+        preferredDemoAssignmentId,
+        setPreferredDemoAssignmentId,
+        khktPresentationStep,
+        setKhktPresentationStep,
+        currentRole: effectiveRole,
         setCurrentRole,
-        isDemoMode,
+        isDemoMode: isDemoSandbox ? true : isDemoMode,
         setIsDemoMode,
         isSupabaseLiveConfigured: isSupabaseConfigured,
         supabaseStatus,
@@ -2324,8 +2687,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         verifySupabase,
         supabaseConfig,
         setSupabaseConfig,
-        user,
-        userProfile,
+        user: effectiveUser,
+        userProfile: effectiveUserProfile,
+        authenticatedProdUser: user,
+        authenticatedProdProfile: userProfile,
+        authenticatedProdRole: currentRole,
         profileStatus,
         profileError,
         retryLoadProfile,
@@ -2350,31 +2716,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedPeriod,
         currentView,
         setCurrentView,
-        questions,
-        classes,
-        enrolledClassIds,
-        matrices,
-        exams,
-        assignments,
-        teachingAssignments,
-        classRoles,
-        submissions,
-        assignmentDataLoading,
-        assignmentDataError,
-        teachingSchemaWarning,
+        questions: effectiveQuestions,
+        classes: effectiveClasses,
+        enrolledClassIds: isDemoSandbox ? null : enrolledClassIds,
+        matrices: effectiveMatrices,
+        exams: effectiveExams,
+        assignments: effectiveAssignments,
+        teachingAssignments: effectiveTeachingAssignments,
+        classRoles: effectiveClassRoles,
+        submissions: effectiveSubmissions,
+        assignmentDataLoading: isDemoSandbox ? false : assignmentDataLoading,
+        assignmentDataError: isDemoSandbox ? null : assignmentDataError,
+        teachingSchemaWarning: isDemoSandbox ? null : teachingSchemaWarning,
         isUsingDemoAssignmentsData,
         retryLoadAssignmentData,
         geminiAssistants,
-        studyDocs,
-        studyDocsLoading,
-        studyDocsError,
+        studyDocs: effectiveStudyDocs,
+        studyDocsLoading: isDemoSandbox ? false : studyDocsLoading,
+        studyDocsError: isDemoSandbox ? null : studyDocsError,
         retryLoadStudyDocs,
         studyMaterialNavIntent,
         openStudyMaterialsWithIntent,
         clearStudyMaterialNavIntent,
         saveStudyMaterialAsync,
         deleteStudyMaterialAsync,
-        auditLogs,
+        auditLogs: effectiveAuditLogs,
         yccdCatalog,
         pendingMatrixPrompt,
         setPendingMatrixPrompt,

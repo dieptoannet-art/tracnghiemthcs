@@ -22,6 +22,14 @@ import {
   runWheel3DUnitTests,
 } from './wheel3dMath';
 import {
+  VietnameseVoiceManager,
+  VoiceManagerSnapshot,
+  VietnameseVoiceSettings,
+  DEFAULT_VI_VOICE_SETTINGS,
+  loadA01VoiceSettings,
+  saveA01VoiceSettings,
+} from '../../../utils/vietnameseVoiceManager';
+import {
   Play,
   RotateCcw,
   Volume2,
@@ -523,7 +531,19 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
   const [speedMode, setSpeedMode] = useState<Wheel3DSpeedMode>('NORMAL');
   const [qualityPreset, setQualityPreset] = useState<Wheel3DQualityPreset>('HIGH');
   const [reduceMotion, setReduceMotion] = useState<boolean>(false);
-  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(true);
+  const [voiceSettings, setVoiceSettings] = useState<VietnameseVoiceSettings>(() =>
+    loadA01VoiceSettings(teacherId)
+  );
+  const [voiceSnapshot, setVoiceSnapshot] = useState<VoiceManagerSnapshot>({
+    status: 'LOADING',
+    vietnameseVoices: [],
+    selectedVoice: null,
+    allVoiceCount: 0,
+    hasVietnameseVoice: false,
+    fallbackServiceConfigured: false,
+    statusMessage: 'Đang tải danh sách giọng đọc từ trình duyệt...',
+  });
+  const [voiceFeedbackMsg, setVoiceFeedbackMsg] = useState<string | null>(null);
   const [cameraPreset, setCameraPreset] = useState<CameraAnglePreset>('STUDIO_3D');
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
   const [isSoftwareRenderer, setIsSoftwareRenderer] = useState<boolean>(false);
@@ -756,53 +776,103 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
     }
   }, [cameraPreset]);
 
-  // Cancel any active speech synthesis
-  const stopVietnameseSpeech = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-      } catch {
-        // Ignore
-      }
-    }
-  }, []);
-
-  // Speak Vietnamese Winner Announcement (Section XI)
-  const speakWinnerAnnouncement = useCallback(
-    (studentFullName: string, forceSpeak = false) => {
-      if ((isMuted || !voiceEnabled) && !forceSpeak) return;
-      if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-      try {
-        window.speechSynthesis.cancel();
-        const text = `Xin chúc mừng! Học sinh được chọn là ${studentFullName}. Mời bạn tham gia hoạt động.`;
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'vi-VN';
-        utterance.rate = 0.98;
-        utterance.pitch = 1.05;
-
-        const voices = window.speechSynthesis.getVoices();
-        const viVoice = voices.find(
-          (v) => v.lang.toLowerCase().includes('vi') || v.name.toLowerCase().includes('viet')
-        );
-        if (viVoice) {
-          utterance.voice = viVoice;
-        }
-        window.speechSynthesis.speak(utterance);
-      } catch {
-        // Fallback silently to Web Audio fanfare already played
-      }
-    },
-    [isMuted, voiceEnabled]
-  );
+  // VietnameseVoiceManager lifecycle (handles voiceschanged, strict vi/vi-VN, zero EN fallback)
+  const voiceManagerRef = useRef<VietnameseVoiceManager | null>(null);
 
   useEffect(() => {
+    setVoiceSettings(loadA01VoiceSettings(teacherId));
+  }, [teacherId]);
+
+  useEffect(() => {
+    const manager = new VietnameseVoiceManager(
+      voiceSettings.preferredVoiceURI,
+      voiceSettings.useConfiguredFallbackEndpoint
+    );
+    voiceManagerRef.current = manager;
+    const unsubscribe = manager.subscribe((snap) => {
+      setVoiceSnapshot(snap);
+    });
+    manager.waitForVoicesReady(1500).catch(() => {});
+
     return () => {
-      stopVietnameseSpeech();
+      unsubscribe();
+      manager.dispose();
+      if (voiceManagerRef.current === manager) {
+        voiceManagerRef.current = null;
+      }
       if (watchdogTimerRef.current) {
         window.clearTimeout(watchdogTimerRef.current);
       }
     };
-  }, [stopVietnameseSpeech]);
+  }, []);
+
+  useEffect(() => {
+    saveA01VoiceSettings(teacherId, voiceSettings);
+    if (voiceManagerRef.current) {
+      voiceManagerRef.current.setPreferredVoiceURI(voiceSettings.preferredVoiceURI);
+      voiceManagerRef.current.setUseFallbackService(voiceSettings.useConfiguredFallbackEndpoint);
+    }
+  }, [teacherId, voiceSettings]);
+
+  const updateVoiceSettings = useCallback((patch: Partial<VietnameseVoiceSettings>) => {
+    setVoiceSettings((prev) => ({
+      ...DEFAULT_VI_VOICE_SETTINGS,
+      ...prev,
+      ...patch,
+    }));
+  }, []);
+
+  // Cancel any active Vietnamese speech synthesis
+  const stopVietnameseSpeech = useCallback(() => {
+    voiceManagerRef.current?.stop();
+  }, []);
+
+  // Speak Vietnamese Winner Announcement strictly in vi-VN (never falls back to en-US/en-GB)
+  const speakWinnerAnnouncement = useCallback(
+    async (studentFullName: string, forceSpeak = false) => {
+      if ((isMuted || !voiceSettings.voiceEnabled) && !forceSpeak) return;
+      const manager = voiceManagerRef.current;
+      if (!manager) return;
+
+      const text = `Xin chúc mừng! Học sinh được chọn là ${studentFullName}. Mời bạn tham gia hoạt động.`;
+      const result = await manager.speakVietnamese(text, {
+        rate: voiceSettings.rate,
+        volume: voiceSettings.volume,
+        preferredVoiceURI: voiceSettings.preferredVoiceURI,
+        useFallbackEndpoint: voiceSettings.useConfiguredFallbackEndpoint,
+        forceBypassMute: forceSpeak,
+        isMuted,
+        voiceEnabled: voiceSettings.voiceEnabled,
+      });
+
+      if (!result.spoken && result.reason === 'no_vietnamese_voice') {
+        setVoiceFeedbackMsg('Thiết bị chưa có giọng đọc tiếng Việt');
+      } else if (result.spoken) {
+        setVoiceFeedbackMsg(null);
+      }
+    },
+    [isMuted, voiceSettings]
+  );
+
+  // Test button inside Settings panel
+  const handleTestVietnameseVoice = useCallback(async () => {
+    const manager = voiceManagerRef.current;
+    if (!manager) return;
+    setVoiceFeedbackMsg('Đang kiểm tra giọng đọc tiếng Việt...');
+    const sample = 'Xin chào! Đây là giọng đọc tiếng Việt của Vòng quay may mắn 3D.';
+    const res = await manager.speakVietnamese(sample, {
+      rate: voiceSettings.rate,
+      volume: voiceSettings.volume,
+      preferredVoiceURI: voiceSettings.preferredVoiceURI,
+      useFallbackEndpoint: voiceSettings.useConfiguredFallbackEndpoint,
+      forceBypassMute: true,
+    });
+    if (res.spoken) {
+      setVoiceFeedbackMsg(`Đang phát bằng: ${res.selectedVoiceName} (${res.selectedVoiceLang})`);
+    } else {
+      setVoiceFeedbackMsg(res.message || 'Thiết bị chưa có giọng đọc tiếng Việt');
+    }
+  }, [voiceSettings]);
 
   // Save spin result to Supabase `public.audit_logs` + local history with deduplication (Section XIV)
   const saveSpinRecordToSupabase = useCallback(
@@ -810,9 +880,11 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
       if (
         !isSupabaseConfigured ||
         !record.teacherId ||
+        record.teacherId.startsWith('demo_') ||
         record.teacherId.startsWith('gsess_') ||
         record.teacherId.startsWith('guest_') ||
-        record.classId === 'guest_mode'
+        record.classId === 'guest_mode' ||
+        record.classId.startsWith('demo-')
       ) {
         return 'saved';
       }
@@ -2576,23 +2648,197 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                   </div>
                 </div>
 
-                {/* Vietnamese TTS */}
-                <div className="space-y-2 pt-2 border-t border-blue-400/20">
-                  <label className="block font-black text-amber-300 uppercase tracking-wider">
-                    Giọng đọc Tiếng Việt (Web Speech API)
-                  </label>
+                {/* Vietnamese TTS & Sound Settings Panel */}
+                <div className="space-y-3 pt-2 border-t border-blue-400/20">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-black text-amber-300 uppercase tracking-wider">
+                      Âm thanh & Giọng đọc Tiếng Việt
+                    </label>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                        voiceSnapshot.status === 'READY_VI'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'
+                          : voiceSnapshot.status === 'FALLBACK_ENDPOINT'
+                          ? 'bg-sky-500/20 text-sky-300 border border-sky-400/40'
+                          : voiceSnapshot.status === 'LOADING'
+                          ? 'bg-blue-500/20 text-blue-200 border border-blue-400/30'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-400/40'
+                      }`}
+                    >
+                      {voiceSnapshot.status === 'READY_VI'
+                        ? `Có ${voiceSnapshot.vietnameseVoices.length} giọng Việt`
+                        : voiceSnapshot.status === 'FALLBACK_ENDPOINT'
+                        ? 'TTS Dự phòng'
+                        : voiceSnapshot.status === 'LOADING'
+                        ? 'Đang tải...'
+                        : 'Chưa có giọng Việt'}
+                    </span>
+                  </div>
+
+                  {/* Toggle Đọc tên học sinh */}
                   <button
                     type="button"
-                    onClick={() => setVoiceEnabled((v) => !v)}
+                    onClick={() =>
+                      updateVoiceSettings({ voiceEnabled: !voiceSettings.voiceEnabled })
+                    }
                     className={`w-full py-2.5 px-3 rounded-xl border font-bold flex items-center justify-between cursor-pointer ${
-                      voiceEnabled
+                      voiceSettings.voiceEnabled
                         ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-200'
                         : 'bg-slate-800 border-slate-700 text-slate-400'
                     }`}
                   >
                     <span>Đọc tên học sinh khi trúng</span>
-                    <span>{voiceEnabled ? 'ĐANG BẬT' : 'ĐANG TẮT'}</span>
+                    <span>{voiceSettings.voiceEnabled ? 'ĐANG BẬT' : 'ĐANG TẮT'}</span>
                   </button>
+
+                  {/* Trạng thái hỗ trợ tiếng Việt */}
+                  <div
+                    className={`p-2.5 rounded-xl border text-[11px] leading-relaxed ${
+                      voiceSnapshot.status === 'READY_VI' || voiceSnapshot.status === 'FALLBACK_ENDPOINT'
+                        ? 'bg-emerald-950/40 border-emerald-400/30 text-emerald-200'
+                        : 'bg-amber-950/40 border-amber-400/40 text-amber-200'
+                    }`}
+                  >
+                    <p className="font-bold">
+                      {voiceSnapshot.status === 'UNAVAILABLE_NO_VI_VOICE'
+                        ? 'Thiết bị chưa có giọng đọc tiếng Việt'
+                        : voiceSnapshot.statusMessage}
+                    </p>
+                    {voiceSnapshot.status === 'UNAVAILABLE_NO_VI_VOICE' && (
+                      <p className="text-[10px] text-amber-100/80 mt-1">
+                        Hệ thống không tự chuyển sang giọng tiếng Anh. Tên học sinh và hiệu ứng chiến thắng vẫn hiển thị đầy đủ.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Danh sách giọng Việt khả dụng */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-slate-300 font-bold">
+                      <span>Giọng Tiếng Việt khả dụng:</span>
+                      <button
+                        type="button"
+                        onClick={() => voiceManagerRef.current?.waitForVoicesReady(1200)}
+                        className="text-sky-300 hover:underline flex items-center gap-1 cursor-pointer"
+                        title="Làm mới danh sách giọng từ trình duyệt"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Tải lại giọng</span>
+                      </button>
+                    </div>
+                    <select
+                      value={voiceSettings.preferredVoiceURI || ''}
+                      onChange={(e) =>
+                        updateVoiceSettings({
+                          preferredVoiceURI: e.target.value ? e.target.value : null,
+                        })
+                      }
+                      disabled={voiceSnapshot.vietnameseVoices.length === 0}
+                      className="w-full px-2.5 py-2 rounded-xl bg-[#0F2350] border border-blue-400/30 text-xs font-bold text-white focus:outline-none disabled:opacity-50 cursor-pointer"
+                    >
+                      {voiceSnapshot.vietnameseVoices.length === 0 ? (
+                        <option value="" className="bg-slate-900">
+                          Thiết bị chưa có giọng đọc tiếng Việt
+                        </option>
+                      ) : (
+                        <>
+                          <option value="" className="bg-slate-900">
+                            Tự động chọn giọng Việt tốt nhất (
+                            {voiceSnapshot.vietnameseVoices[0]?.name})
+                          </option>
+                          {voiceSnapshot.vietnameseVoices.map((opt) => (
+                            <option
+                              key={opt.voiceURI}
+                              value={opt.voiceURI}
+                              className="bg-slate-900"
+                            >
+                              {opt.name} · {opt.lang} ({opt.qualityTierLabel})
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  {/* Tốc độ đọc & Âm lượng */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="space-y-1 bg-[#0F2350]/70 border border-blue-400/20 rounded-xl p-2">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-200">
+                        <span>Tốc độ đọc</span>
+                        <span className="text-amber-300 tabular-nums">
+                          {voiceSettings.rate.toFixed(2)}x
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0.7}
+                        max={1.4}
+                        step={0.05}
+                        value={voiceSettings.rate}
+                        onChange={(e) =>
+                          updateVoiceSettings({ rate: parseFloat(e.target.value) })
+                        }
+                        className="w-full accent-amber-400 cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="space-y-1 bg-[#0F2350]/70 border border-blue-400/20 rounded-xl p-2">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-200">
+                        <span>Âm lượng</span>
+                        <span className="text-amber-300 tabular-nums">
+                          {Math.round(voiceSettings.volume * 100)}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={voiceSettings.volume}
+                        onChange={(e) =>
+                          updateVoiceSettings({ volume: parseFloat(e.target.value) })
+                        }
+                        className="w-full accent-amber-400 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tùy chọn Dịch vụ TTS dự phòng (chỉ kích hoạt khi đã cấu hình endpoint hợp lệ) */}
+                  {voiceSnapshot.fallbackServiceConfigured && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateVoiceSettings({
+                          useConfiguredFallbackEndpoint: !voiceSettings.useConfiguredFallbackEndpoint,
+                        })
+                      }
+                      className={`w-full py-2 px-3 rounded-xl border text-[11px] font-bold flex items-center justify-between cursor-pointer ${
+                        voiceSettings.useConfiguredFallbackEndpoint
+                          ? 'bg-sky-500/20 border-sky-400/50 text-sky-200'
+                          : 'bg-[#0F2350] border-blue-400/20 text-slate-300'
+                      }`}
+                    >
+                      <span>Dùng dịch vụ TTS Tiếng Việt dự phòng</span>
+                      <span>
+                        {voiceSettings.useConfiguredFallbackEndpoint ? 'BẬT' : 'TẮT'}
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Nút Kiểm tra giọng đọc */}
+                  <button
+                    type="button"
+                    onClick={handleTestVietnameseVoice}
+                    className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <Volume1 className="w-4 h-4" />
+                    <span>Kiểm tra giọng đọc</span>
+                  </button>
+
+                  {voiceFeedbackMsg && (
+                    <p className="text-[11px] font-bold text-amber-300 bg-[#071126] border border-amber-400/30 rounded-lg px-2.5 py-1.5">
+                      {voiceFeedbackMsg}
+                    </p>
+                  )}
                 </div>
 
                 {/* Reduce Motion */}
@@ -2731,7 +2977,11 @@ export const StudentWheel3DGame: React.FC<StudentWheel3DGameProps> = ({
                 className="py-3.5 px-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg cursor-pointer"
               >
                 <Volume1 className="w-4 h-4" />
-                <span>Đọc lại tên học sinh</span>
+                <span>
+                  {voiceSnapshot.status === 'UNAVAILABLE_NO_VI_VOICE'
+                    ? 'Thiết bị chưa có giọng Việt'
+                    : 'Đọc lại tên học sinh'}
+                </span>
               </button>
 
               {antiDuplicate && onRestoreStudentToPool && (
