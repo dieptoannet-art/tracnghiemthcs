@@ -227,12 +227,12 @@ export const GradingAndReports: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-edtech">
+    <div className="space-y-6 font-serif">
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#102C54] flex items-center space-x-2">
-            <BarChart3 className="w-6 h-6 text-[#1769F4]" />
+          <h2 className="text-2xl font-bold text-[#082B52] flex items-center space-x-2">
+            <BarChart3 className="w-6 h-6 text-amber-600" />
             <span>Chấm bài, Thống kê &amp; Báo cáo kết quả</span>
           </h2>
           <p className="text-sm text-slate-600">
@@ -248,7 +248,7 @@ export const GradingAndReports: React.FC = () => {
           type="button"
           onClick={handleExportExcel}
           disabled={scopedSubmissions.length === 0}
-          className="flex items-center space-x-2 px-4 py-2 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0F8F67] shadow-xs whitespace-nowrap shrink-0 disabled:opacity-40"
+          className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-xs disabled:opacity-40"
         >
           <Download className="w-4 h-4" />
           <span>Xuất Bảng điểm Excel (.xlsx)</span>
@@ -256,12 +256,12 @@ export const GradingAndReports: React.FC = () => {
       </div>
 
       {pageSuccess && (
-        <div className="p-3.5 rounded-2xl bg-[#ECFDF7] border border-[#12A879]/25 text-[#0B6E4F] text-xs font-bold flex items-center justify-between gap-2">
+        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center justify-between gap-2">
           <span className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#12A879] shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             {pageSuccess}
           </span>
-          <button type="button" onClick={() => setPageSuccess(null)} className="underline whitespace-nowrap shrink-0">
+          <button type="button" onClick={() => setPageSuccess(null)} className="underline">
             Đóng
           </button>
         </div>
@@ -269,9 +269,9 @@ export const GradingAndReports: React.FC = () => {
 
       {/* Analytics KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs">
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs">
           <span className="text-xs font-bold text-slate-500">Tổng lượt nộp trong phạm vi</span>
-          <div className="text-2xl font-bold text-[#102C54] mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-[#082B52] mt-1 tabular-nums">
             {kpiStats.count} bài
           </div>
           <span className="text-[11px] text-slate-500">
@@ -279,17 +279,17 @@ export const GradingAndReports: React.FC = () => {
           </span>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs">
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs">
           <span className="text-xs font-bold text-slate-500">Điểm trung bình</span>
-          <div className="text-2xl font-bold text-[#1769F4] mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-[#006BFF] mt-1 tabular-nums">
             {kpiStats.avgScore}
           </div>
           <span className="text-[11px] text-slate-500">Thang điểm 10</span>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs">
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs">
           <span className="text-xs font-bold text-slate-500">Điểm cao nhất</span>
-          <div className="text-2xl font-bold text-[#12A879] mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-emerald-600 mt-1 tabular-nums">
             {kpiStats.maxScore}
           </div>
           <span className="text-[11px] text-slate-500 truncate block">
@@ -297,7 +297,7 @@ export const GradingAndReports: React.FC = () => {
           </span>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs">
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs">
           <span className="text-xs font-bold text-slate-500">Bài chờ chấm tự luận</span>
           <div className="text-2xl font-bold text-amber-700 mt-1 tabular-nums">
             {kpiStats.pendingEssayCount} bài
@@ -307,15 +307,15 @@ export const GradingAndReports: React.FC = () => {
       </div>
 
       {/* Submissions Table */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden shadow-xs">
         <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-bold text-sm text-[#102C54]">Danh sách bài nộp của học sinh</h3>
+          <h3 className="font-bold text-sm text-[#082B52]">Danh sách bài nộp của học sinh</h3>
           <span className="text-xs text-slate-500 tabular-nums">{scopedSubmissions.length} bản ghi</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-[#F6F9FD] text-[#102C54] text-xs uppercase font-bold border-b border-[#E2E8F0]">
+            <thead className="bg-[#F3F8FF] text-[#12345B] text-xs uppercase font-bold border-b border-[#DCE8F7]">
               <tr>
                 <th className="py-3 px-4">Học sinh</th>
                 <th className="py-3 px-4">Lớp / Môn</th>
@@ -339,10 +339,10 @@ export const GradingAndReports: React.FC = () => {
                   const asg = assignments.find(a => a.id === sub.assignmentId);
                   const subjName = asg?.subject ? getSubjectDisplayName(asg.subject) : '';
                   return (
-                    <tr key={sub.id} className="hover:bg-[#F6F9FD]">
+                    <tr key={sub.id} className="hover:bg-slate-50">
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-[#102C54]">{sub.studentName}</div>
-                        <div className="font-mono text-[11px] text-[#1769F4]">
+                        <div className="font-semibold text-[#082B52]">{sub.studentName}</div>
+                        <div className="font-mono text-[11px] text-[#006BFF]">
                           {sub.studentId.slice(0, 12)}
                         </div>
                       </td>
@@ -363,14 +363,14 @@ export const GradingAndReports: React.FC = () => {
                           <span className="text-slate-400">0</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-center font-bold text-base text-[#102C54] tabular-nums">
+                      <td className="py-3 px-4 text-center font-bold text-base text-[#082B52] tabular-nums">
                         {Number(sub.score || 0).toFixed(2)}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded-md border text-xs font-semibold whitespace-nowrap ${
+                          className={`inline-block px-2.5 py-0.5 rounded-md border text-xs font-semibold ${
                             sub.status === 'graded'
-                              ? 'bg-[#ECFDF7] border-[#12A879]/25 text-[#0B6E4F]'
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                               : 'bg-amber-50 border-amber-200 text-amber-800'
                           }`}
                         >
@@ -381,7 +381,7 @@ export const GradingAndReports: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenGradingModal(sub)}
-                          className="px-3 py-1 bg-[#1769F4] text-white rounded-lg text-xs font-semibold hover:bg-[#1255CC] whitespace-nowrap shrink-0"
+                          className="px-3 py-1 bg-[#006BFF] text-white rounded-lg text-xs font-semibold hover:bg-blue-600 whitespace-nowrap"
                         >
                           Xem &amp; Chấm
                         </button>
@@ -398,10 +398,10 @@ export const GradingAndReports: React.FC = () => {
       {/* Modal for Grading Essay */}
       {selectedSub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4 border border-[#E2E8F0]">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
               <div>
-                <h3 className="text-lg font-bold text-[#102C54]">
+                <h3 className="text-lg font-bold text-[#082B52]">
                   Chi tiết bài làm: {selectedSub.studentName} ({selectedSub.studentClass})
                 </h3>
                 <p className="text-xs text-slate-500">Bài thi: {selectedSub.examTitle}</p>
@@ -409,7 +409,7 @@ export const GradingAndReports: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedSub(null)}
-                className="text-slate-400 hover:text-slate-600 shrink-0"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -423,7 +423,7 @@ export const GradingAndReports: React.FC = () => {
             )}
 
             {selectedSub.teacherFeedback && (
-              <div className="p-3 rounded-xl bg-[#ECFDF7] border border-[#12A879]/25 text-xs text-[#0B6E4F]">
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
                 <span className="font-bold">Nhận xét chung đã lưu: </span>
                 <span>{selectedSub.teacherFeedback}</span>
               </div>
@@ -431,12 +431,12 @@ export const GradingAndReports: React.FC = () => {
 
             <div className="space-y-4 text-xs">
               {Object.entries(selectedSub.answers).map(([qId, ans]) => (
-                <div key={qId} className="p-3 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0] space-y-2">
-                  <div className="flex justify-between items-center font-bold text-[#102C54]">
+                <div key={qId} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex justify-between items-center font-bold text-[#082B52]">
                     <span>
                       Câu hỏi: {qId} ({ans.questionType})
                     </span>
-                    <span className="text-[#0B6E4F] tabular-nums">
+                    <span className="text-emerald-700 tabular-nums">
                       Điểm: {ans.pointsAwarded ?? 0}
                     </span>
                   </div>
@@ -457,10 +457,10 @@ export const GradingAndReports: React.FC = () => {
                     const qData = questions.find(q => q.id === qId);
                     const maxPts = qData?.points || 2.0;
                     return (
-                      <div className="space-y-3 pt-2 border-t border-[#E2E8F0]">
+                      <div className="space-y-3 pt-2 border-t border-slate-200">
                         {qData && (
-                          <div className="p-3 bg-white rounded-lg border border-[#E2E8F0] text-xs">
-                            <span className="font-bold text-[#102C54] block mb-1">
+                          <div className="p-3 bg-white rounded-lg border border-slate-200 text-xs">
+                            <span className="font-bold text-[#082B52] block mb-1">
                               Nội dung câu hỏi:
                             </span>
                             <div className="text-slate-800">
@@ -470,15 +470,15 @@ export const GradingAndReports: React.FC = () => {
                         )}
 
                         {qData?.rubric && qData.rubric.length > 0 && (
-                          <div className="p-3 bg-[#EAF3FF] rounded-lg border border-[#C7DCFA] text-xs">
-                            <span className="font-bold text-[#1769F4] block mb-1.5">
+                          <div className="p-3 bg-blue-50/60 rounded-lg border border-blue-200 text-xs">
+                            <span className="font-bold text-[#006BFF] block mb-1.5">
                               Thang tiêu chí chấm (Rubric):
                             </span>
                             <div className="space-y-1 text-[11px] text-slate-700">
                               {qData.rubric.map(r => (
                                 <div key={r.id} className="flex justify-between items-start">
                                   <span>• {r.criterion}</span>
-                                  <b className="text-[#0B6E4F] ml-2 shrink-0 tabular-nums">
+                                  <b className="text-emerald-700 ml-2 shrink-0">
                                     Tối đa {r.maxPoints}đ
                                   </b>
                                 </div>
@@ -487,21 +487,21 @@ export const GradingAndReports: React.FC = () => {
                           </div>
                         )}
 
-                        <div className="p-3 bg-white rounded-lg border border-[#E2E8F0]">
-                          <b className="text-[#102C54] block mb-1">
+                        <div className="p-3 bg-white rounded-lg border border-slate-200">
+                          <b className="text-blue-900 block mb-1">
                             1. Bài viết tự luận của học sinh:
                           </b>
-                          <p className="whitespace-pre-line text-slate-800 bg-[#F6F9FD] p-2.5 rounded-lg border border-slate-100">
+                          <p className="whitespace-pre-line text-slate-800 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                             {ans.essayAnswerText || '(Học sinh không nhập văn bản)'}
                           </p>
                         </div>
 
                         {ans.essayImages && ans.essayImages.length > 0 ? (
-                          <div className="p-3 bg-white rounded-lg border border-[#E2E8F0] space-y-2">
+                          <div className="p-3 bg-white rounded-lg border border-slate-200 space-y-2">
                             <div className="flex items-center justify-between">
-                              <b className="text-[#102C54] flex items-center space-x-1.5">
-                                <ImageIcon className="w-4 h-4 text-[#1769F4]" />
-                                <span className="tabular-nums">
+                              <b className="text-blue-900 flex items-center space-x-1.5">
+                                <ImageIcon className="w-4 h-4 text-[#006BFF]" />
+                                <span>
                                   2. Ảnh chụp bài làm &amp; hình vẽ ({ans.essayImages.length} ảnh):
                                 </span>
                               </b>
@@ -521,19 +521,18 @@ export const GradingAndReports: React.FC = () => {
                                       rotation: 0
                                     })
                                   }
-                                  className="relative group border border-[#E2E8F0] rounded-lg overflow-hidden bg-slate-100 aspect-4/3 cursor-pointer hover:border-[#1769F4] shadow-2xs transition-all"
+                                  className="relative group border border-slate-200 rounded-lg overflow-hidden bg-slate-100 aspect-4/3 cursor-pointer hover:border-[#006BFF] shadow-2xs transition-all"
                                 >
                                   <img
                                     src={imgUrl}
                                     alt={`Trang ${idx + 1}`}
-                                    referrerPolicy="no-referrer"
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                   />
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1 text-white text-xs font-bold">
                                     <Eye className="w-4 h-4" />
                                     <span>Phóng to</span>
                                   </div>
-                                  <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded tabular-nums">
+                                  <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
                                     Trang {idx + 1}
                                   </span>
                                 </div>
@@ -550,7 +549,7 @@ export const GradingAndReports: React.FC = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <label className="text-xs font-bold text-slate-700 tabular-nums">
+                              <label className="text-xs font-bold text-slate-700">
                                 Chấm điểm tự luận (Tối đa {maxPts}đ):
                               </label>
                               <div className="flex items-center space-x-1">
@@ -561,9 +560,9 @@ export const GradingAndReports: React.FC = () => {
                                       key={p}
                                       type="button"
                                       onClick={() => setEssayPoints(p)}
-                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors whitespace-nowrap shrink-0 tabular-nums ${
+                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
                                         essayPoints === p
-                                          ? 'bg-[#1769F4] text-white border-[#1769F4]'
+                                          ? 'bg-[#006BFF] text-white border-[#006BFF]'
                                           : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
                                       }`}
                                     >
@@ -579,7 +578,7 @@ export const GradingAndReports: React.FC = () => {
                               min="0"
                               value={essayPoints}
                               onChange={e => setEssayPoints(parseFloat(e.target.value) || 0)}
-                              className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-sm font-bold text-[#102C54] tabular-nums"
+                              className="w-full px-3 py-2 border rounded-xl bg-white text-sm font-bold text-[#082B52]"
                             />
                           </div>
 
@@ -592,7 +591,7 @@ export const GradingAndReports: React.FC = () => {
                               value={teacherFeedback}
                               onChange={e => setTeacherFeedback(e.target.value)}
                               placeholder="Nhận xét cụ thể bài làm của học sinh..."
-                              className="w-full px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-xs"
+                              className="w-full px-3 py-2 border rounded-xl bg-white text-xs"
                             />
                           </div>
                         </div>
@@ -601,7 +600,7 @@ export const GradingAndReports: React.FC = () => {
                           type="button"
                           disabled={savingGrade}
                           onClick={() => handleSaveGrade(selectedSub.id, qId, maxPts)}
-                          className="mt-2 px-4 py-2 bg-[#12A879] text-white rounded-xl font-bold hover:bg-[#0F8F67] flex items-center space-x-1.5 text-xs transition-colors shadow-xs whitespace-nowrap shrink-0 disabled:opacity-40"
+                          className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 flex items-center space-x-1.5 text-xs transition-colors shadow-xs disabled:opacity-40"
                         >
                           {savingGrade ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -619,11 +618,11 @@ export const GradingAndReports: React.FC = () => {
               ))}
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-[#E2E8F0]">
+            <div className="flex justify-end pt-3 border-t">
               <button
                 type="button"
                 onClick={() => setSelectedSub(null)}
-                className="px-4 py-2 border border-[#E2E8F0] rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 whitespace-nowrap shrink-0"
+                className="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50"
               >
                 Đóng
               </button>
@@ -648,12 +647,12 @@ export const GradingAndReports: React.FC = () => {
                       prev ? { ...prev, zoom: Math.max(0.5, Number((prev.zoom - 0.25).toFixed(2))) } : null
                     )
                   }
-                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors shrink-0"
+                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors"
                   title="Thu nhỏ"
                 >
                   <ZoomOut className="w-4 h-4" />
                 </button>
-                <span className="text-xs font-mono px-1 min-w-[45px] text-center tabular-nums">
+                <span className="text-xs font-mono px-1 min-w-[45px] text-center">
                   {Math.round(previewModal.zoom * 100)}%
                 </span>
                 <button
@@ -663,7 +662,7 @@ export const GradingAndReports: React.FC = () => {
                       prev ? { ...prev, zoom: Math.min(3, Number((prev.zoom + 0.25).toFixed(2))) } : null
                     )
                   }
-                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors shrink-0"
+                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors"
                   title="Phóng to"
                 >
                   <ZoomIn className="w-4 h-4" />
@@ -675,7 +674,7 @@ export const GradingAndReports: React.FC = () => {
                       prev ? { ...prev, rotation: (prev.rotation + 90) % 360 } : null
                     )
                   }
-                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex items-center space-x-1 text-xs transition-colors whitespace-nowrap shrink-0"
+                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex items-center space-x-1 text-xs transition-colors"
                   title="Xoay 90°"
                 >
                   <RotateCw className="w-4 h-4" />
@@ -684,7 +683,7 @@ export const GradingAndReports: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setPreviewModal(null)}
-                  className="p-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white ml-2 transition-colors shrink-0"
+                  className="p-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white ml-2 transition-colors"
                   title="Đóng"
                 >
                   <X className="w-4 h-4" />
@@ -696,7 +695,6 @@ export const GradingAndReports: React.FC = () => {
               <img
                 src={previewModal.url}
                 alt={previewModal.title}
-                referrerPolicy="no-referrer"
                 style={{
                   transform: `rotate(${previewModal.rotation}deg) scale(${previewModal.zoom})`,
                   transition: 'transform 0.2s ease',

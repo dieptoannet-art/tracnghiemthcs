@@ -155,23 +155,23 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 backdrop-blur-xs p-4 font-edtech">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-[0_24px_60px_-16px_rgba(16,44,84,0.35)] border border-[#E2E8F0] max-h-[90vh] overflow-y-auto space-y-5">
-        <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-5">
+        <div className="flex items-center justify-between border-b pb-4">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-[#EAF3FF] text-[#1769F4] rounded-xl border border-[#C7DCFA]">
+            <div className="p-2.5 bg-blue-50 text-[#006BFF] rounded-xl">
               <Database className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-[#102C54] tracking-tight">
+              <h3 className="text-xl font-bold text-[#082B52]">
                 Cấu hình & Trạng thái kết nối CSDL Supabase
               </h3>
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-slate-500">
                 Kết nối xác thực thực tế cho Auth và Cơ sở dữ liệu PostgreSQL
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer">
+          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -237,11 +237,11 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
         {/* Supabase Connection Form */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-[#102C54]">1. Thông tin kết nối Supabase</h4>
+            <h4 className="text-sm font-bold text-[#082B52]">1. Thông tin kết nối Supabase</h4>
             <button
               type="button"
               onClick={handleResetDefault}
-              className="text-[11px] text-[#64748B] hover:text-[#1769F4] flex items-center space-x-1 cursor-pointer font-medium"
+              className="text-[11px] text-slate-500 hover:text-blue-600 flex items-center space-x-1 cursor-pointer font-medium"
               title="Đặt lại về thông số mặc định"
             >
               <RotateCcw className="w-3 h-3" />
@@ -251,7 +251,7 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
 
           <div className="space-y-3 text-xs">
             <div>
-              <label className="block font-bold text-[#172B4D] mb-1">
+              <label className="block font-bold text-slate-700 mb-1">
                 Supabase Project URL (VITE_SUPABASE_URL):
               </label>
               <input
@@ -259,12 +259,12 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
                 value={url}
                 onChange={e => setUrl(e.target.value)}
                 placeholder="https://xyzcompany.supabase.co"
-                className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg font-mono text-xs focus:ring-2 focus:ring-[#1769F4]/25 focus:border-[#1769F4] focus:outline-hidden"
+                className="w-full px-3 py-2 border rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#172B4D] mb-1">
+              <label className="block font-bold text-slate-700 mb-1">
                 Supabase Publishable/Anon Key (VITE_SUPABASE_PUBLISHABLE_KEY):
               </label>
               <input
@@ -272,7 +272,7 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
                 value={anonKey}
                 onChange={e => setAnonKey(e.target.value)}
                 placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6... hoặc sb_publishable_..."
-                className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg font-mono text-xs focus:ring-2 focus:ring-[#1769F4]/25 focus:border-[#1769F4] focus:outline-hidden"
+                className="w-full px-3 py-2 border rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
               />
             </div>
 
@@ -281,7 +281,7 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
                 type="button"
                 onClick={handleTestConnection}
                 disabled={testStatus === 'testing'}
-                className="px-4 py-2 bg-[#1769F4] hover:bg-[#1256CE] text-white rounded-xl font-bold shadow-xs disabled:opacity-50 text-xs flex items-center space-x-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                className="px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl font-bold shadow-xs disabled:opacity-50 text-xs flex items-center space-x-1.5 cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>{testStatus === 'testing' ? 'Đang kiểm tra kết nối...' : 'Kiểm tra kết nối thực tế'}</span>
@@ -290,7 +290,7 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
               <button
                 type="button"
                 onClick={handleSaveConfig}
-                className="px-4 py-2 bg-[#12A879] hover:bg-[#0E8F66] text-white rounded-xl font-bold shadow-xs text-xs flex items-center space-x-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-xs text-xs flex items-center space-x-1.5 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Lưu cấu hình</span>
@@ -359,30 +359,30 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
         </div>
 
         {/* SQL Migration & RLS Guide */}
-        <div className="p-4 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0] space-y-3">
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-[#102C54] flex items-center space-x-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#12A879]" />
+            <h4 className="text-sm font-bold text-[#082B52] flex items-center space-x-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>2. File SQL Migrations & Phân quyền RLS</span>
             </h4>
 
             <button
               type="button"
               onClick={handleDownloadSql}
-              className="flex items-center space-x-1 text-xs text-[#1769F4] font-bold hover:underline cursor-pointer"
+              className="flex items-center space-x-1 text-xs text-[#006BFF] font-bold hover:underline cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Tải file SQL</span>
             </button>
           </div>
 
-          <p className="text-xs text-[#64748B] leading-relaxed">
+          <p className="text-xs text-slate-600 leading-relaxed">
             Để kích hoạt đồng bộ <strong>Lớp học, Phân công nhiều giáo viên, Tài khoản / phân quyền &amp; Phân quyền chặt theo môn học</strong> trên Supabase đã có <code>profiles</code> &amp; <code>questions</code>, hãy chạy đúng thứ tự 5 bước trong Supabase SQL Editor:
             <br />
             <strong>Bước 1:</strong> <code>src/data/01_bootstrap_assignment_tables.sql</code> ➔ <strong>Bước 2:</strong> <code>src/data/02_sync_classes_exams_assignments.sql</code> ➔ <strong>Bước 3:</strong> <code>src/data/03_admin_accounts_rbac.sql</code> ➔ <strong>Bước 4:</strong> <code>src/data/04_teaching_assignments_and_codes.sql</code> ➔ <em>(Bổ sung danh sách &quot;Thiếu môn&quot; &amp; gán <code>class_roles</code> nếu cần)</em> ➔ <strong>Bước 5:</strong> <code>src/data/05_enable_subject_rls_and_hardening.sql</code>.
           </p>
 
-          <div className="p-3 bg-white rounded-lg border border-[#E2E8F0] font-mono text-[11px] text-slate-700 max-h-40 overflow-y-auto space-y-1">
+          <div className="p-3 bg-white rounded-lg border font-mono text-[11px] text-slate-700 max-h-40 overflow-y-auto space-y-1">
             <p className="text-slate-500 font-bold">-- 1. Kiểm tra Auth UUID quản trị viên đầu tiên &amp; cấp quyền Admin (chạy 1 lần trong SQL Editor):</p>
             <p className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded">SELECT id, email FROM auth.users ORDER BY created_at ASC;</p>
             <p className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">UPDATE public.profiles SET role = 'admin', updated_at = NOW() WHERE id = '&lt;AUTH_USER_UUID&gt;'::uuid;</p>
@@ -396,7 +396,7 @@ export const SupabaseGuideModal: React.FC<SupabaseGuideModalProps> = ({ onClose 
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 bg-[#102C54] hover:bg-[#173D73] text-white font-bold rounded-xl text-xs cursor-pointer transition-colors"
+            className="px-5 py-2 bg-[#082B52] hover:bg-[#0c3866] text-white font-bold rounded-xl text-xs cursor-pointer transition-colors"
           >
             Đóng
           </button>

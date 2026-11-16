@@ -1,26 +1,23 @@
 @import "tailwindcss";
-@import "./styles/tokens.css";
 
 @theme {
   --font-serif: "Times New Roman", "Noto Serif", "Lora", Times, serif;
-  --font-edtech: "Be Vietnam Pro", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-  --font-mono-code: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 @layer base {
   :root {
-    --color-sidebar: #102C54;
-    --color-primary: #1769F4;
-    --color-accent: #12A879;
-    --color-bg: #F6F9FD;
-    --color-text: #172B4D;
-    --color-border: #E2E8F0;
+    --color-sidebar: #0F2D52;
+    --color-primary: #1769C2;
+    --color-accent: #00B8E8;
+    --color-bg: #F6FAFF;
+    --color-text: #0F2D52;
+    --color-border: #CFDCED;
   }
 
   body {
-    background-color: #F6F9FD;
-    color: #172B4D;
-    font-family: "Be Vietnam Pro", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    background-color: #F6FAFF;
+    color: #0F2D52;
+    font-family: "Times New Roman", "Noto Serif", "Lora", Times, serif;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -31,24 +28,6 @@
   .katex, .katex * {
     font-family: KaTeX_Main, KaTeX_Math, 'Times New Roman', serif !important;
   }
-}
-
-.font-edtech {
-  font-family: var(--font-edtech);
-}
-
-.font-mono-num {
-  font-family: var(--font-mono-code);
-  font-variant-numeric: tabular-nums;
-}
-
-.smart-reduce-motion *,
-.smart-reduce-motion *::before,
-.smart-reduce-motion *::after {
-  animation-duration: 0.001ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
-  scroll-behavior: auto !important;
 }
 
 /* Custom scrollbar */

@@ -96,10 +96,10 @@ const TOOL_ICON_MAP: Record<MathToolId, React.ReactNode> = {
 };
 
 const STRAND_GRADIENT_MAP: Record<MathKnowledgeStrand, string> = {
-  geometry_measurement: 'from-[#0E7490] to-[#12A879]',
-  number_algebra: 'from-[#102C54] to-[#1769F4]',
-  statistics_prob: 'from-[#B45309] to-[#F59E0B]',
-  practice_experience: 'from-[#1D4ED8] to-[#0284C7]',
+  geometry_measurement: 'from-teal-700 to-emerald-700',
+  number_algebra: 'from-indigo-700 to-blue-700',
+  statistics_prob: 'from-amber-600 to-orange-600',
+  practice_experience: 'from-purple-700 to-indigo-700',
 };
 
 export const SmartMathLabView: React.FC = () => {
@@ -277,42 +277,42 @@ export const SmartMathLabView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 pb-10 font-edtech">
+    <div className="space-y-6 pb-10">
       {/* BANNER CHÍNH */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#102C54] via-[#13396F] to-[#1769F4] text-white p-6 sm:p-8 shadow-[0_14px_34px_-12px_rgba(16,44,84,0.35)] border border-[#60A5FA]/25">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-teal-900 via-teal-800 to-indigo-900 text-white p-6 sm:p-8 shadow-lg border border-teal-700/40">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2.5 max-w-3xl">
-            <div className="inline-flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-              <FlaskConical className="w-4 h-4" />
-              <span>Smart Math Lab 2027 • Chuẩn GDPT 2018 (Kết nối tri thức)</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-200 text-xs font-bold">
+              <FlaskConical className="w-3.5 h-3.5" />
+              <span>SMART MATH LAB V1.0 • CHUẨN GDPT 2018 (KẾT NỐI TRI THỨC)</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               Phòng Thí Nghiệm Toán Học Tương Tác THCS (Lớp 6 – 9)
             </h1>
-            <p className="text-sm text-blue-100/90 leading-relaxed">
-              Hệ thống {SMART_MATH_LAB_REGISTRY.length} công cụ (M01–M{SMART_MATH_LAB_REGISTRY.length}) trực quan hóa Đại số, Số học, Hình học phẳng, Biến hình &amp; Đồng dạng, Hình học không gian 3D, Xác suất &amp; Quy tắc đếm theo quy trình khám phá 6 bước chuẩn sư phạm.
+            <p className="text-sm text-teal-100/90 leading-relaxed">
+              Hệ thống 12 công cụ trực quan hóa Đại số, Hình học phẳng, Hình học không gian 3D, Thống kê & Xác suất thực nghiệm với quy trình khám phá 6 bước chuẩn sư phạm dành cho Giáo viên trình chiếu và Học sinh thực hành.
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
             <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15 text-center">
-              <div className="text-2xl font-extrabold text-[#FFCC33] tabular-nums">
+              <div className="text-2xl font-extrabold text-amber-400">
                 {SMART_MATH_LAB_REGISTRY.length}
               </div>
-              <div className="text-[11px] text-blue-100 font-semibold">
+              <div className="text-[11px] text-teal-100 font-semibold">
                 Phòng M01–M{SMART_MATH_LAB_REGISTRY.length}
               </div>
             </div>
             <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15 text-center">
-              <div className="text-2xl font-extrabold text-emerald-300 tabular-nums">4 Khối</div>
-              <div className="text-[11px] text-blue-100 font-semibold">Lớp 6 • 7 • 8 • 9</div>
+              <div className="text-2xl font-extrabold text-emerald-400">4 Khối</div>
+              <div className="text-[11px] text-teal-100 font-semibold">Lớp 6 • 7 • 8 • 9</div>
             </div>
             <button
               type="button"
               onClick={() => setShowDiagnosticsModal(true)}
-              className="p-3.5 rounded-2xl bg-[#12A879]/25 hover:bg-[#12A879]/35 border border-emerald-300/35 text-center transition cursor-pointer"
+              className="p-3.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-center transition"
             >
-              <div className="text-xl font-extrabold text-emerald-200 flex items-center justify-center gap-1 tabular-nums">
+              <div className="text-xl font-extrabold text-emerald-300 flex items-center justify-center gap-1">
                 <ShieldCheck className="w-5 h-5" />
                 <span>
                   {diagnosticsReport.totalChecks - diagnosticsReport.failedChecks.length}/
@@ -326,13 +326,13 @@ export const SmartMathLabView: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowResultsDrawer((v) => !v)}
-              className="p-3.5 rounded-2xl bg-white/12 hover:bg-white/20 border border-white/20 text-center transition cursor-pointer"
+              className="p-3.5 rounded-2xl bg-indigo-500/25 hover:bg-indigo-500/35 border border-indigo-400/40 text-center transition"
             >
-              <div className="text-2xl font-extrabold text-white tabular-nums">
+              <div className="text-2xl font-extrabold text-indigo-200">
                 {resultsHistory.length}
               </div>
-              <div className="text-[11px] text-blue-100 font-semibold">
-                Lượt làm bài &amp; CSV
+              <div className="text-[11px] text-indigo-100 font-semibold">
+                Lượt làm bài & CSV
               </div>
             </button>
           </div>
@@ -340,10 +340,10 @@ export const SmartMathLabView: React.FC = () => {
       </div>
 
       {/* THANH CHỌN LỚP HỌC, KHỐI LỚP & MẠCH KIẾN THỨC */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-[0_8px_24px_-12px_rgba(16,44,84,0.08)] space-y-4">
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-bold text-[#64748B] mr-1 flex items-center gap-1">
+            <span className="text-xs font-bold text-slate-500 mr-1 flex items-center gap-1">
               <Filter className="w-3.5 h-3.5" />
               Khối lớp:
             </span>
@@ -352,10 +352,10 @@ export const SmartMathLabView: React.FC = () => {
                 key={String(g)}
                 type="button"
                 onClick={() => setGradeFilter(g)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                   gradeFilter === g
-                    ? 'bg-[#1769F4] text-white shadow-xs'
-                    : 'bg-[#F6F9FD] text-[#172B4D] hover:bg-[#EAF3FF] border border-[#E2E8F0]'
+                    ? 'bg-teal-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 {g === 'ALL' ? 'Tất cả khối (6–9)' : `Toán Lớp ${g}`}
@@ -364,15 +364,15 @@ export const SmartMathLabView: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="font-bold text-[#64748B] flex items-center gap-1">
-              <Users className="w-4 h-4 text-[#1769F4]" />
+            <span className="font-bold text-slate-600 flex items-center gap-1">
+              <Users className="w-4 h-4 text-teal-600" />
               Lớp giảng dạy:
             </span>
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
               aria-label="Chọn lớp học"
-              className="px-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] font-bold text-[#102C54] outline-none focus:border-[#1769F4]"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-800 outline-none"
             >
               {classes && classes.length > 0 ? (
                 classes.map((c) => (
@@ -386,22 +386,22 @@ export const SmartMathLabView: React.FC = () => {
             </select>
 
             {sessions.length > 0 && (
-              <span className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 font-bold tabular-nums">
+              <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-800 font-bold">
                 Mã phiên gần nhất: {sessions[0].code}
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-[#E2E8F0]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-slate-100">
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
               onClick={() => setStrandFilter('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                 strandFilter === 'ALL'
-                  ? 'bg-[#102C54] text-white'
-                  : 'bg-[#F6F9FD] text-[#64748B] hover:bg-[#EAF3FF] border border-[#E2E8F0]'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               Tất cả mạch kiến thức
@@ -411,10 +411,10 @@ export const SmartMathLabView: React.FC = () => {
                 key={strand}
                 type="button"
                 onClick={() => setStrandFilter(strand)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                   strandFilter === strand
-                    ? 'bg-[#102C54] text-white'
-                    : 'bg-[#F6F9FD] text-[#64748B] hover:bg-[#EAF3FF] border border-[#E2E8F0]'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
                 {KNOWLEDGE_STRAND_LABELS[strand]}
@@ -429,7 +429,7 @@ export const SmartMathLabView: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm mã M01..M17, Số nguyên tố, Quy tắc đếm, Thalès, Pythagore..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#E2E8F0] text-xs outline-none focus:border-[#1769F4] focus:ring-2 focus:ring-[#1769F4]/15"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-teal-600"
             />
           </div>
         </div>
@@ -437,9 +437,9 @@ export const SmartMathLabView: React.FC = () => {
 
       {/* BẢNG KẾT QUẢ & XUẤT CSV */}
       {showResultsDrawer && (
-        <div className="bg-white rounded-2xl border border-[#C7DCFA] p-4 shadow-sm space-y-3">
+        <div className="bg-white rounded-2xl border border-indigo-200 p-4 shadow-sm space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-bold text-[#102C54] flex items-center gap-2">
+            <h2 className="text-sm font-extrabold text-indigo-900 flex items-center gap-2">
               <Award className="w-4 h-4 text-amber-500" />
               <span>Lịch sử Kết quả Thực hành Toán học ({resultsHistory.length} bản ghi)</span>
             </h2>
@@ -447,7 +447,7 @@ export const SmartMathLabView: React.FC = () => {
               <button
                 type="button"
                 onClick={handleExportCSV}
-                className="px-3 py-1.5 rounded-xl bg-[#12A879] hover:bg-[#0E8F66] text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold inline-flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Xuất bảng điểm CSV (Excel)</span>
@@ -455,7 +455,7 @@ export const SmartMathLabView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowResultsDrawer(false)}
-                className="px-2.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold cursor-pointer"
+                className="px-2.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold"
               >
                 Đóng
               </button>
@@ -463,37 +463,37 @@ export const SmartMathLabView: React.FC = () => {
           </div>
 
           {resultsHistory.length === 0 ? (
-            <p className="text-xs text-[#64748B]">
+            <p className="text-xs text-slate-500">
               Chưa có bản ghi kết quả nào. Hãy mở một công cụ và hoàn thành Bước 6 (Luyện tập) để lưu điểm!
             </p>
           ) : (
             <div className="overflow-x-auto max-h-60">
               <table className="w-full text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#EAF3FF] text-left text-[#102C54]">
-                    <th className="p-2 border border-[#E2E8F0]">Công cụ</th>
-                    <th className="p-2 border border-[#E2E8F0]">Học sinh</th>
-                    <th className="p-2 border border-[#E2E8F0]">Lớp</th>
-                    <th className="p-2 border border-[#E2E8F0]">Tiến độ 6 bước</th>
-                    <th className="p-2 border border-[#E2E8F0]">Điểm</th>
-                    <th className="p-2 border border-[#E2E8F0]">Thời gian</th>
+                  <tr className="bg-slate-100 text-left">
+                    <th className="p-2 border border-slate-200">Công cụ</th>
+                    <th className="p-2 border border-slate-200">Học sinh</th>
+                    <th className="p-2 border border-slate-200">Lớp</th>
+                    <th className="p-2 border border-slate-200">Tiến độ 6 bước</th>
+                    <th className="p-2 border border-slate-200">Điểm</th>
+                    <th className="p-2 border border-slate-200">Thời gian</th>
                   </tr>
                 </thead>
                 <tbody>
                   {resultsHistory.slice(0, 15).map((r) => (
-                    <tr key={r.id} className="hover:bg-[#F6F9FD]">
-                      <td className="p-2 border border-[#E2E8F0] font-bold text-[#1769F4]">
+                    <tr key={r.id}>
+                      <td className="p-2 border border-slate-200 font-bold text-teal-700">
                         {r.toolId}
                       </td>
-                      <td className="p-2 border border-[#E2E8F0] font-semibold text-[#102C54]">{r.studentName}</td>
-                      <td className="p-2 border border-[#E2E8F0]">{r.className}</td>
-                      <td className="p-2 border border-[#E2E8F0] tabular-nums">
+                      <td className="p-2 border border-slate-200 font-semibold">{r.studentName}</td>
+                      <td className="p-2 border border-slate-200">{r.className}</td>
+                      <td className="p-2 border border-slate-200">
                         {r.completedSteps.length}/6 bước
                       </td>
-                      <td className="p-2 border border-[#E2E8F0] font-bold text-[#12A879] tabular-nums">
+                      <td className="p-2 border border-slate-200 font-extrabold text-emerald-700">
                         {r.score}/{r.maxScore}
                       </td>
-                      <td className="p-2 border border-[#E2E8F0] text-[#64748B] tabular-nums">
+                      <td className="p-2 border border-slate-200 text-slate-500">
                         {new Date(r.completedAt).toLocaleString('vi-VN')}
                       </td>
                     </tr>
@@ -507,7 +507,7 @@ export const SmartMathLabView: React.FC = () => {
 
       {/* TRUY CẬP NHANH GẦN ĐÂY */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-bold text-[#64748B] flex items-center gap-1">
+        <span className="font-bold text-slate-500 flex items-center gap-1">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
           Truy cập nhanh gần đây:
         </span>
@@ -519,7 +519,7 @@ export const SmartMathLabView: React.FC = () => {
               key={id}
               type="button"
               onClick={() => handleOpenTool(id)}
-              className="px-3 py-1 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#1769F4] text-[#102C54] font-bold shadow-2xs transition cursor-pointer"
+              className="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-teal-500 text-slate-700 font-bold shadow-2xs transition"
             >
               {t.id} • {t.nameVi}
             </button>
@@ -527,34 +527,34 @@ export const SmartMathLabView: React.FC = () => {
         })}
       </div>
 
-      {/* LƯỚI CÔNG CỤ DẠY HỌC TOÁN THCS (M01–M17) */}
+      {/* LƯỚI 12 CÔNG CỤ DẠY HỌC TOÁN THCS */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {filteredTools.map((tool) => (
           <div
             key={tool.id}
-            className="bg-white rounded-2xl border border-[#E2E8F0] hover:border-[#1769F4]/55 shadow-[0_8px_24px_-12px_rgba(16,44,84,0.08)] hover:shadow-[0_16px_34px_-12px_rgba(23,105,244,0.16)] transition flex flex-col justify-between overflow-hidden group"
+            className="bg-white rounded-2xl border border-slate-200 hover:border-teal-500/60 shadow-xs hover:shadow-md transition flex flex-col justify-between overflow-hidden group"
           >
             <div>
               <div
                 className={`p-4 bg-gradient-to-r ${STRAND_GRADIENT_MAP[tool.strand]} text-white flex items-center justify-between`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
                     {TOOL_ICON_MAP[tool.id]}
                   </div>
-                  <div className="min-w-0">
-                    <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-black/25 tabular-nums">
+                  <div>
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-black/25">
                       {tool.id}
                     </span>
-                    <h3 className="text-base font-bold mt-0.5 truncate">{tool.nameVi}</h3>
+                    <h3 className="text-base font-extrabold mt-0.5">{tool.nameVi}</h3>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1">
                   {tool.grades.map((g) => (
                     <span
                       key={g}
-                      className="px-2 py-0.5 rounded-md bg-white/20 text-white text-[11px] font-bold tabular-nums"
+                      className="px-2 py-0.5 rounded-md bg-white/20 text-white text-[11px] font-extrabold"
                     >
                       L{g}
                     </span>
@@ -563,15 +563,15 @@ export const SmartMathLabView: React.FC = () => {
               </div>
 
               <div className="p-4 space-y-3">
-                <div className="text-xs font-bold text-[#1769F4]">
+                <div className="text-xs font-bold text-teal-700">
                   {KNOWLEDGE_STRAND_LABELS[tool.strand]}
                 </div>
-                <p className="text-xs text-[#64748B] line-clamp-2 leading-relaxed">
+                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                   {tool.shortDescription}
                 </p>
 
-                <div className="space-y-1.5 pt-1">
-                  <div className="text-[11px] font-bold text-[#64748B] flex items-center gap-1">
+                <div className="space-y-1 pt-1">
+                  <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
                     <BookOpen className="w-3 h-3" />
                     Kịch bản thực hành mẫu ({tool.sampleActivities.length} bài):
                   </div>
@@ -582,10 +582,10 @@ export const SmartMathLabView: React.FC = () => {
                       onClick={() =>
                         handleOpenTool(tool.id, (Number(act.grade) || 8) as MathGrade)
                       }
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg bg-[#F6F9FD] hover:bg-[#EAF3FF] text-xs text-[#172B4D] hover:text-[#1769F4] font-medium truncate transition flex items-center justify-between cursor-pointer"
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-teal-50 text-xs text-slate-700 hover:text-teal-800 font-medium truncate transition flex items-center justify-between"
                     >
                       <span className="truncate">• {act.title}</span>
-                      <span className="text-[10px] font-bold text-[#1769F4] ml-2 shrink-0">
+                      <span className="text-[10px] font-bold text-teal-600 ml-2 shrink-0">
                         Mở →
                       </span>
                     </button>
@@ -594,11 +594,11 @@ export const SmartMathLabView: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-4 py-3 bg-[#F6F9FD] border-t border-[#E2E8F0] flex items-center justify-between gap-2">
+            <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => handleOpenTool(tool.id)}
-                className="flex-1 py-2 px-3 rounded-xl bg-[#1769F4] hover:bg-[#1256CE] text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 transition shadow-2xs cursor-pointer whitespace-nowrap"
+                className="flex-1 py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition shadow-2xs"
               >
                 <Play className="w-3.5 h-3.5" />
                 <span>Mở Phòng thí nghiệm</span>
@@ -606,7 +606,7 @@ export const SmartMathLabView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleCreateClassroomSession(tool.id)}
-                className="py-2 px-3 rounded-xl bg-white hover:bg-[#EAF3FF] text-[#102C54] border border-[#C7DCFA] text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0"
+                className="py-2 px-3 rounded-xl bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold transition"
                 title="Giao phiên hoạt động cho lớp đang chọn"
               >
                 Giao lớp
@@ -619,7 +619,7 @@ export const SmartMathLabView: React.FC = () => {
       {/* MODAL BÁO CÁO KIỂM ĐỊNH ĐỘ CHÍNH XÁC TOÁN HỌC TỰ ĐỘNG */}
       {showDiagnosticsModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] max-w-2xl w-full p-6 shadow-xl space-y-4 max-h-[85vh] flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200 max-w-2xl w-full p-6 shadow-xl space-y-4 max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-6 h-6 text-emerald-600" />

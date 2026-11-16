@@ -755,11 +755,9 @@ export const MysteryGiftBox3DGame: React.FC<MysteryGiftBox3DGameProps> = ({
       if (
         !isSupabaseConfigured ||
         !record.teacherId ||
-        record.teacherId.startsWith('demo_') ||
         record.teacherId.startsWith('gsess_') ||
         record.teacherId.startsWith('guest_') ||
-        record.classId === 'guest_mode' ||
-        record.classId.startsWith('demo-')
+        record.classId === 'guest_mode'
       ) {
         return 'saved';
       }

@@ -176,23 +176,23 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto font-edtech">
-      <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-[#E2E8F0] relative space-y-5 my-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto font-serif">
+      <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-[#DCE8F7] relative space-y-5 my-6 max-h-[90vh] overflow-y-auto">
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-[#102C54] hover:bg-slate-100 cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
           aria-label="Đóng"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-start gap-3 pr-8">
-          <div className="w-11 h-11 rounded-xl bg-[#EAF3FF] text-[#1769F4] border border-[#C7DCFA] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#006BFF] flex items-center justify-center shrink-0">
             <FileSpreadsheet className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#102C54] tracking-tight">
+            <h3 className="text-lg font-bold text-[#082B52]">
               Nhập danh mục Yêu cầu cần đạt (CSV)
             </h3>
             <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
@@ -206,7 +206,7 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
         <div
           onDragOver={e => e.preventDefault()}
           onDrop={handleDrop}
-          className="border-2 border-dashed border-[#C7DCFA] bg-[#EAF3FF]/60 rounded-2xl p-6 text-center space-y-3"
+          className="border-2 border-dashed border-[#006BFF]/40 bg-[#F3F8FF]/70 rounded-2xl p-6 text-center space-y-3"
         >
           <input
             ref={fileInputRef}
@@ -216,9 +216,9 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
             onChange={handleFileInputChange}
             className="hidden"
           />
-          <Upload className="w-8 h-8 text-[#1769F4] mx-auto" />
+          <Upload className="w-8 h-8 text-[#006BFF] mx-auto" />
           <div className="space-y-1">
-            <p className="text-sm font-bold text-[#102C54]">
+            <p className="text-sm font-bold text-[#082B52]">
               {parseResult && parseResult.fileNames.length > 0
                 ? parseResult.fileNames.length === 1
                   ? `Tệp đã chọn: ${parseResult.fileNames[0]}`
@@ -233,7 +233,7 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
             type="button"
             disabled={isReading}
             onClick={() => fileInputRef.current?.click()}
-            className="px-4 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 whitespace-nowrap shrink-0"
+            className="px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>{isReading ? 'Đang đọc tệp CSV...' : 'Chọn tệp CSV từ máy tính'}</span>
@@ -250,13 +250,13 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
         {/* Preview Summary */}
         {parseResult && (
           <div className="space-y-4">
-            <div className="p-4 bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl space-y-3">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="font-bold text-[#102C54] tabular-nums">
+                <span className="font-bold text-[#082B52]">
                   Kết quả kiểm tra ({parseResult.totalDataRows} dòng dữ liệu):
                 </span>
-                <div className="flex items-center gap-2 tabular-nums">
-                  <span className="px-2 py-0.5 rounded-md bg-[#ECFDF7] text-[#0B6E4F] border border-[#12A879]/25 font-bold">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold">
                     Hợp lệ: {parseResult.items.length}
                   </span>
                   {parseResult.errors.length > 0 && (
@@ -269,27 +269,27 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
 
               {/* Group stats matrix by Subject x Grade */}
               {subjectMatrixRows.length > 0 && (
-                <div className="overflow-x-auto bg-white border border-[#C7DCFA] rounded-xl">
-                  <table className="w-full text-xs border-collapse tabular-nums">
+                <div className="overflow-x-auto bg-white border border-blue-200 rounded-xl">
+                  <table className="w-full text-xs border-collapse">
                     <thead>
-                      <tr className="bg-[#EAF3FF] text-[#102C54] font-bold border-b border-[#C7DCFA]">
+                      <tr className="bg-[#EFF6FF] text-[#082B52] font-bold border-b border-blue-200">
                         <th className="text-left px-3 py-2">Môn học</th>
                         <th className="text-center px-2 py-2 w-16">Khối 6</th>
                         <th className="text-center px-2 py-2 w-16">Khối 7</th>
                         <th className="text-center px-2 py-2 w-16">Khối 8</th>
                         <th className="text-center px-2 py-2 w-16">Khối 9</th>
-                        <th className="text-center px-3 py-2 w-20 text-[#1769F4]">Tổng</th>
+                        <th className="text-center px-3 py-2 w-20 text-[#006BFF]">Tổng</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {subjectMatrixRows.map(row => (
-                        <tr key={row.subject} className="hover:bg-[#F6F9FD]">
-                          <td className="px-3 py-2 font-bold text-[#102C54]">{row.subject}</td>
+                        <tr key={row.subject} className="hover:bg-slate-50/70">
+                          <td className="px-3 py-2 font-bold text-[#082B52]">{row.subject}</td>
                           <td className="px-2 py-2 text-center text-slate-700 font-semibold">{row.counts['6']}</td>
                           <td className="px-2 py-2 text-center text-slate-700 font-semibold">{row.counts['7']}</td>
                           <td className="px-2 py-2 text-center text-slate-700 font-semibold">{row.counts['8']}</td>
                           <td className="px-2 py-2 text-center text-slate-700 font-semibold">{row.counts['9']}</td>
-                          <td className="px-3 py-2 text-center font-bold text-[#1769F4]">{row.total}</td>
+                          <td className="px-3 py-2 text-center font-bold text-[#006BFF]">{row.total}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -299,9 +299,9 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
 
               {/* Deduplication preview */}
               {previewMergeStats && (
-                <div className="text-xs text-slate-700 bg-white border border-[#E2E8F0] rounded-lg p-2.5 flex flex-wrap items-center gap-3 tabular-nums">
+                <div className="text-xs text-slate-700 bg-white border border-slate-200 rounded-lg p-2.5 flex flex-wrap items-center gap-3">
                   <span className="font-bold text-slate-800">Khi lưu vào danh mục:</span>
-                  <span className="text-[#0B6E4F] font-bold">+ {previewMergeStats.inserted} dòng mới</span>
+                  <span className="text-emerald-700 font-bold">+ {previewMergeStats.inserted} dòng mới</span>
                   <span className="text-amber-700 font-bold">↻ {previewMergeStats.updated} cập nhật</span>
                   <span className="text-slate-600 font-semibold">
                     = {previewMergeStats.unchanged} dòng trùng khóa giữ nguyên
@@ -315,7 +315,7 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
               <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-2 max-h-44 overflow-y-auto">
                 <div className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4 text-rose-600" />
-                  <span className="tabular-nums">Các dòng không hợp lệ sẽ bị bỏ qua ({parseResult.errors.length} dòng):</span>
+                  <span>Các dòng không hợp lệ sẽ bị bỏ qua ({parseResult.errors.length} dòng):</span>
                 </div>
                 <ul className="space-y-1 text-[11px] text-rose-700">
                   {parseResult.errors.map((err, i) => (
@@ -331,8 +331,8 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
         )}
 
         {importDone && (
-          <div className="p-3 bg-[#ECFDF7] border border-[#12A879]/30 text-[#0B6E4F] rounded-xl text-xs font-bold flex items-center gap-2 tabular-nums">
-            <CheckCircle2 className="w-4 h-4 text-[#12A879] shrink-0" />
+          <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>
               Đã nhập xong! Thêm mới {importDone.inserted}, cập nhật {importDone.updated}, giữ nguyên{' '}
               {importDone.unchanged} bản ghi trùng khóa.
@@ -344,7 +344,7 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-[#E2E8F0] text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50 cursor-pointer whitespace-nowrap shrink-0"
+            className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50 cursor-pointer"
           >
             Đóng
           </button>
@@ -352,7 +352,7 @@ export const YccdCsvImportModal: React.FC<YccdCsvImportModalProps> = ({
             type="button"
             disabled={!parseResult || parseResult.items.length === 0 || Boolean(importDone)}
             onClick={handleConfirm}
-            className="px-5 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-xs font-bold shadow-xs disabled:opacity-40 cursor-pointer tabular-nums whitespace-nowrap shrink-0"
+            className="px-5 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-xs disabled:opacity-40 cursor-pointer"
           >
             Xác nhận lưu ({parseResult?.items.length || 0} YCCĐ)
           </button>

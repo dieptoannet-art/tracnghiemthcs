@@ -93,18 +93,18 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto font-edtech">
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] max-w-4xl w-full p-6 shadow-2xl my-8 max-h-[90vh] overflow-y-auto space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl my-8 max-h-[90vh] overflow-y-auto space-y-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-xl font-bold text-[#102C54] tracking-tight">
+            <h3 className="text-xl font-bold text-[#082B52]">
               {isEditing ? `Chỉnh sửa câu hỏi [${code}]` : 'Thêm câu hỏi mới vào ngân hàng'}
             </h3>
             <p className="text-xs text-slate-500">
               Hỗ trợ công thức Toán chuẩn KaTeX giữa cặp dấu $, ví dụ: $x^2 + 2x = 0$
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-[#102C54] hover:bg-slate-100">
+          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -119,7 +119,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
                 value={code}
                 onChange={e => setCode(e.target.value)}
                 required
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg uppercase font-mono focus:outline-hidden focus:ring-1 focus:ring-[#1769F4]"
+                className="w-full px-3 py-2 text-xs border rounded-lg uppercase font-mono"
               />
             </div>
             <div>
@@ -127,7 +127,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               <select
                 value={grade}
                 onChange={e => setGrade(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg bg-white text-[#102C54]"
+                className="w-full px-3 py-2 text-xs border rounded-lg"
               >
                 <option value="6">Lớp 6</option>
                 <option value="7">Lớp 7</option>
@@ -140,7 +140,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               <select
                 value={subject}
                 onChange={e => setSubject(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg bg-white text-[#102C54]"
+                className="w-full px-3 py-2 text-xs border rounded-lg"
               >
                 <option value="math">Toán</option>
                 <option value="informatics">Tin học</option>
@@ -154,7 +154,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               <select
                 value={textbook}
                 onChange={e => setTextbook(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg bg-white text-[#102C54]"
+                className="w-full px-3 py-2 text-xs border rounded-lg"
               >
                 <option value="Kết nối tri thức">Kết nối tri thức</option>
                 <option value="Cánh Diều">Cánh Diều</option>
@@ -170,7 +170,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               <select
                 value={type}
                 onChange={e => setType(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg font-semibold text-[#1769F4] bg-white"
+                className="w-full px-3 py-2 text-xs border rounded-lg font-semibold text-[#006BFF]"
               >
                 <option value="single_choice">Trắc nghiệm 1 đáp án (A, B, C, D)</option>
                 <option value="true_false_group">Đúng - Sai nhiều ý (a, b, c, d)</option>
@@ -184,7 +184,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               <select
                 value={level}
                 onChange={e => setLevel(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg bg-white text-[#102C54]"
+                className="w-full px-3 py-2 text-xs border rounded-lg"
               >
                 <option value="know">Nhận biết (Biết)</option>
                 <option value="understand">Thông hiểu (Hiểu)</option>
@@ -199,7 +199,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
                 step="0.05"
                 value={points}
                 onChange={e => setPoints(parseFloat(e.target.value))}
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg tabular-nums"
+                className="w-full px-3 py-2 text-xs border rounded-lg"
               />
             </div>
           </div>
@@ -213,7 +213,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
                 value={lesson}
                 onChange={e => setLesson(e.target.value)}
                 placeholder="Bài 1: Đơn thức và đa thức..."
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg"
+                className="w-full px-3 py-2 text-xs border rounded-lg"
               />
             </div>
             <div>
@@ -223,7 +223,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
                 value={yccd}
                 onChange={e => setYccd(e.target.value)}
                 placeholder="Ví dụ: Nhận biết được đơn thức thu gọn..."
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg"
+                className="w-full px-3 py-2 text-xs border rounded-lg"
               />
             </div>
           </div>
@@ -236,12 +236,12 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               value={stem}
               onChange={e => setStem(e.target.value)}
               placeholder="Nhập nội dung câu hỏi. Dùng $công thức$ để hiển thị toán, ví dụ: Cho biểu thức $A = 2x^2 + 5x$..."
-              className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-xl focus:outline-hidden focus:ring-1 focus:ring-[#1769F4]"
+              className="w-full px-3 py-2 text-sm border rounded-xl"
             />
             {/* Live KaTeX preview */}
             {stem && (
-              <div className="p-3 bg-[#EAF3FF]/70 rounded-xl border border-[#C7DCFA] text-xs text-[#102C54]">
-                <span className="font-bold text-[#1769F4] block mb-1">Xem trước công thức:</span>
+              <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-[#082B52]">
+                <span className="font-bold text-blue-700 block mb-1">Xem trước công thức:</span>
                 <MathView content={stem} />
               </div>
             )}
@@ -249,20 +249,20 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
 
           {/* Type-Specific Answer Inputs */}
           {type === 'single_choice' && (
-            <div className="space-y-3 p-4 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0]">
+            <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
               <span className="text-xs font-bold text-slate-700 block">Các phương án và đáp án đúng:</span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {options.map((opt, i) => (
-                  <div key={opt.id} className="flex items-center space-x-2 bg-white p-2 rounded-lg border border-[#E2E8F0]">
+                  <div key={opt.id} className="flex items-center space-x-2 bg-white p-2 rounded-lg border">
                     <input
                       type="radio"
                       name="correct_choice"
                       id={`opt-radio-${opt.label}`}
                       checked={correctAnswer === opt.label}
                       onChange={() => setCorrectAnswer(opt.label)}
-                      className="w-4 h-4 text-[#1769F4]"
+                      className="w-4 h-4 text-[#006BFF]"
                     />
-                    <label htmlFor={`opt-radio-${opt.label}`} className="font-bold text-xs w-4 text-[#102C54]">
+                    <label htmlFor={`opt-radio-${opt.label}`} className="font-bold text-xs w-4">
                       {opt.label}.
                     </label>
                     <input
@@ -274,7 +274,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
                         setOptions(copy);
                       }}
                       placeholder={`Nội dung phương án ${opt.label}...`}
-                      className="w-full text-xs px-2 py-1 border border-[#E2E8F0] rounded"
+                      className="w-full text-xs px-2 py-1 border rounded"
                     />
                   </div>
                 ))}
@@ -284,11 +284,11 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
           )}
 
           {type === 'true_false_group' && (
-            <div className="space-y-3 p-4 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0]">
+            <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
               <span className="text-xs font-bold text-slate-700 block">4 ý Đúng / Sai:</span>
               {subItems.map((sub, i) => (
-                <div key={sub.id} className="flex items-center space-x-3 bg-white p-2.5 rounded-lg border border-[#E2E8F0]">
-                  <span className="font-bold text-xs text-[#1769F4] w-4">{sub.label})</span>
+                <div key={sub.id} className="flex items-center space-x-3 bg-white p-2.5 rounded-lg border">
+                  <span className="font-bold text-xs text-[#006BFF] w-4">{sub.label})</span>
                   <input
                     type="text"
                     value={sub.text}
@@ -298,7 +298,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
                       setSubItems(copy);
                     }}
                     placeholder={`Nội dung ý ${sub.label}...`}
-                    className="flex-1 text-xs px-2 py-1 border border-[#E2E8F0] rounded"
+                    className="flex-1 text-xs px-2 py-1 border rounded"
                   />
                   <div className="flex items-center space-x-2 shrink-0">
                     <label className="text-xs font-semibold flex items-center space-x-1 cursor-pointer">
@@ -312,7 +312,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
                           setSubItems(copy);
                         }}
                       />
-                      <span className="text-[#0B6E4F]">Đúng</span>
+                      <span className="text-emerald-700">Đúng</span>
                     </label>
                     <label className="text-xs font-semibold flex items-center space-x-1 cursor-pointer">
                       <input
@@ -334,27 +334,27 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
           )}
 
           {type === 'short_answer' && (
-            <div className="space-y-2 p-4 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0]">
+            <div className="space-y-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
               <label className="block text-xs font-bold text-slate-700">Các đáp án chấp nhận (cách nhau bởi dấu chấm phẩy ;):</label>
               <input
                 type="text"
                 value={acceptedAnswersStr}
                 onChange={e => setAcceptedAnswersStr(e.target.value)}
                 placeholder="Ví dụ: 4; x=4; +4"
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg bg-white"
+                className="w-full px-3 py-2 text-xs border rounded-lg bg-white"
               />
             </div>
           )}
 
           {type === 'essay' && (
-            <div className="space-y-2 p-4 bg-[#F6F9FD] rounded-xl border border-[#E2E8F0]">
+            <div className="space-y-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
               <label className="block text-xs font-bold text-slate-700">Đáp án mẫu và Hướng dẫn chấm:</label>
               <textarea
                 rows={3}
                 value={sampleAnswer}
                 onChange={e => setSampleAnswer(e.target.value)}
                 placeholder="Nêu các bước chấm điểm, hướng dẫn phân bổ điểm..."
-                className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-lg bg-white"
+                className="w-full px-3 py-2 text-xs border rounded-lg bg-white"
               />
             </div>
           )}
@@ -367,7 +367,7 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
               value={explanation}
               onChange={e => setExplanation(e.target.value)}
               placeholder="Giải thích rõ ràng từng bước và vì sao các phương án khác sai..."
-              className="w-full px-3 py-2 text-xs border border-[#E2E8F0] rounded-xl"
+              className="w-full px-3 py-2 text-xs border rounded-xl"
             />
           </div>
 
@@ -375,13 +375,13 @@ export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-[#E2E8F0] rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 whitespace-nowrap shrink-0"
+              className="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50"
             >
               Hủy bỏ
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] shadow-xs whitespace-nowrap shrink-0"
+              className="px-6 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs"
             >
               {isEditing ? 'Lưu thay đổi' : 'Thêm vào ngân hàng'}
             </button>

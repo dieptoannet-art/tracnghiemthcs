@@ -594,15 +594,15 @@ export const QuestionBank: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-edtech">
+    <div className="space-y-6 font-serif">
       {/* Toast thông báo thao tác */}
       {actionSuccessMessage && (
-        <div className="p-3.5 bg-[#ECFDF7] border border-[#12A879]/30 rounded-xl text-xs text-[#0B6E4F] font-semibold flex items-center justify-between shadow-xs">
+        <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-800 font-semibold flex items-center justify-between shadow-xs">
           <div className="flex items-center space-x-2">
-            <CheckCircle2 className="w-4 h-4 text-[#12A879] shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{actionSuccessMessage}</span>
           </div>
-          <button onClick={() => setActionSuccessMessage(null)} className="text-[#0B6E4F] hover:text-[#102C54] shrink-0">
+          <button onClick={() => setActionSuccessMessage(null)} className="text-emerald-600 hover:text-emerald-800">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -611,8 +611,8 @@ export const QuestionBank: React.FC = () => {
       {/* Top action header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#102C54] tracking-tight flex items-center space-x-2.5">
-            <Database className="w-6 h-6 text-[#1769F4] shrink-0" />
+          <h2 className="text-2xl font-bold text-[#082B52] flex items-center space-x-2.5">
+            <Database className="w-6 h-6 text-[#006BFF]" />
             <span>Ngân hàng câu hỏi trắc nghiệm</span>
           </h2>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -622,17 +622,17 @@ export const QuestionBank: React.FC = () => {
           {/* Badge nguồn dữ liệu */}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {isLoading ? (
-              <span className="text-[11px] font-semibold text-[#1769F4] bg-[#EAF3FF] border border-[#C7DCFA] px-2.5 py-0.5 rounded-md inline-flex items-center space-x-1.5">
-                <RefreshCw className="w-3 h-3 animate-spin text-[#1769F4]" />
+              <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-md inline-flex items-center space-x-1.5 animate-pulse">
+                <RefreshCw className="w-3 h-3 animate-spin text-blue-600" />
                 <span>Đang truy vấn bảng public.questions từ Supabase...</span>
               </span>
             ) : isCurrentSourceSupabase ? (
-              <span className="text-[11px] font-bold text-[#0B6E4F] bg-[#ECFDF7] border border-[#12A879]/30 px-2.5 py-0.5 rounded-md inline-flex items-center space-x-1.5 tabular-nums shadow-2xs">
-                <Database className="w-3.5 h-3.5 text-[#12A879]" />
+              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 rounded-md inline-flex items-center space-x-1.5 shadow-2xs">
+                <Database className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Dữ liệu Supabase ({activeQuestions.length} câu)</span>
               </span>
             ) : (
-              <span className="text-[11px] font-semibold text-slate-700 bg-slate-100 border border-[#E2E8F0] px-2.5 py-0.5 rounded-md inline-flex items-center space-x-1.5 tabular-nums">
+              <span className="text-[11px] font-semibold text-slate-700 bg-slate-100 border border-slate-300 px-2.5 py-0.5 rounded-md inline-flex items-center space-x-1.5">
                 <Laptop className="w-3.5 h-3.5 text-slate-600" />
                 <span>Dữ liệu trên trình duyệt ({activeQuestions.length} câu)</span>
               </span>
@@ -640,19 +640,19 @@ export const QuestionBank: React.FC = () => {
 
             {/* Toggle nguồn dữ liệu khi cả 2 nguồn đều có sẵn */}
             {user && supabaseQuestions.length > 0 && localQuestions.length > 0 && (
-              <div className="inline-flex rounded-lg border border-[#E2E8F0] p-0.5 bg-[#F6F9FD] text-[10.5px] font-bold tabular-nums">
+              <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-[10.5px] font-bold">
                 <button
                   onClick={() => setDataSource('supabase')}
-                  className={`px-2.5 py-0.5 rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                    isCurrentSourceSupabase ? 'bg-white text-[#1769F4] shadow-2xs' : 'text-slate-600'
+                  className={`px-2 py-0.5 rounded-md transition-colors ${
+                    isCurrentSourceSupabase ? 'bg-white text-[#006BFF] shadow-2xs' : 'text-slate-600'
                   }`}
                 >
                   Supabase ({supabaseQuestions.length})
                 </button>
                 <button
                   onClick={() => setDataSource('local')}
-                  className={`px-2.5 py-0.5 rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                    !isCurrentSourceSupabase ? 'bg-white text-[#1769F4] shadow-2xs' : 'text-slate-600'
+                  className={`px-2 py-0.5 rounded-md transition-colors ${
+                    !isCurrentSourceSupabase ? 'bg-white text-[#006BFF] shadow-2xs' : 'text-slate-600'
                   }`}
                 >
                   Trình duyệt ({localQuestions.length})
@@ -661,7 +661,7 @@ export const QuestionBank: React.FC = () => {
             )}
 
             {(user || userProfile) && (
-              <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-[#E2E8F0] px-2 py-0.5 rounded-md">
+              <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
                 Tài khoản: <b>{userProfile?.fullName || user?.email || 'Giáo viên'}</b> ({userProfile?.role === 'admin' ? 'Quản trị viên' : userProfile?.role === 'teacher' ? 'Giáo viên' : 'Học sinh'})
               </span>
             )}
@@ -673,16 +673,16 @@ export const QuestionBank: React.FC = () => {
           <button
             onClick={loadQuestionsFromSupabase}
             disabled={isLoading}
-            className="flex items-center space-x-1 px-3 py-2 bg-white text-[#102C54] border border-[#E2E8F0] rounded-xl text-xs font-bold hover:bg-[#EAF3FF] hover:text-[#1769F4] transition-colors shadow-2xs disabled:opacity-50 whitespace-nowrap shrink-0"
+            className="flex items-center space-x-1 px-3 py-2 bg-white text-slate-700 border border-[#DCE8F7] rounded-xl text-xs font-bold hover:bg-[#F3F8FF] hover:text-[#006BFF] transition-colors shadow-2xs disabled:opacity-50"
             title="Tải lại từ bảng public.questions"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#1769F4]' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#006BFF]' : ''}`} />
             <span>Làm mới</span>
           </button>
 
           <button
             onClick={() => setImportModalOpen(true)}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0F8F67] shadow-xs transition-colors whitespace-nowrap shrink-0"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-xs transition-colors"
           >
             <FileSpreadsheet className="w-4 h-4" />
             <span>Nhập Excel / Word</span>
@@ -693,7 +693,7 @@ export const QuestionBank: React.FC = () => {
               setEditingQuestion(null);
               setEditorModalOpen(true);
             }}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] shadow-xs transition-colors whitespace-nowrap shrink-0"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Soạn câu hỏi mới</span>
@@ -703,13 +703,13 @@ export const QuestionBank: React.FC = () => {
 
       {/* Thông báo hướng dẫn khi chưa đăng nhập Supabase */}
       {!user && (
-        <div className="p-4 bg-[#EAF3FF]/80 rounded-2xl border border-[#C7DCFA] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50/70 rounded-2xl border border-blue-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start space-x-3">
-            <div className="p-2 bg-white text-[#1769F4] rounded-xl border border-[#C7DCFA] shrink-0 mt-0.5">
+            <div className="p-2 bg-blue-100 text-[#006BFF] rounded-xl shrink-0 mt-0.5">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs sm:text-sm font-bold text-[#102C54] tabular-nums">
+              <h4 className="text-xs sm:text-sm font-bold text-[#082B52]">
                 Bạn đang xem dữ liệu trên trình duyệt ({activeQuestions.length} câu)
               </h4>
               <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
@@ -719,7 +719,7 @@ export const QuestionBank: React.FC = () => {
           </div>
           <button
             onClick={() => openAuthModal('login')}
-            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] shadow-xs transition-colors whitespace-nowrap shrink-0"
+            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs transition-colors shrink-0"
           >
             <LogIn className="w-4 h-4" />
             <span>Đăng nhập ngay</span>
@@ -730,17 +730,17 @@ export const QuestionBank: React.FC = () => {
       {/* Quick Filter Presets Chips */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-bold text-slate-500 flex items-center space-x-1 mr-1">
-          <Sparkles className="w-3.5 h-3.5 text-[#1769F4]" />
+          <Sparkles className="w-3.5 h-3.5 text-[#006BFF]" />
           <span>Lọc nhanh:</span>
         </span>
 
         {/* Nút lọc: Môn Tin học (Tất cả khối) */}
         <button
           onClick={applyPresetAllInformatics}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border tabular-nums whitespace-nowrap shrink-0 ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
             filterSubject === 'Tin học' && filterGrade === 'all' && filterStatus === 'all'
-              ? 'bg-[#1769F4] text-white border-[#1769F4] shadow-xs ring-2 ring-[#C7DCFA]'
-              : 'bg-white text-slate-700 border-[#E2E8F0] hover:bg-[#EAF3FF] hover:border-[#1769F4]'
+              ? 'bg-[#006BFF] text-white border-[#006BFF] shadow-xs ring-2 ring-blue-200'
+              : 'bg-white text-slate-700 border-[#DCE8F7] hover:bg-[#F3F8FF] hover:border-[#006BFF]'
           }`}
         >
           Môn Tin học ({informaticsTotalCount} câu)
@@ -749,10 +749,10 @@ export const QuestionBank: React.FC = () => {
         {/* Nút lọc: Tin học 6 • Chờ duyệt */}
         <button
           onClick={applyPresetGrade6InformaticsPending}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border tabular-nums whitespace-nowrap shrink-0 ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
             filterGrade === '6' && filterSubject === 'Tin học' && filterStatus === 'pending'
-              ? 'bg-[#1769F4] text-white border-[#1769F4] shadow-xs ring-2 ring-[#C7DCFA]'
-              : 'bg-white text-slate-700 border-[#E2E8F0] hover:bg-[#EAF3FF] hover:border-[#1769F4]'
+              ? 'bg-[#006BFF] text-white border-[#006BFF] shadow-xs ring-2 ring-blue-200'
+              : 'bg-white text-slate-700 border-[#DCE8F7] hover:bg-[#F3F8FF] hover:border-[#006BFF]'
           }`}
         >
           Tin học 6 • Chờ duyệt ({informatics6PendingCount} câu)
@@ -761,10 +761,10 @@ export const QuestionBank: React.FC = () => {
         {/* Nút lọc: Môn Toán */}
         <button
           onClick={applyPresetMath}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border tabular-nums whitespace-nowrap shrink-0 ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
             filterSubject === 'Toán' && filterGrade === 'all'
-              ? 'bg-[#1769F4] text-white border-[#1769F4] shadow-xs'
-              : 'bg-white text-slate-700 border-[#E2E8F0] hover:bg-[#EAF3FF]'
+              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+              : 'bg-white text-slate-700 border-[#DCE8F7] hover:bg-[#F3F8FF]'
           }`}
         >
           Môn Toán ({activeQuestions.filter(q => isQuestionInSubject(q, 'Toán')).length} câu)
@@ -775,10 +775,10 @@ export const QuestionBank: React.FC = () => {
           onClick={() => {
             setFilterType(filterType === 'single_choice' ? 'all' : 'single_choice');
           }}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border tabular-nums whitespace-nowrap shrink-0 ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
             filterType === 'single_choice'
-              ? 'bg-[#1769F4] text-white border-[#1769F4] shadow-xs'
-              : 'bg-white text-slate-700 border-[#E2E8F0] hover:bg-[#EAF3FF]'
+              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+              : 'bg-white text-slate-700 border-[#DCE8F7] hover:bg-[#F3F8FF]'
           }`}
         >
           Trắc nghiệm ABCD ({stats.single})
@@ -788,10 +788,10 @@ export const QuestionBank: React.FC = () => {
           onClick={() => {
             setFilterType(filterType === 'true_false_group' ? 'all' : 'true_false_group');
           }}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border tabular-nums whitespace-nowrap shrink-0 ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
             filterType === 'true_false_group'
-              ? 'bg-[#12A879] text-white border-[#12A879] shadow-xs'
-              : 'bg-white text-slate-700 border-[#E2E8F0] hover:bg-[#ECFDF7]'
+              ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+              : 'bg-white text-slate-700 border-[#DCE8F7] hover:bg-emerald-50'
           }`}
         >
           Đúng – Sai 4 ý ({stats.tf})
@@ -801,10 +801,10 @@ export const QuestionBank: React.FC = () => {
           onClick={() => {
             setFilterType(filterType === 'essay' ? 'all' : 'essay');
           }}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border tabular-nums whitespace-nowrap shrink-0 ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
             filterType === 'essay'
-              ? 'bg-[#102C54] text-white border-[#102C54] shadow-xs'
-              : 'bg-white text-slate-700 border-[#E2E8F0] hover:bg-[#F6F9FD]'
+              ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+              : 'bg-white text-slate-700 border-[#DCE8F7] hover:bg-indigo-50'
           }`}
         >
           Tự luận ({stats.essay})
@@ -812,7 +812,7 @@ export const QuestionBank: React.FC = () => {
 
         <button
           onClick={handleResetFilters}
-          className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-[#102C54] hover:bg-slate-100 transition-colors whitespace-nowrap shrink-0"
+          className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
           title="Đặt lại tất cả bộ lọc"
         >
           Đặt lại bộ lọc
@@ -820,7 +820,7 @@ export const QuestionBank: React.FC = () => {
       </div>
 
       {/* Comprehensive Filter Bar */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs space-y-3">
+      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs space-y-3">
         {/* Row 1: Search & Core Curriculum Filters */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Search box */}
@@ -831,7 +831,7 @@ export const QuestionBank: React.FC = () => {
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="Tìm theo mã câu, nội dung đề bài, tên bài..."
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] focus:outline-hidden focus:ring-1 focus:ring-[#1769F4]"
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] focus:outline-hidden focus:ring-1 focus:ring-[#006BFF]"
             />
           </div>
 
@@ -845,7 +845,7 @@ export const QuestionBank: React.FC = () => {
                 setFilterChapter('all');
                 setFilterLesson('all');
               }}
-              className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-semibold focus:outline-hidden focus:ring-1 focus:ring-[#1769F4]"
+              className="w-full text-xs px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white text-slate-800 font-semibold focus:outline-hidden focus:ring-1 focus:ring-[#006BFF]"
             >
               {standardSubjects.map(sub => {
                 const count =
@@ -871,7 +871,7 @@ export const QuestionBank: React.FC = () => {
                 setFilterChapter('all');
                 setFilterLesson('all');
               }}
-              className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-semibold focus:outline-hidden focus:ring-1 focus:ring-[#1769F4]"
+              className="w-full text-xs px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white text-slate-800 font-semibold focus:outline-hidden focus:ring-1 focus:ring-[#006BFF]"
             >
               <option value="all">Tất cả khối lớp ({activeQuestions.length})</option>
               {['6', '7', '8', '9'].map(g => {
@@ -894,7 +894,7 @@ export const QuestionBank: React.FC = () => {
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
-              className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-semibold focus:outline-hidden focus:ring-1 focus:ring-[#1769F4]"
+              className="w-full text-xs px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white text-slate-800 font-semibold focus:outline-hidden focus:ring-1 focus:ring-[#006BFF]"
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="pending">Chờ duyệt</option>
@@ -916,7 +916,7 @@ export const QuestionBank: React.FC = () => {
                 setFilterChapter(e.target.value);
                 setFilterLesson('all');
               }}
-              className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-medium focus:outline-hidden focus:ring-1 focus:ring-[#1769F4] truncate"
+              className="w-full text-xs px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white text-slate-800 font-medium focus:outline-hidden focus:ring-1 focus:ring-[#006BFF] truncate"
             >
               <option value="all">Tất cả chủ đề / chương ({availableChapters.length})</option>
               {availableChapters.map(chap => (
@@ -933,7 +933,7 @@ export const QuestionBank: React.FC = () => {
             <select
               value={filterLesson}
               onChange={e => setFilterLesson(e.target.value)}
-              className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-medium focus:outline-hidden focus:ring-1 focus:ring-[#1769F4] truncate"
+              className="w-full text-xs px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white text-slate-800 font-medium focus:outline-hidden focus:ring-1 focus:ring-[#006BFF] truncate"
             >
               <option value="all">Tất cả bài học ({availableLessons.length})</option>
               {availableLessons.map(les => (
@@ -950,7 +950,7 @@ export const QuestionBank: React.FC = () => {
             <select
               value={filterLevel}
               onChange={e => setFilterLevel(e.target.value)}
-              className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-medium focus:outline-hidden focus:ring-1 focus:ring-[#1769F4]"
+              className="w-full text-xs px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white text-slate-800 font-medium focus:outline-hidden focus:ring-1 focus:ring-[#006BFF]"
             >
               <option value="all">Tất cả mức độ</option>
               <option value="know">Nhận biết</option>
@@ -965,7 +965,7 @@ export const QuestionBank: React.FC = () => {
             <select
               value={filterType}
               onChange={e => setFilterType(e.target.value)}
-              className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white text-[#102C54] font-medium focus:outline-hidden focus:ring-1 focus:ring-[#1769F4]"
+              className="w-full text-xs px-3 py-2 border border-[#DCE8F7] rounded-xl bg-white text-slate-800 font-medium focus:outline-hidden focus:ring-1 focus:ring-[#006BFF]"
             >
               <option value="all">Tất cả dạng câu</option>
               <option value="single_choice">Trắc nghiệm ABCD (1 ĐA)</option>
@@ -979,8 +979,8 @@ export const QuestionBank: React.FC = () => {
         {/* Filter Summary & Page Size Controls */}
         <div className="text-xs text-slate-500 font-semibold flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
           <div className="flex items-center space-x-2">
-            <span className="tabular-nums">
-              Tìm thấy <b className="text-[#1769F4] text-sm">{filteredQuestions.length}</b> câu hỏi phù hợp
+            <span>
+              Tìm thấy <b className="text-[#006BFF] text-sm">{filteredQuestions.length}</b> câu hỏi phù hợp
               {filterSubject !== 'all' && ` • Môn ${filterSubject}`}
               {filterGrade !== 'all' && ` • Lớp ${filterGrade}`}
               {filterStatus !== 'all' && ` • Trạng thái: ${filterStatus === 'pending' ? 'Chờ duyệt' : filterStatus === 'approved' ? 'Đã duyệt' : filterStatus}`}
@@ -992,7 +992,7 @@ export const QuestionBank: React.FC = () => {
             <select
               value={pageSize}
               onChange={e => setPageSize(parseInt(e.target.value, 10))}
-              className="px-2 py-1 text-xs border border-[#E2E8F0] rounded-lg bg-white text-slate-700 font-medium"
+              className="px-2 py-1 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 font-medium"
             >
               <option value={15}>15 câu</option>
               <option value={25}>25 câu</option>
@@ -1006,9 +1006,9 @@ export const QuestionBank: React.FC = () => {
 
       {/* Loading Skeleton */}
       {isLoading && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-8 text-center space-y-3">
-          <div className="w-8 h-8 border-3 border-[#1769F4] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-bold text-[#102C54]">Đang tải dữ liệu câu hỏi từ Supabase...</p>
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center space-y-3">
+          <div className="w-8 h-8 border-3 border-[#006BFF] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm font-bold text-[#082B52]">Đang tải dữ liệu câu hỏi từ Supabase...</p>
           <p className="text-xs text-slate-400">Đang truy vấn bảng public.questions theo phiên người dùng</p>
         </div>
       )}
@@ -1077,20 +1077,20 @@ export const QuestionBank: React.FC = () => {
             return (
               <div
                 key={q.id || q.code || idx}
-                className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs space-y-4 hover:border-[#1769F4]/60 transition-colors"
+                className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-4 hover:border-[#006BFF]/60 transition-colors"
               >
                 {/* Header info row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono font-bold text-xs px-2.5 py-0.5 rounded-md bg-[#EAF3FF] text-[#1769F4] border border-[#C7DCFA]">
+                    <span className="font-mono font-bold text-xs px-2.5 py-0.5 rounded-md bg-blue-100 text-[#006BFF]">
                       {q.code}
                     </span>
 
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 tabular-nums">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
                       Lớp {q.grade} • {getSubjectDisplayName(q.subject)}
                     </span>
 
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-[#EAF3FF] text-[#102C54]">
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-800">
                       {q.type === 'single_choice'
                         ? 'Trắc nghiệm ABCD'
                         : q.type === 'true_false_group'
@@ -1118,11 +1118,11 @@ export const QuestionBank: React.FC = () => {
                   </div>
 
                   {/* Status badge & Actions */}
-                  <div className="flex items-center space-x-2 shrink-0">
+                  <div className="flex items-center space-x-2">
                     <span
-                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md border whitespace-nowrap ${
+                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
                         q.status === 'approved'
-                          ? 'bg-[#ECFDF7] text-[#0B6E4F] border-[#12A879]/30'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                           : q.status === 'pending'
                           ? 'bg-amber-100 text-amber-800 border-amber-300'
                           : q.status === 'deprecated'
@@ -1143,7 +1143,7 @@ export const QuestionBank: React.FC = () => {
                     {q.status === 'pending' && (
                       <button
                         onClick={() => handleApproveQuestion(q.id)}
-                        className="flex items-center space-x-1 px-2.5 py-1 bg-[#12A879] text-white rounded-lg text-xs font-bold hover:bg-[#0F8F67] shadow-2xs transition-colors whitespace-nowrap shrink-0"
+                        className="flex items-center space-x-1 px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 shadow-2xs transition-colors"
                         title="Phê duyệt câu hỏi này vào ngân hàng chính thức"
                       >
                         <Check className="w-3.5 h-3.5" />
@@ -1165,7 +1165,7 @@ export const QuestionBank: React.FC = () => {
                 </div>
 
                 {/* Question Stem */}
-                <div className="text-sm sm:text-base font-medium text-[#102C54] leading-relaxed">
+                <div className="text-sm sm:text-base font-medium text-[#12345B] leading-relaxed">
                   <MathView content={q.stem} />
                 </div>
 
@@ -1188,18 +1188,18 @@ export const QuestionBank: React.FC = () => {
                           key={opt.id || optIdx}
                           className={`p-2.5 rounded-xl border flex items-start space-x-2 transition-colors ${
                             isCorrect
-                              ? 'border-[#12A879] bg-[#ECFDF7] text-[#0B6E4F] font-bold shadow-2xs'
-                              : 'border-[#E2E8F0] bg-white text-slate-700'
+                              ? 'border-emerald-400 bg-emerald-50/70 text-emerald-950 font-bold shadow-2xs'
+                              : 'border-slate-200 bg-white text-slate-700'
                           }`}
                         >
-                          <span className={`font-bold ${isCorrect ? 'text-[#0B6E4F]' : 'text-[#1769F4]'}`}>
+                          <span className={`font-bold ${isCorrect ? 'text-emerald-700' : 'text-[#006BFF]'}`}>
                             {optLabel}.
                           </span>
                           <div className="flex-1">
                             <MathView content={optText} />
                           </div>
                           {isCorrect && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#12A879]/20 text-[#0B6E4F] shrink-0">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-900 shrink-0">
                               ✓ Đáp án đúng
                             </span>
                           )}
@@ -1211,10 +1211,10 @@ export const QuestionBank: React.FC = () => {
 
                 {/* 2. Đúng - Sai 4 ý */}
                 {q.type === 'true_false_group' && rawSubItems.length > 0 && (
-                  <div className="space-y-2 text-xs bg-[#F6F9FD] p-3.5 rounded-xl border border-[#E2E8F0]">
+                  <div className="space-y-2 text-xs bg-[#FBFDFF] p-3.5 rounded-xl border border-slate-200">
                     <div className="flex items-center justify-between text-slate-700 font-bold mb-1">
                       <span>Bốn nhận định đánh giá (a – d):</span>
-                      <span className="text-[11px] text-slate-500 font-normal tabular-nums">
+                      <span className="text-[11px] text-slate-500 font-normal">
                         Điểm tối đa cả câu: <b>{q.points || 1.0} điểm</b>
                       </span>
                     </div>
@@ -1235,10 +1235,10 @@ export const QuestionBank: React.FC = () => {
                         return (
                           <div
                             key={sub.id || subIdx}
-                            className="p-2 bg-white rounded-lg border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                            className="p-2 bg-white rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                           >
                             <div className="flex items-start space-x-2 flex-1">
-                              <b className="text-[#1769F4]">{subLabel})</b>
+                              <b className="text-[#006BFF]">{subLabel})</b>
                               <div className="text-slate-800">
                                 <MathView content={subText} />
                               </div>
@@ -1253,7 +1253,7 @@ export const QuestionBank: React.FC = () => {
                                 <span
                                   className={`text-[11px] font-bold px-2 py-0.5 rounded ${
                                     isCorrect
-                                      ? 'bg-[#ECFDF7] text-[#0B6E4F] border border-[#12A879]/30'
+                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                       : 'bg-red-100 text-red-800 border border-red-300'
                                   }`}
                                 >
@@ -1274,19 +1274,19 @@ export const QuestionBank: React.FC = () => {
 
                 {/* 3. Tự luận */}
                 {q.type === 'essay' && (
-                  <div className="text-xs bg-[#EAF3FF]/50 p-3.5 rounded-xl border border-[#C7DCFA] space-y-2 text-slate-800">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#C7DCFA]/60 pb-2">
+                  <div className="text-xs bg-blue-50/40 p-3.5 rounded-xl border border-blue-200 space-y-2 text-slate-800">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-blue-100 pb-2">
                       <div className="flex items-center space-x-2">
-                        <FileText className="w-4 h-4 text-[#1769F4]" />
-                        <span className="font-bold text-[#102C54]">Thông số chấm & Yêu cầu tự luận:</span>
+                        <FileText className="w-4 h-4 text-[#006BFF]" />
+                        <span className="font-bold text-[#082B52]">Thông số chấm & Yêu cầu tự luận:</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         {q.competency && (
-                          <span className="bg-white border border-[#C7DCFA] text-[#102C54] px-2 py-0.5 rounded font-medium">
+                          <span className="bg-white border border-blue-200 text-blue-800 px-2 py-0.5 rounded font-medium">
                             Năng lực: <b>{q.competency}</b>
                           </span>
                         )}
-                        <span className="bg-[#ECFDF7] border border-[#12A879]/30 text-[#0B6E4F] px-2 py-0.5 rounded font-bold tabular-nums">
+                        <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded font-bold">
                           Điểm tối đa: {rubric?.max_points || q.points || 1.0} điểm
                         </span>
                       </div>
@@ -1294,8 +1294,8 @@ export const QuestionBank: React.FC = () => {
 
                     {(solution?.sample_essay_answer || q.sampleAnswer) && (
                       <div>
-                        <b className="text-[#1769F4] block mb-0.5">Đáp án mẫu:</b>
-                        <p className="bg-white p-2.5 rounded-lg border border-[#E2E8F0] text-slate-700 leading-relaxed whitespace-pre-line">
+                        <b className="text-[#006BFF] block mb-0.5">Đáp án mẫu:</b>
+                        <p className="bg-white p-2.5 rounded-lg border border-slate-200 text-slate-700 leading-relaxed whitespace-pre-line">
                           {solution?.sample_essay_answer || q.sampleAnswer}
                         </p>
                       </div>
@@ -1303,8 +1303,8 @@ export const QuestionBank: React.FC = () => {
 
                     {(rubric?.text || solution?.explanation || q.explanation) && (
                       <div>
-                        <b className="text-[#0B6E4F] block mb-0.5">Tiêu chuẩn chấm / Rubric:</b>
-                        <p className="bg-white p-2.5 rounded-lg border border-[#E2E8F0] text-slate-700 leading-relaxed whitespace-pre-line">
+                        <b className="text-emerald-700 block mb-0.5">Tiêu chuẩn chấm / Rubric:</b>
+                        <p className="bg-white p-2.5 rounded-lg border border-slate-200 text-slate-700 leading-relaxed whitespace-pre-line">
                           {rubric?.text || solution?.explanation || q.explanation}
                         </p>
                       </div>
@@ -1314,7 +1314,7 @@ export const QuestionBank: React.FC = () => {
 
                 {/* 4. Trả lời ngắn */}
                 {q.type === 'short_answer' && (solution?.accepted_answers || q.acceptedAnswers) && (
-                  <div className="text-xs bg-[#ECFDF7] p-2.5 rounded-xl border border-[#12A879]/30 text-[#0B6E4F]">
+                  <div className="text-xs bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200 text-emerald-900">
                     Đáp án chấp nhận:{' '}
                     <b>
                       {Array.isArray(solution?.accepted_answers || q.acceptedAnswers)
@@ -1326,8 +1326,8 @@ export const QuestionBank: React.FC = () => {
 
                 {/* Lời giải chi tiết */}
                 {(solution?.explanation || q.explanation) && q.type !== 'essay' && (
-                  <div className="text-xs text-slate-600 bg-[#F6F9FD] p-3 rounded-xl border border-[#E2E8F0]">
-                    <span className="font-bold text-[#102C54]">Lời giải chi tiết: </span>
+                  <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <span className="font-bold text-[#082B52]">Lời giải chi tiết: </span>
                     <MathView content={solution?.explanation || q.explanation} />
                   </div>
                 )}
@@ -1337,12 +1337,12 @@ export const QuestionBank: React.FC = () => {
 
           {/* Empty state when no questions match filters */}
           {filteredQuestions.length === 0 && (
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-12 text-center space-y-4">
-              <div className="w-12 h-12 bg-[#EAF3FF] text-[#1769F4] rounded-full flex items-center justify-center mx-auto">
+            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-12 text-center space-y-4">
+              <div className="w-12 h-12 bg-blue-50 text-[#006BFF] rounded-full flex items-center justify-center mx-auto">
                 <HelpCircle className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="text-base font-bold text-[#102C54]">Không tìm thấy câu hỏi nào phù hợp</h4>
+                <h4 className="text-base font-bold text-[#082B52]">Không tìm thấy câu hỏi nào phù hợp</h4>
                 <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                   Không có câu hỏi nào thỏa mãn tất cả tiêu chí bộ lọc đang chọn. Hãy thử nhấp vào các phím tắt bên dưới để xem danh sách câu hỏi.
                 </p>
@@ -1350,13 +1350,13 @@ export const QuestionBank: React.FC = () => {
               <div className="flex flex-wrap justify-center gap-2 pt-2">
                 <button
                   onClick={handleResetFilters}
-                  className="px-4 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] transition-colors whitespace-nowrap shrink-0"
+                  className="px-4 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors"
                 >
                   Đặt lại tất cả bộ lọc
                 </button>
                 <button
                   onClick={applyPresetAllInformatics}
-                  className="px-4 py-2 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0F8F67] transition-colors whitespace-nowrap shrink-0"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors"
                 >
                   Xem toàn bộ môn Tin học ({informaticsTotalCount} câu)
                 </button>
@@ -1366,7 +1366,7 @@ export const QuestionBank: React.FC = () => {
 
           {/* Pagination Controls */}
           {filteredQuestions.length > pageSize && pageSize < 9999 && (
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs tabular-nums">
+            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
               <span className="text-slate-500">
                 Hiển thị <b>{(currentPage - 1) * pageSize + 1}</b> –{' '}
                 <b>{Math.min(currentPage * pageSize, filteredQuestions.length)}</b> trên tổng số{' '}
@@ -1377,7 +1377,7 @@ export const QuestionBank: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="p-2 border border-[#E2E8F0] rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none"
+                  className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none"
                   title="Trang trước"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -1399,10 +1399,10 @@ export const QuestionBank: React.FC = () => {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors tabular-nums ${
+                      className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors ${
                         currentPage === pageNum
-                          ? 'bg-[#1769F4] text-white shadow-xs'
-                          : 'border border-[#E2E8F0] text-slate-700 hover:bg-slate-50'
+                          ? 'bg-[#006BFF] text-white shadow-xs'
+                          : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
                       }`}
                     >
                       {pageNum}
@@ -1413,7 +1413,7 @@ export const QuestionBank: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-[#E2E8F0] rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none"
+                  className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none"
                   title="Trang sau"
                 >
                   <ChevronRight className="w-4 h-4" />

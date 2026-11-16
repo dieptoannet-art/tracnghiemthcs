@@ -195,13 +195,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 overflow-y-auto font-edtech">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-[0_24px_60px_-16px_rgba(16,44,84,0.35)] relative border border-[#E2E8F0] my-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto font-serif">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative border border-[#DCE8F7] my-8 max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
           type="button"
           onClick={handleClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           aria-label="Đóng"
         >
           <X className="w-5 h-5" />
@@ -209,7 +209,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Modal Header */}
         <div className="text-center mb-5">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#EAF3FF] text-[#1769F4] mb-3 border border-[#C7DCFA]">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#006BFF]/10 text-[#006BFF] mb-3 shadow-inner">
             {mode === 'login' ? (
               <Lock className="w-6 h-6" />
             ) : mode === 'register' ? (
@@ -218,7 +218,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <KeyRound className="w-6 h-6" />
             )}
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-[#102C54] tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-bold text-[#082B52]">
             {mode === 'login'
               ? 'Đăng nhập hệ thống'
               : mode === 'register'
@@ -227,21 +227,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               ? 'Quên mật khẩu'
               : 'Thiết lập mật khẩu mới'}
           </h3>
-          <p className="text-xs text-[#64748B] mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Trường THCS Tây Đô • Học sinh đăng nhập bằng Mã học sinh · Giáo viên đăng nhập bằng Email
           </p>
         </div>
 
         {/* Mode Switcher Tabs for Login / Register */}
         {(mode === 'login' || mode === 'register') && (
-          <div className="flex bg-[#EAF3FF]/70 p-1 rounded-xl mb-5 border border-[#C7DCFA]">
+          <div className="flex bg-[#F3F8FF] p-1 rounded-xl mb-5 border border-[#DCE8F7]">
             <button
               type="button"
               onClick={() => switchMode('login')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${
                 mode === 'login'
-                  ? 'bg-white text-[#1769F4] shadow-xs'
-                  : 'text-[#64748B] hover:text-[#102C54]'
+                  ? 'bg-white text-[#006BFF] shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <LogIn className="w-3.5 h-3.5" />
@@ -250,10 +250,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="button"
               onClick={() => switchMode('register')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${
                 mode === 'register'
-                  ? 'bg-white text-[#1769F4] shadow-xs'
-                  : 'text-[#64748B] hover:text-[#102C54]'
+                  ? 'bg-white text-[#006BFF] shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <UserPlus className="w-3.5 h-3.5" />
@@ -289,8 +289,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'set_password' && (
-            <div className="p-3 rounded-xl bg-[#EAF3FF] border border-[#C7DCFA] text-xs text-[#102C54] flex items-start space-x-2.5">
-              <KeyRound className="w-4 h-4 text-[#1769F4] shrink-0 mt-0.5" />
+            <div className="p-3 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] text-xs text-[#12345B] flex items-start space-x-2.5">
+              <KeyRound className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
               <div className="leading-relaxed">
                 Vui lòng nhập mật khẩu mới (tối thiểu 6 ký tự) để bảo vệ tài khoản của bạn trong những lần đăng nhập tiếp theo.
               </div>
@@ -299,8 +299,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {mode === 'register' && (
             <>
-              <div className="p-3 rounded-xl bg-[#EAF3FF] border border-[#C7DCFA] flex items-start space-x-2.5 text-xs text-[#102C54]">
-                <GraduationCap className="w-4 h-4 text-[#1769F4] shrink-0 mt-0.5" />
+              <div className="p-3 rounded-xl bg-[#F3F8FF] border border-[#DCE8F7] flex items-start space-x-2.5 text-xs text-[#12345B]">
+                <GraduationCap className="w-4 h-4 text-[#006BFF] shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
                   Học sinh đã được trường cấp <strong>Mã học sinh</strong> và mật khẩu khởi tạo hãy chuyển sang tab <strong>Đăng nhập</strong> (không cần tự đăng ký).
                 </div>
@@ -318,7 +318,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     placeholder="Ví dụ: Nguyễn Văn An"
-                    className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#1769F4]/20 focus:border-[#1769F4] outline-hidden"
+                    className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#006BFF]/20 focus:border-[#006BFF] outline-hidden"
                   />
                 </div>
               </div>
@@ -331,7 +331,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <select
                     value={grade}
                     onChange={e => setGrade(e.target.value as Grade)}
-                    className="w-full px-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#1769F4]/20 focus:border-[#1769F4] outline-hidden bg-white"
+                    className="w-full px-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#006BFF]/20 focus:border-[#006BFF] outline-hidden bg-white"
                   >
                     <option value="6">Khối 6</option>
                     <option value="7">Khối 7</option>
@@ -348,7 +348,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={studentCode}
                     onChange={e => setStudentCode(e.target.value)}
                     placeholder="HS80101"
-                    className="w-full px-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#1769F4]/20 focus:border-[#1769F4] outline-hidden font-mono"
+                    className="w-full px-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#006BFF]/20 focus:border-[#006BFF] outline-hidden font-mono"
                   />
                 </div>
               </div>
@@ -380,7 +380,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       ? 'VD: HS9A101 (Học sinh) hoặc ten@taydo.edu.vn (Giáo viên)'
                       : 'tennguoidung@taydo.edu.vn'
                   }
-                  className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#1769F4]/20 focus:border-[#1769F4] outline-hidden font-mono"
+                  className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#006BFF]/20 focus:border-[#006BFF] outline-hidden font-mono"
                 />
               </div>
               {mode === 'login' && (
@@ -417,7 +417,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="Tối thiểu 6 ký tự"
-                    className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#1769F4]/20 focus:border-[#1769F4] outline-hidden font-mono"
+                    className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#006BFF]/20 focus:border-[#006BFF] outline-hidden font-mono"
                   />
                 </div>
               </div>
@@ -435,7 +435,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
                       placeholder="Khớp với mật khẩu trên"
-                      className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#1769F4]/20 focus:border-[#1769F4] outline-hidden font-mono"
+                      className="w-full pl-9 pr-3 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-[#006BFF]/20 focus:border-[#006BFF] outline-hidden font-mono"
                     />
                   </div>
                 </div>
@@ -455,9 +455,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 border border-[#E2E8F0] rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1">
-                <div className="flex items-center space-x-1.5 font-bold text-[#102C54]">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#1769F4]" />
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1">
+                <div className="flex items-center space-x-1.5 font-bold text-[#082B52]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#006BFF]" />
                   <span>Dành cho Giáo viên &amp; Quản trị viên (đăng nhập bằng Email):</span>
                 </div>
                 <p>
@@ -471,7 +471,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-2.5 bg-[#1769F4] text-white rounded-xl text-xs font-bold shadow-[0_6px_16px_-6px_rgba(23,105,244,0.45)] hover:bg-[#1256CE] disabled:opacity-50 transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+              className="w-full py-2.5 bg-[#006BFF] text-white rounded-xl text-xs font-bold shadow-md hover:bg-blue-600 disabled:opacity-50 transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
             >
               {authLoading ? (
                 <span>Đang xử lý...</span>
@@ -502,7 +502,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="button"
                 onClick={() => switchMode('login')}
-                className="w-full py-2 text-xs font-bold text-[#64748B] hover:text-[#102C54] flex items-center justify-center space-x-1 cursor-pointer"
+                className="w-full py-2 text-xs font-bold text-slate-600 hover:text-[#082B52] flex items-center justify-center space-x-1"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Quay lại đăng nhập</span>
@@ -511,12 +511,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         </form>
 
-        <div className="mt-5 pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
+        <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           <span>Trường THCS Tây Đô</span>
           <button
             type="button"
             onClick={handleClose}
-            className="font-bold text-[#1769F4] hover:underline cursor-pointer"
+            className="font-bold text-[#006BFF] hover:underline"
           >
             Đóng cửa sổ
           </button>

@@ -374,22 +374,22 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 font-edtech">
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] max-w-4xl w-full p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 font-serif">
+      <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-6">
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-[#ECFDF7] text-[#12A879] rounded-xl border border-[#12A879]/25">
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
               <FileSpreadsheet className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-[#102C54] tracking-tight">Nhập ngân hàng câu hỏi từ Excel</h3>
+              <h3 className="text-xl font-bold text-[#082B52]">Nhập ngân hàng câu hỏi từ Excel</h3>
               <p className="text-xs text-slate-500">
                 Hỗ trợ tệp cấu trúc chuẩn (Sheet 01 Bài học, 02 ABCD, 03 Đúng–Sai, 04 Tự luận) và lưu thật vào Supabase
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-[#102C54] hover:bg-slate-100">
+          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -398,16 +398,16 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
         {step === 'upload' ? (
           <div className="space-y-6">
             {/* Download Template Banner */}
-            <div className="p-4 bg-[#EAF3FF]/80 rounded-xl border border-[#C7DCFA] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h4 className="text-sm font-bold text-[#102C54]">Tải tệp Excel mẫu chuẩn THCS</h4>
+                <h4 className="text-sm font-bold text-[#082B52]">Tải tệp Excel mẫu chuẩn THCS</h4>
                 <p className="text-xs text-slate-600 mt-0.5">
                   Tệp mẫu gồm các Sheet: 01_Danh_muc_bai_hoc, 02_Trac_nghiem_ABCD, 03_Dung_Sai, 04_Tu_luan.
                 </p>
               </div>
               <button
                 onClick={downloadQuestionImportTemplate}
-                className="inline-flex items-center space-x-1.5 px-4 py-2 bg-white text-[#1769F4] border border-[#1769F4] rounded-xl text-xs font-bold hover:bg-[#EAF3FF] whitespace-nowrap shrink-0 shadow-2xs"
+                className="inline-flex items-center space-x-1.5 px-4 py-2 bg-white text-[#006BFF] border border-[#006BFF] rounded-xl text-xs font-bold hover:bg-blue-50 shrink-0 shadow-2xs"
               >
                 <Download className="w-4 h-4" />
                 <span>Tải tệp Excel mẫu (.xlsx)</span>
@@ -415,8 +415,8 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
             </div>
 
             {/* Scope selectors (Lớp, Môn, Bộ sách) */}
-            <div className="bg-[#F6F9FD] p-4 rounded-xl border border-[#E2E8F0] space-y-3">
-              <span className="text-xs font-bold text-[#102C54] block">
+            <div className="bg-[#FBFDFF] p-4 rounded-xl border border-[#DCE8F7] space-y-3">
+              <span className="text-xs font-bold text-[#082B52] block">
                 Phạm vi áp dụng (theo chuẩn môn học GDPT 2018):
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -425,7 +425,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                   <select
                     value={selectedGrade}
                     onChange={e => setSelectedGrade(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
+                    className="w-full text-xs px-3 py-2 border rounded-xl bg-white font-semibold text-slate-700"
                   >
                     <option value="6">Lớp 6</option>
                     <option value="7">Lớp 7</option>
@@ -439,7 +439,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                   <select
                     value={selectedSubject}
                     onChange={e => setSelectedSubject(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
+                    className="w-full text-xs px-3 py-2 border rounded-xl bg-white font-semibold text-slate-700"
                   >
                     <option value="Tin học">Tin học</option>
                     <option value="Toán">Toán</option>
@@ -455,7 +455,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                   <select
                     value={selectedTextbook}
                     onChange={e => setSelectedTextbook(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-[#E2E8F0] rounded-xl bg-white font-semibold text-[#102C54]"
+                    className="w-full text-xs px-3 py-2 border rounded-xl bg-white font-semibold text-slate-700"
                   >
                     <option value="Kết nối tri thức với cuộc sống">Kết nối tri thức với cuộc sống</option>
                     <option value="Cánh Diều">Cánh Diều</option>
@@ -467,8 +467,8 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
 
             {/* Upload Area */}
             <div className="space-y-2">
-              <h4 className="text-sm font-bold text-[#102C54]">Chọn tệp Excel từ máy tính của bạn</h4>
-              <div className="border-2 border-dashed border-[#C7DCFA] hover:border-[#1769F4] rounded-2xl p-8 text-center bg-[#F6F9FD] transition-colors relative cursor-pointer">
+              <h4 className="text-sm font-bold text-[#082B52]">Chọn tệp Excel từ máy tính của bạn</h4>
+              <div className="border-2 border-dashed border-[#DCE8F7] hover:border-[#006BFF] rounded-2xl p-8 text-center bg-[#FBFDFF] transition-colors relative cursor-pointer">
                 <input
                   type="file"
                   accept=".xlsx, .xls"
@@ -476,12 +476,12 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 />
                 <div className="flex flex-col items-center justify-center space-y-3">
-                  <div className="w-12 h-12 bg-[#ECFDF7] text-[#12A879] rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
                     <Upload className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#102C54]">
-                      Kéo thả tệp vào đây hoặc <span className="text-[#1769F4]">chọn từ máy tính</span>
+                    <p className="text-sm font-bold text-[#082B52]">
+                      Kéo thả tệp vào đây hoặc <span className="text-[#006BFF]">chọn từ máy tính</span>
                     </p>
                     <p className="text-xs text-slate-400 mt-1">Định dạng hỗ trợ: .xlsx, .xls</p>
                   </div>
@@ -490,7 +490,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
             </div>
 
             {isAnalyzing && (
-              <div className="text-center py-4 text-xs font-semibold text-[#1769F4] flex items-center justify-center space-x-2">
+              <div className="text-center py-4 text-xs font-semibold text-[#006BFF] flex items-center justify-center space-x-2">
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>Đang phân tích các Sheet (01 Bài học, 02 ABCD, 03 Đúng–Sai, 04 Tự luận)...</span>
               </div>
@@ -502,9 +502,9 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
             <div className="flex items-center justify-between border-b pb-3">
               <div>
                 <span className="text-xs font-bold text-slate-500 uppercase">Tệp đã chọn:</span>
-                <span className="font-bold text-sm text-[#102C54] ml-2">{file?.name}</span>
+                <span className="font-bold text-sm text-[#082B52] ml-2">{file?.name}</span>
                 {parseResult?.isMultiSheetFormat && (
-                  <span className="ml-2 text-[10px] font-bold bg-[#EAF3FF] text-[#1769F4] border border-[#C7DCFA] px-2 py-0.5 rounded-md">
+                  <span className="ml-2 text-[10px] font-bold bg-blue-100 text-[#006BFF] px-2 py-0.5 rounded-full">
                     Định dạng đa sheet chuẩn
                   </span>
                 )}
@@ -517,7 +517,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                   setIsRlsPermissionError(false);
                   setIsNetworkError(false);
                 }}
-                className="text-xs text-[#1769F4] font-semibold hover:underline whitespace-nowrap shrink-0"
+                className="text-xs text-[#006BFF] font-semibold hover:underline"
               >
                 Chọn tệp khác
               </button>
@@ -525,16 +525,16 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
 
             {/* Success summary message */}
             {saveSuccessSummary && (
-              <div className="p-4 bg-[#ECFDF7] rounded-xl border border-[#12A879]/30 text-xs text-[#0B6E4F] space-y-2">
+              <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-300 text-xs text-emerald-800 space-y-2">
                 <div className="flex items-center space-x-2 font-bold text-sm">
-                  <CheckCircle2 className="w-5 h-5 text-[#12A879] shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <span>Hoàn tất nhập dữ liệu!</span>
                 </div>
                 <p>{saveSuccessSummary}</p>
                 <div className="pt-2">
                   <button
                     onClick={onClose}
-                    className="px-4 py-2 bg-[#12A879] text-white rounded-xl font-bold text-xs hover:bg-[#0F8F67] whitespace-nowrap shrink-0"
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700"
                   >
                     Đóng và xem danh sách câu hỏi
                   </button>
@@ -550,7 +550,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                     <WifiOff className="w-5 h-5" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="font-bold text-sm text-[#102C54]">
+                    <h4 className="font-bold text-sm text-[#082B52]">
                       Không thể gửi yêu cầu tới Supabase (Failed to fetch)
                     </h4>
                     <p className="text-slate-600 leading-relaxed text-[11.5px]">
@@ -560,7 +560,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-amber-200 text-[11.5px] text-slate-700 space-y-1">
-                  <p className="font-bold text-[#102C54]">Giải pháp ngay lập tức:</p>
+                  <p className="font-bold text-[#082B52]">Giải pháp ngay lập tức:</p>
                   <p>• Bấm <b>"Lưu vào bộ nhớ ứng dụng"</b> để lưu toàn bộ câu hỏi vào hệ thống ngay lập tức, tiếp tục xem, tìm kiếm và thẩm định mà không bị mất dữ liệu.</p>
                   <p>• Hoặc kiểm tra mạng và bấm <b>"Thử lại lưu Supabase"</b>.</p>
                 </div>
@@ -572,14 +572,14 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={handleSaveLocally}
-                      className="flex items-center space-x-1.5 px-4 py-2 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0F8F67] shadow-xs whitespace-nowrap shrink-0"
+                      className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-xs"
                     >
                       <Laptop className="w-4 h-4" />
                       <span>Lưu vào bộ nhớ ứng dụng</span>
                     </button>
                     <button
                       onClick={handleConfirmImport}
-                      className="flex items-center space-x-1.5 px-3.5 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] shadow-xs whitespace-nowrap shrink-0"
+                      className="flex items-center space-x-1.5 px-3.5 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs"
                     >
                       <RefreshCw className="w-4 h-4" />
                       <span>Thử lại lưu Supabase</span>
@@ -597,23 +597,23 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                     <ShieldAlert className="w-5 h-5" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="font-bold text-sm text-[#102C54]">
+                    <h4 className="font-bold text-sm text-[#082B52]">
                       Supabase từ chối quyền ghi: permission denied for table questions (Lỗi 42501)
                     </h4>
                     <p className="text-slate-600 leading-relaxed text-[11.5px]">
-                      Bảng <code className="bg-white px-1.5 py-0.5 rounded border border-amber-200 font-mono text-[#1769F4]">public.questions</code> trên Supabase đang kích hoạt <b>Row Level Security (RLS)</b> nhưng hiện tại chưa được cấp quyền <b>INSERT</b> cho vai trò người dùng đã xác thực (authenticated) hoặc Giáo viên.
+                      Bảng <code className="bg-white px-1.5 py-0.5 rounded border border-amber-200 font-mono text-[#006BFF]">public.questions</code> trên Supabase đang kích hoạt <b>Row Level Security (RLS)</b> nhưng hiện tại chưa được cấp quyền <b>INSERT</b> cho vai trò người dùng đã xác thực (authenticated) hoặc Giáo viên.
                     </p>
                   </div>
                 </div>
 
                 <div className="bg-white p-3 rounded-xl border border-amber-200 font-mono text-[11px] text-slate-800 space-y-1">
                   <div className="flex justify-between items-center mb-1 pb-1.5 border-b border-slate-100">
-                    <span className="font-bold text-[#102C54] font-edtech">
+                    <span className="font-bold text-[#082B52] font-sans">
                       Lệnh SQL cấp quyền RLS (Chạy tại Supabase Dashboard → SQL Editor):
                     </span>
                     <button
                       onClick={handleCopySql}
-                      className="flex items-center space-x-1 px-2.5 py-1 bg-[#1769F4] text-white rounded-lg text-xs font-bold hover:bg-[#1255CC] transition-colors shadow-2xs whitespace-nowrap shrink-0"
+                      className="flex items-center space-x-1 px-2.5 py-1 bg-[#006BFF] text-white rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors shadow-2xs"
                     >
                       {isCopiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{isCopiedSql ? 'Đã sao chép!' : 'Sao chép lệnh SQL'}</span>
@@ -631,14 +631,14 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={handleSaveLocally}
-                      className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0F8F67] shadow-xs whitespace-nowrap shrink-0"
+                      className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-xs"
                     >
                       <Laptop className="w-3.5 h-3.5" />
                       <span>Lưu vào bộ nhớ ứng dụng</span>
                     </button>
                     <button
                       onClick={handleConfirmImport}
-                      className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1255CC] shadow-xs whitespace-nowrap shrink-0"
+                      className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       <span>Thử lại lưu Supabase</span>
@@ -664,7 +664,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 space-y-1">
                 <div className="flex items-center space-x-2 font-bold text-amber-800">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <span className="tabular-nums">Cảnh báo định dạng ({parseResult.errors.length} dòng cần lưu ý):</span>
+                  <span>Cảnh báo định dạng ({parseResult.errors.length} dòng cần lưu ý):</span>
                 </div>
                 <ul className="list-disc list-inside max-h-24 overflow-y-auto space-y-0.5 text-[11px]">
                   {parseResult.errors.slice(0, 10).map((err, i) => (
@@ -680,41 +680,41 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
             )}
 
             {/* Question Type Selection Checkboxes (Quy tắc 3: Mặc định chọn ABCD và Đúng-Sai, Tự luận là tùy chọn) */}
-            <div className="p-4 bg-[#EAF3FF] rounded-xl border border-[#C7DCFA] space-y-2">
-              <span className="text-xs font-bold text-[#102C54] block">
+            <div className="p-4 bg-[#F3F8FF] rounded-xl border border-[#DCE8F7] space-y-2">
+              <span className="text-xs font-bold text-[#082B52] block">
                 Chọn các loại câu hỏi cần nhập vào ngân hàng:
               </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 tabular-nums">
-                <label className="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-[#E2E8F0] cursor-pointer">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label className="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-slate-200 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={importABCD}
                     onChange={e => setImportABCD(e.target.checked)}
-                    className="w-4 h-4 text-[#1769F4] rounded"
+                    className="w-4 h-4 text-[#006BFF] rounded"
                   />
                   <span className="text-xs font-bold text-slate-800">
                     Trắc nghiệm ABCD ({parseResult?.counts.singleChoice || 0} câu)
                   </span>
                 </label>
 
-                <label className="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-[#E2E8F0] cursor-pointer">
+                <label className="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-slate-200 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={importTF}
                     onChange={e => setImportTF(e.target.checked)}
-                    className="w-4 h-4 text-[#12A879] rounded"
+                    className="w-4 h-4 text-emerald-600 rounded"
                   />
                   <span className="text-xs font-bold text-slate-800">
                     Đúng – Sai 4 ý ({parseResult?.counts.trueFalse || 0} câu)
                   </span>
                 </label>
 
-                <label className="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-[#E2E8F0] cursor-pointer">
+                <label className="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-slate-200 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={importEssay}
                     onChange={e => setImportEssay(e.target.checked)}
-                    className="w-4 h-4 text-[#102C54] rounded"
+                    className="w-4 h-4 text-indigo-600 rounded"
                   />
                   <span className="text-xs font-bold text-slate-800">
                     Tự luận ({parseResult?.counts.essay || 0} câu - Tùy chọn)
@@ -734,7 +734,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                 </div>
                 <button
                   onClick={() => openAuthModal('login')}
-                  className="px-3 py-1.5 bg-[#1769F4] text-white rounded-lg text-xs font-bold whitespace-nowrap shrink-0 hover:bg-[#1255CC]"
+                  className="px-3 py-1.5 bg-[#006BFF] text-white rounded-lg text-xs font-bold shrink-0 hover:bg-blue-600"
                 >
                   Đăng nhập ngay
                 </button>
@@ -743,16 +743,16 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
 
             {/* Preview Table */}
             <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-1 tabular-nums">
+              <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-1">
                 <span>
                   Danh sách xem trước: <b>{candidateQuestions.length}</b> câu hỏi được chọn
                 </span>
-                <span className="text-[#0B6E4F]">Mặc định ở trạng thái Chờ duyệt</span>
+                <span className="text-emerald-700">Mặc định ở trạng thái Chờ duyệt</span>
               </div>
 
-              <div className="max-h-64 overflow-y-auto border border-[#E2E8F0] rounded-xl">
+              <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-xl">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#EAF3FF] text-[#102C54] uppercase font-bold sticky top-0">
+                  <thead className="bg-[#F3F8FF] text-[#12345B] uppercase font-bold sticky top-0">
                     <tr>
                       <th className="p-2.5">Mã câu</th>
                       <th className="p-2.5">Bài học</th>
@@ -762,10 +762,10 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                       <th className="p-2.5">Điểm</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 tabular-nums">
+                  <tbody className="divide-y divide-slate-100">
                     {candidateQuestions.slice(0, 50).map((q, idx) => (
-                      <tr key={idx} className="hover:bg-[#F6F9FD]">
-                        <td className="p-2.5 font-bold font-mono text-[#1769F4] whitespace-nowrap">{q.code}</td>
+                      <tr key={idx} className="hover:bg-slate-50">
+                        <td className="p-2.5 font-bold font-mono text-[#006BFF] whitespace-nowrap">{q.code}</td>
                         <td className="p-2.5 max-w-[150px] truncate">{q.lesson}</td>
                         <td className="p-2.5 whitespace-nowrap">
                           {q.type === 'single_choice' ? 'ABCD' : q.type === 'true_false_group' ? 'Đúng–Sai' : 'Tự luận'}
@@ -781,7 +781,7 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
                 </table>
               </div>
               {candidateQuestions.length > 50 && (
-                <p className="text-[11px] text-slate-400 italic text-right px-1 tabular-nums">
+                <p className="text-[11px] text-slate-400 italic text-right px-1">
                   Đang hiển thị 50 câu đầu tiên trong tổng số {candidateQuestions.length} câu.
                 </p>
               )}
@@ -789,21 +789,21 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({
 
             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
-              <span className="text-xs text-slate-500 font-semibold tabular-nums">
+              <span className="text-xs text-slate-500 font-semibold">
                 {isSaving ? saveProgress : `Sẵn sàng nhập ${candidateQuestions.length} câu`}
               </span>
 
               <div className="flex items-center space-x-2">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 border border-[#E2E8F0] rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 whitespace-nowrap shrink-0"
+                  className="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   onClick={handleConfirmImport}
                   disabled={candidateQuestions.length === 0 || isSaving || !canSaveToSupabase}
-                  className="px-6 py-2 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0F8F67] disabled:opacity-40 flex items-center space-x-1.5 shadow-xs whitespace-nowrap shrink-0"
+                  className="px-6 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 disabled:opacity-40 flex items-center space-x-1.5 shadow-xs"
                 >
                   {isSaving ? (
                     <>

@@ -769,9 +769,9 @@ export const ExamMatrixModal: React.FC = () => {
   }, [tree, selectedSet]);
 
   return (
-    <div className="space-y-4 font-edtech">
-      {/* Top Action & Filter Toolbar */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 sm:p-4 shadow-xs space-y-3">
+    <div className="space-y-4 font-serif">
+      {/* Top Action & Filter Toolbar (matching attached mockup + specification) */}
+      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 sm:p-4 shadow-xs space-y-3">
         {/* Line 1: Filters & Quick Toggles */}
         <div className="flex flex-wrap items-end gap-2.5">
           <div className="min-w-[140px]">
@@ -781,7 +781,7 @@ export const ExamMatrixModal: React.FC = () => {
             <select
               value={subjectName}
               onChange={e => handleFilterChange(e.target.value, grade, period)}
-              className="w-full px-3 py-1.5 text-xs font-bold text-[#102C54] bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
+              className="w-full px-3 py-1.5 text-xs font-bold text-[#082B52] bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
             >
               {subjectOptions.map(s => {
                 const sKey = normalizeSubjectToKey(s);
@@ -806,7 +806,7 @@ export const ExamMatrixModal: React.FC = () => {
             <select
               value={grade}
               onChange={e => handleFilterChange(subjectName, e.target.value as Grade, period)}
-              className="w-full px-3 py-1.5 text-xs font-bold text-[#102C54] bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
+              className="w-full px-3 py-1.5 text-xs font-bold text-[#082B52] bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
             >
               {(['6', '7', '8', '9'] as Grade[]).map(g => {
                 const countForGrade = yccdCatalog.filter(
@@ -830,7 +830,7 @@ export const ExamMatrixModal: React.FC = () => {
             <select
               value={period}
               onChange={e => handleFilterChange(subjectName, grade, e.target.value as ExamPeriod)}
-              className="w-full px-3 py-1.5 text-xs font-bold text-[#102C54] bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
+              className="w-full px-3 py-1.5 text-xs font-bold text-[#082B52] bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
             >
               {(Object.keys(EXAM_PERIOD_LABELS) as ExamPeriod[]).map(p => (
                 <option key={p} value={p}>
@@ -844,14 +844,14 @@ export const ExamMatrixModal: React.FC = () => {
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
               Thời lượng:
             </label>
-            <div className="flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#1769F4]">
+            <div className="flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#006BFF]">
               <input
                 type="number"
                 min={5}
                 max={180}
                 value={durationMinutes}
                 onChange={e => setDurationMinutes(Math.max(5, parseInt(e.target.value, 10) || 45))}
-                className="w-14 px-2 py-1.5 text-xs font-bold text-[#102C54] text-center tabular-nums focus:outline-hidden"
+                className="w-14 px-2 py-1.5 text-xs font-bold text-[#082B52] text-center focus:outline-hidden"
               />
               <span className="px-2 py-1.5 text-[11px] font-semibold text-slate-500 bg-slate-50 border-l border-slate-200">
                 phút
@@ -859,12 +859,12 @@ export const ExamMatrixModal: React.FC = () => {
             </div>
           </div>
 
-          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-[#102C54] cursor-pointer hover:bg-slate-50 select-none whitespace-nowrap shrink-0">
+          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-[#082B52] cursor-pointer hover:bg-slate-50 select-none">
             <input
               type="checkbox"
               checked={showShortAnswer}
               onChange={e => handleToggleShortAnswer(e.target.checked)}
-              className="w-3.5 h-3.5 accent-[#1769F4] cursor-pointer"
+              className="w-3.5 h-3.5 accent-[#006BFF] cursor-pointer"
             />
             <span>Trả lời ngắn</span>
           </label>
@@ -872,7 +872,7 @@ export const ExamMatrixModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCompactMode(v => !v)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-[#102C54] whitespace-nowrap shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-[#082B52] cursor-pointer"
           >
             {isCompactMode ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
             <span>{isCompactMode ? 'Mở rộng' : 'Thu nhỏ'}</span>
@@ -881,7 +881,7 @@ export const ExamMatrixModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowHelpModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-xs font-bold text-amber-900 whitespace-nowrap shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-xs font-bold text-amber-900 cursor-pointer"
           >
             <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
             <span>Hướng dẫn</span>
@@ -894,7 +894,7 @@ export const ExamMatrixModal: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowCsvModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#EAF3FF] hover:bg-blue-100 text-[#1769F4] border border-[#C7DCFA] rounded-lg text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F3F8FF] hover:bg-blue-100 text-[#006BFF] border border-[#006BFF]/30 rounded-lg text-xs font-bold cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Nhập yêu cầu cần đạt</span>
@@ -903,9 +903,9 @@ export const ExamMatrixModal: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowPointConfig(v => !v)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border whitespace-nowrap shrink-0 tabular-nums cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border cursor-pointer ${
                 showPointConfig
-                  ? 'bg-[#102C54] text-white border-[#102C54]'
+                  ? 'bg-[#082B52] text-white border-[#082B52]'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
               }`}
             >
@@ -916,7 +916,7 @@ export const ExamMatrixModal: React.FC = () => {
             <button
               type="button"
               onClick={handleResetAllAutoCodes}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer"
               title="Đặt lại toàn bộ mã câu tự động liên tục từ trên xuống"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -928,16 +928,16 @@ export const ExamMatrixModal: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowDraftsModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-[#102C54] border border-slate-300 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 tabular-nums cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-[#082B52] border border-slate-300 rounded-lg text-xs font-bold cursor-pointer"
             >
-              <FolderOpen className="w-3.5 h-3.5 text-[#1769F4]" />
+              <FolderOpen className="w-3.5 h-3.5 text-[#006BFF]" />
               <span>Mở bản đã lưu ({matrices.length})</span>
             </button>
 
             <button
               type="button"
               onClick={handleSaveDraft}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#12A879] hover:bg-[#0F8F67] text-white rounded-lg text-xs font-bold shadow-2xs whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-2xs cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
               <span>Lưu bản nháp</span>
@@ -947,7 +947,7 @@ export const ExamMatrixModal: React.FC = () => {
               type="button"
               disabled={isExportingDocx}
               onClick={handleDownloadWord}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-lg text-xs font-bold shadow-2xs disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#006BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-2xs disabled:opacity-50 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{isExportingDocx ? 'Đang xuất DOCX...' : 'Tải Word (.docx)'}</span>
@@ -957,10 +957,10 @@ export const ExamMatrixModal: React.FC = () => {
 
         {/* Collapsible Point & Scale Config Drawer */}
         {showPointConfig && (
-          <div className="p-3.5 bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl space-y-3">
+          <div className="p-3.5 bg-[#F8FAFC] border border-slate-200 rounded-xl space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-bold text-[#102C54]">
-                Cấu hình thang điểm &amp; đơn giá câu/ý:
+              <span className="text-xs font-bold text-[#082B52]">
+                Cấu hình thang điểm & đơn giá câu/ý:
               </span>
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -975,14 +975,14 @@ export const ExamMatrixModal: React.FC = () => {
                       essayPerSubItem: 0.25
                     })
                   }
-                  className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-md text-[11px] font-bold whitespace-nowrap cursor-pointer"
+                  className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-md text-[11px] font-bold cursor-pointer"
                 >
                   Đặt 0,25đ mỗi câu/ý (như ảnh mẫu)
                 </button>
                 <button
                   type="button"
                   onClick={() => setPointConfig({ ...DEFAULT_POINT_CONFIG })}
-                  className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md text-[11px] font-semibold whitespace-nowrap cursor-pointer"
+                  className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md text-[11px] font-semibold cursor-pointer"
                 >
                   Khôi phục mặc định (0.25 / 0.25 / 0.50)
                 </button>
@@ -1004,7 +1004,7 @@ export const ExamMatrixModal: React.FC = () => {
                       targetTotalScore: Math.max(1, parseFloat(e.target.value) || 10)
                     })
                   }
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white font-bold text-[#102C54] tabular-nums"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white font-bold text-[#082B52]"
                 />
               </div>
               <div>
@@ -1021,7 +1021,7 @@ export const ExamMatrixModal: React.FC = () => {
                       singleChoicePerQuestion: Math.max(0.05, parseFloat(e.target.value) || 0.25)
                     })
                   }
-                  className="w-full px-2.5 py-1.5 border border-blue-300 rounded-lg bg-white font-bold text-blue-900 tabular-nums"
+                  className="w-full px-2.5 py-1.5 border border-blue-300 rounded-lg bg-white font-bold text-blue-900"
                 />
               </div>
               <div>
@@ -1038,7 +1038,7 @@ export const ExamMatrixModal: React.FC = () => {
                       trueFalsePerSubItem: Math.max(0.05, parseFloat(e.target.value) || 0.25)
                     })
                   }
-                  className="w-full px-2.5 py-1.5 border border-purple-300 rounded-lg bg-white font-bold text-purple-900 tabular-nums"
+                  className="w-full px-2.5 py-1.5 border border-purple-300 rounded-lg bg-white font-bold text-purple-900"
                 />
               </div>
               <div>
@@ -1055,11 +1055,11 @@ export const ExamMatrixModal: React.FC = () => {
                       shortAnswerPerQuestion: Math.max(0.05, parseFloat(e.target.value) || 0.5)
                     })
                   }
-                  className="w-full px-2.5 py-1.5 border border-teal-300 rounded-lg bg-white font-bold text-teal-900 tabular-nums"
+                  className="w-full px-2.5 py-1.5 border border-teal-300 rounded-lg bg-white font-bold text-teal-900"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-[#0B6E4F] mb-1">Tự luận (đ/ý)</label>
+                <label className="block text-[11px] font-bold text-emerald-800 mb-1">Tự luận (đ/ý)</label>
                 <input
                   type="number"
                   step="0.05"
@@ -1072,7 +1072,7 @@ export const ExamMatrixModal: React.FC = () => {
                       essayPerSubItem: Math.max(0.05, parseFloat(e.target.value) || 0.5)
                     })
                   }
-                  className="w-full px-2.5 py-1.5 border border-emerald-300 rounded-lg bg-white font-bold text-emerald-900 tabular-nums"
+                  className="w-full px-2.5 py-1.5 border border-emerald-300 rounded-lg bg-white font-bold text-emerald-900"
                 />
               </div>
             </div>
@@ -1085,15 +1085,15 @@ export const ExamMatrixModal: React.FC = () => {
         <div
           className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-between gap-3 ${
             toastMsg.type === 'success'
-              ? 'bg-[#ECFDF7] border-[#12A879]/30 text-[#0B6E4F]'
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
               : toastMsg.type === 'warning'
               ? 'bg-amber-50 border-amber-300 text-amber-900'
-              : 'bg-[#EAF3FF] border-[#C7DCFA] text-[#102C54]'
+              : 'bg-blue-50 border-blue-300 text-blue-900'
           }`}
         >
           <div className="flex items-center gap-2">
             {toastMsg.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-[#12A879] shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : (
               <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
             )}
@@ -1112,13 +1112,13 @@ export const ExamMatrixModal: React.FC = () => {
       {undoSelectionSnapshot && (
         <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
           <span className="text-amber-900 font-semibold">
-            Đã tạm ẩn <b>{undoSelectionSnapshot.label}</b> khỏi bảng (số lượng &amp; mã câu vẫn được giữ an toàn).
+            Đã tạm ẩn <b>{undoSelectionSnapshot.label}</b> khỏi bảng (số lượng & mã câu vẫn được giữ an toàn).
           </span>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleUndoSelection}
-              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-md font-bold inline-flex items-center gap-1 whitespace-nowrap cursor-pointer"
+              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-md font-bold inline-flex items-center gap-1 cursor-pointer"
             >
               <Undo2 className="w-3.5 h-3.5" />
               <span>Khôi phục phần đã nhập</span>
@@ -1126,7 +1126,7 @@ export const ExamMatrixModal: React.FC = () => {
             <button
               type="button"
               onClick={() => setUndoSelectionSnapshot(null)}
-              className="text-amber-800 hover:underline font-semibold whitespace-nowrap cursor-pointer"
+              className="text-amber-800 hover:underline font-semibold cursor-pointer"
             >
               Đóng
             </button>
@@ -1134,12 +1134,12 @@ export const ExamMatrixModal: React.FC = () => {
         </div>
       )}
 
-      {/* Summary Metrics Cards */}
+      {/* Summary Metrics Cards (hidden when Thu nhỏ is active) */}
       {!isCompactMode && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 tabular-nums">
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 shadow-2xs">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 shadow-2xs">
             <div className="text-[11px] font-bold text-slate-500 uppercase">Mức nhận biết</div>
-            <div className="text-xl font-bold text-[#1769F4] mt-0.5">
+            <div className="text-xl font-bold text-[#006BFF] mt-0.5">
               {summary.levelPointsTotals.know.toFixed(2)} điểm
             </div>
             <div className="text-xs text-slate-600 mt-0.5">
@@ -1148,7 +1148,7 @@ export const ExamMatrixModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 shadow-2xs">
+          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 shadow-2xs">
             <div className="text-[11px] font-bold text-slate-500 uppercase">Mức thông hiểu</div>
             <div className="text-xl font-bold text-amber-600 mt-0.5">
               {summary.levelPointsTotals.understand.toFixed(2)} điểm
@@ -1159,9 +1159,9 @@ export const ExamMatrixModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 shadow-2xs">
+          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 shadow-2xs">
             <div className="text-[11px] font-bold text-slate-500 uppercase">Mức vận dụng</div>
-            <div className="text-xl font-bold text-[#12A879] mt-0.5">
+            <div className="text-xl font-bold text-emerald-600 mt-0.5">
               {summary.levelPointsTotals.apply.toFixed(2)} điểm
             </div>
             <div className="text-xs text-slate-600 mt-0.5">
@@ -1170,17 +1170,17 @@ export const ExamMatrixModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3.5 shadow-2xs">
-            <div className="text-[11px] font-bold text-slate-500 uppercase">Tổng điểm &amp; Quy mô đề</div>
-            <div className="text-xl font-bold text-[#102C54] mt-0.5">
+          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3.5 shadow-2xs">
+            <div className="text-[11px] font-bold text-slate-500 uppercase">Tổng điểm & Quy mô đề</div>
+            <div className="text-xl font-bold text-[#082B52] mt-0.5">
               {summary.totalPoints.toFixed(2)} / {pointConfig.targetTotalScore.toFixed(1)}đ
             </div>
             <div className="text-[11px] mt-0.5">
               {summary.totalPoints === 0 ? (
                 <span className="text-slate-500 font-semibold">Chưa phân bổ câu hỏi</span>
               ) : summary.isMatchingTargetScore ? (
-                <span className="text-[#0B6E4F] font-bold inline-flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                <span className="text-emerald-700 font-bold inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>
                     Đạt chuẩn thang điểm ({summary.totalOriginalQuestions} câu gốc, {summary.totalSubItems} ý)
                   </span>
@@ -1200,7 +1200,7 @@ export const ExamMatrixModal: React.FC = () => {
         </div>
       )}
 
-      {/* Main Split Workspace */}
+      {/* Main Split Workspace: Collapsible YCCĐ Tree (Left) + Tabs & Tables (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {isSidebarOpen && (
           <div className="lg:col-span-4 xl:col-span-3">
@@ -1230,12 +1230,13 @@ export const ExamMatrixModal: React.FC = () => {
 
         {/* Right Panel */}
         <div className={isSidebarOpen ? 'lg:col-span-8 xl:col-span-9 space-y-3' : 'lg:col-span-12 space-y-3'}>
+          {/* Rule Reminder Bar + Collapsed Sidebar Opener */}
           <div className="flex flex-wrap items-center gap-2">
             {!isSidebarOpen && (
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
-                className="px-3 py-2 bg-[#102C54] hover:bg-[#153766] text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0 whitespace-nowrap tabular-nums"
+                className="px-3 py-2 bg-[#0D2B52] hover:bg-[#154380] text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0"
               >
                 <PanelLeftOpen className="w-4 h-4" />
                 <span>Mở cây YCCĐ ({selectedYccdKeys.length})</span>
@@ -1245,23 +1246,24 @@ export const ExamMatrixModal: React.FC = () => {
             <div className="flex-1 min-w-[260px] px-3.5 py-2 bg-[#FFFBEB] border border-amber-300 rounded-xl text-xs text-amber-950 flex flex-wrap items-center justify-between gap-2">
               <span>
                 <b>Quy ước:</b> Hàng trên nhập <b>số lượng (ý/câu)</b>, Đúng–Sai hiện tại ={' '}
-                <b className="tabular-nums">{pointConfig.trueFalsePerSubItem.toFixed(2)}đ/ý</b> (4 ý ={' '}
-                <span className="tabular-nums">{(pointConfig.trueFalsePerSubItem * 4).toFixed(2)}đ</span>). Hàng dưới <b>tự động sinh mã câu</b> liên tục từ
+                <b>{pointConfig.trueFalsePerSubItem.toFixed(2)}đ/ý</b> (4 ý ={' '}
+                {(pointConfig.trueFalsePerSubItem * 4).toFixed(2)}đ). Hàng dưới <b>tự động sinh mã câu</b> liên tục từ
                 trên xuống, thầy cô có thể sửa lại khi chia mức độ (VD: <i>14a,b</i>, <i>2a</i>).
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between border-b border-slate-200 px-3 bg-[#F6F9FD]">
+          {/* Existing Two Tabs */}
+          <div className="bg-white rounded-2xl border border-[#DCE8F7] shadow-xs overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-200 px-3 bg-slate-50/60">
               <div className="flex">
                 <button
                   type="button"
                   onClick={() => setActiveTab('matrix')}
-                  className={`py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                  className={`py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 transition-all cursor-pointer ${
                     activeTab === 'matrix'
-                      ? 'border-[#1769F4] text-[#1769F4] bg-white'
-                      : 'border-transparent text-slate-600 hover:text-[#102C54]'
+                      ? 'border-[#006BFF] text-[#006BFF] bg-white'
+                      : 'border-transparent text-slate-600 hover:text-[#082B52]'
                   }`}
                 >
                   1. Bảng Ma trận đề kiểm tra
@@ -1269,17 +1271,17 @@ export const ExamMatrixModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('specification')}
-                  className={`py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                  className={`py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 transition-all cursor-pointer ${
                     activeTab === 'specification'
-                      ? 'border-[#1769F4] text-[#1769F4] bg-white'
-                      : 'border-transparent text-slate-600 hover:text-[#102C54]'
+                      ? 'border-[#006BFF] text-[#006BFF] bg-white'
+                      : 'border-transparent text-slate-600 hover:text-[#082B52]'
                   }`}
                 >
-                  2. Bản đặc tả ma trận đề (YCCĐ &amp; Năng lực)
+                  2. Bản đặc tả ma trận đề (YCCĐ & Năng lực)
                 </button>
               </div>
 
-              <div className="text-[11px] font-semibold text-slate-500 py-2 px-2 tabular-nums">
+              <div className="text-[11px] font-semibold text-slate-500 py-2 px-2">
                 {subjectName} • Khối {grade} • {EXAM_PERIOD_LABELS[period]} • {durationMinutes} phút
               </div>
             </div>
@@ -1928,16 +1930,16 @@ export const ExamMatrixModal: React.FC = () => {
             )}
           </div>
 
-          {/* Bank Readiness Panel */}
+          {/* Bank Readiness Panel (Dynamic real check against AppContext.questions) */}
           {!isCompactMode && bankReadiness.length > 0 && (
-            <div className="bg-[#EAF3FF]/80 rounded-2xl border border-[#C7DCFA] p-3.5 space-y-2">
+            <div className="bg-blue-50/70 rounded-2xl border border-blue-200 p-3.5 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => setShowBankPanel(v => !v)}
-                  className="flex items-center gap-2 text-xs font-bold text-[#102C54] uppercase cursor-pointer"
+                  className="flex items-center gap-2 text-xs font-bold text-[#082B52] uppercase cursor-pointer"
                 >
-                  <BookOpen className="w-4 h-4 text-[#1769F4] shrink-0" />
+                  <BookOpen className="w-4 h-4 text-[#006BFF]" />
                   <span>Kiểm tra độ sẵn sàng của Ngân hàng câu hỏi theo Ma trận</span>
                   {showBankPanel ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 </button>
@@ -1947,14 +1949,14 @@ export const ExamMatrixModal: React.FC = () => {
               </div>
 
               {showBankPanel && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs tabular-nums">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {bankReadiness.map(br => (
                     <div
                       key={br.unitKey}
-                      className="p-2.5 bg-white rounded-xl border border-[#E2E8F0] flex items-start justify-between gap-2"
+                      className="p-2.5 bg-white rounded-xl border border-slate-200/80 flex items-start justify-between gap-2"
                     >
                       <div className="min-w-0">
-                        <div className="font-bold text-[#102C54] truncate">{br.unit}</div>
+                        <div className="font-bold text-[#082B52] truncate">{br.unit}</div>
                         <div className="text-[10px] text-slate-500 truncate">{br.topic}</div>
                         {br.status === 'lacking' && br.missingBreakdown.length > 0 && (
                           <div className="text-[10px] text-amber-800 mt-1 leading-snug">
@@ -1964,8 +1966,8 @@ export const ExamMatrixModal: React.FC = () => {
                       </div>
 
                       {br.status === 'sufficient' ? (
-                        <span className="shrink-0 text-[#0B6E4F] font-bold text-[11px] flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#12A879]" />
+                        <span className="shrink-0 text-emerald-700 font-bold text-[11px] flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>Đủ ({br.availableCount}/{br.requiredCount})</span>
                         </span>
                       ) : br.status === 'lacking' ? (
@@ -1985,13 +1987,13 @@ export const ExamMatrixModal: React.FC = () => {
             </div>
           )}
 
-          {/* Bottom Action Row */}
+          {/* Bottom Action Row matching mockup */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <div className="flex flex-wrap items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => setCurrentView('dashboard')}
-                className="text-xs font-bold text-[#1769F4] hover:underline px-2 py-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                className="text-xs font-bold text-[#006BFF] hover:underline px-2 py-1.5 cursor-pointer"
               >
                 ← Trang chủ
               </button>
@@ -2000,16 +2002,16 @@ export const ExamMatrixModal: React.FC = () => {
                 type="button"
                 disabled={isExportingDocx}
                 onClick={handleDownloadWord}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-bold shadow-xs whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
-                <span>Tải Ma trận &amp; Đặc tả (Word)</span>
+                <span>Tải Ma trận & Đặc tả (Word)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowAiModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-xs font-bold shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Tạo đề thi bằng AI</span>
@@ -2018,9 +2020,9 @@ export const ExamMatrixModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyConfig}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-[#102C54] border border-slate-300 rounded-xl text-xs font-bold shadow-2xs whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-[#082B52] border border-slate-300 rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
               >
-                <Copy className="w-3.5 h-3.5 text-[#1769F4]" />
+                <Copy className="w-3.5 h-3.5 text-[#006BFF]" />
                 <span>Sao chép cấu hình tạo đề</span>
               </button>
             </div>
@@ -2046,12 +2048,12 @@ export const ExamMatrixModal: React.FC = () => {
 
       {/* Modal: Saved Drafts Manager */}
       {showDraftsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto font-edtech">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-[#102C54] flex items-center gap-2 tabular-nums">
-                <FolderOpen className="w-5 h-5 text-[#1769F4]" />
-                <span>Danh sách bản nháp &amp; Ma trận đã lưu ({matrices.length})</span>
+              <h3 className="text-lg font-bold text-[#082B52] flex items-center gap-2">
+                <FolderOpen className="w-5 h-5 text-[#006BFF]" />
+                <span>Danh sách bản nháp & Ma trận đã lưu ({matrices.length})</span>
               </h3>
               <button
                 type="button"
@@ -2069,24 +2071,24 @@ export const ExamMatrixModal: React.FC = () => {
                 {matrices.map(m => (
                   <div
                     key={m.id}
-                    className="p-3.5 rounded-xl border border-[#E2E8F0] hover:border-[#C7DCFA] bg-[#F6F9FD] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="p-3.5 rounded-xl border border-slate-200 hover:border-blue-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                   >
                     <div className="space-y-1 min-w-0">
-                      <div className="text-sm font-bold text-[#102C54] truncate">{m.title}</div>
-                      <div className="text-[11px] text-slate-600 flex flex-wrap gap-2 tabular-nums">
+                      <div className="text-sm font-bold text-[#082B52] truncate">{m.title}</div>
+                      <div className="text-[11px] text-slate-600 flex flex-wrap gap-2">
                         <span>Môn: <b>{m.draftState?.subject || subjectKeyToDisplayName(m.subject)}</b></span>
                         <span>• Khối <b>{m.grade}</b></span>
                         <span>• {EXAM_PERIOD_LABELS[m.period]}</span>
                         <span>• {m.durationMinutes} phút</span>
                         <span>• <b>{m.totalPoints.toFixed(2)}đ</b></span>
                         {m.draftState && (
-                          <span className="text-[#0B6E4F] font-bold">
+                          <span className="text-emerald-700 font-bold">
                             • {m.draftState.selectedYccdKeys.length} YCCĐ
                           </span>
                         )}
                       </div>
                       {m.updatedAt && (
-                        <div className="text-[10px] text-slate-400 tabular-nums">
+                        <div className="text-[10px] text-slate-400">
                           Cập nhật: {new Date(m.updatedAt).toLocaleString('vi-VN')}
                         </div>
                       )}
@@ -2096,7 +2098,7 @@ export const ExamMatrixModal: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleLoadDraft(m)}
-                        className="px-3.5 py-1.5 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer"
+                        className="px-3.5 py-1.5 bg-[#006BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold cursor-pointer"
                       >
                         Mở bản này
                       </button>
@@ -2119,12 +2121,12 @@ export const ExamMatrixModal: React.FC = () => {
 
       {/* Modal: AI Exam Blueprint & Creation Integration */}
       {showAiModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto font-edtech">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 max-h-[88vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4 max-h-[88vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-[#102C54] flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#1769F4]" />
-                <span>Tạo đề thi từ Ma trận &amp; Bản đặc tả</span>
+              <h3 className="text-lg font-bold text-[#082B52] flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#006BFF]" />
+                <span>Tạo đề thi từ Ma trận & Bản đặc tả</span>
               </h3>
               <button
                 type="button"
@@ -2135,7 +2137,7 @@ export const ExamMatrixModal: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-3 bg-[#EAF3FF] border border-[#C7DCFA] rounded-xl text-xs text-[#102C54] space-y-1 tabular-nums">
+            <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-[#082B52] space-y-1">
               <div>
                 <b>Hồ sơ hiện hành:</b> {subjectName} • Khối {grade} • {EXAM_PERIOD_LABELS[period]} ({durationMinutes}{' '}
                 phút)
@@ -2149,14 +2151,14 @@ export const ExamMatrixModal: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#102C54]">
+              <label className="block text-xs font-bold text-slate-700">
                 Cấu hình chi tiết (YCCĐ, phân bổ số câu/ý, mã câu/ý và điểm):
               </label>
               <textarea
                 rows={10}
                 readOnly
                 value={aiBlueprintText}
-                className="w-full p-3 bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl text-xs font-mono text-slate-800 leading-relaxed"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 leading-relaxed"
               />
             </div>
 
@@ -2164,9 +2166,9 @@ export const ExamMatrixModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyConfig}
-                className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-[#102C54] rounded-xl text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-[#082B52] rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
               >
-                <Copy className="w-3.5 h-3.5 text-[#1769F4]" />
+                <Copy className="w-3.5 h-3.5 text-[#006BFF]" />
                 <span>Sao chép cấu hình tạo đề</span>
               </button>
 
@@ -2177,14 +2179,14 @@ export const ExamMatrixModal: React.FC = () => {
                     setShowAiModal(false);
                     setCurrentView('teacher_create_exam');
                   }}
-                  className="px-4 py-2 bg-[#12A879] hover:bg-[#0F8F67] text-white rounded-xl text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer"
                 >
-                  Chuyển sang Tạo đề &amp; Giao bài
+                  Chuyển sang Tạo đề & Giao bài
                 </button>
                 <button
                   type="button"
                   onClick={handleOpenGeminiWithBlueprint}
-                  className="px-4 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Mở Trợ lý Gemini với ma trận này</span>
@@ -2197,12 +2199,12 @@ export const ExamMatrixModal: React.FC = () => {
 
       {/* Modal: Guide / Hướng dẫn */}
       {showHelpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto font-edtech">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#DCE8F7] space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-[#102C54] flex items-center gap-2">
-                <BookmarkCheck className="w-5 h-5 text-[#1769F4]" />
-                <span>Hướng dẫn lập Ma trận &amp; Bản đặc tả</span>
+              <h3 className="text-lg font-bold text-[#082B52] flex items-center gap-2">
+                <BookmarkCheck className="w-5 h-5 text-[#006BFF]" />
+                <span>Hướng dẫn lập Ma trận & Bản đặc tả</span>
               </h3>
               <button
                 type="button"
@@ -2220,7 +2222,7 @@ export const ExamMatrixModal: React.FC = () => {
                 <b>Nhập yêu cầu cần đạt</b> để tải tệp CSV (11 cột).
               </li>
               <li>
-                <b>Nhập số lượng &amp; mã câu/ý:</b> Hàng trên của mỗi ô là <b>số câu</b> (với TNKQ, Trả lời ngắn) hoặc{' '}
+                <b>Nhập số lượng & mã câu/ý:</b> Hàng trên của mỗi ô là <b>số câu</b> (với TNKQ, Trả lời ngắn) hoặc{' '}
                 <b>số ý</b> (với Đúng–Sai, Tự luận). Hàng dưới tự động đánh mã câu liên tục từ trên xuống.
               </li>
               <li>
@@ -2233,8 +2235,8 @@ export const ExamMatrixModal: React.FC = () => {
                 yêu cầu mà từng câu đánh giá. Điểm số và số lượng không bao giờ bị cộng đúp.
               </li>
               <li>
-                <b>Lưu &amp; Xuất Word:</b> Bấm <b>Lưu bản nháp</b> để lưu đầy đủ bộ lọc và số liệu; bấm{' '}
-                <b>Tải Ma trận &amp; Đặc tả (Word)</b> để xuất tệp <code>.docx</code> khổ ngang chuẩn Times New Roman.
+                <b>Lưu & Xuất Word:</b> Bấm <b>Lưu bản nháp</b> để lưu đầy đủ bộ lọc và số liệu; bấm{' '}
+                <b>Tải Ma trận & Đặc tả (Word)</b> để xuất tệp <code>.docx</code> khổ ngang chuẩn Times New Roman.
               </li>
             </ol>
 
@@ -2242,7 +2244,7 @@ export const ExamMatrixModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowHelpModal(false)}
-                className="px-4 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold cursor-pointer"
               >
                 Đã hiểu
               </button>

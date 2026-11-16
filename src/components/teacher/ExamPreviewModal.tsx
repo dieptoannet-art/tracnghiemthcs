@@ -44,16 +44,16 @@ export const ExamPreviewModal: React.FC<ExamPreviewModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 font-edtech"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 font-serif"
       role="dialog"
       aria-modal="true"
       aria-labelledby="exam-preview-title"
     >
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#DCE8F7] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 bg-[#102C54] text-white flex items-center justify-between gap-4 shrink-0">
+        <div className="px-6 py-4 bg-[#082B52] text-white flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <FileText className="w-5 h-5 text-[#14C9E5] shrink-0" />
+            <FileText className="w-5 h-5 text-blue-300 shrink-0" />
             <div className="min-w-0">
               <h3 id="exam-preview-title" className="text-base font-bold truncate">
                 Xem trước đề kiểm tra: {title || 'Chưa đặt tên đề'}
@@ -67,7 +67,7 @@ export const ExamPreviewModal: React.FC<ExamPreviewModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-blue-100 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+            className="p-1.5 rounded-lg text-blue-100 hover:bg-white/10 hover:text-white transition-colors"
             aria-label="Đóng xem trước"
           >
             <X className="w-5 h-5" />
@@ -75,21 +75,21 @@ export const ExamPreviewModal: React.FC<ExamPreviewModalProps> = ({
         </div>
 
         {/* Meta Paper Banner */}
-        <div className="px-6 py-4 bg-[#EAF3FF] border-b border-[#C7DCFA] shrink-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-[#102C54]">
+        <div className="px-6 py-4 bg-[#F3F8FF] border-b border-[#DCE8F7] shrink-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-[#082B52]">
             <div>
               <p className="font-bold uppercase tracking-wide">TRƯỜNG THCS TÂY ĐÔ</p>
               <p className="text-slate-600 mt-0.5">
                 Đợt kiểm tra: <b>{periodLabel}</b> • Môn: <b>{subjectInfo.name} {grade}</b>
               </p>
             </div>
-            <div className="flex flex-wrap items-center md:justify-end gap-4 tabular-nums">
+            <div className="flex flex-wrap items-center md:justify-end gap-4">
               <span className="inline-flex items-center gap-1.5 font-bold">
-                <Clock className="w-4 h-4 text-[#1769F4]" />
+                <Clock className="w-4 h-4 text-[#006BFF]" />
                 Thời gian: {durationMinutes} phút
               </span>
-              <span className="inline-flex items-center gap-1.5 font-bold text-[#0B6E4F]">
-                <Award className="w-4 h-4 text-[#12A879]" />
+              <span className="inline-flex items-center gap-1.5 font-bold">
+                <Award className="w-4 h-4 text-emerald-700" />
                 {questions.length} câu • {totalPoints.toFixed(2)} điểm
               </span>
             </div>
@@ -106,15 +106,15 @@ export const ExamPreviewModal: React.FC<ExamPreviewModalProps> = ({
             questions.map((q, index) => (
               <div
                 key={q.id}
-                className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] space-y-2.5"
+                className="p-4 rounded-xl border border-[#DCE8F7] bg-[#FBFDFF] space-y-2.5"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#102C54] tabular-nums">
-                    <span className="px-2 py-0.5 rounded bg-[#1769F4] text-white">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#082B52]">
+                    <span className="px-2 py-0.5 rounded bg-[#006BFF] text-white">
                       Câu {index + 1}
                     </span>
                     <span className="font-mono text-slate-600">[{q.code}]</span>
-                    <span className="text-[#0B6E4F]">({Number(q.points).toFixed(2)} điểm)</span>
+                    <span className="text-emerald-700">({Number(q.points).toFixed(2)} điểm)</span>
                     {lockedIds[q.id] && (
                       <span className="inline-flex items-center gap-1 text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
                         <Lock className="w-3 h-3" />
@@ -136,9 +136,9 @@ export const ExamPreviewModal: React.FC<ExamPreviewModalProps> = ({
                     {q.options.map(opt => (
                       <div
                         key={opt.id || opt.label}
-                        className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs text-slate-800 flex items-start gap-2"
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 flex items-start gap-2"
                       >
-                        <span className="font-bold text-[#102C54] shrink-0">{opt.label}.</span>
+                        <span className="font-bold text-[#082B52] shrink-0">{opt.label}.</span>
                         <MathView content={opt.text} />
                       </div>
                     ))}
@@ -150,9 +150,9 @@ export const ExamPreviewModal: React.FC<ExamPreviewModalProps> = ({
                     {q.subItems.map(sub => (
                       <div
                         key={sub.id || sub.label}
-                        className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs text-slate-800 flex items-start gap-2"
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 flex items-start gap-2"
                       >
-                        <span className="font-bold text-[#102C54] shrink-0">{sub.label})</span>
+                        <span className="font-bold text-[#082B52] shrink-0">{sub.label})</span>
                         <MathView content={sub.text} />
                       </div>
                     ))}
@@ -171,11 +171,11 @@ export const ExamPreviewModal: React.FC<ExamPreviewModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 bg-[#F6F9FD] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-[#1769F4] text-white text-xs font-bold hover:bg-[#1255CC] transition-colors whitespace-nowrap shrink-0"
+            className="px-4 py-2 rounded-xl bg-[#006BFF] text-white text-xs font-bold hover:bg-blue-600 transition-colors"
           >
             Đóng xem trước
           </button>

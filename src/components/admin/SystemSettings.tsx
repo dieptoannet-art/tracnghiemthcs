@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Settings, Shield, HardDrive, Download, RotateCcw, CheckCircle2, Palette } from 'lucide-react';
-import { usePremiumUi2027 } from '../../config/uiThemeFlag';
+import { Settings, Shield, HardDrive, Download, Upload, RotateCcw, CheckCircle2 } from 'lucide-react';
 
 interface SystemSettingsProps {
   onOpenSupabaseConfig: () => void;
@@ -10,7 +9,6 @@ interface SystemSettingsProps {
 export const SystemSettings: React.FC<SystemSettingsProps> = ({ onOpenSupabaseConfig }) => {
   const { auditLogs, questions, classes, exams, submissions, resetDemoData, isDemoMode } = useApp();
   const [backupNotice, setBackupNotice] = useState<string | null>(null);
-  const [isPremium2027, setPremium2027] = usePremiumUi2027();
 
   const handleBackupJson = () => {
     const backupData = {
@@ -34,121 +32,84 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onOpenSupabaseCo
   };
 
   return (
-    <div className="space-y-6 font-edtech">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#102C54] flex items-center space-x-2.5 tracking-tight">
-            <Settings className="w-6 h-6 text-[#1769F4]" />
+          <h2 className="text-2xl font-bold text-[#082B52] flex items-center space-x-2">
+            <Settings className="w-6 h-6 text-purple-600" />
             <span>Mẫu biểu & Cấu hình hệ thống</span>
           </h2>
-          <p className="text-sm text-[#64748B] mt-0.5">
+          <p className="text-sm text-slate-500">
             Trường THCS Tây Đô • Quản trị hệ thống, nhật ký thao tác và sao lưu cơ sở dữ liệu
           </p>
         </div>
       </div>
 
       {backupNotice && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center space-x-2 text-xs font-bold">
-          <CheckCircle2 className="w-4 h-4 text-[#12A879] shrink-0" />
+        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-2xl flex items-center space-x-2 text-xs font-bold">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           <span>{backupNotice}</span>
         </div>
       )}
 
-      {/* Database connection, backup & Design System 2027 flag */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-[0_8px_24px_-12px_rgba(16,44,84,0.08)] flex flex-col justify-between gap-3">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <HardDrive className="w-5 h-5 text-[#1769F4]" />
-              <h3 className="font-bold text-sm text-[#102C54]">Cơ sở dữ liệu & Chế độ</h3>
-            </div>
-            <p className="text-xs text-[#64748B] leading-relaxed">
-              Hiện tại: <strong className="text-[#172B4D]">{isDemoMode ? 'Dữ liệu minh họa (Demo Client)' : 'Supabase Live Connected'}</strong>.
-            </p>
+      {/* Database connection & backup action row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-3">
+          <div className="flex items-center space-x-2">
+            <HardDrive className="w-5 h-5 text-[#006BFF]" />
+            <h3 className="font-bold text-sm text-[#082B52]">Cơ sở dữ liệu & Chế độ hoạt động</h3>
           </div>
+          <p className="text-xs text-slate-600">
+            Hiện tại: <b>{isDemoMode ? 'Dữ liệu minh họa (Demo Client)' : 'Supabase Live Connected'}</b>.
+          </p>
           <button
-            type="button"
             onClick={onOpenSupabaseConfig}
-            className="self-start px-4 py-2 bg-[#1769F4] text-white rounded-xl text-xs font-bold hover:bg-[#1256CE] shadow-xs cursor-pointer whitespace-nowrap"
+            className="px-4 py-2 bg-[#006BFF] text-white rounded-xl text-xs font-bold hover:bg-blue-600 shadow-xs"
           >
             Cấu hình kết nối Supabase
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-[0_8px_24px_-12px_rgba(16,44,84,0.08)] flex flex-col justify-between gap-3">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Download className="w-5 h-5 text-[#12A879]" />
-              <h3 className="font-bold text-sm text-[#102C54]">Sao lưu & Phục hồi dữ liệu</h3>
-            </div>
-            <p className="text-xs text-[#64748B] leading-relaxed">
-              Tải về toàn bộ cơ sở dữ liệu câu hỏi, lớp học, đề thi và bảng điểm dưới dạng JSON chuẩn.
-            </p>
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-3">
+          <div className="flex items-center space-x-2">
+            <Download className="w-5 h-5 text-emerald-600" />
+            <h3 className="font-bold text-sm text-[#082B52]">Sao lưu & Phục hồi dữ liệu</h3>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs text-slate-600">
+            Tải về toàn bộ cơ sở dữ liệu câu hỏi, lớp học, đề thi và bảng điểm dưới dạng JSON chuẩn.
+          </p>
+          <div className="flex items-center space-x-2">
             <button
-              type="button"
               onClick={handleBackupJson}
-              className="px-4 py-2 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0E8F66] shadow-xs flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
+              className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-xs flex items-center space-x-1"
             >
               <Download className="w-4 h-4" />
               <span>Tải bản sao lưu JSON</span>
             </button>
             <button
-              type="button"
               onClick={resetDemoData}
-              className="px-3 py-2 border border-[#E2E8F0] text-[#64748B] hover:text-[#102C54] rounded-xl text-xs font-semibold hover:bg-slate-50 flex items-center space-x-1 cursor-pointer whitespace-nowrap"
+              className="px-3 py-2 border border-slate-300 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50 flex items-center space-x-1"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Khôi phục gốc</span>
             </button>
           </div>
         </div>
-
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-[0_8px_24px_-12px_rgba(16,44,84,0.08)] flex flex-col justify-between gap-3">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center space-x-2">
-                <Palette className="w-5 h-5 text-[#1769F4]" />
-                <h3 className="font-bold text-sm text-[#102C54]">Giao diện Smart EDU 2027</h3>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${isPremium2027 ? 'bg-emerald-50 text-[#12A879]' : 'bg-slate-100 text-slate-600'}`}>
-                {isPremium2027 ? '2027 Active' : 'Classic'}
-              </span>
-            </div>
-            <p className="text-xs text-[#64748B] leading-relaxed">
-              Chuyển đổi an toàn giữa hệ thống giao diện 2027 và Classic (<code>?ui=2027|classic</code>), không ảnh hưởng dữ liệu.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPremium2027(!isPremium2027)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
-                isPremium2027
-                  ? 'bg-[#102C54] hover:bg-[#173D73] text-white'
-                  : 'bg-[#1769F4] hover:bg-[#1256CE] text-white'
-              }`}
-            >
-              {isPremium2027 ? 'Chuyển tạm về Classic' : 'Bật Giao diện 2027'}
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Audit Log Table */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-[0_8px_24px_-12px_rgba(16,44,84,0.08)]">
-        <div className="p-4 border-b border-[#E2E8F0] flex items-center justify-between">
-          <h3 className="font-bold text-sm text-[#102C54] flex items-center space-x-2">
-            <Shield className="w-4 h-4 text-[#1769F4]" />
+      <div className="bg-white rounded-2xl border border-[#DCE8F7] overflow-hidden shadow-xs space-y-2">
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="font-bold text-sm text-[#082B52] flex items-center space-x-2">
+            <Shield className="w-4 h-4 text-blue-600" />
             <span>Nhật ký thao tác hệ thống (Audit Logs)</span>
           </h3>
-          <span className="text-xs font-semibold text-[#64748B] tabular-nums">{auditLogs.length} sự kiện</span>
+          <span className="text-xs text-slate-400">{auditLogs.length} sự kiện</span>
         </div>
 
         <div className="overflow-x-auto max-h-72">
           <table className="w-full text-xs text-left">
-            <thead className="bg-[#EAF3FF]/75 text-[#102C54] uppercase font-bold sticky top-0">
+            <thead className="bg-[#F3F8FF] text-[#12345B] uppercase font-bold sticky top-0">
               <tr>
                 <th className="py-2.5 px-4">Thời gian</th>
                 <th className="py-2.5 px-4">Người thực hiện</th>
@@ -158,15 +119,15 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onOpenSupabaseCo
                 <th className="py-2.5 px-4">Chi tiết</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0]/70">
+            <tbody className="divide-y divide-slate-100">
               {auditLogs.map(log => (
-                <tr key={log.id} className="hover:bg-[#F6F9FD]">
-                  <td className="py-2.5 px-4 text-[#64748B] whitespace-nowrap tabular-nums">{log.timestamp}</td>
-                  <td className="py-2.5 px-4 font-bold text-[#102C54]">{log.actor}</td>
-                  <td className="py-2.5 px-4 uppercase text-[10px] font-semibold text-[#64748B]">{log.role}</td>
-                  <td className="py-2.5 px-4 font-semibold text-[#1769F4]">{log.action}</td>
+                <tr key={log.id} className="hover:bg-slate-50">
+                  <td className="py-2.5 px-4 text-slate-500 whitespace-nowrap">{log.timestamp}</td>
+                  <td className="py-2.5 px-4 font-bold text-[#082B52]">{log.actor}</td>
+                  <td className="py-2.5 px-4 uppercase text-[10px] font-semibold text-slate-500">{log.role}</td>
+                  <td className="py-2.5 px-4 font-semibold text-[#006BFF]">{log.action}</td>
                   <td className="py-2.5 px-4 font-mono">{log.target}</td>
-                  <td className="py-2.5 px-4 text-[#64748B] max-w-xs truncate">{log.details}</td>
+                  <td className="py-2.5 px-4 text-slate-600 max-w-xs truncate">{log.details}</td>
                 </tr>
               ))}
             </tbody>
@@ -176,4 +137,3 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onOpenSupabaseCo
     </div>
   );
 };
-

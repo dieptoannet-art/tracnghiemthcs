@@ -49,8 +49,8 @@ import {
 } from 'lucide-react';
 
 import { MagicLotteryGame } from './games/MagicLotteryGame';
-// Rollback A06: import { HorseRaceGame } from './games/HorseRaceGame';
-// Rollback A07: import { RocketGame } from './games/RocketGame';
+import { HorseRaceGame } from './games/HorseRaceGame';
+import { RocketGame } from './games/RocketGame';
 import { BalloonsGame } from './games/BalloonsGame';
 import { DiceGame } from './games/DiceGame';
 import { SecretCardGame } from './games/SecretCardGame';
@@ -67,8 +67,6 @@ const StudentWheel3DGame = React.lazy(() => import('./games/StudentWheel3DGame')
 const ClawMachine3DGame = React.lazy(() => import('./games/ClawMachine3DGame'));
 const MysteryGiftBox3DGame = React.lazy(() => import('./games/MysteryGiftBox3DGame'));
 const DuckRace3DGame = React.lazy(() => import('./games/DuckRace3DGame'));
-const HorseRace3DGame = React.lazy(() => import('./games/HorseRace3DGame'));
-const SpaceRocket3DGame = React.lazy(() => import('./games/SpaceRocket3DGame'));
 import {
   CATEGORY_META,
   BannerGamepadSVG,
@@ -1626,9 +1624,7 @@ export const EDUGameCenter: React.FC = () => {
               activeGame.modeKey === 'claw_machine' ||
               activeGame.modeKey === 'gift_box' ||
               activeGame.modeKey === 'cards' ||
-              activeGame.modeKey === 'duck_race' ||
-              activeGame.modeKey === 'horse_race' ||
-              activeGame.modeKey === 'rocket')
+              activeGame.modeKey === 'duck_race')
               ? 'fixed inset-0 z-50 w-screen h-dvh bg-[#050C1C] p-0 m-0 border-0 rounded-none overflow-hidden flex flex-col'
               : 'bg-white rounded-2xl border border-slate-200 shadow-md p-3 sm:p-4 space-y-3'
           }
@@ -1639,9 +1635,7 @@ export const EDUGameCenter: React.FC = () => {
               activeGame.modeKey === 'claw_machine' ||
               activeGame.modeKey === 'gift_box' ||
               activeGame.modeKey === 'cards' ||
-              activeGame.modeKey === 'duck_race' ||
-              activeGame.modeKey === 'horse_race' ||
-              activeGame.modeKey === 'rocket')
+              activeGame.modeKey === 'duck_race')
           ) && (
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
               <div className="flex items-center gap-2.5">
@@ -1906,112 +1900,6 @@ export const EDUGameCenter: React.FC = () => {
               }
             >
               <DuckRace3DGame
-                availableCandidates={availableCandidates}
-                allCandidates={currentCandidates}
-                absentIds={absentIds}
-                calledSessionIds={calledSessionIds}
-                antiDuplicate={antiDuplicate}
-                onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
-                onResetSession={handleResetActiveSession}
-                onRestoreStudentToPool={handleRestoreStudentToPool}
-                classes={effectiveClasses}
-                selectedSourceKey={effectiveSourceKey}
-                onSelectSourceKey={handleSelectEffectiveSourceKey}
-                resolvedClassName={resolvedClassName}
-                teacherId={teacherId}
-                teacherName={userProfile?.fullName || (rosterMode === 'guest' ? 'Khách' : 'Giáo viên')}
-                userRole={currentRole}
-                isFullscreen={isFullscreen}
-                onToggleFullscreen={() => {
-                  if (!stageContainerRef.current) return;
-                  if (!isFullscreen) {
-                    stageContainerRef.current.requestFullscreen?.();
-                    setIsFullscreen(true);
-                  } else {
-                    document.exitFullscreen?.();
-                    setIsFullscreen(false);
-                  }
-                }}
-                onCloseGame={() => {
-                  if (isFullscreen) {
-                    document.exitFullscreen?.().catch(() => {});
-                    setIsFullscreen(false);
-                  }
-                  setActiveGame(null);
-                }}
-                isMuted={isMuted}
-                onToggleMute={() => setIsMuted(!isMuted)}
-                onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
-                onOpenHistoryModal={() => setShowHistoryModal(true)}
-                onPick={handleGamePickStudent}
-                onUpdateLatestNote={handleUpdateLatestHistoryNote}
-              />
-            </React.Suspense>
-          ) : activeGame.modeKey === 'horse_race' ? (
-            <React.Suspense
-              fallback={
-                <div className="w-full min-h-[560px] rounded-3xl bg-[#0B1726] border-2 border-[#D4AF37]/50 flex flex-col items-center justify-center text-white p-8 space-y-3">
-                  <div className="w-12 h-12 rounded-full border-4 border-[#F5C45E] border-t-transparent animate-spin" />
-                  <p className="text-base font-extrabold text-[#F5C45E]">
-                    Đang khởi tạo Trường Đua Ngựa 3D Premium 2027 (WebGL Equestrian Arena)...
-                  </p>
-                </div>
-              }
-            >
-              <HorseRace3DGame
-                availableCandidates={availableCandidates}
-                allCandidates={currentCandidates}
-                absentIds={absentIds}
-                calledSessionIds={calledSessionIds}
-                antiDuplicate={antiDuplicate}
-                onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
-                onResetSession={handleResetActiveSession}
-                onRestoreStudentToPool={handleRestoreStudentToPool}
-                classes={effectiveClasses}
-                selectedSourceKey={effectiveSourceKey}
-                onSelectSourceKey={handleSelectEffectiveSourceKey}
-                resolvedClassName={resolvedClassName}
-                teacherId={teacherId}
-                teacherName={userProfile?.fullName || (rosterMode === 'guest' ? 'Khách' : 'Giáo viên')}
-                userRole={currentRole}
-                isFullscreen={isFullscreen}
-                onToggleFullscreen={() => {
-                  if (!stageContainerRef.current) return;
-                  if (!isFullscreen) {
-                    stageContainerRef.current.requestFullscreen?.();
-                    setIsFullscreen(true);
-                  } else {
-                    document.exitFullscreen?.();
-                    setIsFullscreen(false);
-                  }
-                }}
-                onCloseGame={() => {
-                  if (isFullscreen) {
-                    document.exitFullscreen?.().catch(() => {});
-                    setIsFullscreen(false);
-                  }
-                  setActiveGame(null);
-                }}
-                isMuted={isMuted}
-                onToggleMute={() => setIsMuted(!isMuted)}
-                onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
-                onOpenHistoryModal={() => setShowHistoryModal(true)}
-                onPick={handleGamePickStudent}
-                onUpdateLatestNote={handleUpdateLatestHistoryNote}
-              />
-            </React.Suspense>
-          ) : activeGame.modeKey === 'rocket' ? (
-            <React.Suspense
-              fallback={
-                <div className="w-full min-h-[560px] rounded-3xl bg-[#081B38] border-2 border-[#00C8FF]/50 flex flex-col items-center justify-center text-white p-8 space-y-3">
-                  <div className="w-12 h-12 rounded-full border-4 border-[#FFD54F] border-t-transparent animate-spin" />
-                  <p className="text-base font-extrabold text-[#FFD54F]">
-                    Đang khởi tạo Trung Tâm Phóng Tên Lửa 3D Premium 2027 (WebGL Spaceport)...
-                  </p>
-                </div>
-              }
-            >
-              <SpaceRocket3DGame
                 availableCandidates={availableCandidates}
                 allCandidates={currentCandidates}
                 absentIds={absentIds}
@@ -2482,6 +2370,10 @@ export const EDUGameCenter: React.FC = () => {
                 </div>
               ) : activeGame.modeKey === 'cards' ? (
                 <MagicLotteryGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
+              ) : activeGame.modeKey === 'horse_race' ? (
+                <HorseRaceGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
+              ) : activeGame.modeKey === 'rocket' ? (
+                <RocketGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
               ) : activeGame.modeKey === 'balloons' ? (
                 <BalloonsGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
               ) : activeGame.modeKey === 'dice' ? (

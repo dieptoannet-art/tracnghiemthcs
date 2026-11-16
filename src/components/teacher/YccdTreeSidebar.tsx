@@ -42,7 +42,7 @@ const TriStateCheckbox: React.FC<TriStateCheckboxProps> = ({
       checked={checked}
       onChange={onChange}
       aria-label={ariaLabel}
-      className={`w-4 h-4 rounded-sm accent-[#1769F4] cursor-pointer shrink-0 ${className}`}
+      className={`w-4 h-4 rounded-sm accent-[#006BFF] cursor-pointer shrink-0 ${className}`}
     />
   );
 };
@@ -170,13 +170,13 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
   }, [tree, selectedKeys]);
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden flex flex-col max-h-[82vh] font-edtech">
+    <div className="bg-white rounded-2xl border border-[#DCE8F7] shadow-xs overflow-hidden flex flex-col max-h-[82vh]">
       {/* Header matching mockup */}
-      <div className="bg-[#102C54] text-white px-3.5 py-2.5 flex items-center justify-between gap-2 shrink-0">
+      <div className="bg-[#0D2B52] text-white px-3.5 py-2.5 flex items-center justify-between gap-2 shrink-0">
         <div className="min-w-0">
           <div className="text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
             <span>YÊU CẦU CẦN ĐẠT</span>
-            <span className="text-[11px] font-semibold bg-white/15 px-1.5 py-0.5 rounded-sm tabular-nums">
+            <span className="text-[11px] font-semibold bg-white/15 px-1.5 py-0.5 rounded-sm">
               {selectedCount}/{totalItems}
             </span>
           </div>
@@ -188,7 +188,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
         <button
           type="button"
           onClick={onCollapseSidebar}
-          className="px-2.5 py-1 bg-white/15 hover:bg-white/25 text-white rounded-md text-[11px] font-bold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer"
+          className="px-2.5 py-1 bg-white/15 hover:bg-white/25 text-white rounded-md text-[11px] font-bold transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
           title="Thu gọn cây Yêu cầu cần đạt"
         >
           <PanelLeftClose className="w-3.5 h-3.5" />
@@ -197,7 +197,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
       </div>
 
       {/* Search & quick controls */}
-      <div className="p-2.5 border-b border-[#E2E8F0] bg-[#F6F9FD] space-y-2 shrink-0">
+      <div className="p-2.5 border-b border-slate-200 bg-slate-50/70 space-y-2 shrink-0">
         <div className="relative">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
           <input
@@ -205,7 +205,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Tìm chủ đề, nội dung, YCCĐ, [NB]/[TH]/[VD]..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-[#E2E8F0] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
           />
         </div>
         <div className="flex items-center justify-between text-[11px] px-0.5">
@@ -214,7 +214,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
               type="button"
               onClick={onSelectAll}
               disabled={totalItems === 0}
-              className="text-[#1769F4] hover:underline font-bold flex items-center gap-1 disabled:opacity-40 cursor-pointer whitespace-nowrap shrink-0"
+              className="text-[#006BFF] hover:underline font-bold flex items-center gap-1 disabled:opacity-40 cursor-pointer"
             >
               <CheckSquare className="w-3 h-3" />
               <span>Chọn tất cả</span>
@@ -224,7 +224,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
               type="button"
               onClick={onClearAll}
               disabled={selectedCount === 0}
-              className="text-slate-600 hover:text-rose-600 hover:underline font-semibold flex items-center gap-1 disabled:opacity-40 cursor-pointer whitespace-nowrap shrink-0"
+              className="text-slate-600 hover:text-rose-600 hover:underline font-semibold flex items-center gap-1 disabled:opacity-40 cursor-pointer"
             >
               <Square className="w-3 h-3" />
               <span>Bỏ chọn</span>
@@ -233,7 +233,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
           <button
             type="button"
             onClick={onOpenCsvImport}
-            className="text-[#0B6E4F] hover:underline font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+            className="text-emerald-700 hover:underline font-bold flex items-center gap-1 cursor-pointer"
           >
             <Upload className="w-3 h-3" />
             <span>Nhập CSV</span>
@@ -254,7 +254,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
             <button
               type="button"
               onClick={onOpenCsvImport}
-              className="w-full py-2 px-3 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-lg text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2 px-3 bg-[#006BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Nhập tệp CSV YCCĐ ngay</span>
@@ -305,7 +305,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
                     className="text-left flex-1 min-w-0 cursor-pointer"
                   >
                     <div className="text-xs font-bold leading-snug">{topic.topic}</div>
-                    <div className="text-[10px] text-white/80 mt-0.5 tabular-nums">
+                    <div className="text-[10px] text-white/80 mt-0.5">
                       Đã chọn {topicSelectedCount}/{topicItemKeys.length} YCCĐ
                     </div>
                   </button>
@@ -313,7 +313,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
 
                 {/* Level 2: Units */}
                 {isTopicExpanded && (
-                  <div className="p-2 bg-[#F6F9FD] space-y-2">
+                  <div className="p-2 bg-slate-50/60 space-y-2">
                     {topic.units.map(unit => {
                       const unitItemKeys =
                         fullUnitKeysByUnitKey.get(unit.unitKey) ||
@@ -358,7 +358,7 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
                             <button
                               type="button"
                               onClick={() => onToggleUnitExpand(unit.unitKey)}
-                              className="text-left text-xs font-bold text-[#102C54] leading-snug flex-1 cursor-pointer"
+                              className="text-left text-xs font-bold text-[#082B52] leading-snug flex-1 cursor-pointer"
                             >
                               {unit.unit}
                             </button>
@@ -372,13 +372,13 @@ export const YccdTreeSidebar: React.FC<YccdTreeSidebarProps> = ({
                                 return (
                                   <label
                                     key={item.stableKey}
-                                    className="flex items-start gap-2 py-1.5 px-1 rounded-md hover:bg-[#EAF3FF]/50 cursor-pointer text-[11px] leading-relaxed"
+                                    className="flex items-start gap-2 py-1.5 px-1 rounded-md hover:bg-blue-50/40 cursor-pointer text-[11px] leading-relaxed"
                                   >
                                     <input
                                       type="checkbox"
                                       checked={isChecked}
                                       onChange={() => onToggleYccd(item.stableKey)}
-                                      className="w-3.5 h-3.5 mt-0.5 rounded-sm accent-[#1769F4] shrink-0 cursor-pointer"
+                                      className="w-3.5 h-3.5 mt-0.5 rounded-sm accent-[#006BFF] shrink-0 cursor-pointer"
                                     />
                                     <div className="flex-1 text-slate-700">
                                       <span

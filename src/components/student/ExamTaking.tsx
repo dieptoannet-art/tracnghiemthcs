@@ -528,21 +528,21 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
 
       if (isSyncedSummaryOnly && summaryValidation.exam && targetAssignment) {
         return (
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-8 text-center max-w-lg mx-auto space-y-4 shadow-xs font-edtech">
-            <div className="w-12 h-12 rounded-full bg-[#EAF3FF] text-[#1769F4] flex items-center justify-center mx-auto">
+          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center max-w-lg mx-auto space-y-4 shadow-xs font-serif">
+            <div className="w-12 h-12 rounded-full bg-[#EAF5FF] text-[#006BFF] flex items-center justify-center mx-auto">
               <FileText className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-[#102C54]">
+            <h3 className="text-xl font-bold text-[#082B52]">
               {summaryValidation.exam.title}
             </h3>
-            <p className="text-sm text-slate-600 leading-relaxed tabular-nums">
-              Nhiệm vụ đã được đồng bộ từ Supabase ({summaryValidation.exam.questionCount} câu hỏi ·{' '}
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Nhiệm vụ đã được đồng bộ từ Supabase ({summaryValidation.exam.questionCount} câu hỏi •{' '}
               {targetAssignment.durationMinutes} phút). Luồng tải câu hỏi trực tuyến, đồng hồ đếm ngược và nộp bài về CSDL sẽ được kết nối ở bước tiếp theo.
             </p>
             <button
               type="button"
               onClick={onBackToAssignments || onBackToDashboard}
-              className="px-5 min-h-[44px] py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-sm font-bold transition-colors whitespace-nowrap shrink-0"
+              className="px-5 min-h-[44px] py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-colors"
             >
               {onBackToAssignments ? 'Quay lại Bài được giao' : 'Quay lại bảng điều khiển'}
             </button>
@@ -551,11 +551,11 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
       }
 
       return (
-        <div className="bg-white rounded-2xl border border-red-200 p-8 text-center max-w-lg mx-auto space-y-4 shadow-xs font-edtech">
+        <div className="bg-white rounded-2xl border border-red-200 p-8 text-center max-w-lg mx-auto space-y-4 shadow-xs font-serif">
           <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
             <AlertTriangle className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-bold text-[#102C54]">
+          <h3 className="text-xl font-bold text-[#082B52]">
             {linkValidation.error || MISSING_OR_INVALID_EXAM_MESSAGE}
           </h3>
           <p className="text-sm text-slate-600">
@@ -564,7 +564,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
           <button
             type="button"
             onClick={onBackToAssignments || onBackToDashboard}
-            className="px-5 min-h-[44px] py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-sm font-bold transition-colors whitespace-nowrap shrink-0"
+            className="px-5 min-h-[44px] py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-colors"
           >
             {onBackToAssignments ? 'Quay lại Bài được giao' : 'Quay lại bảng điều khiển'}
           </button>
@@ -573,12 +573,12 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
     }
 
     return (
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-8 text-center max-w-lg mx-auto space-y-4 font-edtech">
-        <h3 className="text-xl font-bold text-[#102C54]">Không có bài kiểm tra khả dụng</h3>
+      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center max-w-lg mx-auto space-y-4">
+        <h3 className="text-xl font-bold text-[#082B52]">Không có bài kiểm tra khả dụng</h3>
         <p className="text-sm text-slate-500">Hiện tại chưa có bài kiểm tra nào được phát hành cho lớp của bạn.</p>
         <button
           onClick={onBackToDashboard}
-          className="px-4 py-2 bg-[#1769F4] hover:bg-[#1255CC] text-white rounded-xl text-sm font-bold whitespace-nowrap shrink-0"
+          className="px-4 py-2 bg-[#006BFF] text-white rounded-xl text-sm font-bold"
         >
           Quay lại bảng điều khiển
         </button>
@@ -595,40 +595,40 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
   const unansweredCount = targetExam.questions.filter(q => !isQuestionAnswered(q)).length;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12 font-edtech">
+    <div className="space-y-6 max-w-5xl mx-auto pb-12">
       {/* Result Display after Submit */}
       {submittedResult ? (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 sm:p-8 space-y-6 shadow-xs">
+        <div className="bg-white rounded-2xl border border-[#DCE8F7] p-6 sm:p-8 space-y-6 shadow-sm">
           <div className="flex flex-col items-center text-center space-y-3 pb-6 border-b border-slate-100">
-            <div className="w-16 h-16 bg-[#ECFDF7] text-[#12A879] border border-[#12A879]/25 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <h2 className="text-2xl font-bold text-[#102C54]">Nộp bài kiểm tra thành công!</h2>
+            <h2 className="text-2xl font-bold text-[#082B52]">Nộp bài kiểm tra thành công!</h2>
             <p className="text-sm text-slate-600">
               Bài thi: <b>{targetExam.title}</b> ({targetExam.code})
             </p>
-            <p className="text-xs text-slate-400 tabular-nums">
-              Thời gian nộp: {submittedResult.submittedAt} · Thời gian làm bài: {Math.round(submittedResult.timeSpentSeconds / 60)} phút
+            <p className="text-xs text-slate-400">
+              Thời gian nộp: {submittedResult.submittedAt} • Thời gian làm bài: {Math.round(submittedResult.timeSpentSeconds / 60)} phút
             </p>
           </div>
 
           {/* Score card */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-[#EAF3FF] border border-[#C7DCFA] rounded-xl p-4 text-center">
+            <div className="bg-[#F3F8FF] border border-[#DCE8F7] rounded-xl p-4 text-center">
               <span className="text-xs text-slate-500 font-bold uppercase">Điểm phần trắc nghiệm</span>
-              <div className="text-3xl font-bold text-[#1769F4] mt-1 tabular-nums">
+              <div className="text-3xl font-bold text-[#006BFF] mt-1">
                 {submittedResult.score.toFixed(2)} / {submittedResult.maxScore}
               </div>
             </div>
-            <div className="bg-[#ECFDF7] border border-[#12A879]/25 rounded-xl p-4 text-center">
-              <span className="text-xs text-[#0B6E4F] font-bold uppercase">Tình trạng chấm</span>
-              <div className="text-sm font-bold text-[#12A879] mt-2">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+              <span className="text-xs text-emerald-800 font-bold uppercase">Tình trạng chấm</span>
+              <div className="text-sm font-bold text-emerald-700 mt-2">
                 {targetExam.questions.some(q => q.type === 'essay') ? 'Đã chấm trắc nghiệm (Chờ tự luận)' : 'Đã hoàn tất chấm điểm'}
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
               <span className="text-xs text-amber-800 font-bold uppercase">Lần rời tab trình duyệt</span>
-              <div className="text-2xl font-bold text-amber-700 mt-1 tabular-nums">
+              <div className="text-2xl font-bold text-amber-700 mt-1">
                 {submittedResult.tabSwitchCount} lần
               </div>
             </div>
@@ -637,7 +637,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
           {/* Solutions Review if allowed */}
           {targetAssignment.showSolutionAfterSubmit ? (
             <div className="space-y-4 pt-4">
-              <h3 className="text-lg font-bold text-[#102C54] border-b border-slate-100 pb-2">
+              <h3 className="text-lg font-bold text-[#082B52] border-b border-slate-100 pb-2">
                 Xem lại bài làm và lời giải chi tiết
               </h3>
 
@@ -651,21 +651,21 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                       key={q.id}
                       className={`p-4 rounded-xl border ${
                         isCorrect
-                          ? 'border-[#12A879]/30 bg-[#ECFDF7]/50'
+                          ? 'border-emerald-200 bg-emerald-50/30'
                           : q.type === 'essay'
-                          ? 'border-[#C7DCFA] bg-[#EAF3FF]/40'
+                          ? 'border-blue-200 bg-blue-50/20'
                           : 'border-red-200 bg-red-50/30'
                       }`}
                     >
                       <div className="flex items-start justify-between">
-                        <span className="font-bold text-sm text-[#102C54] tabular-nums">
+                        <span className="font-bold text-sm text-[#082B52]">
                           Câu {idx + 1}: [{q.code}] - {q.points} điểm
                         </span>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-sm ${
                           isCorrect
-                            ? 'bg-[#ECFDF7] text-[#0B6E4F] border border-[#12A879]/25'
+                            ? 'bg-emerald-100 text-emerald-800'
                             : q.type === 'essay'
-                            ? 'bg-[#EAF3FF] text-[#1769F4]'
+                            ? 'bg-blue-100 text-[#006BFF]'
                             : 'bg-red-100 text-red-800'
                         }`}>
                           {q.type === 'essay' ? 'Tự luận' : isCorrect ? 'ĐÚNG' : 'SAI'}
@@ -679,21 +679,21 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                       {q.type === 'single_choice' && (
                         <div className="text-xs space-y-1">
                           <p>Bạn chọn: <b>{subAns?.selectedOption || 'Chưa chọn'}</b></p>
-                          <p className="text-[#0B6E4F]">Đáp án đúng: <b>{q.correctAnswer}</b></p>
+                          <p className="text-emerald-700">Đáp án đúng: <b>{q.correctAnswer}</b></p>
                         </div>
                       )}
 
                       {q.type === 'short_answer' && (
                         <div className="text-xs space-y-1">
                           <p>Bạn trả lời: <b>{subAns?.shortAnswerText || 'Để trống'}</b></p>
-                          <p className="text-[#0B6E4F]">Đáp án chuẩn: <b>{q.acceptedAnswers?.join(' | ')}</b></p>
+                          <p className="text-emerald-700">Đáp án chuẩn: <b>{q.acceptedAnswers?.join(' | ')}</b></p>
                         </div>
                       )}
 
                       {q.type === 'essay' && (
                         <div className="text-xs space-y-2 mt-2">
                           <div className="p-3 bg-white rounded-lg border border-slate-200">
-                            <span className="font-bold text-[#102C54] block mb-1">
+                            <span className="font-bold text-[#082B52] block mb-1">
                               Bài làm tự luận của bạn:
                             </span>
                             {subAns?.essayAnswerText ? (
@@ -706,8 +706,8 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
 
                             {subAns?.essayImages && subAns.essayImages.length > 0 && (
                               <div className="mt-3">
-                                <span className="font-semibold text-slate-700 mb-1.5 flex items-center space-x-1">
-                                  <ImageIcon className="w-3.5 h-3.5 text-[#1769F4]" />
+                                <span className="font-semibold text-slate-700 block mb-1.5 flex items-center space-x-1">
+                                  <ImageIcon className="w-3.5 h-3.5 text-[#006BFF]" />
                                   <span>Ảnh chụp bài làm đính kèm ({subAns.essayImages.length} ảnh):</span>
                                 </span>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -715,12 +715,11 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                                     <div
                                       key={i}
                                       onClick={() => setPreviewModal({ url: imgUrl, title: `Ảnh bài làm ${i + 1}`, zoom: 1, rotation: 0 })}
-                                      className="group relative cursor-pointer border rounded-lg overflow-hidden bg-slate-100 aspect-4/3 hover:border-[#1769F4] transition-all"
+                                      className="group relative cursor-pointer border rounded-lg overflow-hidden bg-slate-100 aspect-4/3 hover:border-[#006BFF] transition-all"
                                     >
                                       <img
                                         src={imgUrl}
                                         alt={`Bài làm ${i + 1}`}
-                                        referrerPolicy="no-referrer"
                                         className="w-full h-full object-cover"
                                       />
                                       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
@@ -750,7 +749,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
               </div>
             </div>
           ) : (
-            <div className="p-4 bg-[#EAF3FF] rounded-xl text-center text-xs text-[#102C54] border border-[#C7DCFA]">
+            <div className="p-4 bg-blue-50 rounded-xl text-center text-xs text-blue-800 border border-blue-200">
               Giáo viên đã cấu hình không mở xem đáp án ngay sau khi nộp bài. Lời giải sẽ được công bố khi hết thời hạn làm bài của lớp.
             </div>
           )}
@@ -763,7 +762,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                   setSubmittedResult(null);
                   onBackToAssignments();
                 }}
-                className="px-6 min-h-[44px] py-2.5 border border-[#C7DCFA] bg-[#EAF3FF] text-[#102C54] rounded-xl font-bold text-sm hover:bg-[#DCEAFE] transition-colors whitespace-nowrap shrink-0"
+                className="px-6 min-h-[44px] py-2.5 border border-[#DCE8F7] bg-[#F3F8FF] text-[#082B52] rounded-xl font-bold text-sm hover:bg-[#E4F0FF] transition-colors"
               >
                 Quay lại Bài được giao
               </button>
@@ -773,7 +772,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                 setSubmittedResult(null);
                 if (onBackToDashboard) onBackToDashboard();
               }}
-              className="px-6 min-h-[44px] py-2.5 bg-[#1769F4] text-white rounded-xl font-bold text-sm hover:bg-[#1255CC] transition-colors whitespace-nowrap shrink-0"
+              className="px-6 min-h-[44px] py-2.5 bg-[#006BFF] text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
             >
               Về trang chủ
             </button>
@@ -786,7 +785,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
           {/* Left Column: Exam questions (8 cols) */}
           <div className="lg:col-span-8 space-y-4">
             {/* Top Bar inside exam card */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 {onBackToAssignments && (
                   <button
@@ -798,14 +797,14 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                       }
                       onBackToAssignments();
                     }}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#C7DCFA] bg-[#EAF3FF] hover:bg-[#DCEAFE] text-xs font-bold text-[#102C54] shrink-0 whitespace-nowrap transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-[#E4F0FF] text-xs font-bold text-[#082B52] shrink-0 transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     <span>Bài được giao</span>
                   </button>
                 )}
                 <div className="min-w-0">
-                  <h3 className="font-bold text-[#102C54] text-sm sm:text-base truncate">
+                  <h3 className="font-bold text-[#082B52] text-sm sm:text-base truncate">
                     {targetExam.title}
                   </h3>
                   <span className="text-xs text-slate-500">Mã đề: {targetExam.code}</span>
@@ -815,7 +814,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
               {/* Auto-save status indicator */}
               <div className="flex items-center space-x-1.5 text-xs">
                 {isSavedLocally ? (
-                  <span className="text-[#12A879] flex items-center space-x-1">
+                  <span className="text-emerald-600 flex items-center space-x-1">
                     <Check className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Đã tự động lưu</span>
                   </span>
@@ -829,12 +828,12 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
             </div>
 
             {/* Question Card */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-xs space-y-6 min-h-[420px] flex flex-col justify-between">
+            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-xs space-y-6 min-h-[420px] flex flex-col justify-between">
               <div>
                 {/* Header of question */}
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                  <div className="flex items-center space-x-2 tabular-nums">
-                    <span className="text-base font-bold text-[#1769F4]">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-base font-bold text-[#006BFF]">
                       Câu {currentQIndex + 1}
                     </span>
                     <span className="text-xs text-slate-400">
@@ -844,7 +843,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
 
                   <button
                     onClick={() => toggleFlag(currentQ.id)}
-                    className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 ${
+                    className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                       flagged[currentQ.id]
                         ? 'bg-amber-100 text-amber-800 border-amber-300'
                         : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
@@ -856,7 +855,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                 </div>
 
                 {/* Question Stem with KaTeX math view */}
-                <div className="text-base sm:text-lg font-medium text-[#102C54] leading-relaxed mb-6">
+                <div className="text-base sm:text-lg font-medium text-[#12345B] leading-relaxed mb-6">
                   <MathView content={currentQ.stem} />
                 </div>
 
@@ -871,12 +870,12 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                           onClick={() => handleSelectSingleChoice(currentQ.id, opt.label)}
                           className={`w-full p-3.5 rounded-xl border text-left flex items-start space-x-3 transition-all ${
                             isSelected
-                              ? 'border-[#1769F4] bg-[#EAF3FF] ring-1 ring-[#1769F4]'
-                              : 'border-[#E2E8F0] hover:border-[#C7DCFA] hover:bg-[#F6F9FD]'
+                              ? 'border-[#006BFF] bg-blue-50/70 ring-1 ring-[#006BFF]'
+                              : 'border-[#DCE8F7] hover:border-blue-300 hover:bg-[#F3F8FF]'
                           }`}
                         >
                           <span className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
-                            isSelected ? 'bg-[#1769F4] text-white' : 'bg-white border border-slate-300 text-slate-700'
+                            isSelected ? 'bg-[#006BFF] text-white' : 'bg-white border border-slate-300 text-slate-700'
                           }`}>
                             {opt.label}
                           </span>
@@ -897,18 +896,18 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                       return (
                         <div
                           key={item.id}
-                          className="p-3 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                          className="p-3 rounded-xl border border-[#DCE8F7] bg-[#FBFDFF] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                         >
                           <div className="text-sm font-medium">
-                            <span className="font-bold text-[#1769F4] mr-2">{item.label})</span>
+                            <span className="font-bold text-[#006BFF] mr-2">{item.label})</span>
                             <MathView content={item.text} />
                           </div>
                           <div className="flex items-center space-x-2 shrink-0">
                             <button
                               onClick={() => handleSelectTrueFalse(currentQ.id, item.id, true)}
-                              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-colors whitespace-nowrap shrink-0 ${
+                              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
                                 ansVal === true
-                                  ? 'bg-[#1769F4] text-white border-[#1769F4]'
+                                  ? 'bg-[#006BFF] text-white border-[#006BFF]'
                                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                               }`}
                             >
@@ -916,7 +915,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                             </button>
                             <button
                               onClick={() => handleSelectTrueFalse(currentQ.id, item.id, false)}
-                              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-colors whitespace-nowrap shrink-0 ${
+                              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
                                 ansVal === false
                                   ? 'bg-rose-600 text-white border-rose-600'
                                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
@@ -941,7 +940,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                       value={answers[currentQ.id] || ''}
                       onChange={e => handleShortAnswer(currentQ.id, e.target.value)}
                       placeholder="Nhập kết quả số hoặc từ khóa (ví dụ: 25)..."
-                      className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
+                      className="w-full px-4 py-3 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] text-sm focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
                     />
                   </div>
                 )}
@@ -954,10 +953,10 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
-                            <FileText className="w-4 h-4 text-[#1769F4]" />
+                            <FileText className="w-4 h-4 text-[#006BFF]" />
                             <span>1. Trình bày bài giải / Lập luận bằng chữ:</span>
                           </label>
-                          <span className="text-[11px] text-slate-400 tabular-nums">
+                          <span className="text-[11px] text-slate-400">
                             {essayState.text.length} ký tự
                           </span>
                         </div>
@@ -966,16 +965,16 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                           value={essayState.text}
                           onChange={e => handleEssayTextChange(currentQ.id, e.target.value)}
                           placeholder="Ghi rõ các bước lập luận, giả thiết, kết luận hoặc tóm tắt lời giải..."
-                          className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#F6F9FD] text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1769F4]"
+                          className="w-full px-4 py-3 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] text-sm focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
                         />
                       </div>
 
                       {/* Section 2: Photo / Document Upload */}
-                      <div className="space-y-3 p-4 bg-[#F6F9FD] border border-[#E2E8F0] rounded-xl">
+                      <div className="space-y-3 p-4 bg-[#F8FAFC] border border-[#DCE8F7] rounded-xl">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div>
-                            <div className="flex items-center space-x-1.5 font-bold text-xs text-[#102C54]">
-                              <ImageIcon className="w-4 h-4 text-[#1769F4]" />
+                            <div className="flex items-center space-x-1.5 font-bold text-xs text-[#082B52]">
+                              <ImageIcon className="w-4 h-4 text-[#006BFF]" />
                               <span>2. Đính kèm ảnh chụp bài làm & hình vẽ (Khuyến nghị cho môn Toán):</span>
                             </div>
                             <p className="text-[11px] text-slate-500 mt-0.5">
@@ -983,7 +982,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                             </p>
                           </div>
 
-                          <span className="text-xs font-bold text-[#1769F4] px-2.5 py-1 bg-[#EAF3FF] border border-[#C7DCFA] rounded-lg self-start sm:self-auto tabular-nums">
+                          <span className="text-xs font-bold text-[#006BFF] px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg self-start sm:self-auto">
                             Đã đính kèm: {essayState.images.length}/5 ảnh
                           </span>
                         </div>
@@ -1013,9 +1012,9 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                             type="button"
                             disabled={essayState.images.length >= 5 || isProcessingImage}
                             onClick={() => galleryInputRef.current?.click()}
-                            className="flex items-center justify-center space-x-2 px-3 py-2.5 bg-white border border-[#E2E8F0] hover:border-[#1769F4] hover:bg-[#EAF3FF] text-xs font-bold text-slate-700 rounded-xl transition-all disabled:opacity-40 disabled:pointer-events-none shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
+                            className="flex items-center justify-center space-x-2 px-3 py-2.5 bg-white border border-[#DCE8F7] hover:border-[#006BFF] hover:bg-[#F3F8FF] text-xs font-bold text-slate-700 rounded-xl transition-all disabled:opacity-40 disabled:pointer-events-none shadow-2xs cursor-pointer"
                           >
-                            <Upload className="w-4 h-4 text-[#1769F4]" />
+                            <Upload className="w-4 h-4 text-[#006BFF]" />
                             <span>Tải ảnh từ máy / Thư viện</span>
                           </button>
 
@@ -1023,17 +1022,17 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                             type="button"
                             disabled={essayState.images.length >= 5 || isProcessingImage}
                             onClick={() => cameraInputRef.current?.click()}
-                            className="flex items-center justify-center space-x-2 px-3 py-2.5 bg-white border border-[#12A879]/35 hover:border-[#12A879] hover:bg-[#ECFDF7] text-xs font-bold text-[#0B6E4F] rounded-xl transition-all disabled:opacity-40 disabled:pointer-events-none shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
+                            className="flex items-center justify-center space-x-2 px-3 py-2.5 bg-white border border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50 text-xs font-bold text-emerald-800 rounded-xl transition-all disabled:opacity-40 disabled:pointer-events-none shadow-2xs cursor-pointer"
                           >
-                            <Camera className="w-4 h-4 text-[#12A879]" />
+                            <Camera className="w-4 h-4 text-emerald-600" />
                             <span>Chụp ảnh bài làm (Camera)</span>
                           </button>
                         </div>
 
                         {/* Processing state */}
                         {isProcessingImage && (
-                          <div className="p-3 bg-[#EAF3FF] border border-[#C7DCFA] rounded-lg text-xs text-[#1769F4] flex items-center space-x-2">
-                            <div className="w-3.5 h-3.5 border-2 border-[#1769F4] border-t-transparent rounded-full animate-spin" />
+                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#006BFF] flex items-center space-x-2">
+                            <div className="w-3.5 h-3.5 border-2 border-[#006BFF] border-t-transparent rounded-full animate-spin" />
                             <span>Đang nén và tối ưu hóa hình ảnh...</span>
                           </div>
                         )}
@@ -1058,7 +1057,6 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                                     <img
                                       src={img}
                                       alt={`Trang ${idx + 1}`}
-                                      referrerPolicy="no-referrer"
                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                     />
                                     <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1.5 text-white">
@@ -1069,7 +1067,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
 
                                   {/* Badge info */}
                                   <div className="p-1.5 bg-white border-t border-slate-100 flex items-center justify-between">
-                                    <span className="text-[11px] font-bold text-[#102C54]">
+                                    <span className="text-[11px] font-bold text-[#082B52]">
                                       Trang {idx + 1}
                                     </span>
                                     <div className="flex items-center space-x-1">
@@ -1115,7 +1113,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                 <button
                   disabled={currentQIndex === 0}
                   onClick={() => setCurrentQIndex(prev => prev - 1)}
-                  className="px-4 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none flex items-center space-x-1 whitespace-nowrap shrink-0"
+                  className="px-4 py-2 rounded-xl border border-[#DCE8F7] text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none flex items-center space-x-1"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span>Câu trước</span>
@@ -1124,7 +1122,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                 <button
                   disabled={currentQIndex === targetExam.questions.length - 1}
                   onClick={() => setCurrentQIndex(prev => prev + 1)}
-                  className="px-5 py-2 rounded-xl bg-[#1769F4] text-white text-xs font-bold hover:bg-[#1255CC] disabled:opacity-30 disabled:pointer-events-none flex items-center space-x-1 whitespace-nowrap shrink-0"
+                  className="px-5 py-2 rounded-xl bg-[#006BFF] text-white text-xs font-bold hover:bg-blue-600 disabled:opacity-30 disabled:pointer-events-none flex items-center space-x-1"
                 >
                   <span>Câu sau</span>
                   <ChevronRight className="w-4 h-4" />
@@ -1136,18 +1134,18 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
           {/* Right Column: Question Palette & Timer (4 cols) */}
           <div className="lg:col-span-4 space-y-4">
             {/* Countdown Timer Box */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs text-center space-y-2">
+            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs text-center space-y-2">
               <div className="flex items-center justify-center space-x-2 text-slate-500 text-xs font-bold uppercase">
-                <Clock className="w-4 h-4 text-[#1769F4]" />
+                <Clock className="w-4 h-4 text-[#006BFF]" />
                 <span>Thời gian còn lại</span>
               </div>
-              <div className={`text-4xl font-bold tracking-tight font-mono tabular-nums ${
-                secondsLeft < 300 ? 'text-red-600 animate-pulse' : 'text-[#102C54]'
+              <div className={`text-4xl font-bold tracking-tight font-mono ${
+                secondsLeft < 300 ? 'text-red-600 animate-pulse' : 'text-[#082B52]'
               }`}>
                 {timeFormatted}
               </div>
               {tabSwitches > 0 && (
-                <div className="flex items-center justify-center space-x-1 text-[11px] text-amber-600 tabular-nums">
+                <div className="flex items-center justify-center space-x-1 text-[11px] text-amber-600">
                   <ShieldAlert className="w-3.5 h-3.5" />
                   <span>Ghi nhận rời tab: {tabSwitches} lần</span>
                 </div>
@@ -1155,10 +1153,10 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
             </div>
 
             {/* Question Palette Grid */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-xs space-y-4">
+            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h4 className="text-xs font-bold uppercase text-slate-500">Danh sách câu hỏi</h4>
-                <span className="text-xs font-semibold text-[#1769F4] tabular-nums">
+                <span className="text-xs font-semibold text-[#006BFF]">
                   {targetExam.questions.filter(q => isQuestionAnswered(q)).length}/{targetExam.questions.length} câu đã làm
                 </span>
               </div>
@@ -1166,7 +1164,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
               {/* Status legend */}
               <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-600">
                 <div className="flex items-center space-x-1">
-                  <span className="w-3 h-3 rounded-full bg-[#1769F4]" />
+                  <span className="w-3 h-3 rounded-full bg-[#006BFF]" />
                   <span>Đã làm</span>
                 </div>
                 <div className="flex items-center space-x-1">
@@ -1187,15 +1185,15 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                   const isCurrent = idx === currentQIndex;
 
                   let bgClass = 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200';
-                  if (hasAnswer) bgClass = 'bg-[#1769F4] text-white border-[#1769F4]';
+                  if (hasAnswer) bgClass = 'bg-[#006BFF] text-white border-[#006BFF]';
                   if (isFlag) bgClass = 'bg-amber-400 text-slate-900 border-amber-500 font-bold';
 
                   return (
                     <button
                       key={q.id}
                       onClick={() => setCurrentQIndex(idx)}
-                      className={`h-9 rounded-lg font-bold text-xs border transition-all relative tabular-nums ${bgClass} ${
-                        isCurrent ? 'ring-2 ring-offset-1 ring-[#102C54]' : ''
+                      className={`h-9 rounded-lg font-bold text-xs border transition-all relative ${bgClass} ${
+                        isCurrent ? 'ring-2 ring-offset-1 ring-[#082B52]' : ''
                       }`}
                     >
                       {idx + 1}
@@ -1207,7 +1205,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
               {/* Submit button */}
               <button
                 onClick={() => setShowSubmitModal(true)}
-                className="w-full py-3 bg-[#12A879] text-white font-bold rounded-xl shadow-xs hover:bg-[#0F8F67] transition-colors flex items-center justify-center space-x-2 mt-4 whitespace-nowrap shrink-0"
+                className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-xs hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 mt-4"
               >
                 <Send className="w-4 h-4" />
                 <span>Nộp bài kiểm tra</span>
@@ -1223,7 +1221,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <div className="flex items-center space-x-3 text-amber-600">
               <AlertTriangle className="w-6 h-6 shrink-0" />
-              <h3 className="text-lg font-bold text-[#102C54]">Xác nhận nộp bài kiểm tra?</h3>
+              <h3 className="text-lg font-bold text-[#082B52]">Xác nhận nộp bài kiểm tra?</h3>
             </div>
 
             {unansweredCount > 0 ? (
@@ -1231,7 +1229,7 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
                 Cảnh báo: Bạn vẫn còn <b>{unansweredCount}</b> câu hỏi chưa trả lời! Bạn có chắc chắn muốn nộp bài bây giờ không?
               </div>
             ) : (
-              <p className="text-sm text-slate-600 tabular-nums">
+              <p className="text-sm text-slate-600">
                 Bạn đã hoàn thành tất cả {targetExam.questions.length} câu hỏi. Sau khi nộp, hệ thống sẽ tự động chấm điểm và bạn không thể sửa đổi bài làm.
               </p>
             )}
@@ -1239,14 +1237,14 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
             <div className="flex justify-end space-x-3 pt-3">
               <button
                 onClick={() => setShowSubmitModal(false)}
-                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap shrink-0"
+                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50"
               >
                 Kiểm tra lại
               </button>
               <button
                 onClick={handleConfirmSubmit}
                 disabled={isSubmitting}
-                className="px-5 py-2 bg-[#12A879] text-white rounded-xl text-xs font-bold hover:bg-[#0F8F67] whitespace-nowrap shrink-0"
+                className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700"
               >
                 {isSubmitting ? 'Đang nộp bài...' : 'Nộp bài ngay'}
               </button>
@@ -1305,7 +1303,6 @@ export const ExamTaking: React.FC<ExamTakingProps> = ({
               <img
                 src={previewModal.url}
                 alt={previewModal.title}
-                referrerPolicy="no-referrer"
                 style={{
                   transform: `rotate(${previewModal.rotation}deg) scale(${previewModal.zoom})`,
                   transition: 'transform 0.2s ease',
