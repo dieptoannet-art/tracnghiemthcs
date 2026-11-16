@@ -14,7 +14,12 @@ export type MathToolId =
   | 'M09'
   | 'M10'
   | 'M11'
-  | 'M12';
+  | 'M12'
+  | 'M13'
+  | 'M14'
+  | 'M15'
+  | 'M16'
+  | 'M17';
 
 export type MathKnowledgeStrand =
   | 'geometry_measurement' // Hình học và Đo lường

@@ -1,4 +1,9 @@
 import { cryptoRandomInt } from '../../teacher/games/wheel3dMath';
+import { runM13UnitTests } from './numberTheoryEngine';
+import { runM14UnitTests } from './transformationEngine';
+import { runM15UnitTests } from './pythagoreanEngine';
+import { runM16UnitTests } from './similarityEngine';
+import { runM17UnitTests } from './countingEngine';
 
 export const EPSILON = 1e-9;
 
@@ -1014,6 +1019,41 @@ export function runSmartMathLabUnitTests(): SmartMathLabTestSuiteReport {
   ]);
   if (Math.abs(ang90 - 90) > 1e-6 || Math.abs(area6 - 6) > 1e-6) {
     failedChecks.push('2D geometry angle or area calculation failed');
+  }
+
+  // 9. M13 Number Theory Engine tests (13 test cases)
+  const m13Report = runM13UnitTests();
+  totalChecks += m13Report.totalChecks;
+  if (!m13Report.passed) {
+    failedChecks.push(...m13Report.failedChecks.map((label) => `M13: ${label}`));
+  }
+
+  // 10. M14 Transformation Engine tests (9 test cases)
+  const m14Report = runM14UnitTests();
+  totalChecks += m14Report.totalChecks;
+  if (!m14Report.passed) {
+    failedChecks.push(...m14Report.failedChecks.map((label) => `M14: ${label}`));
+  }
+
+  // 11. M15 Pythagorean Engine tests (9 test cases)
+  const m15Report = runM15UnitTests();
+  totalChecks += m15Report.totalChecks;
+  if (!m15Report.passed) {
+    failedChecks.push(...m15Report.failedChecks.map((label) => `M15: ${label}`));
+  }
+
+  // 12. M16 Similarity & Thales Engine tests (10 test cases)
+  const m16Report = runM16UnitTests();
+  totalChecks += m16Report.totalChecks;
+  if (!m16Report.passed) {
+    failedChecks.push(...m16Report.failedChecks.map((label) => `M16: ${label}`));
+  }
+
+  // 13. M17 Counting & Tree Diagram Engine tests (10 test cases)
+  const m17Report = runM17UnitTests();
+  totalChecks += m17Report.totalChecks;
+  if (!m17Report.passed) {
+    failedChecks.push(...m17Report.failedChecks.map((label) => `M17: ${label}`));
   }
 
   return {

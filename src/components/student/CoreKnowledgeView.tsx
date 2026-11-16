@@ -18,7 +18,11 @@ import {
   Compass,
   GraduationCap,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Layers,
+  FileText,
+  RotateCcw,
+  Rocket
 } from 'lucide-react';
 import {
   CoreKnowledgeLesson,
@@ -42,6 +46,12 @@ import {
   mapCatalogSubjectCodeToId,
   triggerMaterialDownload
 } from '../../utils/studyMaterialsSync';
+import {
+  HeroKnowledgeIllustration3D,
+  SubjectBookIllustration3D,
+  RecentLaptopIllustration3D,
+  LessonCardIllustration3D
+} from './coreKnowledgeThumbnails';
 
 const RECENT_VIEW_KEY = 'taydo_last_viewed_core_lesson';
 
@@ -486,33 +496,50 @@ export const CoreKnowledgeView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-serif max-w-7xl mx-auto">
+    <div className="space-y-5 font-sans max-w-7xl mx-auto pb-6">
       {/* ============================================================
-          1. HEADER TRANG: KIẾN THỨC TRỌNG TÂM
+          1. HERO BANNER 3D: KIẾN THỨC TRỌNG TÂM (Premium EdTech 2027)
           ============================================================ */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#DCE8F7] pb-4">
-        <div>
-          <div className="flex items-center space-x-2.5">
-            <div className="p-2.5 bg-blue-100 text-[#006BFF] rounded-xl shadow-2xs">
-              <Book className="w-6 h-6 text-[#006BFF]" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-extrabold text-[#082B52]">
-                Kiến thức trọng tâm
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Chọn bài học để tự học, khám phá kiến thức và luyện tập.
-              </p>
-            </div>
+      <div className="relative overflow-hidden rounded-2xl border border-[#C6E0FF] bg-gradient-to-r from-[#DCEEFF] via-[#EAF5FF] to-[#D6ECFF] px-5 py-4 sm:px-7 sm:py-4 shadow-[0_8px_24px_rgba(16,42,82,0.06)] flex flex-col lg:flex-row lg:items-center justify-between gap-4 min-h-[115px] lg:min-h-[126px]">
+        {/* Ánh sáng nền mềm */}
+        <div className="pointer-events-none absolute -top-12 left-1/3 w-72 h-40 rounded-full bg-white/50 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-10 right-1/4 w-64 h-32 rounded-full bg-sky-200/40 blur-2xl" />
+
+        {/* Cột trái: Icon sách 3D + Tiêu đề + Mô tả + Thanh sắc màu */}
+        <div className="relative z-10 flex items-center space-x-3.5 sm:space-x-4">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-[#3B9EFF] to-[#1363DF] text-white shadow-[0_8px_18px_rgba(23,107,255,0.32)] border border-white/60 flex items-center justify-center shrink-0">
+            <BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-xs" />
+          </div>
+          <div>
+            <h2 className="text-2xl sm:text-[30px] font-extrabold text-[#102A52] tracking-tight leading-tight font-serif">
+              Kiến thức trọng tâm
+            </h2>
+            <p className="text-xs sm:text-sm text-[#3A5273] font-medium mt-1">
+              Chọn bài học để tự học, khám phá kiến thức và luyện tập hiệu quả.
+            </p>
+            <div className="w-14 h-1.5 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-purple-600 mt-2" />
           </div>
         </div>
 
-        {/* Thông tin chuẩn hoá SGK */}
-        <div className="flex items-center space-x-2">
-          <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-50 text-blue-900 border border-blue-200 rounded-full text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-[#006BFF]" />
-            <span>Kết nối tri thức với cuộc sống • Lớp 6, 7, 8, 9</span>
-          </span>
+        {/* Cột giữa & phải: Minh họa 3D chồng sách & bóng đèn + Badge bộ sách */}
+        <div className="relative z-10 flex flex-wrap sm:flex-nowrap items-center justify-between lg:justify-end gap-3 sm:gap-5">
+          <div className="hidden sm:flex items-center justify-center -my-2">
+            <HeroKnowledgeIllustration3D />
+          </div>
+
+          <div className="inline-flex items-center space-x-3 px-4 py-2.5 bg-white/90 backdrop-blur-xs border border-[#C5DFFF] rounded-full shadow-[0_6px_16px_rgba(23,107,255,0.1)] shrink-0">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 via-orange-400 to-amber-400 text-white flex items-center justify-center shadow-xs shrink-0">
+              <Rocket className="w-4 h-4 text-white" />
+            </div>
+            <div className="leading-tight">
+              <span className="block text-xs sm:text-[13px] font-bold text-[#102A52]">
+                Kết nối tri thức với cuộc sống
+              </span>
+              <span className="block text-xs sm:text-[13px] font-extrabold text-[#176BFF] mt-0.5">
+                Lớp 6, 7, 8, 9
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -708,41 +735,49 @@ export const CoreKnowledgeView: React.FC = () => {
            4. Chương học / Chủ đề
            5. Bài học cụ thể (sắp theo sortOrder số)
            ------------------------------------------------------------ */
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-6 shadow-xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-              <div>
-                <h3 className="text-base font-bold text-[#082B52] flex items-center space-x-2">
-                  <BookOpen className="w-5 h-5 text-[#006BFF]" />
-                  <span>Bộ chọn học liệu theo cấp bậc</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Chọn lần lượt: Khối lớp → Môn học → {hasMultipleVolumes ? 'Tập 1 / Tập 2 → ' : ''}{groupLabelPrompt} → Bài học để mở nội dung.
-                </p>
+        <div className="space-y-5">
+          <div className="bg-white rounded-2xl border border-[#D4E5FA] p-5 sm:p-6 shadow-[0_8px_28px_rgba(16,42,82,0.06)] space-y-5">
+            {/* Tiêu đề bộ chọn + Đường dẫn học liệu */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[#E8F1FC] pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-b from-[#2E8BFF] to-[#0E5CE6] text-white shadow-[0_6px_14px_rgba(23,107,255,0.28)] border border-white/50 flex items-center justify-center shrink-0">
+                  <Layers className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-[#102A52]">
+                    Bộ chọn học liệu theo cấp bậc
+                  </h3>
+                  <p className="text-xs text-[#4B6487] font-medium mt-0.5">
+                    Chọn lần lượt: Khối lớp → Môn học → {hasMultipleVolumes ? 'Tập 1 / Tập 2 → ' : ''}{groupLabelPrompt} → Bài học để mở nội dung.
+                  </p>
+                </div>
               </div>
 
               {/* Đường dẫn nội dung đã chọn */}
-              <div className="px-3.5 py-2 bg-[#F3F8FF] rounded-xl border border-[#DCE8F7] text-xs font-medium text-[#082B52] max-w-xl">
-                <span className="text-slate-400 mr-1.5 font-bold uppercase text-[10px] block sm:inline">
-                  Đường dẫn:
+              <div className="px-4 py-2 bg-[#EEF6FF] rounded-full border border-[#C5DFFF] text-xs font-medium text-[#102A52] max-w-full lg:max-w-2xl shadow-2xs">
+                <span className="text-[#4B6487] mr-1.5 font-extrabold uppercase text-[11px] block sm:inline">
+                  ĐƯỜNG DẪN:
                 </span>
-                <span className="font-bold text-[#006BFF] break-words">
+                <span className="font-extrabold text-[#1463F3] break-words">
                   {currentBreadcrumb || 'Chưa chọn'}
                 </span>
               </div>
             </div>
 
             {/* Lưới 5 dropdown phụ thuộc nhau */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 text-xs">
               {/* 1. KHỐI LỚP (6, 7, 8, 9) */}
               <div className="space-y-1.5 lg:col-span-2">
-                <label className="block font-bold text-slate-700">
-                  1. Khối lớp: <span className="text-rose-500">*</span>
+                <label className="flex items-center space-x-1.5 font-extrabold text-[#102A52]">
+                  <GraduationCap className="w-4 h-4 text-[#176BFF] shrink-0" />
+                  <span>
+                    1. Khối lớp: <span className="text-rose-500">*</span>
+                  </span>
                 </label>
                 <select
                   value={selectedGrade}
                   onChange={e => handleGradeChange(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF]"
+                  className="w-full h-[43px] px-3 rounded-xl border border-[#C8DCF6] bg-[#F9FCFF] hover:border-[#7EB3FF] font-bold text-[#102A52] focus:bg-white focus:outline-hidden focus:border-[#176BFF] focus:ring-3 focus:ring-[#176BFF]/15 shadow-2xs transition-all cursor-pointer"
                 >
                   <option value="">-- Chọn Khối --</option>
                   {AVAILABLE_GRADES.map(g => (
@@ -751,19 +786,22 @@ export const CoreKnowledgeView: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-400">Chuẩn GDPT: Lớp 6–9</p>
+                <p className="text-[11px] text-[#5B7290] font-medium">Chuẩn GDPT: Lớp 6–9</p>
               </div>
 
               {/* 2. MÔN HỌC (Toán, Tin học, KHTN - Khóa nếu chưa chọn Khối) */}
               <div className="space-y-1.5 lg:col-span-2">
-                <label className="block font-bold text-slate-700">
-                  2. Môn học: <span className="text-rose-500">*</span>
+                <label className="flex items-center space-x-1.5 font-extrabold text-[#102A52]">
+                  <BookOpen className="w-4 h-4 text-[#176BFF] shrink-0" />
+                  <span>
+                    2. Môn học: <span className="text-rose-500">*</span>
+                  </span>
                 </label>
                 <select
                   value={selectedSubjectCode}
                   onChange={e => handleSubjectChange(e.target.value)}
                   disabled={!selectedGrade}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  className="w-full h-[43px] px-3 rounded-xl border border-[#C8DCF6] bg-[#F9FCFF] hover:border-[#7EB3FF] font-bold text-[#102A52] focus:bg-white focus:outline-hidden focus:border-[#176BFF] focus:ring-3 focus:ring-[#176BFF]/15 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
                 >
                   <option value="">
                     {!selectedGrade ? '-- Chọn Khối trước --' : '-- Chọn Môn học --'}
@@ -774,19 +812,22 @@ export const CoreKnowledgeView: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-400">Môn có dữ liệu thực tế</p>
+                <p className="text-[11px] text-[#5B7290] font-medium">Môn có dữ liệu thực tế</p>
               </div>
 
               {/* 3. TẬP SÁCH (Tập 1 / Tập 2 cho Toán; tự chọn cho môn 1 tập) */}
               <div className="space-y-1.5 lg:col-span-2">
-                <label className="block font-bold text-slate-700">
-                  3. Tập sách: <span className="text-rose-500">*</span>
+                <label className="flex items-center space-x-1.5 font-extrabold text-[#102A52]">
+                  <Layers className="w-4 h-4 text-[#176BFF] shrink-0" />
+                  <span>
+                    3. Tập sách: <span className="text-rose-500">*</span>
+                  </span>
                 </label>
                 <select
                   value={selectedVolume}
                   onChange={e => handleVolumeChange(e.target.value ? Number(e.target.value) : '')}
                   disabled={!selectedSubjectCode}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  className="w-full h-[43px] px-3 rounded-xl border border-[#C8DCF6] bg-[#F9FCFF] hover:border-[#7EB3FF] font-bold text-[#102A52] focus:bg-white focus:outline-hidden focus:border-[#176BFF] focus:ring-3 focus:ring-[#176BFF]/15 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
                 >
                   {!selectedSubjectCode ? (
                     <option value="">-- Chọn Môn trước --</option>
@@ -807,21 +848,24 @@ export const CoreKnowledgeView: React.FC = () => {
                     ))
                   )}
                 </select>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#5B7290] font-medium">
                   {hasMultipleVolumes ? 'Toán chia Tập 1 & Tập 2' : 'Tự chọn theo bộ sách'}
                 </p>
               </div>
 
               {/* 4. CHƯƠNG / CHỦ ĐỀ (Khóa nếu chưa chọn Môn & Tập) */}
               <div className="space-y-1.5 lg:col-span-3">
-                <label className="block font-bold text-slate-700">
-                  4. {groupLabelPrompt}: <span className="text-rose-500">*</span>
+                <label className="flex items-center space-x-1.5 font-extrabold text-[#102A52]">
+                  <Book className="w-4 h-4 text-[#176BFF] shrink-0" />
+                  <span>
+                    4. {groupLabelPrompt}: <span className="text-rose-500">*</span>
+                  </span>
                 </label>
                 <select
                   value={selectedGroupKey}
                   onChange={e => handleGroupChange(e.target.value)}
                   disabled={!selectedSubjectCode || !selectedVolume}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  className="w-full h-[43px] px-3.5 rounded-xl border border-[#C8DCF6] bg-[#F9FCFF] hover:border-[#7EB3FF] font-bold text-[#102A52] focus:bg-white focus:outline-hidden focus:border-[#176BFF] focus:ring-3 focus:ring-[#176BFF]/15 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
                 >
                   <option value="">
                     {!selectedSubjectCode
@@ -836,7 +880,7 @@ export const CoreKnowledgeView: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#5B7290] font-medium">
                   {selectedSubjectCode === 'Tin'
                     ? 'Tin học hiển thị theo Chủ đề'
                     : 'Gồm Chương, Trải nghiệm & Ôn tập'}
@@ -845,14 +889,17 @@ export const CoreKnowledgeView: React.FC = () => {
 
               {/* 5. BÀI HỌC CỤ THỂ (Khóa nếu chưa chọn Chương/Chủ đề) */}
               <div className="space-y-1.5 lg:col-span-3">
-                <label className="block font-bold text-slate-700">
-                  5. Bài học cụ thể: <span className="text-rose-500">*</span>
+                <label className="flex items-center space-x-1.5 font-extrabold text-[#102A52]">
+                  <FileText className="w-4 h-4 text-[#176BFF] shrink-0" />
+                  <span>
+                    5. Bài học cụ thể: <span className="text-rose-500">*</span>
+                  </span>
                 </label>
                 <select
                   value={selectedLessonId}
                   onChange={e => handleLessonChange(e.target.value)}
                   disabled={!selectedGroupKey}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCE8F7] bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#006BFF] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  className="w-full h-[43px] px-3.5 rounded-xl border border-[#C8DCF6] bg-[#F9FCFF] hover:border-[#7EB3FF] font-bold text-[#102A52] focus:bg-white focus:outline-hidden focus:border-[#176BFF] focus:ring-3 focus:ring-[#176BFF]/15 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
                 >
                   <option value="">
                     {!selectedGroupKey
@@ -897,200 +944,226 @@ export const CoreKnowledgeView: React.FC = () => {
                     ))
                   )}
                 </select>
-                <p className="text-[11px] text-slate-400">Gồm Bài học, Luyện tập chung, Ôn tập</p>
+                <p className="text-[11px] text-[#5B7290] font-medium">Gồm Bài học, Luyện tập chung, Ôn tập</p>
               </div>
             </div>
 
-            {/* Chi tiết bài học đã chọn & Trạng thái học liệu */}
-            {currentSelectedLesson && (
-              <div className="p-4 rounded-xl border border-[#DCE8F7] bg-[#FBFDFF] space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                        Thông tin bài học:
-                      </span>
-                      {currentSelectedLesson.volume && selectedSubjectCode === 'Toan' && (
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-[10px] font-bold border border-blue-200">
-                          Tập {currentSelectedLesson.volume}
-                        </span>
-                      )}
-                      {currentSelectedLesson.branch && (
-                        <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-md text-[10px] font-bold border border-purple-200">
-                          Nhánh {currentSelectedLesson.branch.startsWith('a') ? 'a' : 'b'}: {currentSelectedLesson.branch}
-                        </span>
-                      )}
-                      {currentSelectedLesson.groupType === 'intro' && (
-                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md text-[10px] font-bold border border-emerald-200">
-                          Phần Mở đầu
-                        </span>
-                      )}
-                      {currentSelectedLesson.itemType === 'practice' && (
-                        <span className="px-2 py-0.5 bg-sky-50 text-sky-700 rounded-md text-[10px] font-bold border border-sky-200">
-                          Luyện tập chung · Mục {currentSelectedLesson.sortOrder}
-                        </span>
-                      )}
-                      {currentSelectedLesson.itemType === 'chapter_review' && (
-                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md text-[10px] font-bold border border-indigo-200">
-                          Bài tập cuối chương
-                        </span>
-                      )}
-                      {currentSelectedLesson.itemType === 'activity' && (
-                        <span className="px-2 py-0.5 bg-teal-50 text-teal-700 rounded-md text-[10px] font-bold border border-teal-200">
-                          Hoạt động thực hành trải nghiệm
-                        </span>
-                      )}
-                      {currentSelectedLesson.itemType === 'year_review' && (
-                        <span className="px-2 py-0.5 bg-amber-50 text-amber-800 rounded-md text-[10px] font-bold border border-amber-200">
-                          Ôn tập cuối năm
-                        </span>
-                      )}
-                      <span className="text-[11px] text-slate-500">
-                        Trang SGK {currentSelectedLesson.sourcePage}
-                      </span>
+            {/* ============================================================
+                THẺ THÔNG TIN BÀI HỌC ĐÃ CHỌN (3D SUBJECT BANNER CARD)
+                ============================================================ */}
+            {currentSelectedLesson ? (
+              <div className="relative overflow-hidden rounded-2xl border border-[#BCD9FF] bg-gradient-to-r from-[#DCEEFF] via-[#EDF6FF] to-[#DFEEFF] p-4 sm:p-5 shadow-[0_6px_20px_rgba(23,107,255,0.08)]">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  {/* Cột trái + Cột giữa: Minh họa sách 3D & Thông tin bài học */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0 flex-1">
+                    {/* Cột 1: Minh họa Sách Giáo Khoa & Bộ thước 3D */}
+                    <div className="flex items-center justify-center sm:justify-start shrink-0">
+                      <SubjectBookIllustration3D
+                        subjectCode={selectedSubjectCode}
+                        grade={selectedGrade}
+                      />
                     </div>
-                    <h4 className="text-base font-bold text-[#082B52]">
-                      {currentSelectedLesson.chapterLabel} • {currentSelectedLesson.lessonLabel}
-                    </h4>
+
+                    {/* Vạch ngăn cách dọc trên màn hình lớn */}
+                    <div className="hidden sm:block w-px self-stretch my-2 bg-[#B5D3FA]/80 shrink-0" />
+
+                    {/* Cột 2: Thông tin chi tiết bài học */}
+                    <div className="space-y-2.5 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-extrabold uppercase text-[#2A476E] tracking-wide">
+                          THÔNG TIN BÀI HỌC:
+                        </span>
+                        {currentSelectedLesson.volume && selectedSubjectCode === 'Toan' && (
+                          <span className="px-3 py-0.5 bg-[#CBE3FF] text-[#0D55D4] rounded-full text-xs font-extrabold border border-[#A5CCFF]">
+                            Tập {currentSelectedLesson.volume}
+                          </span>
+                        )}
+                        {currentSelectedLesson.branch && (
+                          <span className="px-2.5 py-0.5 bg-purple-100 text-purple-800 rounded-full text-[11px] font-bold border border-purple-200">
+                            Nhánh {currentSelectedLesson.branch.startsWith('a') ? 'a' : 'b'}: {currentSelectedLesson.branch}
+                          </span>
+                        )}
+                        {currentSelectedLesson.groupType === 'intro' && (
+                          <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-bold border border-emerald-200">
+                            Phần Mở đầu
+                          </span>
+                        )}
+                        {currentSelectedLesson.itemType === 'practice' && (
+                          <span className="px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded-full text-[11px] font-bold border border-sky-200">
+                            Luyện tập chung · Mục {currentSelectedLesson.sortOrder}
+                          </span>
+                        )}
+                        {currentSelectedLesson.itemType === 'chapter_review' && (
+                          <span className="px-2.5 py-0.5 bg-indigo-100 text-indigo-800 rounded-full text-[11px] font-bold border border-indigo-200">
+                            Bài tập cuối chương
+                          </span>
+                        )}
+                        {currentSelectedLesson.itemType === 'activity' && (
+                          <span className="px-2.5 py-0.5 bg-teal-100 text-teal-800 rounded-full text-[11px] font-bold border border-teal-200">
+                            Hoạt động thực hành trải nghiệm
+                          </span>
+                        )}
+                        {currentSelectedLesson.itemType === 'year_review' && (
+                          <span className="px-2.5 py-0.5 bg-amber-100 text-amber-900 rounded-full text-[11px] font-bold border border-amber-200">
+                            Ôn tập cuối năm
+                          </span>
+                        )}
+                        <span className="text-xs font-bold text-[#2A476E]">
+                          Trang SGK {currentSelectedLesson.sourcePage}
+                        </span>
+                      </div>
+
+                      <h4 className="text-lg sm:text-[21px] font-extrabold text-[#102A52] leading-snug font-serif">
+                        {currentSelectedLesson.chapterLabel} - {currentSelectedLesson.lessonLabel}
+                      </h4>
+
+                      {/* Thanh thông báo trạng thái sẵn sàng hoặc đang cập nhật */}
+                      {currentSelectedLesson.status === 'ready' ? (
+                        <div className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white/90 border border-[#BCEAD5] text-xs font-bold text-[#0F5132] shadow-2xs">
+                          <CheckCircle2 className="w-4 h-4 text-[#16A36A] shrink-0" />
+                          <span>
+                            Bài học đã sẵn sàng. Nhấn “Bắt đầu học” để mở bài học trong khung xem độc lập.
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-amber-50/95 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start space-x-2.5">
+                          <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <div className="space-y-0.5">
+                            <span className="font-bold text-amber-900">Bài học đang được cập nhật:</span>
+                            <p className="text-[11px] text-amber-800 leading-relaxed">
+                              Tệp học liệu HTML cho bài học này đang được chuẩn bị và kiểm duyệt theo chương trình GDPT 2018. Hệ thống không mở một bài khác thay thế để đảm bảo đúng tiến trình bài giảng của học sinh.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Huy hiệu trạng thái */}
-                  <div>
+                  {/* Cột 3: Huy hiệu trạng thái + Tải phiếu bài tập + Nút "Bắt đầu học" */}
+                  <div className="flex flex-wrap sm:flex-nowrap items-center justify-end gap-2.5 sm:gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-[#C5DEFF]/70">
                     {currentSelectedLesson.status === 'ready' ? (
-                      <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-full text-xs font-extrabold shadow-2xs">
+                        <CheckCircle2 className="w-4 h-4 text-[#16A36A]" />
                         <span>Học liệu sẵn sàng</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold">
-                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                      <span className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-xs font-extrabold shadow-2xs">
+                        <Clock className="w-4 h-4 text-amber-600" />
                         <span>Bài học đang được cập nhật</span>
                       </span>
                     )}
+
+                    {worksheetsForSelectedLesson.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDownloadLessonWorksheet(
+                            currentSelectedLesson,
+                            worksheetsForSelectedLesson
+                          )
+                        }
+                        className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-extrabold transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Tải phiếu bài tập</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleStartLearning}
+                      disabled={!isReadyToStart}
+                      className="px-6 py-3 bg-gradient-to-b from-[#2E8BFF] to-[#0E5CE6] hover:from-[#1B7BFF] hover:to-[#094BC2] text-white rounded-full text-sm font-extrabold transition-all shadow-[0_6px_18px_rgba(20,99,243,0.38)] border border-white/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer"
+                    >
+                      <Play className="w-4 h-4 fill-white" />
+                      <span>Bắt đầu học</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Thông báo quy định khi bài chưa có file */}
-                {currentSelectedLesson.status !== 'ready' && (
-                  <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start space-x-2.5">
-                    <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="space-y-0.5">
-                      <span className="font-bold text-amber-900">Bài học đang được cập nhật:</span>
-                      <p className="text-[11px] text-amber-800 leading-relaxed">
-                        Tệp học liệu HTML cho bài học này đang được chuẩn bị và kiểm duyệt theo chương trình GDPT 2018. Hệ thống không mở một bài khác thay thế để đảm bảo đúng tiến trình bài giảng của học sinh.
-                      </p>
-                    </div>
-                  </div>
+                {worksheetDownloadError && (
+                  <p className="text-xs font-semibold text-rose-600 mt-2">{worksheetDownloadError}</p>
                 )}
+              </div>
+            ) : (
+              <div className="p-4 rounded-2xl border border-[#D4E5FA] bg-[#F5F9FF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <span className="text-xs font-bold text-[#4B6487]">
+                  * Hãy chọn đủ Khối lớp, Môn học, {hasMultipleVolumes ? 'Tập sách, ' : ''}{groupLabelPrompt} và Bài học để kích hoạt nút bắt đầu học.
+                </span>
+                <button
+                  type="button"
+                  disabled
+                  className="px-6 py-2.5 bg-slate-300 text-white rounded-full text-xs font-extrabold opacity-60 cursor-not-allowed flex items-center justify-center space-x-2 shrink-0"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>Bắt đầu học</span>
+                </button>
               </div>
             )}
 
-            {/* Nút hành động "Vào học" */}
-            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100">
-              <div className="text-xs text-slate-500">
-                {!selectedGrade || !selectedSubjectCode || !selectedVolume || !selectedGroupKey || !selectedLessonId ? (
-                  <span>* Hãy chọn đủ Khối lớp, Môn học, {hasMultipleVolumes ? 'Tập sách, ' : ''}{groupLabelPrompt} và Bài học để kích hoạt nút vào học.</span>
-                ) : currentSelectedLesson?.status === 'ready' ? (
-                  <span className="text-emerald-600 font-semibold flex items-center space-x-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Bài học đã sẵn sàng. Nhấn “Vào học” để mở bài học trong khung xem độc lập.</span>
-                  </span>
-                ) : (
-                  <span className="text-amber-700 font-semibold flex items-center space-x-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Bài học đang được cập nhật, nút “Vào học” sẽ tự động bật khi có tệp học liệu tương ứng.</span>
-                  </span>
-                )}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2.5">
-                {currentSelectedLesson && worksheetsForSelectedLesson.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDownloadLessonWorksheet(
-                        currentSelectedLesson,
-                        worksheetsForSelectedLesson
-                      )
-                    }
-                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Tải phiếu bài tập</span>
-                  </button>
-                )}
+            {/* ============================================================
+                THẺ BÀI HỌC VỪA MỞ GẦN ĐÂY (CONTINUE LEARNING STRIP)
+                ============================================================ */}
+            {recentView && (
+              <div className="px-4 py-3.5 sm:px-5 sm:py-3.5 bg-gradient-to-r from-[#ECF5FF] via-[#F7FBFF] to-[#EDF6FF] rounded-2xl border border-[#CEE2FA] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center space-x-3.5 min-w-0">
+                  <RecentLaptopIllustration3D />
+                  <div className="min-w-0 space-y-0.5">
+                    <span className="text-[#4B6487] font-semibold block text-[11px]">
+                      Bài học vừa mở gần đây ({formatTimeAgo(recentView.viewedAt)}):
+                    </span>
+                    <span className="font-extrabold text-[#102A52] text-sm sm:text-[15px] block truncate">
+                      {recentView.lessonTitle}
+                    </span>
+                    <span className="text-[#4B6487] text-xs font-medium block truncate">
+                      {recentView.breadcrumb}
+                    </span>
+                  </div>
+                </div>
 
                 <button
                   type="button"
-                  onClick={handleStartLearning}
-                  disabled={!isReadyToStart}
-                  className="px-6 py-2.5 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer"
+                  onClick={() => {
+                    const lesson = getCoreKnowledgeLessonById(recentView.lessonId);
+                    if (lesson && lesson.status === 'ready') {
+                      openLessonInViewer(lesson);
+                    }
+                  }}
+                  className="px-4 py-2 border border-[#ACCFF9] hover:border-[#176BFF] text-[#1463F3] bg-white hover:bg-[#EAF3FF] rounded-full font-extrabold text-xs shadow-2xs inline-flex items-center justify-center space-x-1.5 transition-all cursor-pointer shrink-0 self-start sm:self-auto"
                 >
-                  <Play className="w-4 h-4 fill-white" />
-                  <span>Vào học</span>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Mở lại bài này</span>
                 </button>
               </div>
-            </div>
-            {worksheetDownloadError && (
-              <p className="text-xs font-semibold text-rose-600">{worksheetDownloadError}</p>
             )}
           </div>
 
-          {/* Card: Lịch sử bài học vừa truy cập gần đây */}
-          {recentView && (
-            <div className="p-4 bg-white rounded-2xl border border-[#DCE8F7] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                  <Clock className="w-4 h-4" />
+          {/* ============================================================
+              KHU VỰC "BÀI HỌC TRONG CHƯƠNG" (3D LESSON LIBRARY GRID)
+              ============================================================ */}
+          <section className="bg-white rounded-2xl border border-[#D4E5FA] p-5 sm:p-6 shadow-[0_8px_28px_rgba(16,42,82,0.06)] space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8F1FC] pb-4">
+              <div className="flex items-center space-x-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-b from-[#3B9EFF] to-[#1363DF] text-white shadow-[0_6px_14px_rgba(23,107,255,0.28)] border border-white/50 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <span className="text-slate-400 font-medium block text-[11px]">
-                    Bài học vừa mở gần đây ({formatTimeAgo(recentView.viewedAt)}):
-                  </span>
-                  <span className="font-bold text-[#082B52]">
-                    {recentView.lessonTitle}
-                  </span>
-                  <span className="text-slate-500 text-[11px] block">
-                    {recentView.breadcrumb}
-                  </span>
+                <div className="space-y-0.5">
+                  <h3 className="text-lg sm:text-xl font-extrabold text-[#102A52] font-serif">
+                    Bài học trong chương
+                  </h3>
+                  <p className="text-xs sm:text-sm font-extrabold text-[#1463F3]">
+                    {currentSelectedGroup
+                      ? currentSelectedGroup.chapterLabel
+                      : `Chưa chọn ${groupLabelPrompt.toLowerCase()}`}
+                  </p>
                 </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const lesson = getCoreKnowledgeLessonById(recentView.lessonId);
-                  if (lesson && lesson.status === 'ready') {
-                    openLessonInViewer(lesson);
-                  }
-                }}
-                className="px-3.5 py-1.5 border border-[#DCE8F7] hover:border-blue-400 text-[#006BFF] bg-blue-50/50 hover:bg-blue-50 rounded-xl font-bold transition-colors cursor-pointer shrink-0"
-              >
-                Mở lại bài này
-              </button>
-            </div>
-          )}
-
-          {/* Khu vực "Bài học trong chương" (thay thế khung thông tin kỹ thuật cũ) */}
-          <section className="bg-white rounded-2xl border border-[#DCE8F7] p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
-              <div className="space-y-0.5">
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="w-5 h-5 text-[#006BFF]" />
-                  <h3 className="text-lg font-bold text-[#082B52]">Bài học trong chương</h3>
-                </div>
-                <p className="text-xs sm:text-sm font-bold text-[#006BFF]">
-                  {currentSelectedGroup
-                    ? currentSelectedGroup.chapterLabel
-                    : `Chưa chọn ${groupLabelPrompt.toLowerCase()}`}
-                </p>
               </div>
 
               {currentSelectedGroup && orderedChapterLessons.length > 3 && (
                 <button
                   type="button"
                   onClick={() => setShowAllChapterLessons(prev => !prev)}
-                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-[#DCE8F7] bg-[#F3F8FF] hover:bg-blue-100 text-[#006BFF] text-xs font-bold transition-colors cursor-pointer self-start sm:self-auto shrink-0"
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-full border border-[#BDD8FA] bg-[#F0F7FF] hover:bg-[#E1EFFF] text-[#1463F3] text-xs font-extrabold transition-all cursor-pointer self-start sm:self-auto shrink-0 shadow-2xs"
                 >
                   {showAllChapterLessons ? (
                     <>
@@ -1112,115 +1185,145 @@ export const CoreKnowledgeView: React.FC = () => {
                 Hãy chọn Khối lớp, Môn học{hasMultipleVolumes ? ', Tập sách' : ''} và {groupLabelPrompt} ở phía trên để xem danh sách bài học.
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {!hasAnyReadyLessonInChapter && (
                   <p className="text-xs sm:text-sm font-bold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
                     Chương này đang bổ sung học liệu
                   </p>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {displayedChapterLessons.map((lesson, idx) => {
                     const isReady = lesson.status === 'ready';
+                    const isCurrentlySelected = lesson.id === selectedLessonId;
 
-                    // Nền thẻ xoay vòng 3 tông: xanh dương nhạt, xanh ngọc nhạt, vàng nhạt
+                    // Nền thẻ xoay vòng 3 tông chuẩn thiết kế 3D: Xanh da trời, Xanh ngọc bạc hà, Kem vàng ấm
                     const cardToneClass =
                       idx % 3 === 0
-                        ? 'bg-[#EEF6FF] border-[#CFE3FF]'
+                        ? 'bg-gradient-to-b from-[#EDF6FF] to-[#DFEEFF] border-[#C4DFFF]'
                         : idx % 3 === 1
-                          ? 'bg-[#ECFDF5] border-[#BFEFD9]'
-                          : 'bg-[#FFFBEB] border-[#FDE68A]';
+                          ? 'bg-gradient-to-b from-[#EEFCF5] to-[#DEF7EA] border-[#BCEAD5]'
+                          : 'bg-gradient-to-b from-[#FFFBEB] to-[#FEF2CC] border-[#FCD98B]';
 
                     const iconToneClass =
                       idx % 3 === 0
-                        ? 'bg-white text-[#006BFF] border-blue-200'
+                        ? 'bg-white text-[#1463F3] border-[#B9D7FF]'
                         : idx % 3 === 1
-                          ? 'bg-white text-emerald-700 border-emerald-200'
-                          : 'bg-white text-amber-700 border-amber-200';
+                          ? 'bg-white text-[#0D9456] border-[#A7E6C9]'
+                          : 'bg-white text-[#D97706] border-[#F9D07A]';
 
                     const renderLessonTypeIcon = () => {
                       switch (lesson.itemType) {
                         case 'practice':
-                          return <ClipboardList className="w-6 h-6" />;
+                          return <ClipboardList className="w-5 h-5" />;
                         case 'chapter_review':
-                          return <Award className="w-6 h-6" />;
+                          return <Award className="w-5 h-5" />;
                         case 'activity':
-                          return <Compass className="w-6 h-6" />;
+                          return <Compass className="w-5 h-5" />;
                         case 'year_review':
-                          return <GraduationCap className="w-6 h-6" />;
+                          return <GraduationCap className="w-5 h-5" />;
                         default:
-                          return <BookOpen className="w-6 h-6" />;
+                          return <BookOpen className="w-5 h-5" />;
                       }
                     };
 
                     const getItemTypeLabel = () => {
                       switch (lesson.itemType) {
                         case 'practice':
-                          return 'Luyện tập chung';
+                          return 'LUYỆN TẬP CHUNG';
                         case 'chapter_review':
-                          return 'Bài tập cuối chương';
+                          return 'BÀI TẬP CUỐI CHƯƠNG';
                         case 'activity':
-                          return 'Thực hành trải nghiệm';
+                          return 'THỰC HÀNH TRẢI NGHIỆM';
                         case 'year_review':
-                          return 'Ôn tập cuối năm';
+                          return 'ÔN TẬP CUỐI NĂM';
                         default:
-                          return 'Bài học';
+                          return 'BÀI HỌC';
                       }
                     };
 
                     return (
                       <div
                         key={lesson.id}
-                        className={`rounded-2xl border p-4 sm:p-5 shadow-2xs flex flex-col justify-between space-y-4 transition-all hover:shadow-md ${cardToneClass}`}
+                        onClick={() => {
+                          setSelectedLessonId(lesson.id);
+                          if (isReady) {
+                            openLessonInViewer(lesson);
+                          }
+                        }}
+                        role={isReady ? 'button' : undefined}
+                        tabIndex={isReady ? 0 : undefined}
+                        onKeyDown={e => {
+                          if (isReady && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault();
+                            setSelectedLessonId(lesson.id);
+                            openLessonInViewer(lesson);
+                          }
+                        }}
+                        className={`group rounded-2xl border p-4 sm:p-5 shadow-[0_6px_18px_rgba(16,42,82,0.06)] flex flex-col justify-between transition-all duration-200 ${cardToneClass} ${
+                          isReady
+                            ? 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_14px_28px_rgba(16,42,82,0.12)]'
+                            : 'opacity-90'
+                        } ${isCurrentlySelected ? 'ring-2 ring-[#176BFF]/60' : ''}`}
                       >
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between gap-2">
+                        {/* Hàng trên: Icon loại bài + Tiêu đề + Huy hiệu trạng thái */}
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div className="flex items-start space-x-3 min-w-0">
                             <div
-                              className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${iconToneClass}`}
+                              className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${iconToneClass}`}
                             >
                               {renderLessonTypeIcon()}
                             </div>
 
-                            {isReady ? (
-                              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold shrink-0">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>Sẵn sàng</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold shrink-0">
-                                <Clock className="w-3.5 h-3.5 text-amber-700" />
-                                <span>Đang cập nhật</span>
-                              </span>
-                            )}
+                            <div className="min-w-0 space-y-0.5">
+                              <div className="text-[11px] font-extrabold text-[#3A5273] uppercase tracking-wider">
+                                {getItemTypeLabel()}
+                              </div>
+                              <h4 className="text-base sm:text-[17px] font-extrabold text-[#102A52] leading-snug line-clamp-2 group-hover:text-[#1463F3] transition-colors">
+                                {lesson.lessonLabel}
+                              </h4>
+                            </div>
                           </div>
 
-                          <div className="space-y-1">
-                            <div className="text-[11px] font-bold text-[#082B52]/70 uppercase tracking-wide">
-                              {getItemTypeLabel()}
-                            </div>
-                            <h4 className="text-sm sm:text-base font-bold text-[#082B52] leading-snug">
-                              {lesson.lessonLabel}
-                            </h4>
-                            {lesson.sourcePage ? (
-                              <p className="text-xs font-bold text-slate-600">
-                                Trang SGK {lesson.sourcePage}
-                              </p>
-                            ) : null}
-                          </div>
+                          {isReady ? (
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] text-[11px] font-extrabold shrink-0 shadow-2xs">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#16A36A]" />
+                              <span>Sẵn sàng</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-extrabold shrink-0">
+                              <Clock className="w-3.5 h-3.5 text-amber-700" />
+                              <span>Đang cập nhật</span>
+                            </span>
+                          )}
                         </div>
 
-                        <div className="pt-3 border-t border-black/5 flex items-center justify-between gap-2 mt-auto">
-                          <span className="text-[11px] font-bold text-slate-500">
-                            {isReady ? 'Học liệu HTML trực tuyến' : 'Chưa có học liệu'}
+                        {/* Khu vực minh họa 3D trung tâm theo đúng nội dung bài học */}
+                        <div className="mt-2 -mx-1">
+                          <LessonCardIllustration3D lesson={lesson} />
+                        </div>
+
+                        {/* Chân thẻ: Trang SGK & Nút mở nhanh */}
+                        <div className="pt-2.5 mt-1 border-t border-[#102A52]/8 flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-bold text-[#3A5273]">
+                            {lesson.sourcePage
+                              ? `Trang SGK ${lesson.sourcePage} · Học liệu tương tác`
+                              : isReady
+                                ? 'Học liệu HTML trực tuyến'
+                                : 'Đang bổ sung học liệu'}
                           </span>
 
                           {isReady && (
                             <button
                               type="button"
-                              onClick={() => openLessonInViewer(lesson)}
-                              className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#006BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setSelectedLessonId(lesson.id);
+                                openLessonInViewer(lesson);
+                              }}
+                              className="inline-flex items-center space-x-1 px-3.5 py-1.5 bg-gradient-to-b from-[#2E8BFF] to-[#0E5CE6] hover:from-[#1B7BFF] hover:to-[#094BC2] text-white rounded-full text-xs font-extrabold shadow-xs transition-all cursor-pointer shrink-0"
                             >
-                              <Play className="w-3.5 h-3.5 fill-white" />
+                              <Play className="w-3 h-3 fill-white" />
                               <span>Vào học</span>
                             </button>
                           )}

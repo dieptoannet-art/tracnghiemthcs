@@ -23,6 +23,7 @@ import {
   FlaskConical
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { SidebarFooterBooks3D } from './student/coreKnowledgeThumbnails';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -43,17 +44,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
 
   const navItemClass = (id: string) => {
     const isActive = currentView === id;
-    return `w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+    return `w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
       isActive
-        ? 'bg-[#1769C2] text-white shadow-xs font-semibold'
-        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+        ? 'bg-gradient-to-r from-[#2482FF] to-[#0E5CE6] text-white shadow-[0_4px_14px_rgba(23,107,255,0.45)] border border-[#76BAFF]/50 font-bold'
+        : 'text-slate-200/90 hover:bg-white/10 hover:text-white border border-transparent'
     }`;
   };
 
   const sidebarContent = (
-    <div className="w-[250px] bg-[#0F2D52] text-white flex flex-col h-full border-r border-[#1a3e6d] select-none font-serif">
+    <div className="w-[250px] bg-gradient-to-b from-[#0E2749] via-[#112D55] to-[#0D2342] text-white flex flex-col h-full border-r border-[#1a3e6d] select-none font-sans">
       {/* Scrollable menu items */}
-      <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-5">
         
         {/* Trang chủ */}
         <div>
@@ -278,10 +279,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
 
       </div>
 
-      {/* School Footer branding */}
-      <div className="p-3 bg-[#0a1e38] border-t border-[#1a3e6d] text-[11px] text-slate-400 text-center">
-        <p className="font-bold text-slate-200 tracking-wider">THCS TÂY ĐÔ</p>
-        <p className="text-[10px] text-slate-400 mt-0.5">Phiên bản 2026 · GDPT 2018</p>
+      {/* 3D Books & Graduation Cap Illustration + School Footer Branding */}
+      <div className="shrink-0 relative overflow-hidden bg-gradient-to-b from-transparent to-[#091B34]">
+        <SidebarFooterBooks3D />
+        <div className="px-3 py-2 bg-[#081A33]/90 border-t border-[#1D4477]/70 text-[11px] text-slate-300 text-center">
+          <p className="font-extrabold text-white tracking-wider">THCS TÂY ĐÔ</p>
+          <p className="text-[10px] text-blue-200/80 mt-0.5">Smart EDU · GDPT 2018</p>
+        </div>
       </div>
     </div>
   );

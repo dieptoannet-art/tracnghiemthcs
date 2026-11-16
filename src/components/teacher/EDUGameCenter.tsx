@@ -49,7 +49,6 @@ import {
 } from 'lucide-react';
 
 import { MagicLotteryGame } from './games/MagicLotteryGame';
-import { DuckRaceGame } from './games/DuckRaceGame';
 import { HorseRaceGame } from './games/HorseRaceGame';
 import { RocketGame } from './games/RocketGame';
 import { BalloonsGame } from './games/BalloonsGame';
@@ -67,6 +66,7 @@ import { PictureWordGame } from './games/PictureWordGame';
 const StudentWheel3DGame = React.lazy(() => import('./games/StudentWheel3DGame'));
 const ClawMachine3DGame = React.lazy(() => import('./games/ClawMachine3DGame'));
 const MysteryGiftBox3DGame = React.lazy(() => import('./games/MysteryGiftBox3DGame'));
+const DuckRace3DGame = React.lazy(() => import('./games/DuckRace3DGame'));
 import {
   CATEGORY_META,
   BannerGamepadSVG,
@@ -1623,7 +1623,8 @@ export const EDUGameCenter: React.FC = () => {
             (activeGame.modeKey === 'wheel' ||
               activeGame.modeKey === 'claw_machine' ||
               activeGame.modeKey === 'gift_box' ||
-              activeGame.modeKey === 'cards')
+              activeGame.modeKey === 'cards' ||
+              activeGame.modeKey === 'duck_race')
               ? 'fixed inset-0 z-50 w-screen h-dvh bg-[#050C1C] p-0 m-0 border-0 rounded-none overflow-hidden flex flex-col'
               : 'bg-white rounded-2xl border border-slate-200 shadow-md p-3 sm:p-4 space-y-3'
           }
@@ -1633,7 +1634,8 @@ export const EDUGameCenter: React.FC = () => {
             (activeGame.modeKey === 'wheel' ||
               activeGame.modeKey === 'claw_machine' ||
               activeGame.modeKey === 'gift_box' ||
-              activeGame.modeKey === 'cards')
+              activeGame.modeKey === 'cards' ||
+              activeGame.modeKey === 'duck_race')
           ) && (
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
               <div className="flex items-center gap-2.5">
@@ -1886,6 +1888,59 @@ export const EDUGameCenter: React.FC = () => {
               onPick={handleGamePickStudent}
               onUpdateLatestNote={handleUpdateLatestHistoryNote}
             />
+          ) : activeGame.modeKey === 'duck_race' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full min-h-[560px] rounded-3xl bg-[#081933] border-2 border-[#14C9E5]/50 flex flex-col items-center justify-center text-white p-8 space-y-3">
+                  <div className="w-12 h-12 rounded-full border-4 border-[#FFCC33] border-t-transparent animate-spin" />
+                  <p className="text-base font-extrabold text-[#FFCC33]">
+                    Đang khởi tạo Đường Đua Vịt 3D Premium (WebGL Aquatic Arena)...
+                  </p>
+                </div>
+              }
+            >
+              <DuckRace3DGame
+                availableCandidates={availableCandidates}
+                allCandidates={currentCandidates}
+                absentIds={absentIds}
+                calledSessionIds={calledSessionIds}
+                antiDuplicate={antiDuplicate}
+                onToggleAntiDuplicate={() => setAntiDuplicate(!antiDuplicate)}
+                onResetSession={handleResetActiveSession}
+                onRestoreStudentToPool={handleRestoreStudentToPool}
+                classes={effectiveClasses}
+                selectedSourceKey={effectiveSourceKey}
+                onSelectSourceKey={handleSelectEffectiveSourceKey}
+                resolvedClassName={resolvedClassName}
+                teacherId={teacherId}
+                teacherName={userProfile?.fullName || (rosterMode === 'guest' ? 'Khách' : 'Giáo viên')}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.();
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.();
+                    setIsFullscreen(false);
+                  }
+                }}
+                onCloseGame={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(!isMuted)}
+                onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+                onOpenHistoryModal={() => setShowHistoryModal(true)}
+                onPick={handleGamePickStudent}
+                onUpdateLatestNote={handleUpdateLatestHistoryNote}
+              />
+            </React.Suspense>
           ) : activeGame.modeKey === 'balloons' ? (
             <BalloonsGame
               availableCandidates={availableCandidates}
@@ -2315,8 +2370,6 @@ export const EDUGameCenter: React.FC = () => {
                 </div>
               ) : activeGame.modeKey === 'cards' ? (
                 <MagicLotteryGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
-              ) : activeGame.modeKey === 'duck_race' ? (
-                <DuckRaceGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
               ) : activeGame.modeKey === 'horse_race' ? (
                 <HorseRaceGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
               ) : activeGame.modeKey === 'rocket' ? (

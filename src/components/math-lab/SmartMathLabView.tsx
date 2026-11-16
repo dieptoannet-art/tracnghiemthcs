@@ -10,11 +10,16 @@ import {
   Download,
   Filter,
   FlaskConical,
+  GitFork,
   Grid,
+  Hash,
+  Move,
   PenTool,
   PieChart,
   Play,
+  Ruler,
   Scale,
+  Scaling,
   Search,
   ShieldCheck,
   Sparkles,
@@ -64,6 +69,11 @@ import {
   M11SpeedMathArenaTool,
   M12InteractiveMathBoardTool,
 } from './tools/ProbStatsArenaBoardTools';
+import { M13NumberTheoryTool } from './tools/M13NumberTheoryTool';
+import { M14TransformationTool } from './tools/M14TransformationTool';
+import { M15PythagoreanTool } from './tools/M15PythagoreanTool';
+import { M16SimilarityTool } from './tools/M16SimilarityTool';
+import { M17CountingTreeTool } from './tools/M17CountingTreeTool';
 
 const TOOL_ICON_MAP: Record<MathToolId, React.ReactNode> = {
   M01: <Compass className="w-5 h-5" />,
@@ -78,6 +88,11 @@ const TOOL_ICON_MAP: Record<MathToolId, React.ReactNode> = {
   M10: <Triangle className="w-5 h-5" />,
   M11: <Swords className="w-5 h-5" />,
   M12: <PenTool className="w-5 h-5" />,
+  M13: <Hash className="w-5 h-5" />,
+  M14: <Move className="w-5 h-5" />,
+  M15: <Ruler className="w-5 h-5" />,
+  M16: <Scaling className="w-5 h-5" />,
+  M17: <GitFork className="w-5 h-5" />,
 };
 
 const STRAND_GRADIENT_MAP: Record<MathKnowledgeStrand, string> = {
@@ -251,6 +266,11 @@ export const SmartMathLabView: React.FC = () => {
           {selectedToolId === 'M10' && <M10PythagoreTrigTool {...commonProps} />}
           {selectedToolId === 'M11' && <M11SpeedMathArenaTool {...commonProps} />}
           {selectedToolId === 'M12' && <M12InteractiveMathBoardTool {...commonProps} />}
+          {selectedToolId === 'M13' && <M13NumberTheoryTool {...commonProps} />}
+          {selectedToolId === 'M14' && <M14TransformationTool {...commonProps} />}
+          {selectedToolId === 'M15' && <M15PythagoreanTool {...commonProps} />}
+          {selectedToolId === 'M16' && <M16SimilarityTool {...commonProps} />}
+          {selectedToolId === 'M17' && <M17CountingTreeTool {...commonProps} />}
         </MathLabErrorBoundary>
       </MathToolShell>
     );
@@ -276,8 +296,12 @@ export const SmartMathLabView: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
             <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15 text-center">
-              <div className="text-2xl font-extrabold text-amber-400">12</div>
-              <div className="text-[11px] text-teal-100 font-semibold">Công cụ M01–M12</div>
+              <div className="text-2xl font-extrabold text-amber-400">
+                {SMART_MATH_LAB_REGISTRY.length}
+              </div>
+              <div className="text-[11px] text-teal-100 font-semibold">
+                Phòng M01–M{SMART_MATH_LAB_REGISTRY.length}
+              </div>
             </div>
             <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15 text-center">
               <div className="text-2xl font-extrabold text-emerald-400">4 Khối</div>
@@ -404,7 +428,7 @@ export const SmartMathLabView: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm mã M01..M12, Pythagore, Parabol, Xác suất..."
+              placeholder="Tìm mã M01..M17, Số nguyên tố, Quy tắc đếm, Thalès, Pythagore..."
               className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-teal-600"
             />
           </div>
@@ -630,6 +654,11 @@ export const SmartMathLabView: React.FC = () => {
                 '6. Hình học không gian 3D (7 khối chuẩn GDPT 2018 & chặn trải phẳng mặt cầu theo định lý Gauss)',
                 '7. Kiểm định Tương đương Đa thức đa điểm (Không dùng so khớp chuỗi thô)',
                 '8. Hình học phẳng động 2D (Độ dài, góc nội tiếp, diện tích đa giác & tổng 3 góc tam giác = 180°)',
+                '9. M13 Số học & Số nguyên tố (Sàng Eratosthenes N=100 → 25 số nguyên tố, prime(0/1/2/97/100), factor(60), gcd(24,36), lcm(12,18), gcd(0,5), lcm(0,5), gcd(0,0) UNDEFINED)',
+                '10. M14 Phép biến hình (Tịnh tiến, Đối xứng Ox/Oy/O/đường thẳng bất kỳ, Quay 90°/360°, Xử lý đường suy biến, Bảo toàn khoảng cách & Phép vị tự k = -2)',
+                '11. M15 Định lý Pythagore (Bộ ba 3-4-5, 5-12-13, 6-8-10, 3²+4²=5², Định lý đảo 2-3-4, Chặn a=0/b=0/c<a, Ghép mảnh Perigal & (a+b)² bảo toàn diện tích)',
+                '12. M16 Đồng dạng & Tỉ lệ (Định lý Thalès, Thalès đảo, Đường trung bình, Tam giác đồng dạng C.C.C/C.G.C/G.G, Đường phân giác & Đo gián tiếp bóng nắng)',
+                '13. M17 Quy tắc đếm & Sơ đồ cây (Sơ đồ cây Ω, Lập số có/không lặp, Quy tắc cộng/nhân, Hoán vị/Chỉnh hợp/Tổ hợp C(n,k) & Chặn tràn số)',
               ].map((label, idx) => (
                 <div
                   key={idx}
