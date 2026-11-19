@@ -19,7 +19,8 @@ export type MathToolId =
   | 'M14'
   | 'M15'
   | 'M16'
-  | 'M17';
+  | 'M17'
+  | 'M18';
 
 export type MathKnowledgeStrand =
   | 'geometry_measurement' // Hình học và Đo lường

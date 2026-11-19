@@ -28,6 +28,12 @@ import {
   LectureHeroIllustration3D,
   LectureCardThumbnail3D
 } from './teacherLectureThumbnails';
+import {
+  Toan9Lessons1To5View,
+  Toan9LessonId,
+  TOAN9_INTEGRATED_LESSON_IDS
+} from '../grade9/Toan9Lessons1To5View';
+import { useApp } from '../../context/AppContext';
 
 export interface LectureItem {
   id: string;
@@ -127,6 +133,9 @@ function sortLectureItems(items: LectureItem[]): LectureItem[] {
 }
 
 export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverride }) => {
+  const { currentRole, authenticatedProdUser } = useApp();
+  const isAuthenticatedStudent = Boolean(authenticatedProdUser && currentRole === 'student');
+
   const lectures = useMemo(
     () => sortLectureItems((catalogOverride || teacherLecturesData) as LectureItem[]),
     [catalogOverride]
@@ -144,6 +153,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
   // Active presentation state
   const [selectedLecture, setSelectedLecture] = useState<LectureItem | null>(null);
+  const [requestedLessonRole, setRequestedLessonRole] = useState<'student' | 'teacher' | null>(null);
   const [fontSizePercent, setFontSizePercent] = useState<number>(100);
   const [solutionsExpanded, setSolutionsExpanded] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -159,6 +169,73 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
 
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Sync URL query parameters on mount (?view=teacher_lectures&lecture=toan_9_c1_b1&mode=student)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const lectureParam = params.get('lecture') || params.get('lesson');
+    const modeParam = params.get('mode');
+    const gradeParam = params.get('grade');
+    const subjectParam = params.get('subject');
+    const chapterParam = params.get('chapter');
+
+    if (modeParam === 'student' || modeParam === 'teacher') {
+      setRequestedLessonRole(modeParam);
+    }
+
+    if (lectureParam) {
+      const target = lectures.find(
+        (l) => l.id === lectureParam || l.lectureId === lectureParam
+      );
+      if (target) {
+        setSelectedGrade(String(target.grade));
+        setSelectedSubject(target.subjectCode);
+        if (target.volume != null) setSelectedVolume(String(target.volume));
+        setSelectedChapter(getChapterKey(target));
+        setSelectedLessonId(target.id);
+        setSelectedLecture(target);
+        return;
+      }
+    }
+
+    if (gradeParam) setSelectedGrade(gradeParam);
+    if (subjectParam) setSelectedSubject(subjectParam);
+    if (chapterParam) setSelectedChapter(chapterParam);
+  }, [lectures]);
+
+  // Keep URL query param updated when opening/closing a lecture
+  const openLectureItem = (item: LectureItem | null, roleOverride?: 'student' | 'teacher') => {
+    if (roleOverride) {
+      setRequestedLessonRole(roleOverride);
+    }
+    setSelectedLecture(item);
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', 'teacher_lectures');
+        if (item) {
+          url.searchParams.set('lecture', item.id);
+          const effectiveMode =
+            isAuthenticatedStudent || currentRole === 'student'
+              ? 'student'
+              : roleOverride || requestedLessonRole || undefined;
+          if (effectiveMode === 'student') {
+            url.searchParams.set('mode', 'student');
+          } else {
+            url.searchParams.delete('mode');
+          }
+        } else {
+          url.searchParams.delete('lecture');
+          url.searchParams.delete('lesson');
+          url.searchParams.delete('mode');
+        }
+        window.history.replaceState({}, '', `${url.pathname}${url.search}`);
+      } catch {
+        // ignore URL update errors
+      }
+    }
+  };
 
   // 1. Available Grades
   const availableGrades = useMemo(() => {
@@ -669,8 +746,35 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
   };
 
   // -------------------------------------------------------------
-  // VIEW: PRESENTATION MODE (Trình chiếu giảng dạy)
+  // VIEW: PRESENTATION MODE (Trình chiếu giảng dạy & Học sinh tự học 3D Toán 9 Bài 1–5)
   // -------------------------------------------------------------
+  if (selectedLecture && TOAN9_INTEGRATED_LESSON_IDS.has(selectedLecture.id)) {
+    const resolvedInitialRole: 'student' | 'teacher' =
+      isAuthenticatedStudent || currentRole === 'student' || requestedLessonRole === 'student'
+        ? 'student'
+        : 'teacher';
+
+    return (
+      <Toan9Lessons1To5View
+        lessonId={selectedLecture.id as Toan9LessonId}
+        initialRole={resolvedInitialRole}
+        allowTeacherMode={!isAuthenticatedStudent}
+        onBackToCatalog={() => openLectureItem(null)}
+        onSelectLesson={(nextLessonId) => {
+          const nextItem = lectures.find((l) => l.id === nextLessonId);
+          if (nextItem) {
+            setSelectedGrade(String(nextItem.grade));
+            setSelectedSubject(nextItem.subjectCode);
+            if (nextItem.volume != null) setSelectedVolume(String(nextItem.volume));
+            setSelectedChapter(getChapterKey(nextItem));
+            setSelectedLessonId(nextItem.id);
+            openLectureItem(nextItem);
+          }
+        }}
+      />
+    );
+  }
+
   if (selectedLecture) {
     return (
       <div
@@ -684,7 +788,7 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
           {/* Left: Back & Title */}
           <div className="flex items-center space-x-3 min-w-0">
             <button
-              onClick={() => setSelectedLecture(null)}
+              onClick={() => openLectureItem(null)}
               className="flex items-center space-x-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0 cursor-pointer"
               title="Quay lại danh sách bài giảng"
             >
@@ -935,6 +1039,77 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
           <div className="hidden md:flex items-center justify-end shrink-0 -my-1">
             <LectureHeroIllustration3D />
           </div>
+        </div>
+      </section>
+
+      {/* Quick-Launch Spotlight for Toán 9 (Chương I: Bài 1, 2, 3 • Chương II: Bài 4, 5) */}
+      <section className="rounded-[20px] border-2 border-[#B7D9C2] bg-gradient-to-r from-[#ECF8EE] via-[#F7FBF8] to-[#FFF6E5] px-4 py-3.5 sm:px-6 sm:py-4 shadow-xs space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#195E3E] text-white text-[11px] font-extrabold">
+              <Presentation className="w-3.5 h-3.5 text-amber-300" />
+              <span>BÀI GIẢNG → TOÁN → LỚP 9 • STUDIO 3D KÉP (HỌC SINH TỰ HỌC &amp; GIÁO VIÊN GIẢNG DẠY)</span>
+            </div>
+            <h2 className="text-sm sm:text-base font-extrabold text-[#102A52]">
+              Toán 9 (Tập 1) — Chương I (Bài 1, Bài 2, Bài 3) &amp; Chương II (Bài 4, Bài 5)
+            </h2>
+            <p className="text-xs text-[#526581] font-medium">
+              Tích hợp đầy đủ chế độ Học sinh tự học và Giáo viên giảng dạy, trình chiếu từng bước, ghi chú sư phạm riêng và chia sẻ liên kết cho học sinh đúng phân quyền.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedGrade('9');
+              setSelectedSubject('toan');
+              setSelectedVolume('1');
+              setSelectedChapter('all');
+              setSelectedLessonId('all');
+            }}
+            className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-white border border-[#96C7A8] hover:bg-[#ECF8EE] text-[#155234] text-xs font-extrabold shadow-2xs flex items-center gap-1.5 shrink-0 cursor-pointer self-start lg:self-center"
+          >
+            <Layers className="w-3.5 h-3.5 text-[#195E3E]" />
+            <span>Lọc nhanh: Toán → Lớp 9</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+          {[
+            { id: 'toan_9_c1_b1', chap: 'Chương I', code: 'Bài 1', title: 'Khái niệm PT & hệ hai PT bậc nhất hai ẩn' },
+            { id: 'toan_9_c1_b2', chap: 'Chương I', code: 'Bài 2', title: 'Giải hệ hai PT bậc nhất hai ẩn' },
+            { id: 'toan_9_c1_b3', chap: 'Chương I', code: 'Bài 3', title: 'Giải bài toán bằng cách lập hệ PT' },
+            { id: 'toan_9_c2_b4', chap: 'Chương II', code: 'Bài 4', title: 'Phương trình quy về PT bậc nhất một ẩn' },
+            { id: 'toan_9_c2_b5', chap: 'Chương II', code: 'Bài 5', title: 'Bất đẳng thức và tính chất' }
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                const target = lectures.find((l) => l.id === item.id);
+                if (target) {
+                  setSelectedGrade('9');
+                  setSelectedSubject('toan');
+                  setSelectedVolume('1');
+                  setSelectedChapter(getChapterKey(target));
+                  setSelectedLessonId(target.id);
+                  openLectureItem(target);
+                }
+              }}
+              className="text-left p-2.5 rounded-xl bg-white/95 hover:bg-white border border-[#C6E0CE] hover:border-[#1E6A43] shadow-2xs transition-all cursor-pointer group flex flex-col justify-between gap-1.5"
+            >
+              <div className="flex items-center justify-between gap-1">
+                <span className="px-2 py-0.5 rounded-md bg-[#E7F3EC] text-[#155234] text-[10px] font-extrabold">
+                  {item.chap} • {item.code}
+                </span>
+                <span className="text-[10px] font-bold text-[#B85D0A] group-hover:translate-x-0.5 transition-transform">
+                  Mở 3D →
+                </span>
+              </div>
+              <div className="text-xs font-extrabold text-[#102A52] line-clamp-2 leading-snug">
+                {item.title}
+              </div>
+            </button>
+          ))}
         </div>
       </section>
 
@@ -1348,17 +1523,32 @@ export const TeacherLectures: React.FC<TeacherLecturesProps> = ({ catalogOverrid
                         <ExternalLink className="w-4 h-4" aria-hidden="true" />
                       </button>
 
+                      {TOAN9_INTEGRATED_LESSON_IDS.has(item.id) && !isAuthenticatedStudent && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            openLectureItem(item, 'student');
+                            setVerification({ status: 'checking', message: 'Đang chuẩn bị học liệu...' });
+                            setSolutionsExpanded(false);
+                          }}
+                          title="Mở bài học ở chế độ Học sinh tự học 3D"
+                          className="min-h-[44px] px-3 py-2 bg-[#E8F5EE] hover:bg-[#D5EDE0] text-[#155234] border border-[#96C7A8] text-xs font-extrabold rounded-xl transition-all inline-flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer"
+                        >
+                          <span>Tự học 3D</span>
+                        </button>
+                      )}
+
                       <button
                         type="button"
                         onClick={() => {
-                          setSelectedLecture(item);
+                          openLectureItem(item, isAuthenticatedStudent ? 'student' : 'teacher');
                           setVerification({ status: 'checking', message: 'Đang chuẩn bị học liệu...' });
                           setSolutionsExpanded(false);
                         }}
                         className="min-h-[44px] px-4 py-2 bg-[#0866FF] hover:bg-[#0055E0] text-white text-xs sm:text-[13px] font-bold rounded-xl shadow-[0_6px_16px_rgba(8,102,255,0.24)] transition-all inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0866FF] focus-visible:ring-offset-1"
                       >
                         <Presentation className="w-4 h-4 shrink-0" aria-hidden="true" />
-                        <span>Mở bài giảng</span>
+                        <span>{isAuthenticatedStudent ? 'Vào tự học' : 'Mở bài giảng'}</span>
                       </button>
                     </div>
                   </div>

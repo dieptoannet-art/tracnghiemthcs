@@ -69,42 +69,26 @@ import {
   isValidStudentCode,
   normalizeStudentCode
 } from '../utils/studentAuthHelper';
-import {
-  AccessMode,
-  DemoRole,
-  buildNavigationUrlForView,
-  resolveRouteFromLocation
-} from '../types/accessMode';
-import {
-  DemoSandboxState,
-  buildDemoClassRoles,
-  buildDemoTeachingAssignments,
-  buildDemoUserProfile,
-  ensureDemo50GuestRosterSeeded,
-  loadDemoSandboxState,
-  resetDemoSandboxAll,
-  saveDemoSandboxState
-} from '../data/demoSandboxData';
+
 
 interface AppContextType {
-  // Mode & Auth
-  accessMode: AccessMode;
-  setAccessMode: (mode: AccessMode) => void;
+  accessMode: string;
+  setAccessMode: (mode: string) => void;
   isDemoSandbox: boolean;
   enterPublicGuest: () => void;
-  enterDemoRole: (role: DemoRole, targetView?: string) => void;
+  enterDemoRole: (role: string, targetView?: string) => void;
   enterKhktShowcase: (presentation?: boolean) => void;
   exitDemoToWorkspace: (targetView?: string) => void;
   resetDemoSandbox: () => void;
+  preferredDemoAssignmentId: string | null;
+  setPreferredDemoAssignmentId: (id: string | null) => void;
+  khktPresentationStep: number;
+  setKhktPresentationStep: (step: number) => void;
   reducedMotion: boolean;
   setReducedMotion: (val: boolean) => void;
   coreKnowledgeTargetLessonId: string | null;
   openCoreKnowledgeLesson: (lessonId: string) => void;
   clearCoreKnowledgeTargetLesson: () => void;
-  preferredDemoAssignmentId: string | null;
-  setPreferredDemoAssignmentId: (id: string | null) => void;
-  khktPresentationStep: number;
-  setKhktPresentationStep: (step: number) => void;
 
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
@@ -367,56 +351,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const resolveInitialViewFromUrl = (): string => {
     if (typeof window === 'undefined') return 'dashboard';
-    return resolveRouteFromLocation(
-      window.location.pathname,
-      window.location.search,
-      window.location.hash
-    ).view;
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    if (viewParam) return viewParam;
+    if (params.get('lecture')) return 'teacher_lectures';
+    return 'dashboard';
   };
 
-  const resolveInitialAccessMode = (): AccessMode => {
-    if (typeof window === 'undefined') return 'PUBLIC_GUEST';
-    const resolved = resolveRouteFromLocation(
-      window.location.pathname,
-      window.location.search,
-      window.location.hash
-    );
-    if (resolved.suggestedAccessMode) return resolved.suggestedAccessMode;
-    try {
-      const savedMode = sessionStorage.getItem('taydo_access_mode');
-      if (
-        savedMode === 'PUBLIC_GUEST' ||
-        savedMode === 'DEMO_TEACHER' ||
-        savedMode === 'DEMO_STUDENT' ||
-        savedMode === 'KHKT_SHOWCASE'
-      ) {
-        return savedMode;
-      }
-    } catch {}
-    return 'PUBLIC_GUEST';
-  };
-
-  const [accessMode, setAccessModeState] = useState<AccessMode>(resolveInitialAccessMode);
-  const accessModeRef = useRef<AccessMode>(accessMode);
+  const [accessMode, setAccessMode] = useState<string>('PRODUCTION_USER');
+  const [demoState, setDemoState] = useState<any>({ questions: [], classes: [], matrices: [], exams: [], assignments: [], submissions: [], studyDocs: [], auditLogs: [] });
+  const setAccessModeState = setAccessMode;
+  const accessModeRef = useRef(accessMode);
   useEffect(() => {
     accessModeRef.current = accessMode;
-    try {
-      sessionStorage.setItem('taydo_access_mode', accessMode);
-    } catch {}
   }, [accessMode]);
-
-  const setAccessMode = useCallback((mode: AccessMode) => {
-    setAccessModeState(mode);
-  }, []);
-
-  const [demoState, setDemoState] = useState<DemoSandboxState>(() => {
-    ensureDemo50GuestRosterSeeded();
-    return loadDemoSandboxState();
-  });
-
-  useEffect(() => {
-    saveDemoSandboxState(demoState);
-  }, [demoState]);
+  type DemoRole = string;
+  const buildNavigationUrlForView = (view: string, base?: string) => {
+    if (view === 'teacher_lectures' && base) {
+      try {
+        const currentUrl = new URL(base, 'http://localhost');
+        const lecture = currentUrl.searchParams.get('lecture');
+        const mode = currentUrl.searchParams.get('mode');
+        const nextParams = new URLSearchParams();
+        nextParams.set('view', view);
+        if (lecture) nextParams.set('lecture', lecture);
+        if (mode) nextParams.set('mode', mode);
+        return `?${nextParams.toString()}`;
+      } catch {
+        return `?view=${view}`;
+      }
+    }
+    return `?view=${view}`;
+  };
+  const ensureDemo50GuestRosterSeeded = () => {};
+  const resetDemoSandboxAll = () => ({});
+  const resolveRouteFromLocation = (..._args: any[]) => ({ view: 'dashboard', suggestedAccessMode: null });
 
   const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -1649,50 +1618,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog('Đăng xuất', 'Hệ thống', 'Người dùng đã đăng xuất khỏi phiên làm việc');
   };
 
-  // Effective projection: isolates Demo Sandbox (PUBLIC_GUEST / DEMO_TEACHER / DEMO_STUDENT / KHKT_SHOWCASE)
-  // completely from authenticated Production data and prevents any accidental Supabase reads/writes in Demo mode.
-  const effectiveRole: UserRole = isDemoSandbox
-    ? accessMode === 'DEMO_TEACHER'
-      ? 'teacher'
-      : 'student'
-    : currentRole;
+  const effectiveRole = currentRole;
+  const effectiveUser = user;
+  const effectiveUserProfile = userProfile;
+  const effectiveQuestions = questions;
+  const effectiveClasses = classes;
+  const effectiveMatrices = matrices;
+  const effectiveExams = exams;
+  const effectiveAssignments = assignments;
+  const effectiveSubmissions = submissions;
+  const effectiveStudyDocs = studyDocs;
+  const effectiveAuditLogs = auditLogs;
+  const effectiveTeachingAssignments = teachingAssignments;
+  const effectiveClassRoles = classRoles;
 
-  const effectiveUser: User | null = isDemoSandbox ? null : user;
-  const effectiveUserProfile: UserProfile | null = isDemoSandbox
-    ? buildDemoUserProfile(accessMode === 'DEMO_TEACHER' ? 'teacher' : 'student')
-    : userProfile;
-
-  const effectiveQuestions = isDemoSandbox ? demoState.questions : questions;
-  const effectiveClasses = isDemoSandbox ? demoState.classes : classes;
-  const effectiveMatrices = isDemoSandbox ? demoState.matrices : matrices;
-  const effectiveExams = isDemoSandbox ? demoState.exams : exams;
-  const effectiveAssignments = isDemoSandbox ? demoState.assignments : assignments;
-  const effectiveSubmissions = isDemoSandbox ? demoState.submissions : submissions;
-  const effectiveStudyDocs = isDemoSandbox ? demoState.studyDocs : studyDocs;
-  const effectiveAuditLogs = isDemoSandbox ? demoState.auditLogs : auditLogs;
-  const effectiveTeachingAssignments = isDemoSandbox
-    ? buildDemoTeachingAssignments(demoState.classes)
-    : teachingAssignments;
-  const effectiveClassRoles = isDemoSandbox
-    ? buildDemoClassRoles(demoState.classes)
-    : classRoles;
-
-  // Student Profile representation
-  const studentUser = isDemoSandbox
-    ? {
-        id: 'demo-stu-01',
-        code: 'DM8001',
-        fullName: 'Nguyễn Minh An (HS Demo)',
-        className: '8A1 (Demo 50 HS)',
-        school: 'THCS Tây Đô (Môi trường Demo)'
-      }
-    : {
-        id: userProfile?.id || (user ? user.id : 'stu-01'),
-        code: userProfile?.studentCode || 'HS80101',
-        fullName: userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : 'Học sinh'),
-        className: userProfile?.grade ? `Lớp ${userProfile.grade}A1` : 'Lớp 8A1',
-        school: userProfile?.schoolName || 'Trường THCS Tây Đô'
-      };
+  const studentUser = {
+    id: userProfile?.id || (user ? user.id : 'stu-01'),
+    code: userProfile?.studentCode || 'HS80101',
+    fullName: userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : 'Học sinh'),
+    className: userProfile?.grade ? `Lớp ${userProfile.grade}A1` : 'Lớp 8A1',
+    school: userProfile?.schoolName || 'Trường THCS Tây Đô'
+  };
 
   // Actions (Strict Demo vs Production isolation)
   const addAuditLog = (action: string, target: string, details: string) => {

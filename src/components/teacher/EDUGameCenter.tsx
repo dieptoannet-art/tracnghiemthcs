@@ -62,6 +62,12 @@ import { CrosswordGame } from './games/CrosswordGame';
 import { SecretCodeGame } from './games/SecretCodeGame';
 import { TrueFalseGame } from './games/TrueFalseGame';
 import { PictureWordGame } from './games/PictureWordGame';
+import { KnowledgePairMatchGame } from './games/KnowledgePairMatchGame';
+import { KeywordQuestGame } from './games/KeywordQuestGame';
+import { MysteryDoors3DGame } from './games/MysteryDoors3DGame';
+import { Millionaire3DGame } from './games/Millionaire3DGame';
+import { GoldenBell3DGame } from './games/GoldenBell3DGame';
+import { KnowledgeCrossword3DGame } from './games/KnowledgeCrossword3DGame';
 
 const StudentWheel3DGame = React.lazy(() => import('./games/StudentWheel3DGame'));
 const ClawMachine3DGame = React.lazy(() => import('./games/ClawMachine3DGame'));
@@ -69,6 +75,7 @@ const MysteryGiftBox3DGame = React.lazy(() => import('./games/MysteryGiftBox3DGa
 const DuckRace3DGame = React.lazy(() => import('./games/DuckRace3DGame'));
 const HorseRace3DGame = React.lazy(() => import('./games/HorseRace3DGame'));
 const SpaceRocket3DGame = React.lazy(() => import('./games/SpaceRocket3DGame'));
+const MountainClimb3DGame = React.lazy(() => import('./games/MountainClimb3DGame'));
 import {
   CATEGORY_META,
   BannerGamepadSVG,
@@ -387,8 +394,20 @@ export const EDUGameCenter: React.FC = () => {
   const handleLaunchGameRequest = (game: EduGameItem) => {
     if (!game.isReady) {
       alert(
-        `Trò chơi "${game.title}" (${game.code}) đang trong quá trình phát triển. Vui lòng trải nghiệm các trò chơi Nhóm A (A01–A12) và Nhóm B (B01–B06) đã sẵn sàng!`
+        `Trò chơi "${game.title}" (${game.code}) đang trong quá trình phát triển. Vui lòng trải nghiệm các trò chơi Nhóm A (A01–A12) và Nhóm B đã sẵn sàng!`
       );
+      return;
+    }
+    if (
+      game.modeKey === 'secret_doors' ||
+      game.modeKey === 'match_pairs' ||
+      game.modeKey === 'word_search' ||
+      game.modeKey === 'millionaire' ||
+      game.modeKey === 'golden_bell' ||
+      game.modeKey === 'crossword_pro' ||
+      game.modeKey === 'mountain_climb'
+    ) {
+      setActiveGame(game);
       return;
     }
     if (rosterMode === 'guest' && (guestSession.students.length === 0 || !guestSession.shareAcrossGames)) {
@@ -1628,7 +1647,8 @@ export const EDUGameCenter: React.FC = () => {
               activeGame.modeKey === 'cards' ||
               activeGame.modeKey === 'duck_race' ||
               activeGame.modeKey === 'horse_race' ||
-              activeGame.modeKey === 'rocket')
+              activeGame.modeKey === 'rocket' ||
+              activeGame.modeKey === 'mountain_climb')
               ? 'fixed inset-0 z-50 w-screen h-dvh bg-[#050C1C] p-0 m-0 border-0 rounded-none overflow-hidden flex flex-col'
               : 'bg-white rounded-2xl border border-slate-200 shadow-md p-3 sm:p-4 space-y-3'
           }
@@ -1641,7 +1661,8 @@ export const EDUGameCenter: React.FC = () => {
               activeGame.modeKey === 'cards' ||
               activeGame.modeKey === 'duck_race' ||
               activeGame.modeKey === 'horse_race' ||
-              activeGame.modeKey === 'rocket')
+              activeGame.modeKey === 'rocket' ||
+              activeGame.modeKey === 'mountain_climb')
           ) && (
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
               <div className="flex items-center gap-2.5">
@@ -2399,6 +2420,278 @@ export const EDUGameCenter: React.FC = () => {
               onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
               onOpenHistoryModal={() => setShowHistoryModal(true)}
             />
+          ) : activeGame.modeKey === 'match_pairs' ? (
+            <KnowledgePairMatchGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onCloseGame={() => {
+                if (isFullscreen) {
+                  document.exitFullscreen?.().catch(() => {});
+                  setIsFullscreen(false);
+                }
+                setActiveGame(null);
+              }}
+            />
+          ) : activeGame.modeKey === 'word_search' ? (
+            <KeywordQuestGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onCloseGame={() => {
+                if (isFullscreen) {
+                  document.exitFullscreen?.().catch(() => {});
+                  setIsFullscreen(false);
+                }
+                setActiveGame(null);
+              }}
+            />
+          ) : activeGame.modeKey === 'secret_doors' ? (
+            <MysteryDoors3DGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onPick={handleGamePickStudent}
+              onCloseGame={() => {
+                if (isFullscreen) {
+                  document.exitFullscreen?.().catch(() => {});
+                  setIsFullscreen(false);
+                }
+                setActiveGame(null);
+              }}
+            />
+          ) : activeGame.modeKey === 'millionaire' ? (
+            <Millionaire3DGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onPick={handleGamePickStudent}
+              onCloseGame={() => {
+                if (isFullscreen) {
+                  document.exitFullscreen?.().catch(() => {});
+                  setIsFullscreen(false);
+                }
+                setActiveGame(null);
+              }}
+            />
+          ) : activeGame.modeKey === 'golden_bell' ? (
+            <GoldenBell3DGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onPick={handleGamePickStudent}
+              onCloseGame={() => {
+                if (isFullscreen) {
+                  document.exitFullscreen?.().catch(() => {});
+                  setIsFullscreen(false);
+                }
+                setActiveGame(null);
+              }}
+            />
+          ) : activeGame.modeKey === 'crossword_pro' ? (
+            <KnowledgeCrossword3DGame
+              availableCandidates={availableCandidates}
+              allCandidates={currentCandidates}
+              absentIds={absentIds}
+              classes={effectiveClasses}
+              questions={questions}
+              selectedSourceKey={effectiveSourceKey}
+              onSelectSourceKey={handleSelectEffectiveSourceKey}
+              resolvedClassName={resolvedClassName}
+              teacherId={teacherId}
+              teacherName={userProfile?.fullName || 'Giáo viên'}
+              userRole={currentRole}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => {
+                if (!stageContainerRef.current) return;
+                if (!isFullscreen) {
+                  stageContainerRef.current.requestFullscreen?.();
+                  setIsFullscreen(true);
+                } else {
+                  document.exitFullscreen?.();
+                  setIsFullscreen(false);
+                }
+              }}
+              isMuted={isMuted}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onOpenAbsentModal={() => (rosterMode === 'guest' ? setShowRosterSetupModal(true) : setShowAbsentModal(true))}
+              onOpenHistoryModal={() => setShowHistoryModal(true)}
+              onPick={handleGamePickStudent}
+              onCloseGame={() => {
+                if (isFullscreen) {
+                  document.exitFullscreen?.().catch(() => {});
+                  setIsFullscreen(false);
+                }
+                setActiveGame(null);
+              }}
+            />
+          ) : activeGame.modeKey === 'mountain_climb' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full min-h-[540px] rounded-3xl bg-[#08172E] border-2 border-cyan-400/40 flex flex-col items-center justify-center text-white p-8 space-y-3">
+                  <div className="w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold text-cyan-200">
+                    Đang tải Đỉnh Tri Thức 3D...
+                  </p>
+                </div>
+              }
+            >
+              <MountainClimb3DGame
+                availableCandidates={availableCandidates}
+                allCandidates={currentCandidates}
+                absentIds={absentIds}
+                classes={effectiveClasses}
+                questions={questions}
+                selectedSourceKey={effectiveSourceKey}
+                onSelectSourceKey={handleSelectEffectiveSourceKey}
+                resolvedClassName={resolvedClassName}
+                teacherId={teacherId}
+                teacherName={userProfile?.fullName || 'Giáo viên'}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(!isMuted)}
+                onOpenAbsentModal={() =>
+                  rosterMode === 'guest'
+                    ? setShowRosterSetupModal(true)
+                    : setShowAbsentModal(true)
+                }
+                onOpenHistoryModal={() => setShowHistoryModal(true)}
+                onPick={handleGamePickStudent}
+                onCloseGame={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
           ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             <div className="lg:col-span-8 bg-[#F8FAFC] rounded-2xl border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden">

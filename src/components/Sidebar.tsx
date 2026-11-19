@@ -45,8 +45,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
     currentRole,
     isDemoSandbox,
     authenticatedProdRole,
-    enterPublicGuest,
-    enterKhktShowcase,
   } = useApp();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -146,55 +144,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
 
         {/* Scrollable menu items */}
         <div className={`flex-1 overflow-y-auto ${isCompact ? 'px-2.5' : 'px-3.5'} py-3 space-y-5`}>
-        {/* KHÔNG GIAN CHÍNH */}
-        <div>
-          {groupHeader('KHÔNG GIAN CHÍNH')}
-          <div className="space-y-1">
-            <button
-              onClick={() => handleNav('dashboard')}
-              title="Bảng tổng quan"
-              className={navItemClass('dashboard')}
-            >
-              <Home className="w-4 h-4 shrink-0" />
-              {!isCompact && <span className="truncate">Bảng tổng quan</span>}
-            </button>
-
-            <button
-              onClick={() => handleAction(enterPublicGuest)}
-              title="Trải nghiệm Tự do"
-              className={navItemClass('public_explore')}
-            >
-              <Compass className="w-4 h-4 shrink-0 text-sky-300" />
-              {!isCompact && <span className="truncate">Trải nghiệm Tự do</span>}
-            </button>
-
-            <button
-              onClick={() => handleAction(() => enterKhktShowcase(false))}
-              title="Hồ sơ KHKT 2027"
-              className={navItemClass('khkt_showcase')}
-            >
-              <Award className="w-4 h-4 shrink-0 text-amber-300" />
-              {!isCompact && <span className="truncate">Hồ sơ KHKT 2027</span>}
-            </button>
-
-            <button
-              onClick={() => handleAction(() => enterKhktShowcase(true))}
-              title="Trình diễn 6 bước"
-              className={navItemClass('khkt_presentation')}
-            >
-              <Presentation className="w-4 h-4 shrink-0 text-indigo-300" />
-              {!isCompact && <span className="truncate">Trình diễn 6 bước</span>}
-            </button>
-
-            <button
-              onClick={() => handleNav('dashboard')}
-              title="Bảng tổng quan"
-              className={navItemClass('dashboard')}
-            >
-              <LayoutDashboard className="w-4 h-4 shrink-0" />
-              {!isCompact && <span className="truncate">Bảng tổng quan</span>}
-            </button>
-          </div>
+        {/* TRANG CHỦ */}
+        <div className="space-y-1">
+          <button
+            onClick={() => handleNav('dashboard')}
+            title="Trang chủ"
+            className={navItemClass('dashboard')}
+          >
+            <Home className="w-4 h-4 shrink-0 text-amber-300" />
+            {!isCompact && <span className="truncate">Trang chủ</span>}
+          </button>
         </div>
 
         {/* HỌC SINH */}

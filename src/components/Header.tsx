@@ -8,16 +8,12 @@ import {
   User,
   X,
   UserPlus,
-  Compass,
-  Award,
   Home,
-  ShieldCheck,
   Eye,
   EyeOff
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatAccountLoginDisplay } from '../utils/studentAuthHelper';
-import { ACCESS_MODE_LABELS } from '../types/accessMode';
 
 interface HeaderProps {
   onOpenSupabaseConfig: () => void;
@@ -26,13 +22,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMobileMenu }) => {
   const {
-    accessMode,
-    isDemoSandbox,
-    enterPublicGuest,
-    enterKhktShowcase,
-    exitDemoToWorkspace,
-    authenticatedProdUser,
-    authenticatedProdProfile,
     currentRole,
     user,
     userProfile,
@@ -58,18 +47,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
   ];
 
   const getRoleBadge = () => {
-    if (isDemoSandbox) {
-      if (accessMode === 'DEMO_TEACHER') {
-        return { label: 'GV Demo (50 HS)', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
-      }
-      if (accessMode === 'DEMO_STUDENT') {
-        return { label: 'HS Demo', bg: 'bg-amber-50 text-amber-800 border-amber-200' };
-      }
-      if (accessMode === 'KHKT_SHOWCASE') {
-        return { label: 'KHKT 2027', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
-      }
-      return { label: 'Khách Demo', bg: 'bg-sky-50 text-[#0B63CE] border-sky-200' };
-    }
     const role = userProfile?.role || currentRole;
     switch (role) {
       case 'admin':
@@ -93,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
       }
       return userProfile.fullName.slice(0, 2).toUpperCase();
     }
-    return user ? 'TK' : isDemoSandbox ? 'DM' : 'ĐN';
+    return user ? 'TK' : 'ĐN';
   };
 
   return (
@@ -125,12 +102,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
               </span>
               <span className="text-slate-300 font-light hidden xl:inline text-base">|</span>
               <span className="text-xs text-[#64748B] font-semibold hidden xl:inline truncate">
-                {ACCESS_MODE_LABELS[accessMode]}
+                Trường THCS Tây Đô
               </span>
             </div>
           </div>
 
-          {/* Compact 3-space Quick Nav */}
+          {/* Compact Quick Nav */}
           <nav className="hidden lg:flex items-center gap-1 ml-2 pl-3 border-l border-[#E2E8F0]">
             <button
               type="button"
@@ -143,30 +120,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
             >
               <Home className="w-3.5 h-3.5" />
               <span>Trang chủ</span>
-            </button>
-            <button
-              type="button"
-              onClick={enterPublicGuest}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
-                currentView === 'public_explore'
-                  ? 'bg-[#EAF3FF] text-[#1769F4]'
-                  : 'text-[#64748B] hover:text-[#102C54] hover:bg-[#F6F9FD]'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Trải nghiệm</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => enterKhktShowcase(false)}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
-                currentView === 'khkt_showcase' || currentView === 'khkt_presentation'
-                  ? 'bg-[#EAF3FF] text-[#1769F4]'
-                  : 'text-[#64748B] hover:text-[#102C54] hover:bg-[#F6F9FD]'
-              }`}
-            >
-              <Award className="w-3.5 h-3.5" />
-              <span>KHKT 2027</span>
             </button>
           </nav>
         </div>
@@ -187,30 +140,28 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
             <span>{reducedMotion ? 'Ít hiệu ứng' : 'Hiệu ứng'}</span>
           </button>
 
-          {!isDemoSandbox && (
-            <button
-              onClick={onOpenSupabaseConfig}
-              className={`hidden xl:flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl border whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
-                supabaseStatus === 'unconfigured'
-                  ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                  : supabaseStatus === 'configured_unverified'
-                  ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                  : supabaseStatus === 'verified_all'
-                  ? 'bg-[#ECFDF5] text-[#0F766E] border-[#A7F3D0] hover:bg-emerald-100'
-                  : supabaseStatus === 'verified_auth_only'
-                  ? 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA] hover:bg-blue-100'
-                  : supabaseStatus === 'verified_db_only'
-                  ? 'bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100'
-                  : 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA] hover:bg-red-100'
-              }`}
-              title="Nhấp để cấu hình Supabase hoặc kiểm tra trạng thái kết nối thực tế"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span className="font-semibold">{supabaseStatusLabel}</span>
-            </button>
-          )}
+          <button
+            onClick={onOpenSupabaseConfig}
+            className={`hidden xl:flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl border whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
+              supabaseStatus === 'unconfigured'
+                ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                : supabaseStatus === 'configured_unverified'
+                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                : supabaseStatus === 'verified_all'
+                ? 'bg-[#ECFDF5] text-[#0F766E] border-[#A7F3D0] hover:bg-emerald-100'
+                : supabaseStatus === 'verified_auth_only'
+                ? 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA] hover:bg-blue-100'
+                : supabaseStatus === 'verified_db_only'
+                ? 'bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100'
+                : 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA] hover:bg-red-100'
+            }`}
+            title="Nhấp để cấu hình Supabase hoặc kiểm tra trạng thái kết nối thực tế"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span className="font-semibold">{supabaseStatusLabel}</span>
+          </button>
 
-          {!isDemoSandbox && user && profileStatus === 'error' && (
+          {user && profileStatus === 'error' && (
             <button
               type="button"
               onClick={retryLoadProfile}
@@ -240,39 +191,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
             </span>
           </div>
 
-          {/* Auth / Return to Production Controls */}
-          {isDemoSandbox ? (
-            authenticatedProdUser ? (
-              <button
-                type="button"
-                onClick={() => exitDemoToWorkspace('dashboard')}
-                className="flex items-center space-x-1.5 text-xs bg-[#102C54] hover:bg-[#15396B] text-white px-3 py-1.5 rounded-xl font-bold shadow-xs whitespace-nowrap shrink-0 cursor-pointer transition-colors"
-                title={`Quay về tài khoản thật (${authenticatedProdProfile?.fullName || authenticatedProdUser.email})`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#12A879]" />
-                <span className="hidden sm:inline">Về Workspace</span>
-              </button>
-            ) : (
-              <div className="flex items-center space-x-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => openAuthModal('register')}
-                  className="hidden sm:flex items-center space-x-1 text-xs text-[#1769F4] border border-[#C7DCFA] hover:bg-[#EAF3FF] px-2.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>Đăng ký</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentView('login_portal')}
-                  className="flex items-center space-x-1.5 text-xs bg-[#1769F4] hover:bg-[#0F56D3] text-white px-3 py-1.5 rounded-xl font-bold shadow-xs whitespace-nowrap transition-colors cursor-pointer"
-                >
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span>Đăng nhập</span>
-                </button>
-              </div>
-            )
-          ) : user || userProfile ? (
+          {/* Auth Controls */}
+          {user || userProfile ? (
             <button
               onClick={signOut}
               className="flex items-center space-x-1 text-xs text-[#64748B] hover:text-[#EF4444] px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] hover:border-red-200 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
@@ -282,13 +202,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
               <span className="hidden sm:inline font-semibold">Đăng xuất</span>
             </button>
           ) : (
-            <button
-              onClick={() => setCurrentView('login_portal')}
-              className="flex items-center space-x-1.5 text-xs bg-[#1769F4] hover:bg-[#0F56D3] text-white px-3 py-1.5 rounded-xl font-bold shadow-xs whitespace-nowrap shrink-0 transition-colors cursor-pointer"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Đăng nhập</span>
-            </button>
+            <div className="flex items-center space-x-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => openAuthModal('register')}
+                className="hidden sm:flex items-center space-x-1 text-xs text-[#1769F4] border border-[#C7DCFA] hover:bg-[#EAF3FF] px-2.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Đăng ký</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentView('login_portal')}
+                className="flex items-center space-x-1.5 text-xs bg-[#1769F4] hover:bg-[#0F56D3] text-white px-3 py-1.5 rounded-xl font-bold shadow-xs whitespace-nowrap transition-colors cursor-pointer"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Đăng nhập</span>
+              </button>
+            </div>
           )}
 
           {/* Notifications Bell */}
@@ -334,12 +265,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
           {/* Avatar with Initials */}
           <div
             onClick={() => {
-              if (isDemoSandbox || !user) {
+              if (!user) {
                 setCurrentView('login_portal');
               }
             }}
             className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1769F4] to-[#102C54] text-white flex items-center justify-center font-bold text-xs tracking-wide shadow-xs cursor-pointer shrink-0"
-            title={userProfile?.fullName || ACCESS_MODE_LABELS[accessMode]}
+            title={userProfile?.fullName || 'Trường THCS Tây Đô'}
           >
             {getInitials()}
           </div>

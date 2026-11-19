@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Settings, Shield, HardDrive, Download, RotateCcw, CheckCircle2, Palette } from 'lucide-react';
-import { usePremiumUi2027 } from '../../config/uiThemeFlag';
 
 interface SystemSettingsProps {
   onOpenSupabaseConfig: () => void;
@@ -10,7 +9,7 @@ interface SystemSettingsProps {
 export const SystemSettings: React.FC<SystemSettingsProps> = ({ onOpenSupabaseConfig }) => {
   const { auditLogs, questions, classes, exams, submissions, resetDemoData, isDemoMode } = useApp();
   const [backupNotice, setBackupNotice] = useState<string | null>(null);
-  const [isPremium2027, setPremium2027] = usePremiumUi2027();
+  const [isPremium2027, setPremium2027] = useState(true);
 
   const handleBackupJson = () => {
     const backupData = {

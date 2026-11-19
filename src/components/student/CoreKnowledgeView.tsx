@@ -52,6 +52,7 @@ import {
   RecentLaptopIllustration3D,
   LessonCardIllustration3D
 } from './coreKnowledgeThumbnails';
+import { TOAN9_INTEGRATED_LESSON_IDS } from '../grade9/Toan9Lessons1To5View';
 
 const RECENT_VIEW_KEY = 'taydo_last_viewed_core_lesson';
 
@@ -62,6 +63,7 @@ export const CoreKnowledgeView: React.FC = () => {
     openStudyMaterialsWithIntent,
     coreKnowledgeTargetLessonId,
     clearCoreKnowledgeTargetLesson,
+    setCurrentView,
   } = useApp();
 
   // 1. Bộ chọn 5 cấp phụ thuộc: Khối lớp -> Môn học -> Tập sách -> Chương/Chủ đề -> Bài học
@@ -593,8 +595,29 @@ export const CoreKnowledgeView: React.FC = () => {
               </div>
             </div>
 
-            {/* Các tiện ích: Phiếu bài tập (nếu có), Trạng thái đồng bộ Supabase, Toàn màn hình & Mở tab mới */}
+            {/* Các tiện ích: Mở bản 3D Tự học (cho Bài 1–5 Toán 9), Phiếu bài tập, Trạng thái đồng bộ Supabase, Toàn màn hình & Mở tab mới */}
             <div className="flex items-center space-x-2 shrink-0">
+              {TOAN9_INTEGRATED_LESSON_IDS.has(activeLesson.id) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set('view', 'teacher_lectures');
+                      url.searchParams.set('lecture', activeLesson.id);
+                      url.searchParams.set('mode', 'student');
+                      window.history.replaceState({}, '', `${url.pathname}${url.search}`);
+                    }
+                    setCurrentView('teacher_lectures');
+                  }}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-b from-[#237A50] to-[#155234] hover:brightness-105 text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Mở giao diện 3D Học sinh tự học của bài này trong Bài giảng"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Bản 3D Tự học</span>
+                </button>
+              )}
+
               {worksheetsForActiveLesson.length > 0 && (
                 <button
                   type="button"

@@ -4,6 +4,9 @@ import { runM14UnitTests } from './transformationEngine';
 import { runM15UnitTests } from './pythagoreanEngine';
 import { runM16UnitTests } from './similarityEngine';
 import { runM17UnitTests } from './countingEngine';
+import { runM07UnitTests } from './integerNumberLineEngine';
+import { runM05UnitTests } from './fractionDiscoveryEngine';
+import { runM18UnitTests } from './ratioProportionEngine';
 
 export const EPSILON = 1e-9;
 
@@ -1054,6 +1057,27 @@ export function runSmartMathLabUnitTests(): SmartMathLabTestSuiteReport {
   totalChecks += m17Report.totalChecks;
   if (!m17Report.passed) {
     failedChecks.push(...m17Report.failedChecks.map((label) => `M17: ${label}`));
+  }
+
+  // 14. M07 Integer & Number Line Engine tests (15 test suites covering 48 tasks & edge cases)
+  const m07Report = runM07UnitTests();
+  totalChecks += m07Report.totalChecks;
+  if (!m07Report.passed) {
+    failedChecks.push(...m07Report.failedChecks.map((label) => `M07: ${label}`));
+  }
+
+  // 15. M05 Fraction Discovery Engine tests (15 test suites covering 48 tasks & exact rationals)
+  const m05Report = runM05UnitTests();
+  totalChecks += m05Report.totalChecks;
+  if (!m05Report.passed) {
+    failedChecks.push(...m05Report.failedChecks.map((label) => `M05: ${label}`));
+  }
+
+  // 16. M18 Ratio & Proportion Engine tests (15 test suites covering 48 tasks, color mixing, discrete/continuous division, proportional quantities & unit conversion)
+  const m18Report = runM18UnitTests();
+  totalChecks += m18Report.totalChecks;
+  if (!m18Report.passed) {
+    failedChecks.push(...m18Report.failedChecks.map((label) => `M18: ${label}`));
   }
 
   return {

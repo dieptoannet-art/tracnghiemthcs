@@ -190,6 +190,7 @@ const PASTEL_BACKDROP_BY_ID: Record<MathToolId, string> = {
   M15: 'from-[#E9FAF6] via-[#F4FCFA] to-[#FFF5E7]',
   M16: 'from-[#E8F7FF] via-[#F4FAFF] to-[#FFF1F2]',
   M17: 'from-[#ECF6FF] via-[#F5F9FF] to-[#F1EEFF]',
+  M18: 'from-[#F5EFE2] via-[#FAF6EE] to-[#E6F4EA]',
 };
 
 const FALLBACK_BY_STRAND: Record<MathKnowledgeStrand, string> = {
@@ -345,29 +346,34 @@ function renderThumbnailScene(toolId: MathToolId): React.ReactNode {
     case 'M05':
       return (
         <svg viewBox="0 0 280 124" className="w-full h-full" fill="none">
-          <ellipse cx="140" cy="108" rx="106" ry="8" fill="#0866FF" fillOpacity="0.1" />
-          {/* Đĩa phân số 3/4 */}
-          <g transform="translate(76, 62)">
-            <circle cx="0" cy="0" r="34" fill="#FFFFFF" stroke="#93C5FD" strokeWidth="2" />
-            <path d="M0 0V-34A34 34 0 1 1 -34 0Z" fill="#3B82F6" />
-            <path d="M0 0H-34A34 34 0 0 1 0 -34Z" fill="#E0F2FE" />
-            <line x1="0" y1="-34" x2="0" y2="34" stroke="#FFFFFF" strokeWidth="2" />
-            <line x1="-34" y1="0" x2="34" y2="0" stroke="#FFFFFF" strokeWidth="2" />
+          <rect x="10" y="8" width="260" height="108" rx="16" fill="#F5EFE2" stroke="#DFD3BC" strokeWidth="1.5" />
+          <ellipse cx="140" cy="108" rx="108" ry="7" fill="#136F50" fillOpacity="0.12" />
+          {/* 3D Fraction Wheel on left */}
+          <g transform="translate(48, 62)">
+            <rect x="-16" y="34" width="32" height="6" rx="3" fill="#CBB693" />
+            <circle cx="0" cy="0" r="30" fill="#EFE4CE" stroke="#C5B293" strokeWidth="2" />
+            <path d="M0 0 L0 -26 A26 26 0 0 0 -26 0 Z" fill="#146C4E" stroke="#2C3E35" strokeWidth="1.2" />
+            <path d="M0 0 L-26 0 A26 26 0 0 0 0 26 Z" fill="#146C4E" stroke="#2C3E35" strokeWidth="1.2" />
+            <path d="M0 0 L26 0 A26 26 0 0 0 0 -26 Z" fill="#F3E7CE" stroke="#2C3E35" strokeWidth="1.2" />
+            <path d="M0 0 L0 26 A26 26 0 0 0 26 0 Z" fill="#F3E7CE" stroke="#2C3E35" strokeWidth="1.2" />
           </g>
-          {/* Thẻ phân số 1/2 và 1/4 */}
-          <g transform="translate(128, 22)">
-            <rect x="0" y="0" width="52" height="36" rx="8" fill="#2563EB" stroke="#FFFFFF" strokeWidth="1.5" />
-            <text x="26" y="15" textAnchor="middle" fontSize="11" fontWeight="800" fill="#FFFFFF" fontFamily="Be Vietnam Pro, sans-serif">1</text>
-            <line x1="17" y1="19" x2="35" y2="19" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" />
-            <text x="26" y="31" textAnchor="middle" fontSize="11" fontWeight="800" fill="#FFFFFF" fontFamily="Be Vietnam Pro, sans-serif">2</text>
-
-            <rect x="0" y="42" width="52" height="36" rx="8" fill="#F472B6" stroke="#FFFFFF" strokeWidth="1.5" />
-            <text x="26" y="57" textAnchor="middle" fontSize="11" fontWeight="800" fill="#FFFFFF" fontFamily="Be Vietnam Pro, sans-serif">1</text>
-            <line x1="17" y1="61" x2="35" y2="61" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" />
-            <text x="26" y="73" textAnchor="middle" fontSize="11" fontWeight="800" fill="#FFFFFF" fontFamily="Be Vietnam Pro, sans-serif">4</text>
-          </g>
-          {/* Dấu % 3D */}
-          <text x="218" y="76" textAnchor="middle" fontSize="42" fontWeight="900" fill="#0866FF" fontFamily="Be Vietnam Pro, sans-serif">%</text>
+          {/* Headline 1/2 = 2/4 */}
+          <rect x="94" y="14" width="112" height="22" rx="8" fill="#FAF4E8" stroke="#E07A1B" strokeWidth="1.4" />
+          <text x="150" y="29" textAnchor="middle" fontSize="11.5" fontWeight="900" fill="#12382B" fontFamily="Be Vietnam Pro, sans-serif">
+            1/2 = 2/4
+          </text>
+          {/* Top Bar 1/2 */}
+          <rect x="90" y="44" width="60" height="20" rx="3.5" fill="#146C4E" />
+          <rect x="150" y="44" width="60" height="20" rx="3.5" fill="#EFE4CE" stroke="#C8B89A" strokeWidth="1.2" />
+          <rect x="216" y="42" width="28" height="24" rx="5" fill="#FAF5EA" stroke="#D1C3AA" strokeWidth="1.2" />
+          <text x="230" y="58" textAnchor="middle" fontSize="10" fontWeight="900" fill="#12382B">1/2</text>
+          {/* Bottom Bar 2/4 */}
+          <rect x="90" y="72" width="29" height="20" rx="3" fill="#146C4E" />
+          <rect x="121" y="72" width="29" height="20" rx="3" fill="#146C4E" />
+          <rect x="150" y="72" width="29" height="20" rx="3" fill="#EFE4CE" stroke="#C8B89A" strokeWidth="1.2" />
+          <rect x="181" y="72" width="29" height="20" rx="3" fill="#EFE4CE" stroke="#C8B89A" strokeWidth="1.2" />
+          <rect x="216" y="70" width="28" height="24" rx="5" fill="#FAF5EA" stroke="#D1C3AA" strokeWidth="1.2" />
+          <text x="230" y="86" textAnchor="middle" fontSize="10" fontWeight="900" fill="#12382B">2/4</text>
         </svg>
       );
 
@@ -401,42 +407,66 @@ function renderThumbnailScene(toolId: MathToolId): React.ReactNode {
     case 'M07':
       return (
         <svg viewBox="0 0 280 124" className="w-full h-full" fill="none">
-          <ellipse cx="140" cy="106" rx="110" ry="7" fill="#0D9488" fillOpacity="0.1" />
-          <rect x="34" y="54" width="212" height="26" rx="12" fill="#FFFFFF" stroke="#BAE6FD" strokeWidth="1.8" />
-          <line x1="46" y1="67" x2="232" y2="67" stroke="#0F172A" strokeWidth="2.4" strokeLinecap="round" />
-          <polygon points="236,67 228,63 228,71" fill="#0F172A" />
-          <polygon points="42,67 50,63 50,71" fill="#0F172A" />
-          {/* Vạch chia & số */}
+          <rect x="10" y="8" width="260" height="108" rx="16" fill="#F5EFE2" stroke="#DFD3BC" strokeWidth="1.5" />
+          <ellipse cx="145" cy="106" rx="108" ry="8" fill="#136F50" fillOpacity="0.12" />
+          {/* Mini 3D Thermometer on left */}
+          <rect x="22" y="22" width="22" height="76" rx="11" fill="#E8E1D3" stroke="#C7BCA6" strokeWidth="1.4" />
+          <rect x="30" y="34" width="6" height="46" rx="3" fill="#CBD5E1" />
+          <rect x="30" y="54" width="6" height="26" rx="3" fill="#DC2626" />
+          <circle cx="33" cy="84" r="6.5" fill="#DC2626" />
+          {/* Formula Pill */}
+          <rect x="64" y="14" width="166" height="22" rx="8" fill="#FAF6ED" stroke="#DCD0B9" strokeWidth="1.2" />
+          <text x="147" y="29" textAnchor="middle" fontSize="11" fontWeight="900" fill="#12382B" fontFamily="Be Vietnam Pro, sans-serif">
+            (-3) - (-5) = (-3) + 5 = 2
+          </text>
+          {/* Number line axis */}
+          <line x1="58" y1="82" x2="254" y2="82" stroke="#0F1D2E" strokeWidth="2.5" strokeLinecap="round" />
+          <polygon points="258,82 250,78 250,86" fill="#0F1D2E" />
+          <polygon points="54,82 62,78 62,86" fill="#0F1D2E" />
           {[
-            { x: 68, label: '-3' },
-            { x: 92, label: '-2' },
-            { x: 116, label: '-1' },
-            { x: 140, label: '0', zero: true },
-            { x: 164, label: '1' },
-            { x: 188, label: '2' },
-            { x: 212, label: '3' },
+            { x: 76, label: '-4' },
+            { x: 100, label: '-3', highlight: '#D96B16' },
+            { x: 124, label: '-2' },
+            { x: 148, label: '-1' },
+            { x: 172, label: '0', zero: true },
+            { x: 196, label: '1' },
+            { x: 220, label: '2', highlight: '#15803D' },
+            { x: 244, label: '3' },
           ].map((t) => (
             <g key={t.label}>
-              <line x1={t.x} y1="61" x2={t.x} y2="73" stroke={t.zero ? '#0866FF' : '#64748B'} strokeWidth={t.zero ? 2.6 : 1.6} />
+              <line
+                x1={t.x}
+                y1="77"
+                x2={t.x}
+                y2="87"
+                stroke={t.highlight || (t.zero ? '#0F766E' : '#334155')}
+                strokeWidth={t.highlight || t.zero ? 2.4 : 1.5}
+              />
               <text
                 x={t.x}
-                y="93"
+                y="101"
                 textAnchor="middle"
-                fontSize="10.5"
-                fontWeight={t.zero ? '900' : '700'}
-                fill={t.zero ? '#0866FF' : '#334E73'}
+                fontSize="10"
+                fontWeight={t.highlight || t.zero ? '900' : '700'}
+                fill={t.highlight || (t.zero ? '#0F766E' : '#1E293B')}
                 fontFamily="Be Vietnam Pro, sans-serif"
               >
                 {t.label}
               </text>
             </g>
           ))}
-          {/* Cung bước nhảy từ -2 đến +3 */}
-          <path d="M92 56C116 20 188 20 212 56" stroke="#10B981" strokeWidth="3" strokeDasharray="5 3" fill="none" />
-          <circle cx="92" cy="56" r="5" fill="#F59E0B" stroke="#FFFFFF" strokeWidth="1.5" />
-          <circle cx="212" cy="56" r="5" fill="#10B981" stroke="#FFFFFF" strokeWidth="1.5" />
-          <rect x="134" y="18" width="36" height="19" rx="9.5" fill="#10B981" />
-          <text x="152" y="31" textAnchor="middle" fontSize="10" fontWeight="800" fill="#FFFFFF" fontFamily="Be Vietnam Pro, sans-serif">+5</text>
+          {/* Jump Arc from -3 (x=100) to 2 (x=220) */}
+          <path d="M100 82 Q 160 36 220 82" stroke="#15803D" strokeWidth="3" fill="none" />
+          <circle cx="100" cy="82" r="5.5" fill="#EA580C" stroke="#FFFFFF" strokeWidth="1.5" />
+          <circle cx="220" cy="82" r="5.5" fill="#16A34A" stroke="#FFFFFF" strokeWidth="1.5" />
+          <text x="160" y="53" textAnchor="middle" fontSize="12" fontWeight="900" fill="#15803D" fontFamily="Be Vietnam Pro, sans-serif">
+            +5
+          </text>
+          {/* Mini Robot Head at x=220 */}
+          <rect x="208" y="50" width="24" height="18" rx="6" fill="#F8FAFC" stroke="#94A3B8" strokeWidth="1.3" />
+          <rect x="212" y="54" width="16" height="10" rx="3.5" fill="#0F172A" />
+          <circle cx="217" cy="59" r="1.5" fill="#38BDF8" />
+          <circle cx="223" cy="59" r="1.5" fill="#38BDF8" />
         </svg>
       );
 
@@ -681,6 +711,35 @@ function renderThumbnailScene(toolId: MathToolId): React.ReactNode {
             <rect x="160" y="26" width="24" height="16" rx="5" fill="#FFFFFF" stroke="#BFDBFE" strokeWidth="1.4" />
             <rect x="160" y="46" width="24" height="16" rx="5" fill="#12A879" stroke="#FFFFFF" strokeWidth="1.4" />
             <rect x="160" y="70" width="24" height="16" rx="5" fill="#FFFFFF" stroke="#BFDBFE" strokeWidth="1.4" />
+          </g>
+        </svg>
+      );
+
+    case 'M18':
+      return (
+        <svg viewBox="0 0 280 124" className="w-full h-full" fill="none">
+          <rect x="10" y="8" width="260" height="108" rx="16" fill="#F5EFE2" stroke="#DFD3BC" strokeWidth="1.5" />
+          <ellipse cx="140" cy="108" rx="108" ry="7" fill="#0F5132" fillOpacity="0.14" />
+          {/* Formula Pill 2 : 3 = 4 : 6 */}
+          <rect x="74" y="14" width="132" height="22" rx="11" fill="#FAF6EE" stroke="#15803D" strokeWidth="1.4" />
+          <text x="140" y="29" textAnchor="middle" fontSize="11.5" fontWeight="900" fill="#0F5132" fontFamily="Be Vietnam Pro, sans-serif">
+            2 : 3 = 4 : 6
+          </text>
+          {/* 2-Tier Pedestal with Beakers */}
+          <rect x="52" y="64" width="130" height="12" rx="5" fill="#E8DCC4" stroke="#CBB896" strokeWidth="1.2" />
+          <rect x="38" y="92" width="158" height="14" rx="6" fill="#DFD1B5" stroke="#BFA984" strokeWidth="1.2" />
+          {/* Top 2 Blue + 3 Yellow Mini Beakers */}
+          {[66, 86].map((x) => (
+            <rect key={`tb-${x}`} x={x} y="44" width="14" height="20" rx="2.5" fill="#2563EB" stroke="#FFFFFF" strokeWidth="1" />
+          ))}
+          {[110, 130, 150].map((x) => (
+            <rect key={`ty-${x}`} x={x} y="44" width="14" height="20" rx="2.5" fill="#FACC15" stroke="#CA8A04" strokeWidth="1" />
+          ))}
+          {/* Right Green Mixed Pitcher with Stirring Rod */}
+          <g transform="translate(206, 42)">
+            <line x1="34" y1="0" x2="14" y2="52" stroke="#64748B" strokeWidth="3" strokeLinecap="round" />
+            <rect x="2" y="22" width="32" height="36" rx="4" fill="#38B000" />
+            <rect x="0" y="10" width="36" height="50" rx="5" fill="rgba(255,255,255,0.38)" stroke="#94A3B8" strokeWidth="1.5" />
           </g>
         </svg>
       );

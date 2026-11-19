@@ -35,14 +35,14 @@ interface FeatureCardItem {
 }
 
 export const Dashboard: React.FC<DashboardProps> = () => {
-  const { setCurrentView, currentRole, isDemoSandbox, authenticatedProdRole } = useApp();
+  const { setCurrentView, currentRole, authenticatedProdRole } = useApp();
 
   const handleCardClick = (viewId: string) => {
     setCurrentView(viewId);
   };
 
   const showAdminCards =
-    !isDemoSandbox && (authenticatedProdRole === 'admin' || authenticatedProdRole === 'reviewer');
+    authenticatedProdRole === 'admin' || authenticatedProdRole === 'reviewer';
 
   // 9 mục HỌC SINH (bao gồm Phòng thí nghiệm Toán M01–M17)
   const studentFeatures: FeatureCardItem[] = [

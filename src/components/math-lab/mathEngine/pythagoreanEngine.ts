@@ -264,39 +264,42 @@ export function buildPythagoreanGeometry(a: number, b: number): PythagoreanGeome
     };
   }
 
+  // Tiêu chuẩn theo yêu cầu:
+  // Tam giác ABC vuông tại A. BC = c là cạnh huyền. Góc α ở B.
+  // AC = a là cạnh đối với α. AB = b là cạnh kề với α.
   const vertexA: Point2D = { x: 0, y: 0 };
-  const vertexB: Point2D = { x: a, y: 0 };
-  const vertexC: Point2D = { x: 0, y: b };
+  const vertexB: Point2D = { x: b, y: 0 }; // AB = b (cạnh kề)
+  const vertexC: Point2D = { x: 0, y: a }; // AC = a (cạnh đối)
 
-  // Sử dụng M01 primitives để đo lại cạnh, góc, diện tích
-  const measuredA = distance2D(vertexA, vertexB);
-  const measuredB = distance2D(vertexA, vertexC);
-  const measuredC = distance2D(vertexB, vertexC);
+  const measuredA = distance2D(vertexA, vertexC); // AC = a (đối)
+  const measuredB = distance2D(vertexA, vertexB); // AB = b (kề)
+  const measuredC = distance2D(vertexB, vertexC); // BC = c (huyền)
   const rightAngleDeg = angleDegreesABC(vertexB, vertexA, vertexC);
   const triangleArea = polygonArea2D([vertexA, vertexB, vertexC]);
 
-  // Hình vuông trên cạnh AB (hướng xuống dưới y <= 0)
-  const squareA: Point2D[] = [
-    { x: 0, y: 0 },
-    { x: a, y: 0 },
-    { x: a, y: -a },
-    { x: 0, y: -a },
-  ];
-
-  // Hình vuông trên cạnh AC (hướng sang trái x <= 0)
+  // Hình vuông trên cạnh AB (b) hướng xuống dưới y <= 0
   const squareB: Point2D[] = [
     { x: 0, y: 0 },
-    { x: 0, y: b },
-    { x: -b, y: b },
-    { x: -b, y: 0 },
+    { x: b, y: 0 },
+    { x: b, y: -b },
+    { x: 0, y: -b },
   ];
 
-  // Hình vuông trên cạnh huyền BC (hướng ra ngoài góc phần tư I theo vector pháp tuyến (b, a))
+  // Hình vuông trên cạnh AC (a) hướng sang trái x <= 0
+  const squareA: Point2D[] = [
+    { x: 0, y: 0 },
+    { x: 0, y: a },
+    { x: -a, y: a },
+    { x: -a, y: 0 },
+  ];
+
+  // Hình vuông trên cạnh huyền BC (c) dựng ra phía ngoài
+  // B = (b, 0), C = (0, a)
   const squareC: Point2D[] = [
-    { x: a, y: 0 },
-    { x: a + b, y: a },
-    { x: b, y: a + b },
-    { x: 0, y: b },
+    { x: b, y: 0 },
+    { x: b + a, y: b },
+    { x: a, y: a + b },
+    { x: 0, y: a },
   ];
 
   return {

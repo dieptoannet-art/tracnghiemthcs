@@ -47,9 +47,7 @@ import {
 } from './tools/GeometryAnd3DTools';
 import {
   M02FunctionGrapherTool,
-  M05FractionVisualizerTool,
   M06EquationBalanceTool,
-  M07NumberLineIntegersTool,
   M09AlgebraTilesIdentityTool,
 } from './tools/AlgebraAndGraphTools';
 import {
@@ -63,6 +61,9 @@ import { M14TransformationTool } from './tools/M14TransformationTool';
 import { M15PythagoreanTool } from './tools/M15PythagoreanTool';
 import { M16SimilarityTool } from './tools/M16SimilarityTool';
 import { M17CountingTreeTool } from './tools/M17CountingTreeTool';
+import { M07IntegerNumberLineTool } from './tools/M07IntegerNumberLineTool';
+import { M05FractionExplorerTool } from './tools/M05FractionExplorerTool';
+import { M18RatioProportionTool } from './tools/M18RatioProportionTool';
 
 const STRAND_CHIP_STYLES: Record<MathKnowledgeStrand, { badge: string; dot: string }> = {
   geometry_measurement: {
@@ -324,6 +325,85 @@ export const SmartMathLabView: React.FC = () => {
       systemQuestions: questions,
     };
 
+    if (selectedToolId === 'M05') {
+      return (
+        <MathLabErrorBoundary
+          toolName={`${activeTool.id} – ${activeTool.nameVi}`}
+          onReset={() => setResetSignal((s) => s + 1)}
+        >
+          <M05FractionExplorerTool
+            {...commonProps}
+            onBackToHub={() => setSelectedToolId(null)}
+            onTogglePresentationMode={() => setIsPresentationMode((v) => !v)}
+            selectedClassName={
+              canAssignToClass
+                ? selectedClassObj?.name || 'Lớp 6A1'
+                : studentUser?.className || `Lớp ${activeGrade}`
+            }
+            studentCount={selectedClassObj?.students?.length || 35}
+            currentUserName={displayUserName}
+            onResultSaved={(rec) => setResultsHistory((prev) => [rec, ...prev])}
+            initialActivityPreset={
+              currentActivity?.toolPresetConfig?.activityId as string | undefined
+            }
+          />
+        </MathLabErrorBoundary>
+      );
+    }
+
+    if (selectedToolId === 'M07') {
+      return (
+        <MathLabErrorBoundary
+          toolName={`${activeTool.id} – ${activeTool.nameVi}`}
+          onReset={() => setResetSignal((s) => s + 1)}
+        >
+          <M07IntegerNumberLineTool
+            {...commonProps}
+            onBackToHub={() => setSelectedToolId(null)}
+            onTogglePresentationMode={() => setIsPresentationMode((v) => !v)}
+            selectedClassName={
+              canAssignToClass
+                ? selectedClassObj?.name || 'Lớp 6A1'
+                : studentUser?.className || `Lớp ${activeGrade}`
+            }
+            studentCount={selectedClassObj?.students?.length || 35}
+            currentUserName={displayUserName}
+            onResultSaved={(rec) => setResultsHistory((prev) => [rec, ...prev])}
+            initialActivityPreset={
+              currentActivity?.toolPresetConfig?.activityId as string | undefined
+            }
+          />
+        </MathLabErrorBoundary>
+      );
+    }
+
+    if (selectedToolId === 'M18') {
+      return (
+        <MathLabErrorBoundary
+          toolName={`${activeTool.id} – ${activeTool.nameVi}`}
+          onReset={() => setResetSignal((s) => s + 1)}
+        >
+          <M18RatioProportionTool
+            {...commonProps}
+            onBackToHub={() => setSelectedToolId(null)}
+            onTogglePresentationMode={() => setIsPresentationMode((v) => !v)}
+            selectedClassName={
+              canAssignToClass
+                ? selectedClassObj?.name || 'Lớp 6A1'
+                : studentUser?.className || `Lớp ${activeGrade}`
+            }
+            studentCount={selectedClassObj?.students?.length || 35}
+            currentUserName={displayUserName}
+            onResultSaved={(rec) => setResultsHistory((prev) => [rec, ...prev])}
+            initialActivityPreset={
+              currentActivity?.toolPresetConfig?.activityId as string | undefined
+            }
+            onSwitchTool={(id) => handleOpenTool(id, 6)}
+          />
+        </MathLabErrorBoundary>
+      );
+    }
+
     return (
       <MathToolShell
         tool={activeTool}
@@ -363,9 +443,7 @@ export const SmartMathLabView: React.FC = () => {
           {selectedToolId === 'M02' && <M02FunctionGrapherTool {...commonProps} />}
           {selectedToolId === 'M03' && <M03ProbabilitySimulatorTool {...commonProps} />}
           {selectedToolId === 'M04' && <M04StatisticsLabTool {...commonProps} />}
-          {selectedToolId === 'M05' && <M05FractionVisualizerTool {...commonProps} />}
           {selectedToolId === 'M06' && <M06EquationBalanceTool {...commonProps} />}
-          {selectedToolId === 'M07' && <M07NumberLineIntegersTool {...commonProps} />}
           {selectedToolId === 'M08' && <M08SolidGeometry3DTool {...commonProps} />}
           {selectedToolId === 'M09' && <M09AlgebraTilesIdentityTool {...commonProps} />}
           {selectedToolId === 'M10' && <M10PythagoreTrigTool {...commonProps} />}

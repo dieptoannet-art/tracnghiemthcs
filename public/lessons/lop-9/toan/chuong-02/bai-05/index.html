@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="vi" data-lecture-id="toan_9_c2_b5">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bài 5 – Bất đẳng thức và tính chất | Toán 9</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #193446; background: #f3f7fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: linear-gradient(125deg, #104c76, #078884); padding: 36px max(18px, calc((100% - 1050px)/2)); color: white; }
+    header small { letter-spacing: .1em; font-weight: 700; }
+    h1 { font-size: clamp(24px, 3.5vw, 38px); line-height: 1.22; margin: 10px 0; }
+    p, li { line-height: 1.7; }
+    main { max-width: 1080px; margin: auto; padding: 20px 16px 70px; }
+    .links { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .links a { padding: 9px 14px; border-radius: 24px; background: white; border: 1px solid #d7e4ed; text-decoration: none; color: #175773; font-size: 14px; font-weight: 650; }
+    .panel { background: white; border: 1px solid #dce5ed; border-radius: 18px; padding: 24px; margin: 20px 0; box-shadow: 0 2px 14px #1230470b; }
+    h2 { margin: 0 0 14px; font-size: 23px; color: #08687d; }
+    h3 { color: #0c7180; margin: 18px 0 10px; }
+    .note { background: #e9f7f3; border-left: 5px solid #0a9d88; padding: 12px 17px; border-radius: 9px; }
+    .warn { background: #fff6e6; border-left: 5px solid #df9b30; padding: 12px 17px; border-radius: 9px; }
+    .math { font-size: 22px; font-weight: 750; line-height: 1.7; color: #125476; background: #f0f6fc; border-radius: 12px; padding: 15px; text-align: center; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 740px) { .cols { grid-template-columns: 1fr; } .panel { padding: 17px; } }
+    .steps { counter-reset: s; list-style: none; padding: 0; }
+    .steps li { position: relative; background: #f2f8fb; border-radius: 11px; padding: 11px 12px 11px 48px; margin: 10px 0; }
+    .steps li:before { counter-increment: s; content: counter(s); position: absolute; left: 12px; top: 10px; border-radius: 50%; background: #14858d; color: white; font-weight: 700; width: 26px; height: 26px; line-height: 26px; text-align: center; }
+    .btn { background: #096e82; color: white; border: 0; border-radius: 10px; padding: 11px 14px; font-weight: 700; cursor: pointer; margin: 7px 6px 7px 0; }
+    .btn.alt { background: #e8f2f6; color: #13566e; }
+    .option { background: white; text-align: left; padding: 12px; border: 1px solid #cbdbe3; border-radius: 10px; display: block; width: 100%; margin: 7px 0; font: inherit; cursor: pointer; }
+    .option.sel { border: 2px solid #0e8290; background: #ecfaf9; }
+    .question, .exercise { padding: 16px; border: 1px solid #dce6ed; border-radius: 13px; margin: 14px 0; }
+    .feedback { display: none; padding: 11px; border-radius: 10px; margin-top: 9px; }
+    .feedback.good { display: block; background: #e2f7e9; color: #185d34; }
+    .feedback.bad { display: block; background: #fff0de; color: #6c410f; }
+    .progress { width: 100%; height: 11px; max-width: 440px; border-radius: 9px; overflow: hidden; background: #dbebef; margin-top: 9px; }
+    .progress > div { width: 0; height: 100%; background: #25b3a2; }
+    textarea { width: 100%; min-height: 88px; border: 1px solid #bcceda; border-radius: 10px; padding: 12px; font: inherit; }
+    details { margin-top: 12px; }
+    summary { cursor: pointer; font-weight: 700; color: #0b7884; }
+    input[type=number] { padding: 8px; width: 76px; border: 1px solid #9cb8c7; border-radius: 8px; font: inherit; }
+    .tag { display: inline-block; border-radius: 20px; background: #e9f2f8; color: #155a75; padding: 4px 10px; font-size: 13px; font-weight: 700; }
+  </style>
+</head>
+<body data-lecture-id="toan_9_c2_b5">
+  <header>
+    <small>TOÁN 9 · KẾT NỐI TRI THỨC · TẬP MỘT · CHƯƠNG II</small>
+    <h1>Bài 5 · Bất đẳng thức và tính chất</h1>
+    <p>Khái niệm bất đẳng thức · Liên hệ giữa thứ tự và phép cộng · Liên hệ giữa thứ tự và phép nhân · SGK trang 31–35</p>
+    <div id="count">Hoàn thành 0/6 câu trắc nghiệm</div>
+    <div class="progress"><div id="bar"></div></div>
+  </header>
+  <main>
+    <nav class="links">
+      <a href="#sec1">1. Khái niệm bất đẳng thức</a>
+      <a href="#sec2">2. Liên hệ với phép cộng</a>
+      <a href="#sec3">3. Liên hệ với phép nhân</a>
+      <a href="#quiz">4. Trắc nghiệm</a>
+      <a href="#practice">5. Bài tập SGK</a>
+    </nav>
+
+    <section id="sec1" class="panel">
+      <span class="tag">Phần 1 · SGK trang 31–32</span>
+      <h2>1. Bất đẳng thức</h2>
+      <p>Hệ thức dạng <b>a &lt; b</b> (hay <b>a &gt; b, a ≤ b, a ≥ b</b>) được gọi là <b>bất đẳng thức</b>, trong đó <b>a</b> là vế trái, <b>b</b> là vế phải.</p>
+      <div class="math">Tính chất bắc cầu: Nếu a &lt; b và b &lt; c thì a &lt; c</div>
+      <div class="note">
+        <b>Ví dụ thực tế:</b> Biển báo tốc độ tối đa <b>50 km/h</b> có nghĩa là vận tốc <i>v</i> của phương tiện phải thỏa mãn bất đẳng thức <b>v ≤ 50</b>.
+      </div>
+    </section>
+
+    <section id="sec2" class="panel">
+      <span class="tag">Phần 2 · SGK trang 33</span>
+      <h2>2. Liên hệ giữa thứ tự và phép cộng</h2>
+      <p>Khi cộng cùng một số vào cả hai vế của một bất đẳng thức ta được bất đẳng thức mới <b>cùng chiều</b> với bất đẳng thức đã cho:</p>
+      <div class="math">Nếu a &lt; b thì a + c &lt; b + c &nbsp;(với mọi số thực c)</div>
+    </section>
+
+    <section id="sec3" class="panel">
+      <span class="tag">Phần 3 · SGK trang 34–35</span>
+      <h2>3. Liên hệ giữa thứ tự và phép nhân</h2>
+      <div class="cols">
+        <div class="note">
+          <h3>Nhân với số dương (c &gt; 0): Giữ nguyên chiều</h3>
+          <p>Nếu <b>a &lt; b</b> và <b>c &gt; 0</b> thì <b>a · c &lt; b · c</b>.</p>
+        </div>
+        <div class="warn">
+          <h3>Nhân với số âm (c &lt; 0): Đổi chiều!</h3>
+          <p>Nếu <b>a &lt; b</b> và <b>c &lt; 0</b> thì <b>a · c &gt; b · c</b>.</p>
+        </div>
+      </div>
+      <h3>Thử nghiệm nhân hai vế của bất đẳng thức −2 &lt; 3 với số c:</h3>
+      <label>Nhập số c = <input id="checkc" type="number" value="-4" step="any" /></label>
+      <button class="btn" id="verify">Kiểm tra chiều bất đẳng thức</button>
+      <p id="verifyResult" class="note">Nhấn Kiểm tra để xem chiều bất đẳng thức sau khi nhân.</p>
+    </section>
+
+    <section id="quiz" class="panel">
+      <h2>4. Trắc nghiệm tự chấm</h2>
+      <div id="quizArea"></div>
+      <button id="grade" class="btn">Chấm bài</button>
+      <button id="redo" class="btn alt">Làm lại</button>
+      <p id="score"></p>
+    </section>
+
+    <section id="practice" class="panel">
+      <h2>5. Bài tập SGK Toán 9 (Bài 2.6 – 2.11 trang 35)</h2>
+      <div id="practiceArea"></div>
+    </section>
+  </main>
+
+  <script id="lesson" type="application/json">
+  {
+    "id": "toan_9_c2_b5",
+    "title": "Bài 5. Bất đẳng thức và tính chất",
+    "quiz": [
+      {"id": 1, "question": "Biển báo giao thông ghi số 20t (tải trọng tối đa 20 tấn). Nếu gọi m (tấn) là khối lượng xe thì hệ thức đúng là:", "options": ["m ≤ 20", "m < 20", "m ≥ 20", "m > 20"], "answer": 0, "explanation": "Tối đa 20 tấn nghĩa là không vượt quá 20 tấn: m ≤ 20."},
+      {"id": 2, "question": "Cho a < b. Khẳng định nào sau đây ĐÚNG?", "options": ["a + 5 < b + 5", "a + 5 > b + 5", "a - 5 > b - 5", "-a < -b"], "answer": 0, "explanation": "Cộng cùng số 5 vào hai vế giữ nguyên chiều bất đẳng thức."},
+      {"id": 3, "question": "Cho a < b. Khi nhân cả hai vế với (-3), ta được:", "options": ["-3a > -3b", "-3a < -3b", "-3a ≤ -3b", "3a > 3b"], "answer": 0, "explanation": "Nhân hai vế bất đẳng thức với số âm (-3 < 0) phải ĐỔI CHIỀU thành -3a > -3b."},
+      {"id": 4, "question": "Biết -4a > -4b. So sánh a và b:", "options": ["a < b", "a > b", "a = b", "a ≥ b"], "answer": 0, "explanation": "Nhân hai vế với (-1/4 < 0) đổi chiều được a < b."},
+      {"id": 5, "question": "Với mọi số thực x, khẳng định nào luôn đúng?", "options": ["x² ≥ 0", "x² > 0", "x² < 0", "x² ≤ 0"], "answer": 0, "explanation": "Bình phương của mọi số thực luôn không âm: x² ≥ 0."},
+      {"id": 6, "question": "Cho m > n. Kết luận nào đúng khi so sánh 2m - 7 và 2n - 7?", "options": ["2m - 7 > 2n - 7", "2m - 7 < 2n - 7", "2m - 7 = 2n - 7", "Không so sánh được"], "answer": 0, "explanation": "m > n => 2m > 2n => 2m - 7 > 2n - 7."}
+    ],
+    "practice": [
+      {"id": "2.7", "title": "Bài 2.7 (SGK trang 35)", "question": "Không thực hiện phép tính, hãy so sánh: a) (-17) + 5 và (-16) + 5; b) (-12) · (-8) và 9 · (-8).", "steps": ["a) So sánh -17 và -16 rồi cộng 5 vào hai vế.", "b) So sánh -12 và 9 rồi nhân hai vế với -8 (< 0, đổi chiều)."], "answer": "a) Vì -17 < -16 nên (-17) + 5 < (-16) + 5. b) Vì -12 < 9 và -8 < 0 nên (-12)·(-8) > 9·(-8)."},
+      {"id": "2.8", "title": "Bài 2.8 (SGK trang 35)", "question": "Cho a < b, hãy so sánh: a) 3a + 2 và 3b + 2; b) -4a - 5 và -4b - 5.", "steps": ["Nhân hai vế của a < b với hệ số của a, chú ý dấu của hệ số.", "Cộng số hạng tự do vào hai vế."], "answer": "a) a < b => 3a < 3b => 3a + 2 < 3b + 2. b) a < b => -4a > -4b => -4a - 5 > -4b - 5."}
+    ]
+  }
+  </script>
+  <script>
+    const data = JSON.parse(document.getElementById('lesson').textContent);
+    const $ = s => document.querySelector(s);
+    const key = 'toan9-bai05-selfstudy-v1';
+    let state = { answers: {}, writes: {} };
+    try { state = { ...state, ...JSON.parse(localStorage.getItem(key) || '{}') }; } catch (e) {}
+    function save() { try { localStorage.setItem(key, JSON.stringify(state)); } catch (e) {} }
+    function esc(t) { return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function progress() {
+      const n = Object.keys(state.answers).length;
+      $('#count').textContent = `Hoàn thành ${n}/${data.quiz.length} câu trắc nghiệm`;
+      $('#bar').style.width = `${100 * n / data.quiz.length}%`;
+    }
+    function buildQuiz() {
+      const host = $('#quizArea');
+      host.innerHTML = '';
+      data.quiz.forEach((q, i) => {
+        const d = document.createElement('div');
+        d.className = 'question';
+        d.innerHTML = `<b>Câu ${i + 1}. ${esc(q.question)}</b><div class="options"></div><div class="feedback" id="feed${i}"></div>`;
+        q.options.forEach((o, j) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'option' + (state.answers[i] === j ? ' sel' : '');
+          b.textContent = String.fromCharCode(65 + j) + '. ' + o;
+          b.onclick = () => { state.answers[i] = j; save(); buildQuiz(); progress(); };
+          d.querySelector('.options').append(b);
+        });
+        host.append(d);
+      });
+      progress();
+    }
+    function buildPractice() {
+      const host = $('#practiceArea');
+      host.innerHTML = '';
+      data.practice.forEach((b, i) => {
+        const d = document.createElement('div');
+        d.className = 'exercise';
+        d.innerHTML = `<h3>${esc(b.title)}</h3><p>${esc(b.question)}</p><textarea placeholder="Trình bày lời giải của em..."></textarea><details><summary>Gợi ý từng bước</summary><ol>${b.steps.map(s => '<li>' + esc(s) + '</li>').join('')}</ol></details><details><summary>Đáp án chuẩn SGK</summary><p class="note">${esc(b.answer)}</p></details>`;
+        const t = d.querySelector('textarea');
+        t.value = state.writes[i] || '';
+        t.oninput = () => { state.writes[i] = t.value; save(); };
+        host.append(d);
+      });
+    }
+    buildQuiz();
+    buildPractice();
+    $('#grade').onclick = () => {
+      let correct = 0;
+      data.quiz.forEach((q, i) => {
+        const e = $('#feed' + i), a = state.answers[i];
+        const ok = a === q.answer;
+        if (ok) correct++;
+        e.className = 'feedback ' + (ok ? 'good' : 'bad');
+        e.textContent = (ok ? '✓ Chính xác! ' : '✗ Chưa đúng. ') + q.explanation;
+      });
+      $('#score').innerHTML = `<b>Kết quả: ${correct}/${data.quiz.length} câu đúng.</b>`;
+    };
+    $('#redo').onclick = () => { state.answers = {}; save(); buildQuiz(); $('#score').textContent = ''; };
+    $('#verify').onclick = () => {
+      const c = Number($('#checkc').value);
+      const lhs = -2 * c;
+      const rhs = 3 * c;
+      if (c > 0) {
+        $('#verifyResult').textContent = `Nhân với c = ${c} > 0 (số dương): (-2)·${c} = ${lhs} < 3·${c} = ${rhs}. Bất đẳng thức GIỮ NGUYÊN CHIỀU (<).`;
+      } else if (c < 0) {
+        $('#verifyResult').textContent = `Nhân với c = ${c} < 0 (số âm): (-2)·(${c}) = ${lhs} > 3·(${c}) = ${rhs}. Bất đẳng thức ĐỔI CHIỀU từ (<) sang (>).`;
+      } else {
+        $('#verifyResult').textContent = `Nhân với c = 0: Hai vế đều bằng 0.`;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -202,7 +202,12 @@ const ID_TO_ARCHETYPE: Record<string, LectureArchetype> = {
   toan_6_c5_b22: 'central_symmetry',
   toan_6_hdtn_t1_hd1: 'activity_card_room',
   toan_6_hdtn_t1_hd2: 'activity_geogebra',
-  toan_6_hdtn_t1_hd3: 'activity_calculator'
+  toan_6_hdtn_t1_hd3: 'activity_calculator',
+  toan_9_c1_b1: 'activity_geogebra',
+  toan_9_c1_b2: 'add_sub_cubes',
+  toan_9_c1_b3: 'mul_div_arrays',
+  toan_9_c2_b4: 'bracket_sign_rules',
+  toan_9_c2_b5: 'number_line_staircase'
 };
 
 function resolveLectureArchetype(item: LectureItem): LectureArchetype {
