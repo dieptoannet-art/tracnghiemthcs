@@ -34,6 +34,12 @@ import {
   ThumbsDown,
   Eye,
 } from 'lucide-react';
+import {
+  EduGameSoundBank,
+  EduGameVoiceController,
+  loadEduGameVoiceEnabled,
+  saveEduGameVoiceEnabled,
+} from '../../../utils/eduGameAudioController';
 
 export type RobotGamePhase =
   | 'IDLE'
@@ -119,119 +125,7 @@ export function secureRandomInt(max: number): number {
   return Math.floor(Math.random() * max);
 }
 
-/**
- * Synthesized futuristic sound effects for EDU Bot using Web Audio API.
- */
-class RobotSoundEngine {
-  private ctx: AudioContext | null = null;
-
-  private getContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
-      }
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-    return this.ctx;
-  }
-
-  public playBoot(isMuted: boolean) {
-    if (isMuted) return;
-    const ctx = this.getContext();
-    if (!ctx) return;
-    try {
-      const freqs = [330, 440, 587.33, 880];
-      freqs.forEach((f, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        const start = ctx.currentTime + idx * 0.06;
-        osc.frequency.setValueAtTime(f, start);
-        gain.gain.setValueAtTime(0.06, start);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.14);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.15);
-      });
-    } catch {
-      // Ignore audio restriction errors
-    }
-  }
-
-  public playScanPulse(stepIndex: number, isMuted: boolean) {
-    if (isMuted) return;
-    const ctx = this.getContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      const baseFreq = 520 + (stepIndex % 8) * 65;
-      osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.18, ctx.currentTime + 0.05);
-      gain.gain.setValueAtTime(0.045, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.065);
-    } catch {
-      // Ignore audio errors
-    }
-  }
-
-  public playLockTarget(isMuted: boolean) {
-    if (isMuted) return;
-    const ctx = this.getContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(740, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.18);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.21);
-    } catch {
-      // Ignore
-    }
-  }
-
-  public playCelebration(isMuted: boolean) {
-    if (isMuted) return;
-    const ctx = this.getContext();
-    if (!ctx) return;
-    try {
-      const notes = [523.25, 659.25, 783.99, 1046.5];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        const start = ctx.currentTime + i * 0.085;
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.09, start);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.36);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.38);
-      });
-    } catch {
-      // Ignore
-    }
-  }
-}
+// Web Audio & strict Vietnamese TTS are handled via shared EduGameSoundBank & EduGameVoiceController.
 
 /**
  * High-detail 2.5D/3D SVG character component for EDU Bot.
@@ -911,8 +805,8 @@ export const RobotGame: React.FC<RobotGameProps> = ({
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [mouthFrame, setMouthFrame] = useState<number>(0);
 
-  // Web Speech API (Vietnamese TTS) State
-  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(true);
+  // Web Speech API (Strict Vietnamese TTS via EduGameVoiceController) State
+  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(() => loadEduGameVoiceEnabled(true));
   const [speechSupported, setSpeechSupported] = useState<boolean>(false);
   const [vietnameseVoices, setVietnameseVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
@@ -945,16 +839,17 @@ export const RobotGame: React.FC<RobotGameProps> = ({
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
   const [lastSyncError, setLastSyncError] = useState<string | null>(null);
 
-  // Refs for cleanup & anti-double-click
+  // Refs for cleanup, live audio state & anti-double-click
   const isProcessingRef = useRef<boolean>(false);
-  const soundEngineRef = useRef<RobotSoundEngine | null>(null);
+  const soundBankRef = useRef<EduGameSoundBank | null>(null);
+  const voiceControllerRef = useRef<EduGameVoiceController | null>(null);
+  const isMutedRef = useRef<boolean>(isMuted);
+  const voiceEnabledRef = useRef<boolean>(voiceEnabled);
+  const selectedVoiceURIRef = useRef<string>(selectedVoiceURI);
+  const activeTurnTokenRef = useRef<string | null>(null);
   const timersRef = useRef<number[]>([]);
   const intervalsRef = useRef<number[]>([]);
   const syncedTurnSetRef = useRef<Set<string>>(new Set());
-
-  if (!soundEngineRef.current) {
-    soundEngineRef.current = new RobotSoundEngine();
-  }
 
   const clearAllTimers = useCallback(() => {
     timersRef.current.forEach((id) => window.clearTimeout(id));
@@ -964,65 +859,72 @@ export const RobotGame: React.FC<RobotGameProps> = ({
   }, []);
 
   const stopSpeech = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-      } catch {
-        // Ignore
-      }
-    }
+    voiceControllerRef.current?.stop();
     setIsSpeaking(false);
   }, []);
 
-  // Cleanup on unmount
+  // Initialize shared SoundBank + strict Vietnamese VoiceController & cleanup on unmount
   useEffect(() => {
-    return () => {
-      clearAllTimers();
-      stopSpeech();
-    };
-  }, [clearAllTimers, stopSpeech]);
+    const bank = new EduGameSoundBank();
+    const voice = new EduGameVoiceController(selectedVoiceURIRef.current || null);
+    soundBankRef.current = bank;
+    voiceControllerRef.current = voice;
 
-  // Detect Web Speech API and Vietnamese voices
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      setSpeechSupported(false);
-      setVoiceWarning('Trình duyệt hiện tại không hỗ trợ Web Speech API. EDU Bot sẽ hiển thị lời thoại bằng văn bản.');
-      return;
-    }
-
-    setSpeechSupported(true);
-
-    const loadVoices = () => {
-      try {
-        const allVoices = window.speechSynthesis.getVoices() || [];
-        const viList = allVoices.filter(
-          (v) =>
-            v.lang.toLowerCase().includes('vi') ||
-            v.name.toLowerCase().includes('vietnam') ||
-            v.name.toLowerCase().includes('tiếng việt')
+    const unsubscribe = voice.subscribe((snapshot) => {
+      const supported = snapshot.status !== 'UNSUPPORTED_BROWSER';
+      setSpeechSupported(supported);
+      setVietnameseVoices(snapshot.vietnameseVoices.map((opt) => opt.voice));
+      if (!supported) {
+        setVoiceWarning(
+          'Trình duyệt hiện tại không hỗ trợ Web Speech API. EDU Bot sẽ hiển thị lời thoại bằng văn bản.'
         );
-        setVietnameseVoices(viList);
-        if (viList.length > 0) {
-          setSelectedVoiceURI((prev) => prev || viList[0].voiceURI);
-          setVoiceWarning(null);
-        } else if (allVoices.length > 0) {
-          setVoiceWarning(
-            'Thiết bị/trình duyệt chưa cài đặt gói giọng đọc Tiếng Việt (vi-VN). Bạn vẫn có thể dùng giọng mặc định hoặc xem văn bản.'
-          );
-        }
-      } catch {
-        // Ignore voice enumeration errors
+      } else if (snapshot.hasVietnameseVoice && snapshot.vietnameseVoices.length > 0) {
+        setSelectedVoiceURI(
+          (prev) => prev || snapshot.selectedVoice?.voiceURI || snapshot.vietnameseVoices[0].voiceURI
+        );
+        setVoiceWarning(null);
+      } else if (snapshot.status === 'UNAVAILABLE_NO_VI_VOICE') {
+        setVoiceWarning(
+          'Thiết bị/trình duyệt chưa cài đặt giọng đọc Tiếng Việt (vi-VN). EDU Bot sẽ tự động hiển thị tên và lời thoại trên màn hình (không đọc bằng giọng tiếng Anh).'
+        );
       }
-    };
+    });
 
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
     return () => {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = null;
-      }
+      unsubscribe();
+      clearAllTimers();
+      activeTurnTokenRef.current = null;
+      bank.dispose();
+      voice.dispose();
+      if (soundBankRef.current === bank) soundBankRef.current = null;
+      if (voiceControllerRef.current === voice) voiceControllerRef.current = null;
     };
-  }, []);
+  }, [clearAllTimers]);
+
+  // Immediately silence Web Audio & speech when muted
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+    if (isMuted) {
+      soundBankRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
+      setIsSpeaking(false);
+    }
+  }, [isMuted]);
+
+  // Persist voiceEnabled preference & stop speech immediately when disabled
+  useEffect(() => {
+    voiceEnabledRef.current = voiceEnabled;
+    saveEduGameVoiceEnabled(voiceEnabled);
+    if (!voiceEnabled) {
+      voiceControllerRef.current?.stop();
+      setIsSpeaking(false);
+    }
+  }, [voiceEnabled]);
+
+  useEffect(() => {
+    selectedVoiceURIRef.current = selectedVoiceURI;
+    voiceControllerRef.current?.setPreferredVoiceURI(selectedVoiceURI || null);
+  }, [selectedVoiceURI]);
 
   // Periodic natural eye blinking
   useEffect(() => {
@@ -1128,6 +1030,7 @@ export const RobotGame: React.FC<RobotGameProps> = ({
       setAnswerTimeLeft((prev) => {
         if (prev <= 1) {
           setIsAnswerTimerRunning(false);
+          soundBankRef.current?.playTimerBell(isMutedRef.current);
           return 0;
         }
         return prev - 1;
@@ -1136,65 +1039,72 @@ export const RobotGame: React.FC<RobotGameProps> = ({
     return () => window.clearInterval(interval);
   }, [isAnswerTimerRunning]);
 
-  // Speak Vietnamese announcement safely using Web Speech API with watchdog fallback
+  // Speak Vietnamese announcement strictly (NEVER falls back to English) via EduGameVoiceController
   const speakVietnameseText = useCallback(
-    (text: string, onDone?: () => void) => {
+    (
+      text: string,
+      onDone?: () => void,
+      options?: { turnId?: string; studentName?: string; isReplay?: boolean }
+    ) => {
+      const voice = voiceControllerRef.current;
       stopSpeech();
 
-      if (isMuted || !voiceEnabled || !speechSupported || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      if (!voice || isMutedRef.current || !voiceEnabledRef.current) {
         setIsSpeaking(false);
         onDone?.();
         return;
       }
 
-      try {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'vi-VN';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.05;
-
-        if (selectedVoiceURI) {
-          const allVoices = window.speechSynthesis.getVoices() || [];
-          const matched = allVoices.find((v) => v.voiceURI === selectedVoiceURI);
-          if (matched) {
-            utterance.voice = matched;
-          }
-        } else if (vietnameseVoices.length > 0) {
-          utterance.voice = vietnameseVoices[0];
-        }
-
-        let finished = false;
-        const finishSafely = () => {
-          if (finished) return;
-          finished = true;
-          setIsSpeaking(false);
-          onDone?.();
-        };
-
-        // Watchdog timer so state machine never hangs in SPEAKING if browser speech engine stalls
-        const watchdog = window.setTimeout(finishSafely, Math.max(4500, text.length * 95));
-        timersRef.current.push(watchdog);
-
-        utterance.onstart = () => {
-          setIsSpeaking(true);
-        };
-        utterance.onend = () => {
-          window.clearTimeout(watchdog);
-          finishSafely();
-        };
-        utterance.onerror = () => {
-          window.clearTimeout(watchdog);
-          finishSafely();
-        };
-
-        setIsSpeaking(true);
-        window.speechSynthesis.speak(utterance);
-      } catch {
+      const snapshot = voice.getSnapshot();
+      if (snapshot.status === 'UNSUPPORTED_BROWSER' || !snapshot.hasVietnameseVoice) {
+        // Strict Vietnamese-only rule: skip TTS cleanly without blocking UI or speaking English
         setIsSpeaking(false);
         onDone?.();
+        return;
       }
+
+      const turnAtStart = activeTurnTokenRef.current;
+      setIsSpeaking(true);
+      const speakPromise =
+        !options?.isReplay && options?.turnId
+          ? voice.announceStudentOnce({
+              turnId: options.turnId,
+              studentName: options.studentName || '',
+              customText: text,
+              isMuted: isMutedRef.current,
+              voiceEnabled: voiceEnabledRef.current,
+              preferredVoiceURI: selectedVoiceURIRef.current || null,
+            })
+          : voice.replayText({
+              text,
+              isMuted: isMutedRef.current,
+              voiceEnabled: voiceEnabledRef.current,
+              preferredVoiceURI: selectedVoiceURIRef.current || null,
+            });
+
+      void speakPromise.then((result) => {
+        if (activeTurnTokenRef.current !== turnAtStart || isMutedRef.current || !voiceEnabledRef.current) {
+          setIsSpeaking(false);
+          onDone?.();
+          return;
+        }
+        if (!result.spoken) {
+          setIsSpeaking(false);
+          onDone?.();
+          return;
+        }
+        // Keep mouth animation active briefly while Vietnamese utterance plays, then finish cleanly
+        const finishTimer = window.setTimeout(() => {
+          setIsSpeaking(false);
+          onDone?.();
+        }, Math.min(2600, Math.max(1100, text.length * 42)));
+        timersRef.current.push(finishTimer);
+      }).catch(() => {
+        setIsSpeaking(false);
+        onDone?.();
+      });
     },
-    [isMuted, voiceEnabled, speechSupported, selectedVoiceURI, vietnameseVoices, stopSpeech]
+    [stopSpeech]
   );
 
   // Persist turn record to Supabase audit_logs without duplicate entries
@@ -1260,6 +1170,9 @@ export const RobotGame: React.FC<RobotGameProps> = ({
   // Reset state when switching class
   useEffect(() => {
     clearAllTimers();
+    activeTurnTokenRef.current = null;
+    soundBankRef.current?.setActiveTurnToken(null);
+    soundBankRef.current?.stopAll();
     stopSpeech();
     isProcessingRef.current = false;
     setPhase('IDLE');
@@ -1292,10 +1205,18 @@ export const RobotGame: React.FC<RobotGameProps> = ({
       return;
     }
 
+    // Unlock Web Audio synchronously inside user click & silence any prior sound/speech
+    soundBankRef.current?.unlock();
+    soundBankRef.current?.stopAll();
+    stopSpeech();
+
     // Lock processing to prevent double-clicks
     isProcessingRef.current = true;
     clearAllTimers();
-    stopSpeech();
+
+    const turnToken = `a12_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    activeTurnTokenRef.current = turnToken;
+    soundBankRef.current?.setActiveTurnToken(turnToken);
 
     // Move previous winner to "Kết quả lượt trước"
     if (currentWinner) {
@@ -1334,7 +1255,7 @@ export const RobotGame: React.FC<RobotGameProps> = ({
     setPhase('INITIALIZING');
     setExpression('HAPPY');
     setRobotSpeechText('EDU Bot đang khởi động hệ thống radar hologram và nạp danh sách lớp...');
-    soundEngineRef.current?.playBoot(isMuted);
+    soundBankRef.current?.playRobotBoot(isMutedRef.current, turnToken);
 
     const initDuration = reducedMotion ? 250 : 650;
     const scanDuration = reducedMotion ? 900 : 2100;
@@ -1343,12 +1264,17 @@ export const RobotGame: React.FC<RobotGameProps> = ({
 
     // PHASE 2: SCANNING
     const tScan = window.setTimeout(() => {
+      if (activeTurnTokenRef.current !== turnToken) return;
       setPhase('SCANNING');
       setExpression('SCANNING');
       setRobotSpeechText('Đang quét tín hiệu ngẫu nhiên công bằng trên toàn bộ thẻ học sinh...');
 
       let step = 0;
       const scanInterval = window.setInterval(() => {
+        if (activeTurnTokenRef.current !== turnToken) {
+          window.clearInterval(scanInterval);
+          return;
+        }
         step += 1;
         setScanBeamPercent((step * 14) % 100);
         if (presentStudents.length > 0) {
@@ -1356,13 +1282,14 @@ export const RobotGame: React.FC<RobotGameProps> = ({
           const randomVisualIdx = secureRandomInt(presentStudents.length);
           setScanHighlightIndex(randomVisualIdx);
         }
-        soundEngineRef.current?.playScanPulse(step, isMuted);
+        soundBankRef.current?.playRobotScanPulse(step, isMutedRef.current, turnToken);
       }, 135);
       intervalsRef.current.push(scanInterval);
     }, initDuration);
 
     // PHASE 3: SELECTING (Robot Thinking & Locking onto target page)
     const tSelect = window.setTimeout(() => {
+      if (activeTurnTokenRef.current !== turnToken) return;
       intervalsRef.current.forEach((id) => window.clearInterval(id));
       intervalsRef.current = [];
       setPhase('SELECTING');
@@ -1371,16 +1298,17 @@ export const RobotGame: React.FC<RobotGameProps> = ({
       setScanHighlightIndex(targetGlobalIdx);
       setScanBeamPercent(100);
       setRobotSpeechText('EDU Bot đang phân tích tín hiệu và khóa tọa độ bạn may mắn...');
-      soundEngineRef.current?.playLockTarget(isMuted);
+      soundBankRef.current?.playRobotTargetFound(isMutedRef.current, turnToken);
     }, initDuration + scanDuration);
 
     // PHASE 4: REVEALING
     const tReveal = window.setTimeout(() => {
+      if (activeTurnTokenRef.current !== turnToken) return;
       setPhase('REVEALING');
       setExpression('CELEBRATING');
       setCurrentWinner(chosenStudent);
       setAssignedQuestion(chosenQuestion);
-      soundEngineRef.current?.playCelebration(isMuted);
+      soundBankRef.current?.playRevealChime(isMutedRef.current, turnToken);
 
       const spokenAnnouncement =
         robotMode === 'VOICE_CALL'
@@ -1402,6 +1330,7 @@ export const RobotGame: React.FC<RobotGameProps> = ({
 
     // PHASE 5: SPEAKING -> PHASE 6: COMPLETED
     const tSpeak = window.setTimeout(() => {
+      if (activeTurnTokenRef.current !== turnToken) return;
       setPhase('SPEAKING');
       const spokenAnnouncement =
         robotMode === 'VOICE_CALL'
@@ -1410,11 +1339,19 @@ export const RobotGame: React.FC<RobotGameProps> = ({
           ? `Xin mời bạn ${chosenStudent.fullName} thực hiện nhiệm vụ trên màn hình!`
           : `Xin mời bạn ${chosenStudent.fullName}!`;
 
-      speakVietnameseText(spokenAnnouncement, () => {
-        setPhase('COMPLETED');
-        setExpression('HAPPY');
-        isProcessingRef.current = false;
-      });
+      speakVietnameseText(
+        spokenAnnouncement,
+        () => {
+          if (activeTurnTokenRef.current !== turnToken) return;
+          setPhase('COMPLETED');
+          setExpression('HAPPY');
+          isProcessingRef.current = false;
+        },
+        {
+          turnId: `${sessionId}_${turnToken}_${chosenStudent.id}`,
+          studentName: chosenStudent.fullName,
+        }
+      );
     }, initDuration + scanDuration + selectingDuration + revealDuration);
 
     timersRef.current.push(tScan, tSelect, tReveal, tSpeak);
@@ -1423,12 +1360,13 @@ export const RobotGame: React.FC<RobotGameProps> = ({
   // Replay Vietnamese voice for current winner
   const handleReplayVoice = () => {
     if (!currentWinner) return;
+    soundBankRef.current?.unlock();
     const text =
       robotMode === 'VOICE_CALL'
         ? `Xin chào cả lớp! Bạn được mời trả lời câu hỏi tiếp theo là ${currentWinner.fullName}. Mời bạn chuẩn bị!`
         : `Xin mời bạn ${currentWinner.fullName}!`;
     setRobotSpeechText(text);
-    speakVietnameseText(text);
+    speakVietnameseText(text, undefined, { isReplay: true });
   };
 
   // Apply bonus points or teacher note for the current winner
@@ -2178,6 +2116,13 @@ export const RobotGame: React.FC<RobotGameProps> = ({
                   type="button"
                   disabled={isBusy}
                   onClick={() => {
+                    clearAllTimers();
+                    activeTurnTokenRef.current = null;
+                    soundBankRef.current?.setActiveTurnToken(null);
+                    soundBankRef.current?.stopAll();
+                    voiceControllerRef.current?.stop();
+                    voiceControllerRef.current?.resetTurnDedupe();
+                    isProcessingRef.current = false;
                     onResetSession();
                     setPhase('IDLE');
                     setExpression('NORMAL');

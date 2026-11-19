@@ -1,4 +1,5 @@
 import { ClassRoom } from '../../types';
+import { KHKT_DEMO_KEYS, isKhktDemoRuntime } from '../../utils/khktDemoSandbox';
 
 export interface StudentCandidate {
   id: string;
@@ -157,6 +158,9 @@ const STORAGE_PREFIX = 'taydo_call_game';
 
 export function getStorageKey(teacherId: string, subKey: string): string {
   const safeId = teacherId || 'default_teacher';
+  if (isKhktDemoRuntime()) {
+    return `${KHKT_DEMO_KEYS.GAME_CALL_PREFIX}${safeId}_${subKey}`;
+  }
   return `${STORAGE_PREFIX}_${safeId}_${subKey}`;
 }
 

@@ -53,18 +53,22 @@ import {
   LessonCardIllustration3D
 } from './coreKnowledgeThumbnails';
 import { TOAN9_INTEGRATED_LESSON_IDS } from '../grade9/Toan9Lessons1To5View';
+import { KHKT_DEMO_KEYS } from '../../utils/khktDemoSandbox';
 
 const RECENT_VIEW_KEY = 'taydo_last_viewed_core_lesson';
 
 export const CoreKnowledgeView: React.FC = () => {
   const {
     user,
+    isDemoSandbox,
     studyDocs,
     openStudyMaterialsWithIntent,
     coreKnowledgeTargetLessonId,
     clearCoreKnowledgeTargetLesson,
     setCurrentView,
   } = useApp();
+
+  const recentStorageKey = isDemoSandbox ? KHKT_DEMO_KEYS.RECENT_CORE_LESSON : RECENT_VIEW_KEY;
 
   // 1. Bộ chọn 5 cấp phụ thuộc: Khối lớp -> Môn học -> Tập sách -> Chương/Chủ đề -> Bài học
   // Mặc định ban đầu: Khối 6, Môn Toán, Tập 1, Chương I, Bài 1
@@ -91,7 +95,7 @@ export const CoreKnowledgeView: React.FC = () => {
     viewedAt: string;
   } | null>(() => {
     try {
-      const saved = localStorage.getItem(RECENT_VIEW_KEY);
+      const saved = localStorage.getItem(recentStorageKey);
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -396,7 +400,7 @@ export const CoreKnowledgeView: React.FC = () => {
         breadcrumb: breadcrumbParts.join(' / '),
         viewedAt: new Date().toISOString()
       };
-      localStorage.setItem(RECENT_VIEW_KEY, JSON.stringify(recentData));
+      localStorage.setItem(recentStorageKey, JSON.stringify(recentData));
       setRecentView(recentData);
     } catch {
       // ignore storage error
@@ -470,6 +474,11 @@ export const CoreKnowledgeView: React.FC = () => {
       return;
     }
 
+    if (isDemoSandbox) {
+      setBridgeStatus('offline_mode');
+      return;
+    }
+
     const userId = user?.id;
     const isValidUuid = Boolean(
       userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)
@@ -497,7 +506,7 @@ export const CoreKnowledgeView: React.FC = () => {
       console.warn('Cầu nối Supabase lịch sử bài học tạm bỏ qua:', err);
       setBridgeStatus('idle');
     }
-  }, [activeLesson, user?.id]);
+  }, [activeLesson, user?.id, isDemoSandbox]);
 
   const formatTimeAgo = (isoString: string) => {
     try {
@@ -643,7 +652,11 @@ export const CoreKnowledgeView: React.FC = () => {
                   {bridgeStatus === 'offline_mode' && (
                     <span className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 bg-amber-500/20 text-amber-200 border border-amber-400/30 rounded-xl text-xs font-semibold">
                       <Clock className="w-3.5 h-3.5 text-amber-300" />
-                      <span>Lưu trên thiết bị (Đăng nhập để đồng bộ)</span>
+                      <span>
+                        {isDemoSandbox
+                          ? 'Lưu cục bộ trên trình duyệt (Bản demo KHKT)'
+                          : 'Lưu trên thiết bị (Đăng nhập để đồng bộ)'}
+                      </span>
                     </span>
                   )}
                 </>

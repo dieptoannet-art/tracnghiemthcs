@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
+import { KHKT_DEMO_KEYS } from '../../utils/khktDemoSandbox';
+import {
+  loadEduGameMuted,
+  saveEduGameMuted,
+  stopAllGlobalEduSpeech,
+} from '../../utils/eduGameAudioController';
 import {
   EDU_GAMES_CATALOG,
   EDU_GAME_CATEGORIES,
@@ -201,13 +207,13 @@ const SLICE_COLORS = [
 const PLUSH_ICONS = ['🧸', '🐰', '🐱', '🐶', '🦊', '🐼', '🐸', '🐥', '🦁', '🐯'];
 
 export const EDUGameCenter: React.FC = () => {
-  const { classes, questions, user, userProfile, currentRole, openAuthModal } = useApp();
-  const isLoggedInTeacher = Boolean(user && currentRole !== 'student');
-  const systemTeacherId = user?.id || 'gv_taydo';
+  const { classes, questions, user, userProfile, currentRole, isDemoSandbox, openAuthModal } = useApp();
+  const isLoggedInTeacher = isDemoSandbox || Boolean(user && currentRole !== 'student');
+  const systemTeacherId = isDemoSandbox ? 'demo_khkt_teacher' : (user?.id || 'gv_taydo');
 
   // Shared Guest Mode vs Teacher Mode state
   const [rosterMode, setRosterMode] = useState<'guest' | 'teacher'>(() =>
-    loadRosterModePreference(Boolean(user && currentRole !== 'student'))
+    loadRosterModePreference(isDemoSandbox || Boolean(user && currentRole !== 'student'))
   );
   const [guestSession, setGuestSession] = useState<GuestClassSession>(() => loadGuestSession());
   const [guestHistory, setGuestHistory] = useState<GuestTurnHistoryItem[]>(() => loadGuestHistory());
@@ -253,9 +259,13 @@ export const EDUGameCenter: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [onlyFavorites, setOnlyFavorites] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'default' | 'name' | 'ready' | 'recent'>('default');
+  const favGamesStorageKey = isDemoSandbox
+    ? KHKT_DEMO_KEYS.GAME_FAVORITES
+    : `taydo_edu_fav_games_${systemTeacherId}`;
+
   const [favoriteGameIds, setFavoriteGameIds] = useState<Set<string>>(() => {
     try {
-      const raw = localStorage.getItem(`taydo_edu_fav_games_${systemTeacherId}`);
+      const raw = localStorage.getItem(favGamesStorageKey);
       if (raw) return new Set(JSON.parse(raw));
     } catch {}
     return new Set(['a01', 'a02', 'a03', 'a04']);
@@ -268,7 +278,7 @@ export const EDUGameCenter: React.FC = () => {
       if (next.has(gameId)) next.delete(gameId);
       else next.add(gameId);
       try {
-        localStorage.setItem(`taydo_edu_fav_games_${systemTeacherId}`, JSON.stringify(Array.from(next)));
+        localStorage.setItem(favGamesStorageKey, JSON.stringify(Array.from(next)));
       } catch {}
       return next;
     });
@@ -283,9 +293,27 @@ export const EDUGameCenter: React.FC = () => {
 
   // Game Settings & States (Teacher mode)
   const [teacherAntiDuplicate, setTeacherAntiDuplicate] = useState<boolean>(true);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(() => loadEduGameMuted(false));
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    saveEduGameMuted(isMuted);
+    if (isMuted) {
+      stopAllGlobalEduSpeech();
+    }
+  }, [isMuted]);
+
+  useEffect(() => {
+    // Switching games or returning to library immediately stops any leftover voice from previous game
+    stopAllGlobalEduSpeech();
+  }, [activeGame?.id]);
+
+  useEffect(() => {
+    return () => {
+      stopAllGlobalEduSpeech();
+    };
+  }, []);
 
   useEffect(() => {
     const handleFsChange = () => {
@@ -2776,15 +2804,15 @@ export const EDUGameCenter: React.FC = () => {
               ) : activeGame.modeKey === 'cards' ? (
                 <MagicLotteryGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
               ) : activeGame.modeKey === 'balloons' ? (
-                <BalloonsGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
+                <BalloonsGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} onToggleMute={() => setIsMuted(!isMuted)} />
               ) : activeGame.modeKey === 'dice' ? (
-                <DiceGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
+                <DiceGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} onToggleMute={() => setIsMuted(!isMuted)} />
               ) : activeGame.modeKey === 'secret_card' ? (
-                <SecretCardGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
+                <SecretCardGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} onToggleMute={() => setIsMuted(!isMuted)} />
               ) : activeGame.modeKey === 'number_wheel' ? (
-                <NumberWheelGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
+                <NumberWheelGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} onToggleMute={() => setIsMuted(!isMuted)} />
               ) : activeGame.modeKey === 'robot_picker' ? (
-                <RobotGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} />
+                <RobotGame availableCandidates={availableCandidates} onPick={handleGamePickStudent} isMuted={isMuted} onToggleMute={() => setIsMuted(!isMuted)} />
               ) : activeGame.modeKey === 'claw_machine' ? (
                 <div className="w-full flex flex-col justify-between h-full space-y-4">
                   {/* Arcade Glass Cabinet Container (Expanded & Balanced) */}

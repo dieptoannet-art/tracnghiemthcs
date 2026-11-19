@@ -1,4 +1,5 @@
 import { Assignment, ClassRoom, Exam, Submission } from '../types';
+import { getDemoScopedExamDraftKey, isKhktDemoRuntime } from './khktDemoSandbox';
 
 export type AssignmentBucket = 'todo' | 'submitted' | 'overdue';
 
@@ -211,7 +212,7 @@ export function validateAssignmentExamLink(
 }
 
 export function getExamDraftStorageKey(assignmentId: string, studentId: string): string {
-  return `exam_session_${assignmentId}_${studentId}`;
+  return getDemoScopedExamDraftKey(assignmentId, studentId, isKhktDemoRuntime());
 }
 
 export function hasInProgressExamDraft(assignmentId: string, studentId: string): boolean {

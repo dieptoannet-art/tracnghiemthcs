@@ -38,13 +38,18 @@ import { SystemSettings } from './components/admin/SystemSettings';
 // Modals & Guards
 import { SupabaseGuideModal } from './components/SupabaseGuideModal';
 import { AuthModal } from './components/auth/AuthModal';
-import { ShieldAlert, Home } from 'lucide-react';
+import { KhktDemoBanner } from './components/demo/KhktDemoBanner';
+import { evaluateProductionRouteAccess } from './utils/khktDemoSandbox';
+import { ShieldAlert, Home, Lock, LogIn, Sparkles } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const {
     reducedMotion,
     currentView,
     setCurrentView,
+    isDemoSandbox,
+    demoResetVersion,
+    enterKhktDemo,
     authenticatedProdUser,
     authenticatedProdRole,
     user,
@@ -69,7 +74,14 @@ const AppContent: React.FC = () => {
     }
   }, [currentView]);
 
-  if (currentView === 'login_portal') {
+  useEffect(() => {
+    if (isDemoSandbox) {
+      setSelectedAssignmentId(null);
+      setSupabaseModalOpen(false);
+    }
+  }, [demoResetVersion, isDemoSandbox]);
+
+  if (!isDemoSandbox && currentView === 'login_portal') {
     return (
       <div className={reducedMotion ? 'smart-reduce-motion' : ''}>
         <LoginPortalView />
@@ -82,8 +94,11 @@ const AppContent: React.FC = () => {
 
   const renderGuardShell = (content: React.ReactNode) => (
     <div className={`min-h-screen flex flex-col ${shellThemeClasses} ${reducedMotion ? 'smart-reduce-motion' : ''}`}>
+      {isDemoSandbox && <KhktDemoBanner />}
       <Header
-        onOpenSupabaseConfig={() => setSupabaseModalOpen(true)}
+        onOpenSupabaseConfig={() => {
+          if (!isDemoSandbox) setSupabaseModalOpen(true);
+        }}
         onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
       />
       <div className="flex-1 flex overflow-hidden">
@@ -96,13 +111,18 @@ const AppContent: React.FC = () => {
           {content}
         </main>
       </div>
-      {supabaseModalOpen && <SupabaseGuideModal onClose={() => setSupabaseModalOpen(false)} />}
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      {!isDemoSandbox && supabaseModalOpen && (
+        <SupabaseGuideModal onClose={() => setSupabaseModalOpen(false)} />
+      )}
+      {!isDemoSandbox && (
+        <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      )}
     </div>
   );
 
-  // Loading guard for authenticated production routes
+  // Loading guard for authenticated production routes (never fires inside /demo)
   if (
+    !isDemoSandbox &&
     isSupabaseLiveConfigured &&
     (authLoading || (user && profileStatus === 'loading')) &&
     (currentView.startsWith('admin_') ||
@@ -112,6 +132,68 @@ const AppContent: React.FC = () => {
       <div className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center max-w-md shadow-xs space-y-3 font-edtech">
         <p className="text-base font-bold text-[#082B52]">Đang xác minh phiên đăng nhập &amp; phân quyền...</p>
         <p className="text-xs text-slate-500">Hệ thống đang đối chiếu vai trò thực tế từ bảng hồ sơ Supabase.</p>
+      </div>
+    );
+  }
+
+  // Strict production authentication & RBAC guard for real teacher/admin URLs outside /demo
+  const routeAccess = evaluateProductionRouteAccess({
+    isDemoSandbox,
+    currentView,
+    pathname: typeof window !== 'undefined' ? window.location.pathname : '/',
+    search: typeof window !== 'undefined' ? window.location.search : '',
+    isAuthenticated: Boolean(authenticatedProdUser),
+    authenticatedRole: authenticatedProdRole,
+  });
+
+  if (!routeAccess.allowed) {
+    return renderGuardShell(
+      <div className="bg-white rounded-2xl border border-[#DCE8F7] p-7 sm:p-8 text-center max-w-lg shadow-sm space-y-4 font-edtech">
+        <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+          <Lock className="w-7 h-7" />
+        </div>
+        <div className="space-y-1.5">
+          <h2 className="text-xl font-extrabold text-[#082B52]">
+            {routeAccess.reason === 'unauthenticated'
+              ? 'Yêu cầu đăng nhập tài khoản thật'
+              : 'Không đủ quyền truy cập khu vực này'}
+          </h2>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            {routeAccess.reason === 'unauthenticated'
+              ? `Khu vực này dành cho ${routeAccess.requiredLabel || 'tài khoản được phân quyền'} trên hệ thống chính thức. Vui lòng đăng nhập hoặc mở Bản demo KHKT để trải nghiệm dữ liệu mẫu.`
+              : `Tài khoản hiện tại không có quyền ${routeAccess.requiredLabel || 'phù hợp'} để truy cập trang này.`}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+          {!isDemoSandbox && (
+            <button
+              type="button"
+              onClick={() => setCurrentView('login_portal')}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#1769F4] hover:bg-[#0F56D3] text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Đăng nhập tài khoản thật</span>
+            </button>
+          )}
+          {!isDemoSandbox && (
+            <button
+              type="button"
+              onClick={() => enterKhktDemo('dashboard')}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0F2D52] text-xs sm:text-sm font-extrabold cursor-pointer transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Mở Bản demo KHKT</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setCurrentView('dashboard')}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold cursor-pointer transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            <span>Về trang chủ</span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -207,8 +289,11 @@ const AppContent: React.FC = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${shellThemeClasses} ${reducedMotion ? 'smart-reduce-motion' : ''}`}>
+      {isDemoSandbox && <KhktDemoBanner />}
       <Header
-        onOpenSupabaseConfig={() => setSupabaseModalOpen(true)}
+        onOpenSupabaseConfig={() => {
+          if (!isDemoSandbox) setSupabaseModalOpen(true);
+        }}
         onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
       />
 
@@ -220,8 +305,11 @@ const AppContent: React.FC = () => {
         />
 
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="max-w-7xl mx-auto space-y-5">
-            {user && profileStatus === 'error' && profileError && (
+          <div
+            key={isDemoSandbox ? `khkt-demo-${demoResetVersion}` : 'prod-workspace'}
+            className="max-w-7xl mx-auto space-y-5"
+          >
+            {!isDemoSandbox && user && profileStatus === 'error' && profileError && (
               <div
                 role="alert"
                 className="bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-red-900 font-edtech"
@@ -247,7 +335,7 @@ const AppContent: React.FC = () => {
         </main>
       </div>
 
-      {supabaseModalOpen && (
+      {!isDemoSandbox && supabaseModalOpen && (
         <SupabaseGuideModal onClose={() => setSupabaseModalOpen(false)} />
       )}
 
@@ -258,10 +346,12 @@ const AppContent: React.FC = () => {
         />
       )}
 
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-      />
+      {!isDemoSandbox && (
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

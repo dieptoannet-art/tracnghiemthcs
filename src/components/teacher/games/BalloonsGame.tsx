@@ -3,6 +3,12 @@ import { StudentCandidate } from '../studentCallRules';
 import { ClassRoom } from '../../../types';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import {
+  EduGameSoundBank,
+  EduGameVoiceController,
+  loadEduGameVoiceEnabled,
+  saveEduGameVoiceEnabled,
+} from '../../../utils/eduGameAudioController';
+import {
   Sparkles,
   Play,
   RotateCcw,
@@ -202,154 +208,7 @@ export function fisherYatesShuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-/**
- * Dedicated Web Audio Sound Synthesizer for A08 Balloon Pop Carnival
- */
-class BalloonSoundEngine {
-  private ctx: AudioContext | null = null;
-
-  private ensureContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
-      }
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-    return this.ctx;
-  }
-
-  playSpotlightTick(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(580, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(980, ctx.currentTime + 0.045);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.05);
-    } catch {}
-  }
-
-  playBalloonInflate(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(240, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(620, ctx.currentTime + 0.32);
-      gain.gain.setValueAtTime(0.02, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.14, ctx.currentTime + 0.28);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.34);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.34);
-    } catch {}
-  }
-
-  playBalloonPop(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      // 1. White noise burst for realistic latex rupture
-      const bufferSize = Math.floor(ctx.sampleRate * 0.14);
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.03));
-      }
-      const whiteNoise = ctx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(1100, ctx.currentTime);
-      filter.Q.setValueAtTime(0.9, ctx.currentTime);
-
-      const noiseGain = ctx.createGain();
-      noiseGain.gain.setValueAtTime(0.42, ctx.currentTime);
-      noiseGain.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 0.13);
-
-      whiteNoise.connect(filter);
-      filter.connect(noiseGain);
-      noiseGain.connect(ctx.destination);
-      whiteNoise.start();
-
-      // 2. Low-mid acoustic pop thump
-      const thump = ctx.createOscillator();
-      const thumpGain = ctx.createGain();
-      thump.type = 'sine';
-      thump.frequency.setValueAtTime(320, ctx.currentTime);
-      thump.frequency.exponentialRampToValueAtTime(55, ctx.currentTime + 0.11);
-      thumpGain.gain.setValueAtTime(0.35, ctx.currentTime);
-      thumpGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-      thump.connect(thumpGain);
-      thumpGain.connect(ctx.destination);
-      thump.start();
-      thump.stop(ctx.currentTime + 0.12);
-    } catch {}
-  }
-
-  playCelebrationFanfare(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
-      notes.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        const start = ctx.currentTime + idx * 0.085;
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.42);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.44);
-      });
-    } catch {}
-  }
-
-  playTimerBell(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      gain.gain.setValueAtTime(0.24, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.85);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.85);
-    } catch {}
-  }
-}
-
-const soundEngine = new BalloonSoundEngine();
+// Audio & strict Vietnamese voice synthesis are managed via shared EduGameSoundBank & EduGameVoiceController.
 
 /**
  * Custom 2D Illustrated SVG Balloon with realistic oval shape, specular gloss,
@@ -630,10 +489,45 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
   const [supabaseSyncState, setSupabaseSyncState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [supabaseErrorMsg, setSupabaseErrorMsg] = useState<string | null>(null);
 
-  // Refs for timers and idempotency
+  // Voice reading preference (persisted cleanly across games & demo-isolated)
+  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(() => loadEduGameVoiceEnabled(true));
+
+  // Refs for timers, audio, voice, and idempotency
   const timersRef = useRef<number[]>([]);
   const savedTurnIdsRef = useRef<Set<string>>(new Set());
   const currentTurnIdRef = useRef<string | null>(null);
+  const activeTurnTokenRef = useRef<string | null>(null);
+  const soundBankRef = useRef<EduGameSoundBank | null>(null);
+  const voiceControllerRef = useRef<EduGameVoiceController | null>(null);
+  const isMutedRef = useRef<boolean>(isMuted);
+  const voiceEnabledRef = useRef<boolean>(voiceEnabled);
+
+  useEffect(() => {
+    soundBankRef.current = new EduGameSoundBank();
+    voiceControllerRef.current = new EduGameVoiceController();
+    return () => {
+      soundBankRef.current?.dispose();
+      soundBankRef.current = null;
+      voiceControllerRef.current?.dispose();
+      voiceControllerRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+    if (isMuted) {
+      soundBankRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
+    }
+  }, [isMuted]);
+
+  useEffect(() => {
+    voiceEnabledRef.current = voiceEnabled;
+    saveEduGameVoiceEnabled(voiceEnabled);
+    if (!voiceEnabled) {
+      voiceControllerRef.current?.stop();
+    }
+  }, [voiceEnabled]);
 
   const clearAllTimers = useCallback(() => {
     timersRef.current.forEach((id) => window.clearTimeout(id));
@@ -642,7 +536,10 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
 
   useEffect(() => {
     return () => {
+      activeTurnTokenRef.current = null;
       clearAllTimers();
+      soundBankRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
     };
   }, [clearAllTimers]);
 
@@ -659,7 +556,11 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
 
   // Initialize / Shuffle student-to-balloon assignment ONLY when class/present list or sessionId changes
   useEffect(() => {
+    activeTurnTokenRef.current = null;
     clearAllTimers();
+    soundBankRef.current?.setActiveTurnToken(null);
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     const shuffled = fisherYatesShuffle(presentStudents);
     const mapped: AssignedBalloon[] = shuffled.map((student, idx) => ({
       balloonId: `${sessionId}_b_${idx + 1}_${student.id}`,
@@ -717,14 +618,14 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
         if (prev <= 1) {
           window.clearInterval(interval);
           setTimerRunning(false);
-          soundEngine.playTimerBell(isMuted);
+          soundBankRef.current?.playTimerBell(isMutedRef.current);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => window.clearInterval(interval);
-  }, [timerRunning, isMuted]);
+  }, [timerRunning]);
 
   // Persist turn result to Supabase audit_logs (with retry support & duplicate guard)
   const syncTurnToSupabase = useCallback(
@@ -805,8 +706,10 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
 
   // Execute Popping & Reveal sequence for a chosen balloon
   const triggerBalloonPopSequence = useCallback(
-    (targetBalloon: AssignedBalloon, modeUsed: BalloonPlayMode) => {
+    (targetBalloon: AssignedBalloon, modeUsed: BalloonPlayMode, turnToken: string) => {
       try {
+        if (activeTurnTokenRef.current !== turnToken) return;
+
         // Ensure the page containing targetBalloon is visible
         const targetIndex = assignedBalloons.findIndex((b) => b.balloonId === targetBalloon.balloonId);
         if (targetIndex >= 0) {
@@ -818,28 +721,37 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
         setSpotlightBalloonId(targetBalloon.balloonId);
         setPhase('HIGHLIGHTING');
         setPopSubStage('NONE');
-        soundEngine.playSpotlightTick(isMuted);
+        soundBankRef.current?.playBalloonMoveTick(isMutedRef.current, 0, turnToken);
 
         // Step 1: Highlight -> Inflating & Shaking (POPPING)
         const t1 = window.setTimeout(() => {
+          if (activeTurnTokenRef.current !== turnToken) return;
           setPhase('POPPING');
           setPopSubStage('INFLATING');
-          soundEngine.playBalloonInflate(isMuted);
+          soundBankRef.current?.playBalloonInflate(isMutedRef.current, turnToken);
 
           // Step 2: Inflating -> Exploding Burst (POP!)
           const t2 = window.setTimeout(() => {
+            if (activeTurnTokenRef.current !== turnToken) return;
             setPopSubStage('EXPLODING');
-            soundEngine.playBalloonPop(isMuted);
+            soundBankRef.current?.playBalloonPop(isMutedRef.current, turnToken);
 
             // Step 3: Exploding -> Revealing Student Identity
             const t3 = window.setTimeout(() => {
+              if (activeTurnTokenRef.current !== turnToken) return;
               setPhase('REVEALING');
               setPopSubStage('NONE');
               setRevealedStudent(targetBalloon.student);
               setShowWinnerOverlay(true);
               setBonusPoints(0);
               setRoundNote('');
-              soundEngine.playCelebrationFanfare(isMuted);
+              soundBankRef.current?.playRevealChime(isMutedRef.current, turnToken);
+              void voiceControllerRef.current?.announceStudentOnce({
+                turnId: turnToken,
+                studentName: targetBalloon.student.fullName,
+                isMuted: isMutedRef.current,
+                voiceEnabled: voiceEnabledRef.current,
+              });
 
               // Reset answer timer to preset for the newly picked student
               setTimerRunning(false);
@@ -847,6 +759,7 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
 
               // Step 4: Completed & Record History Once
               const t4 = window.setTimeout(() => {
+                if (activeTurnTokenRef.current !== turnToken) return;
                 setPhase('COMPLETED');
                 const turnId = `turn_${sessionId}_${Date.now()}_${targetBalloon.student.id}`;
                 currentTurnIdRef.current = turnId;
@@ -873,7 +786,7 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
         setPopSubStage('NONE');
       }
     },
-    [assignedBalloons, isMuted, onPick, sessionId, syncTurnToSupabase, timerPreset]
+    [assignedBalloons, onPick, sessionId, syncTurnToSupabase, timerPreset]
   );
 
   // Mode 1: Teacher clicks directly on a balloon
@@ -881,10 +794,18 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
     if (phase !== 'IDLE' && phase !== 'COMPLETED') return;
     if (isBalloonPopped(balloon)) return;
 
+    soundBankRef.current?.unlock();
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     clearAllTimers();
+
+    const turnToken = `a08_${Date.now()}_${balloon.balloonId}`;
+    activeTurnTokenRef.current = turnToken;
+    soundBankRef.current?.setActiveTurnToken(turnToken);
+
     setShowWinnerOverlay(false);
     setRevealedStudent(null);
-    triggerBalloonPopSequence(balloon, 'MANUAL');
+    triggerBalloonPopSequence(balloon, 'MANUAL', turnToken);
   };
 
   // Mode 2: System randomly picks an eligible balloon across ALL pages
@@ -892,7 +813,15 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
     if (phase !== 'IDLE' && phase !== 'COMPLETED') return;
     if (eligibleBalloons.length === 0) return;
 
+    soundBankRef.current?.unlock();
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     clearAllTimers();
+
+    const turnToken = `a08_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    activeTurnTokenRef.current = turnToken;
+    soundBankRef.current?.setActiveTurnToken(turnToken);
+
     setShowWinnerOverlay(false);
     setRevealedStudent(null);
     setSelectedBalloon(null);
@@ -910,11 +839,12 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
     let step = 0;
 
     const runTick = () => {
+      if (activeTurnTokenRef.current !== turnToken) return;
       step++;
       if (step < totalTicks) {
         const randomSpotlight = spotlightPool[secureRandomInt(spotlightPool.length)];
         setSpotlightBalloonId(randomSpotlight.balloonId);
-        soundEngine.playSpotlightTick(isMuted);
+        soundBankRef.current?.playBalloonMoveTick(isMutedRef.current, step, turnToken);
         const nextDelay = 95 + step * 18;
         const tid = window.setTimeout(runTick, nextDelay);
         timersRef.current.push(tid);
@@ -925,7 +855,7 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
           const targetPage = Math.floor(targetIdxInAll / BALLOONS_PER_PAGE) + 1;
           setCurrentPage(targetPage);
         }
-        triggerBalloonPopSequence(winningBalloon, 'AUTO');
+        triggerBalloonPopSequence(winningBalloon, 'AUTO', turnToken);
       }
     };
 
@@ -934,7 +864,11 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
 
   // Start a fresh session (re-shuffles balloons with Fisher-Yates)
   const handleRefreshSession = () => {
+    activeTurnTokenRef.current = null;
     clearAllTimers();
+    soundBankRef.current?.setActiveTurnToken(null);
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     savedTurnIdsRef.current.clear();
     currentTurnIdRef.current = null;
     setSessionId(`a08_sess_${Date.now().toString(36)}`);
@@ -1477,12 +1411,12 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center gap-2 pt-0.5">
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
               {onToggleMute && (
                 <button
                   type="button"
                   onClick={onToggleMute}
-                  className="flex-1 py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5"
+                  className="flex-1 py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {isMuted ? (
                     <>
@@ -1498,11 +1432,24 @@ export const BalloonsGame: React.FC<BalloonsGameProps> = ({
                 </button>
               )}
 
+              <button
+                type="button"
+                onClick={() => setVoiceEnabled((v) => !v)}
+                className={`py-1.5 px-2.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                  voiceEnabled && !isMuted
+                    ? 'bg-amber-50 border-amber-300 text-amber-800'
+                    : 'bg-slate-100 border-slate-200 text-slate-600'
+                }`}
+                title="Đọc tên học sinh bằng giọng tiếng Việt (không đọc giọng tiếng Anh)"
+              >
+                {voiceEnabled ? 'Đọc tên: BẬT' : 'Đọc tên: TẮT'}
+              </button>
+
               {onToggleFullscreen && (
                 <button
                   type="button"
                   onClick={onToggleFullscreen}
-                  className="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1"
+                  className="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1 cursor-pointer"
                 >
                   {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                   <span>{isFullscreen ? 'Thu nhỏ' : 'Full màn hình'}</span>

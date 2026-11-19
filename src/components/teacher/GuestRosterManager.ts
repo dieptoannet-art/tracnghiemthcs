@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { KHKT_DEMO_KEYS, isKhktDemoRuntime } from '../../utils/khktDemoSandbox';
 
 export interface GuestStudentItem {
   guestStudentId: string;
@@ -51,6 +52,16 @@ export interface ParseGuestRosterResult {
 const GUEST_SESSION_STORAGE_KEY = 'taydo_edu_guest_roster_session_v1';
 const GUEST_HISTORY_STORAGE_KEY = 'taydo_edu_guest_turn_history_v1';
 const GUEST_MODE_PREF_KEY = 'taydo_edu_roster_mode_pref_v1';
+
+function getGuestSessionStorageKey(): string {
+  return isKhktDemoRuntime() ? KHKT_DEMO_KEYS.GAME_GUEST_SESSION : GUEST_SESSION_STORAGE_KEY;
+}
+function getGuestHistoryStorageKey(): string {
+  return isKhktDemoRuntime() ? KHKT_DEMO_KEYS.GAME_GUEST_HISTORY : GUEST_HISTORY_STORAGE_KEY;
+}
+function getGuestModePrefStorageKey(): string {
+  return isKhktDemoRuntime() ? KHKT_DEMO_KEYS.GAME_MODE_PREF : GUEST_MODE_PREF_KEY;
+}
 
 // In-memory fallback when localStorage is unavailable or blocked
 let memoryGuestSession: GuestClassSession | null = null;
@@ -349,6 +360,19 @@ export function findDuplicateNamesInRoster(students: GuestStudentItem[]): string
 }
 
 export function createDefaultGuestSession(): GuestClassSession {
+  if (isKhktDemoRuntime()) {
+    return {
+      guestSessionId: generateGuestId('demo_gsess'),
+      className: 'Lớp 8A1 (Demo KHKT)',
+      activityName: 'Trình diễn KHKT – Trò chơi tương tác 3D',
+      note: 'Dữ liệu học sinh mẫu cục bộ cho bản demo KHKT',
+      students: generateSampleVietnameseRoster(50),
+      calledStudentIds: [],
+      allowRepeat: false,
+      shareAcrossGames: true,
+      updatedAt: new Date().toISOString(),
+    };
+  }
   return {
     guestSessionId: generateGuestId('gsess'),
     className: 'Lớp 6A1 (Khách)',
@@ -363,15 +387,16 @@ export function createDefaultGuestSession(): GuestClassSession {
 }
 
 export function loadGuestSession(): GuestClassSession {
+  const storageKey = getGuestSessionStorageKey();
   if (isLocalStorageAvailable()) {
     try {
-      const raw = window.localStorage.getItem(GUEST_SESSION_STORAGE_KEY);
+      const raw = window.localStorage.getItem(storageKey);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<GuestClassSession>;
         if (parsed && Array.isArray(parsed.students)) {
           return {
             guestSessionId: parsed.guestSessionId || generateGuestId('gsess'),
-            className: parsed.className ?? 'Lớp 6A1 (Khách)',
+            className: parsed.className ?? (isKhktDemoRuntime() ? 'Lớp 8A1 (Demo KHKT)' : 'Lớp 6A1 (Khách)'),
             activityName: parsed.activityName ?? '',
             note: parsed.note ?? '',
             students: reindexGuestStudents(
@@ -394,9 +419,9 @@ export function loadGuestSession(): GuestClassSession {
       // Fallback to memory
     }
   }
-  if (memoryGuestSession) return memoryGuestSession;
+  if (!isKhktDemoRuntime() && memoryGuestSession) return memoryGuestSession;
   const fresh = createDefaultGuestSession();
-  memoryGuestSession = fresh;
+  if (!isKhktDemoRuntime()) memoryGuestSession = fresh;
   return fresh;
 }
 
@@ -406,10 +431,10 @@ export function saveGuestSession(session: GuestClassSession): boolean {
     students: reindexGuestStudents(session.students),
     updatedAt: new Date().toISOString(),
   };
-  memoryGuestSession = updated;
+  if (!isKhktDemoRuntime()) memoryGuestSession = updated;
   if (isLocalStorageAvailable()) {
     try {
-      window.localStorage.setItem(GUEST_SESSION_STORAGE_KEY, JSON.stringify(updated));
+      window.localStorage.setItem(getGuestSessionStorageKey(), JSON.stringify(updated));
       return true;
     } catch {
       return false;
@@ -421,7 +446,7 @@ export function saveGuestSession(session: GuestClassSession): boolean {
 export function loadGuestHistory(): GuestTurnHistoryItem[] {
   if (isLocalStorageAvailable()) {
     try {
-      const raw = window.localStorage.getItem(GUEST_HISTORY_STORAGE_KEY);
+      const raw = window.localStorage.getItem(getGuestHistoryStorageKey());
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) return parsed;
@@ -430,7 +455,7 @@ export function loadGuestHistory(): GuestTurnHistoryItem[] {
       // ignore
     }
   }
-  return memoryGuestHistory;
+  return isKhktDemoRuntime() ? [] : memoryGuestHistory;
 }
 
 export function appendGuestTurnHistory(item: Omit<GuestTurnHistoryItem, 'turnId' | 'timestamp'>): GuestTurnHistoryItem {
@@ -441,10 +466,10 @@ export function appendGuestTurnHistory(item: Omit<GuestTurnHistoryItem, 'turnId'
   };
   const current = loadGuestHistory();
   const next = [fullItem, ...current].slice(0, 500);
-  memoryGuestHistory = next;
+  if (!isKhktDemoRuntime()) memoryGuestHistory = next;
   if (isLocalStorageAvailable()) {
     try {
-      window.localStorage.setItem(GUEST_HISTORY_STORAGE_KEY, JSON.stringify(next));
+      window.localStorage.setItem(getGuestHistoryStorageKey(), JSON.stringify(next));
     } catch {
       // fallback in memory
     }
@@ -454,12 +479,14 @@ export function appendGuestTurnHistory(item: Omit<GuestTurnHistoryItem, 'turnId'
 
 export function clearAllGuestData(): GuestClassSession {
   const fresh = createDefaultGuestSession();
-  memoryGuestSession = fresh;
-  memoryGuestHistory = [];
+  if (!isKhktDemoRuntime()) {
+    memoryGuestSession = fresh;
+    memoryGuestHistory = [];
+  }
   if (isLocalStorageAvailable()) {
     try {
-      window.localStorage.removeItem(GUEST_SESSION_STORAGE_KEY);
-      window.localStorage.removeItem(GUEST_HISTORY_STORAGE_KEY);
+      window.localStorage.removeItem(getGuestSessionStorageKey());
+      window.localStorage.removeItem(getGuestHistoryStorageKey());
     } catch {
       // ignore
     }
@@ -468,10 +495,21 @@ export function clearAllGuestData(): GuestClassSession {
 }
 
 export function loadRosterModePreference(isLoggedInTeacher: boolean): 'guest' | 'teacher' {
+  if (isKhktDemoRuntime()) {
+    if (isLocalStorageAvailable()) {
+      try {
+        const saved = window.localStorage.getItem(getGuestModePrefStorageKey());
+        if (saved === 'guest' || saved === 'teacher') return saved;
+      } catch {
+        // ignore
+      }
+    }
+    return 'teacher';
+  }
   if (!isLoggedInTeacher) return 'guest';
   if (isLocalStorageAvailable()) {
     try {
-      const saved = window.localStorage.getItem(GUEST_MODE_PREF_KEY);
+      const saved = window.localStorage.getItem(getGuestModePrefStorageKey());
       if (saved === 'guest' || saved === 'teacher') return saved;
     } catch {
       // ignore
@@ -482,10 +520,10 @@ export function loadRosterModePreference(isLoggedInTeacher: boolean): 'guest' | 
 }
 
 export function saveRosterModePreference(mode: 'guest' | 'teacher'): void {
-  memoryModePref = mode;
+  if (!isKhktDemoRuntime()) memoryModePref = mode;
   if (isLocalStorageAvailable()) {
     try {
-      window.localStorage.setItem(GUEST_MODE_PREF_KEY, mode);
+      window.localStorage.setItem(getGuestModePrefStorageKey(), mode);
     } catch {
       // ignore
     }

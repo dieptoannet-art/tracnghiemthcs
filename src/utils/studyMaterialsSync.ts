@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { isKhktDemoRuntime } from './khktDemoSandbox';
 import {
   ExamPeriod,
   Grade,
@@ -288,6 +289,9 @@ export function formatStudyMaterialSupabaseError(error: any, fallback: string): 
 export async function fetchStudyMaterialsFromSupabase(
   includeAnswerKeys: boolean
 ): Promise<{ data?: StudyDocument[]; error?: string }> {
+  if (isKhktDemoRuntime()) {
+    return { data: [] };
+  }
   if (!isSupabaseConfigured) {
     return { error: 'Chưa cấu hình Supabase.' };
   }
@@ -340,6 +344,13 @@ export async function resolveMaterialFileUrl(
   storagePath?: string | null,
   fallbackUrl?: string | null
 ): Promise<{ url: string | null; error?: string }> {
+  if (isKhktDemoRuntime()) {
+    if (fallbackUrl && fallbackUrl.trim()) {
+      return { url: fallbackUrl.trim() };
+    }
+    return { url: null, error: 'Tài liệu mẫu chưa có tệp cục bộ đính kèm.' };
+  }
+
   if (storagePath && storagePath.trim() && isSupabaseConfigured) {
     try {
       const { data, error } = await supabase.storage

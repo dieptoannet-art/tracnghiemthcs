@@ -46,6 +46,8 @@ export const StudentAssignmentsView: React.FC<StudentAssignmentsViewProps> = ({
     studentUser,
     userProfile,
     currentRole,
+    isDemoSandbox,
+    exitDemoToRealLogin,
     isUsingDemoAssignmentsData,
     assignmentDataLoading,
     assignmentDataError,
@@ -63,13 +65,21 @@ export const StudentAssignmentsView: React.FC<StudentAssignmentsViewProps> = ({
   const [joinClassMsg, setJoinClassMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const studentIdentity = useMemo(
-    () => ({
-      id: userProfile?.id || studentUser.id,
-      email: userProfile?.email || null,
-      code: userProfile ? (userProfile.studentCode || null) : (currentRole === 'student' ? studentUser.code : null),
-      role: currentRole
-    }),
-    [userProfile, studentUser.id, studentUser.code, currentRole]
+    () =>
+      isDemoSandbox
+        ? {
+            id: studentUser.id,
+            email: null,
+            code: studentUser.code || null,
+            role: 'student' as const
+          }
+        : {
+            id: userProfile?.id || studentUser.id,
+            email: userProfile?.email || null,
+            code: userProfile ? (userProfile.studentCode || null) : (currentRole === 'student' ? studentUser.code : null),
+            role: currentRole
+          },
+    [isDemoSandbox, userProfile, studentUser.id, studentUser.code, currentRole]
   );
 
   const classified = useMemo(() => {
@@ -228,24 +238,28 @@ export const StudentAssignmentsView: React.FC<StudentAssignmentsViewProps> = ({
         </button>
       </div>
 
-      {/* Explicit Demo Banner when unauthenticated */}
+      {/* Explicit Demo Banner when unauthenticated or in KHKT Demo Sandbox */}
       {isUsingDemoAssignmentsData && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm text-amber-900">
           <div className="flex items-start gap-2.5">
             <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold">Đang xem dữ liệu mẫu (Demo cục bộ)</p>
+              <p className="font-bold">
+                {isDemoSandbox ? 'Bản demo KHKT — Bài kiểm tra mẫu sẵn sàng trải nghiệm' : 'Đang xem dữ liệu mẫu (Demo cục bộ)'}
+              </p>
               <p className="text-xs text-amber-800 mt-0.5">
-                Dữ liệu hiển thị dưới đây chỉ lưu trên trình duyệt này. Để nhận bài giáo viên giao từ thiết bị khác, hãy đăng nhập tài khoản học sinh Supabase.
+                {isDemoSandbox
+                  ? 'Mọi bài làm, bản nháp và kết quả chấm điểm được lưu riêng trên trình duyệt này và không ảnh hưởng tới dữ liệu thật.'
+                  : 'Dữ liệu hiển thị dưới đây chỉ lưu trên trình duyệt này. Để nhận bài giáo viên giao từ thiết bị khác, hãy đăng nhập tài khoản học sinh Supabase.'}
               </p>
             </div>
           </div>
           <button
             type="button"
-            onClick={() => openAuthModal('login')}
-            className="px-4 min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shrink-0"
+            onClick={() => (isDemoSandbox ? exitDemoToRealLogin() : openAuthModal('login'))}
+            className="px-4 min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shrink-0 cursor-pointer"
           >
-            Đăng nhập Supabase
+            {isDemoSandbox ? 'Đăng nhập tài khoản thật' : 'Đăng nhập Supabase'}
           </button>
         </div>
       )}

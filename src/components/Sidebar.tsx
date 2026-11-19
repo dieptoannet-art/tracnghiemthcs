@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { SidebarFooterBooks3D } from './student/coreKnowledgeThumbnails';
+import { KHKT_DEMO_STORAGE_PREFIX } from '../utils/khktDemoSandbox';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -37,6 +38,7 @@ interface SidebarProps {
 }
 
 const SIDEBAR_COLLAPSED_KEY = 'taydo_sidebar_collapsed';
+const DEMO_SIDEBAR_COLLAPSED_KEY = `${KHKT_DEMO_STORAGE_PREFIX}sidebar_collapsed`;
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onResetStudentAssignments }) => {
   const {
@@ -47,10 +49,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
     authenticatedProdRole,
   } = useApp();
 
+  const sidebarStorageKey = isDemoSandbox ? DEMO_SIDEBAR_COLLAPSED_KEY : SIDEBAR_COLLAPSED_KEY;
+
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     try {
-      return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+      return window.localStorage.getItem(sidebarStorageKey) === 'true';
     } catch {
       return false;
     }
@@ -58,11 +62,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
+      window.localStorage.setItem(sidebarStorageKey, String(collapsed));
     } catch {
       // ignore storage failure
     }
-  }, [collapsed]);
+  }, [collapsed, sidebarStorageKey]);
 
   const [mathLabSection, setMathLabSection] = useState<'student' | 'teacher'>(() =>
     currentRole === 'student' ? 'student' : 'teacher'
@@ -257,7 +261,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
         {/* GIÁO VIÊN - Hiện cho Giáo viên thật & Giáo viên Demo */}
         {currentRole !== 'student' && (
           <div>
-            {groupHeader(isDemoSandbox ? 'GIÁO VIÊN (DEMO 50 HS)' : 'GIÁO VIÊN')}
+            {groupHeader(isDemoSandbox ? 'GIÁO VIÊN (DEMO KHKT)' : 'GIÁO VIÊN')}
             <div className="space-y-1">
               <button
                 onClick={() => handleNav('teacher_lectures')}

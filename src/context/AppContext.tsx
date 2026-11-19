@@ -69,12 +69,34 @@ import {
   isValidStudentCode,
   normalizeStudentCode
 } from '../utils/studentAuthHelper';
+import {
+  DEMO_STUDENT_IDENTITY,
+  DEMO_STUDENT_PROFILE,
+  DEMO_TEACHER_PROFILE,
+  DemoWorkspaceRole,
+  KhktDemoWorkspaceState,
+  buildNavigationUrl,
+  createFreshKhktDemoState,
+  isDemoPathname,
+  loadKhktDemoMeta,
+  loadKhktDemoState,
+  resetKhktDemoSandbox,
+  resolveRouteLocation,
+  sanitizeDemoView,
+  saveKhktDemoMeta,
+  saveKhktDemoState
+} from '../utils/khktDemoSandbox';
 
 
 interface AppContextType {
   accessMode: string;
   setAccessMode: (mode: string) => void;
   isDemoSandbox: boolean;
+  demoRole: DemoWorkspaceRole;
+  setDemoRole: (role: DemoWorkspaceRole) => void;
+  demoResetVersion: number;
+  enterKhktDemo: (targetView?: string) => void;
+  exitDemoToRealLogin: () => void;
   enterPublicGuest: () => void;
   enterDemoRole: (role: string, targetView?: string) => void;
   enterKhktShowcase: (presentation?: boolean) => void;
@@ -253,9 +275,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentRoleRef.current = currentRole;
   }, [currentRole]);
 
+  const initialRouteRef = useRef(
+    typeof window !== 'undefined'
+      ? resolveRouteLocation(window.location.pathname, window.location.search)
+      : { isDemo: false, view: 'dashboard', isDirectProtectedPath: false }
+  );
+
   // Supabase Auth & Verification States
   const [user, setUser] = useState<User | null>(null);
-  const [authLoading, setAuthLoading] = useState<boolean>(isSupabaseConfigured);
+  const [authLoading, setAuthLoading] = useState<boolean>(
+    initialRouteRef.current.isDemo ? false : isSupabaseConfigured
+  );
   const [authError, setAuthError] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot_password' | 'set_password'>('login');
@@ -305,6 +335,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [supabaseStatus]);
 
   const verifySupabase = useCallback(async () => {
+    if (accessModeRef.current !== 'PRODUCTION_USER') {
+      return {
+        success: false,
+        message: 'Bản demo KHKT không kết nối Supabase thật.',
+        authVerified: false,
+        dbVerified: false
+      };
+    }
     if (!isSupabaseConfigured) {
       setAuthVerified(false);
       setDbVerified(false);
@@ -349,43 +387,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     isConnected: isSupabaseConfigured
   });
 
-  const resolveInitialViewFromUrl = (): string => {
-    if (typeof window === 'undefined') return 'dashboard';
-    const params = new URLSearchParams(window.location.search);
-    const viewParam = params.get('view');
-    if (viewParam) return viewParam;
-    if (params.get('lecture')) return 'teacher_lectures';
-    return 'dashboard';
-  };
-
-  const [accessMode, setAccessMode] = useState<string>('PRODUCTION_USER');
-  const [demoState, setDemoState] = useState<any>({ questions: [], classes: [], matrices: [], exams: [], assignments: [], submissions: [], studyDocs: [], auditLogs: [] });
+  const [accessMode, setAccessMode] = useState<string>(() =>
+    initialRouteRef.current.isDemo ? 'DEMO_KHKT' : 'PRODUCTION_USER'
+  );
+  const [demoRole, setDemoRoleState] = useState<DemoWorkspaceRole>(() =>
+    initialRouteRef.current.isDemo ? loadKhktDemoMeta().demoRole : 'teacher'
+  );
+  const [demoResetVersion, setDemoResetVersion] = useState<number>(0);
+  const [demoState, setDemoState] = useState<KhktDemoWorkspaceState>(() =>
+    initialRouteRef.current.isDemo ? loadKhktDemoState() : createFreshKhktDemoState()
+  );
   const setAccessModeState = setAccessMode;
   const accessModeRef = useRef(accessMode);
   useEffect(() => {
     accessModeRef.current = accessMode;
   }, [accessMode]);
-  type DemoRole = string;
-  const buildNavigationUrlForView = (view: string, base?: string) => {
-    if (view === 'teacher_lectures' && base) {
-      try {
-        const currentUrl = new URL(base, 'http://localhost');
-        const lecture = currentUrl.searchParams.get('lecture');
-        const mode = currentUrl.searchParams.get('mode');
-        const nextParams = new URLSearchParams();
-        nextParams.set('view', view);
-        if (lecture) nextParams.set('lecture', lecture);
-        if (mode) nextParams.set('mode', mode);
-        return `?${nextParams.toString()}`;
-      } catch {
-        return `?view=${view}`;
-      }
-    }
-    return `?view=${view}`;
-  };
-  const ensureDemo50GuestRosterSeeded = () => {};
-  const resetDemoSandboxAll = () => ({});
-  const resolveRouteFromLocation = (..._args: any[]) => ({ view: 'dashboard', suggestedAccessMode: null });
+
+  const setDemoRole = useCallback((nextRole: DemoWorkspaceRole) => {
+    setDemoRoleState(nextRole);
+  }, []);
 
   const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -400,10 +420,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   useEffect(() => {
+    if (accessMode !== 'PRODUCTION_USER') return;
     try {
       localStorage.setItem('taydo_reduced_motion', String(reducedMotion));
     } catch {}
-  }, [reducedMotion]);
+  }, [reducedMotion, accessMode]);
 
   const [coreKnowledgeTargetLessonId, setCoreKnowledgeTargetLessonId] = useState<string | null>(null);
   const [preferredDemoAssignmentId, setPreferredDemoAssignmentId] = useState<string | null>(null);
@@ -424,16 +445,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
   }, []);
 
-  const [selectedGrade, setSelectedGrade] = useState<Grade>('8');
-  const [selectedSubject, setSelectedSubject] = useState<SubjectId>('math');
-  const [selectedPeriod, setSelectedPeriod] = useState<ExamPeriod>('mid1');
-  const [currentView, setCurrentViewState] = useState<string>(resolveInitialViewFromUrl);
+  const initialDemoMeta = initialRouteRef.current.isDemo ? loadKhktDemoMeta() : null;
+  const [selectedGrade, setSelectedGrade] = useState<Grade>(initialDemoMeta?.selectedGrade || '8');
+  const [selectedSubject, setSelectedSubject] = useState<SubjectId>(initialDemoMeta?.selectedSubject || 'math');
+  const [selectedPeriod, setSelectedPeriod] = useState<ExamPeriod>(initialDemoMeta?.selectedPeriod || 'mid1');
+  const [currentView, setCurrentViewState] = useState<string>(() => initialRouteRef.current.view);
 
   const setCurrentView = useCallback((view: string) => {
-    setCurrentViewState(view);
+    const inDemo = accessModeRef.current !== 'PRODUCTION_USER';
+    const nextView = inDemo ? sanitizeDemoView(view) : view;
+    setCurrentViewState(nextView);
     if (typeof window !== 'undefined') {
       try {
-        const nextUrl = buildNavigationUrlForView(view, window.location.href);
+        const nextUrl = buildNavigationUrl(nextView, window.location.href, inDemo);
         window.history.replaceState({}, '', nextUrl);
       } catch {}
     }
@@ -451,63 +475,105 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCoreKnowledgeTargetLessonId(null);
   }, []);
 
+  const enterKhktDemo = useCallback((targetView: string = 'dashboard') => {
+    const safeView = sanitizeDemoView(targetView);
+    const loadedState = loadKhktDemoState();
+    const loadedMeta = loadKhktDemoMeta();
+    accessModeRef.current = 'DEMO_KHKT';
+    setDemoState(loadedState);
+    setDemoRoleState(loadedMeta.demoRole);
+    setAccessModeState('DEMO_KHKT');
+    setCurrentViewState(safeView);
+    setAuthLoading(false);
+    if (typeof window !== 'undefined') {
+      try {
+        const nextUrl = buildNavigationUrl(safeView, window.location.href, true);
+        window.history.pushState({}, '', nextUrl);
+      } catch {}
+    }
+  }, []);
+
+  const exitDemoToRealLogin = useCallback(() => {
+    accessModeRef.current = 'PRODUCTION_USER';
+    setAccessModeState('PRODUCTION_USER');
+    setCurrentViewState('login_portal');
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.pushState({}, '', '/?view=login_portal');
+      } catch {}
+    }
+  }, []);
+
   const enterPublicGuest = useCallback(() => {
-    ensureDemo50GuestRosterSeeded();
-    setAccessModeState('PUBLIC_GUEST');
-    setCurrentView('public_explore');
-  }, [setCurrentView]);
+    enterKhktDemo('dashboard');
+  }, [enterKhktDemo]);
 
   const enterDemoRole = useCallback(
-    (role: DemoRole, targetView?: string) => {
-      ensureDemo50GuestRosterSeeded();
-      setAccessModeState(role === 'teacher' ? 'DEMO_TEACHER' : 'DEMO_STUDENT');
-      if (targetView) {
-        setCurrentView(targetView);
-      } else {
-        setCurrentView('public_explore');
-      }
+    (role: string, targetView?: string) => {
+      const normalized: DemoWorkspaceRole = role === 'student' ? 'student' : 'teacher';
+      setDemoRoleState(normalized);
+      enterKhktDemo(targetView || 'dashboard');
     },
-    [setCurrentView]
+    [enterKhktDemo]
   );
 
   const enterKhktShowcase = useCallback(
-    (presentation: boolean = false) => {
-      ensureDemo50GuestRosterSeeded();
-      setAccessModeState('KHKT_SHOWCASE');
-      setCurrentView(presentation ? 'khkt_presentation' : 'khkt_showcase');
+    (_presentation: boolean = false) => {
+      enterKhktDemo('dashboard');
     },
-    [setCurrentView]
+    [enterKhktDemo]
   );
 
   const exitDemoToWorkspace = useCallback(
     (targetView: string = 'dashboard') => {
-      if (userRef.current) {
-        setAccessModeState('PRODUCTION_USER');
-        setCurrentView(targetView);
-      } else {
-        setCurrentView('login_portal');
+      accessModeRef.current = 'PRODUCTION_USER';
+      setAccessModeState('PRODUCTION_USER');
+      const resolvedView = userRef.current ? targetView : 'login_portal';
+      setCurrentViewState(resolvedView);
+      if (typeof window !== 'undefined') {
+        try {
+          const nextUrl = buildNavigationUrl(resolvedView, window.location.href, false);
+          window.history.pushState({}, '', nextUrl);
+        } catch {}
       }
     },
-    [setCurrentView]
+    []
   );
 
   const resetDemoSandbox = useCallback(() => {
-    const fresh = resetDemoSandboxAll();
-    setDemoState(fresh);
+    const { state: freshState, meta: freshMeta } = resetKhktDemoSandbox();
+    setDemoState(freshState);
+    setDemoRoleState(freshMeta.demoRole);
+    setSelectedGrade(freshMeta.selectedGrade);
+    setSelectedSubject(freshMeta.selectedSubject);
+    setSelectedPeriod(freshMeta.selectedPeriod);
     setPreferredDemoAssignmentId(null);
+    setDemoResetVersion(v => v + 1);
+    setCurrentViewState('dashboard');
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.replaceState({}, '', '/demo');
+      } catch {}
+    }
   }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handlePopState = () => {
-      const resolved = resolveRouteFromLocation(
+      const resolved = resolveRouteLocation(
         window.location.pathname,
-        window.location.search,
-        window.location.hash
+        window.location.search
       );
-      setCurrentViewState(resolved.view);
-      if (resolved.suggestedAccessMode) {
-        setAccessModeState(resolved.suggestedAccessMode);
+      if (resolved.isDemo) {
+        accessModeRef.current = 'DEMO_KHKT';
+        setAccessModeState('DEMO_KHKT');
+        setDemoState(loadKhktDemoState());
+        setDemoRoleState(loadKhktDemoMeta().demoRole);
+        setCurrentViewState(resolved.view);
+      } else {
+        accessModeRef.current = 'PRODUCTION_USER';
+        setAccessModeState('PRODUCTION_USER');
+        setCurrentViewState(resolved.view);
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -615,42 +681,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     isUsingDemoRef.current = isUsingDemoAssignmentsData;
   }, [isUsingDemoAssignmentsData]);
 
-  // Sync to local storage ONLY in browser Demo mode (never overwrite demo storage with live Supabase payloads or vice versa)
+  // Persist isolated KHKT demo state & progress ONLY under taydo_khkt_demo_v1_* keys
   useEffect(() => {
-    if (assignmentDataError) return;
+    if (!isDemoSandbox) return;
+    saveKhktDemoState(demoState);
+  }, [demoState, isDemoSandbox]);
+
+  useEffect(() => {
+    if (!isDemoSandbox) return;
+    saveKhktDemoMeta({
+      view: currentView,
+      demoRole,
+      selectedGrade,
+      selectedSubject,
+      selectedPeriod,
+      updatedAt: new Date().toISOString()
+    });
+  }, [isDemoSandbox, currentView, demoRole, selectedGrade, selectedSubject, selectedPeriod]);
+
+  // Sync to real local storage ONLY outside /demo KHKT sandbox (never contaminate real keys from /demo)
+  useEffect(() => {
+    if (isDemoSandbox || assignmentDataError) return;
     localStorage.setItem('taydo_questions', JSON.stringify(questions));
-  }, [questions, assignmentDataError]);
+  }, [questions, assignmentDataError, isDemoSandbox]);
 
   useEffect(() => {
-    if (assignmentDataError || !isUsingDemoAssignmentsData) return;
+    if (isDemoSandbox || assignmentDataError || !isUsingDemoAssignmentsData) return;
     localStorage.setItem('taydo_classes', JSON.stringify(classes));
-  }, [classes, assignmentDataError, isUsingDemoAssignmentsData]);
+  }, [classes, assignmentDataError, isUsingDemoAssignmentsData, isDemoSandbox]);
 
   useEffect(() => {
+    if (isDemoSandbox) return;
     localStorage.setItem('taydo_matrices', JSON.stringify(matrices));
-  }, [matrices]);
+  }, [matrices, isDemoSandbox]);
 
   useEffect(() => {
+    if (isDemoSandbox) return;
     localStorage.setItem('taydo_yccd_catalog_v1', JSON.stringify(yccdCatalog));
-  }, [yccdCatalog]);
+  }, [yccdCatalog, isDemoSandbox]);
 
   useEffect(() => {
-    if (assignmentDataError || !isUsingDemoAssignmentsData) return;
+    if (isDemoSandbox || assignmentDataError || !isUsingDemoAssignmentsData) return;
     localStorage.setItem('taydo_exams', JSON.stringify(exams));
-  }, [exams, assignmentDataError, isUsingDemoAssignmentsData]);
+  }, [exams, assignmentDataError, isUsingDemoAssignmentsData, isDemoSandbox]);
 
   useEffect(() => {
-    if (assignmentDataError || !isUsingDemoAssignmentsData) return;
+    if (isDemoSandbox || assignmentDataError || !isUsingDemoAssignmentsData) return;
     localStorage.setItem('taydo_assignments', JSON.stringify(assignments));
-  }, [assignments, assignmentDataError, isUsingDemoAssignmentsData]);
+  }, [assignments, assignmentDataError, isUsingDemoAssignmentsData, isDemoSandbox]);
 
   useEffect(() => {
-    if (assignmentDataError || !isUsingDemoAssignmentsData) return;
+    if (isDemoSandbox || assignmentDataError || !isUsingDemoAssignmentsData) return;
     localStorage.setItem('taydo_submissions', JSON.stringify(submissions));
-  }, [submissions, assignmentDataError, isUsingDemoAssignmentsData]);
+  }, [submissions, assignmentDataError, isUsingDemoAssignmentsData, isDemoSandbox]);
 
   const loadAssignmentsForSession = useCallback(
     async (explicitUser?: User | null, explicitRole?: UserRole) => {
+      if (accessModeRef.current !== 'PRODUCTION_USER') {
+        setAssignmentDataLoading(false);
+        return;
+      }
       const activeUser = explicitUser !== undefined ? explicitUser : userRef.current;
       const activeRole = explicitRole || currentRoleRef.current;
 
@@ -785,6 +875,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loadStudyMaterialsForSession = useCallback(
     async (explicitUser?: User | null, explicitRole?: UserRole) => {
+      if (accessModeRef.current !== 'PRODUCTION_USER') {
+        setStudyDocsLoading(false);
+        return;
+      }
       const activeUser = explicitUser !== undefined ? explicitUser : userRef.current;
       const activeRole = explicitRole || currentRoleRef.current;
 
@@ -1085,8 +1179,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const retryLoadProfile = refreshProfile;
 
-  // Initialize session, verify Supabase and listen to Auth state changes (chạy một lần khi mount)
+  // Initialize session, verify Supabase and listen to Auth state changes (SKIPPED COMPLETELY in /demo KHKT sandbox)
   useEffect(() => {
+    if (isDemoSandbox) {
+      setAuthLoading(false);
+      return;
+    }
+
     verifySupabase();
 
     if (!isSupabaseConfigured) {
@@ -1105,7 +1204,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuthLoading(true);
 
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (!isMounted) return;
+      if (!isMounted || accessModeRef.current !== 'PRODUCTION_USER') return;
       if (error) {
         console.warn('Lỗi khôi phục phiên Supabase:', error.message);
         setConnectionError(error.message);
@@ -1116,19 +1215,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (session?.user) {
         setUser(session.user);
         setAuthVerified(true);
-        // Preserve KHKT / Explore route if user specifically loaded those Showcase URLs; otherwise enter Production Workspace
-        const initialResolved = resolveRouteFromLocation(
-          window.location.pathname,
-          window.location.search,
-          window.location.hash
-        );
-        const stayInShowcaseOrExplore =
-          initialResolved.view === 'khkt_showcase' ||
-          initialResolved.view === 'khkt_presentation' ||
-          initialResolved.view === 'public_explore';
-        if (!stayInShowcaseOrExplore) {
-          setAccessModeState('PRODUCTION_USER');
-        }
         if (isInviteOrRecoveryLink || session.user.user_metadata?.must_change_password === true) {
           setAuthModalMode('set_password');
           setAuthModalOpen(true);
@@ -1152,7 +1238,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!isMounted) return;
+      if (!isMounted || accessModeRef.current !== 'PRODUCTION_USER') return;
 
       if (event === 'PASSWORD_RECOVERY') {
         if (session?.user) {
@@ -1184,9 +1270,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setProfileStatus('idle');
         setProfileError(null);
         setIsDemoMode(true);
-        if (accessModeRef.current === 'PRODUCTION_USER') {
-          setAccessModeState('PUBLIC_GUEST');
-        }
         await Promise.all([
           loadAssignmentsForSession(null, 'student'),
           loadStudyMaterialsForSession(null, 'student')
@@ -1199,7 +1282,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [loadProfile, loadAssignmentsForSession, loadStudyMaterialsForSession]);
+  }, [isDemoSandbox, loadProfile, loadAssignmentsForSession, loadStudyMaterialsForSession]);
 
   // Supabase Auth Actions
   const signIn = async (
@@ -1609,7 +1692,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProfileStatus('idle');
     setProfileError(null);
     setIsDemoMode(true);
-    setAccessModeState('PUBLIC_GUEST');
+    setAccessModeState('PRODUCTION_USER');
     setCurrentView('dashboard');
     await Promise.all([
       loadAssignmentsForSession(null, 'student'),
@@ -1618,27 +1701,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog('Đăng xuất', 'Hệ thống', 'Người dùng đã đăng xuất khỏi phiên làm việc');
   };
 
-  const effectiveRole = currentRole;
-  const effectiveUser = user;
-  const effectiveUserProfile = userProfile;
-  const effectiveQuestions = questions;
-  const effectiveClasses = classes;
-  const effectiveMatrices = matrices;
-  const effectiveExams = exams;
-  const effectiveAssignments = assignments;
-  const effectiveSubmissions = submissions;
-  const effectiveStudyDocs = studyDocs;
-  const effectiveAuditLogs = auditLogs;
-  const effectiveTeachingAssignments = teachingAssignments;
-  const effectiveClassRoles = classRoles;
+  const effectiveRole: UserRole = isDemoSandbox ? demoRole : currentRole;
+  const effectiveUser = isDemoSandbox ? null : user;
+  const effectiveUserProfile = isDemoSandbox
+    ? demoRole === 'teacher'
+      ? DEMO_TEACHER_PROFILE
+      : DEMO_STUDENT_PROFILE
+    : userProfile;
+  const effectiveQuestions = isDemoSandbox ? demoState.questions : questions;
+  const effectiveClasses = isDemoSandbox ? demoState.classes : classes;
+  const effectiveMatrices = isDemoSandbox ? demoState.matrices : matrices;
+  const effectiveExams = isDemoSandbox ? demoState.exams : exams;
+  const effectiveAssignments = isDemoSandbox ? demoState.assignments : assignments;
+  const effectiveSubmissions = isDemoSandbox ? demoState.submissions : submissions;
+  const effectiveStudyDocs = isDemoSandbox ? demoState.studyDocs : studyDocs;
+  const effectiveAuditLogs = isDemoSandbox ? demoState.auditLogs : auditLogs;
+  const effectiveTeachingAssignments = isDemoSandbox ? [] : teachingAssignments;
+  const effectiveClassRoles = isDemoSandbox ? [] : classRoles;
 
-  const studentUser = {
-    id: userProfile?.id || (user ? user.id : 'stu-01'),
-    code: userProfile?.studentCode || 'HS80101',
-    fullName: userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : 'Học sinh'),
-    className: userProfile?.grade ? `Lớp ${userProfile.grade}A1` : 'Lớp 8A1',
-    school: userProfile?.schoolName || 'Trường THCS Tây Đô'
-  };
+  const studentUser = isDemoSandbox
+    ? {
+        id: DEMO_STUDENT_IDENTITY.id,
+        code: DEMO_STUDENT_IDENTITY.code,
+        fullName: DEMO_STUDENT_IDENTITY.fullName,
+        className: DEMO_STUDENT_IDENTITY.className,
+        school: DEMO_STUDENT_IDENTITY.school
+      }
+    : {
+        id: userProfile?.id || (user ? user.id : 'stu-01'),
+        code: userProfile?.studentCode || 'HS80101',
+        fullName: userProfile?.fullName || (currentRole === 'teacher' ? 'Giáo viên' : 'Học sinh'),
+        className: userProfile?.grade ? `Lớp ${userProfile.grade}A1` : 'Lớp 8A1',
+        school: userProfile?.schoolName || 'Trường THCS Tây Đô'
+      };
 
   // Actions (Strict Demo vs Production isolation)
   const addAuditLog = (action: string, target: string, details: string) => {
@@ -1772,9 +1867,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
     yccdCatalogRef.current = merged;
     setYccdCatalog(merged);
-    try {
-      localStorage.setItem('taydo_yccd_catalog_v1', JSON.stringify(merged));
-    } catch {}
+    if (!isDemoSandbox) {
+      try {
+        localStorage.setItem('taydo_yccd_catalog_v1', JSON.stringify(merged));
+      } catch {}
+    }
     addAuditLog(
       'Nhập danh mục YCCĐ',
       `${incoming.length} dòng`,
@@ -2606,6 +2703,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         accessMode,
         setAccessMode,
         isDemoSandbox,
+        demoRole,
+        setDemoRole,
+        demoResetVersion,
+        enterKhktDemo,
+        exitDemoToRealLogin,
         enterPublicGuest,
         enterDemoRole,
         enterKhktShowcase,
@@ -2624,7 +2726,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentRole,
         isDemoMode: isDemoSandbox ? true : isDemoMode,
         setIsDemoMode,
-        isSupabaseLiveConfigured: isSupabaseConfigured,
+        isSupabaseLiveConfigured: isDemoSandbox ? false : isSupabaseConfigured,
         supabaseStatus,
         supabaseStatusLabel,
         authVerified,
@@ -2635,13 +2737,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSupabaseConfig,
         user: effectiveUser,
         userProfile: effectiveUserProfile,
-        authenticatedProdUser: user,
-        authenticatedProdProfile: userProfile,
-        authenticatedProdRole: currentRole,
-        profileStatus,
-        profileError,
+        authenticatedProdUser: isDemoSandbox ? null : user,
+        authenticatedProdProfile: isDemoSandbox ? null : userProfile,
+        authenticatedProdRole: isDemoSandbox ? 'student' : currentRole,
+        profileStatus: isDemoSandbox ? 'idle' : profileStatus,
+        profileError: isDemoSandbox ? null : profileError,
         retryLoadProfile,
-        authLoading,
+        authLoading: isDemoSandbox ? false : authLoading,
         authError,
         authModalOpen,
         setAuthModalOpen,
@@ -2664,7 +2766,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentView,
         questions: effectiveQuestions,
         classes: effectiveClasses,
-        enrolledClassIds: isDemoSandbox ? null : enrolledClassIds,
+        enrolledClassIds: isDemoSandbox ? demoState.classes.map(c => c.id) : enrolledClassIds,
         matrices: effectiveMatrices,
         exams: effectiveExams,
         assignments: effectiveAssignments,

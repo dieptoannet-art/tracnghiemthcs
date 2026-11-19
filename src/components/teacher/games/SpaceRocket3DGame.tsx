@@ -121,27 +121,49 @@ const SKY_SPACE_COLOR = new THREE.Color('#081B38');
 // ============================================================================
 class SpaceRocketAudioEngine {
   private ctx: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
+  private compressor: DynamicsCompressorNode | null = null;
   private noiseBuffer: AudioBuffer | null = null;
+  private activeNodes = new Set<AudioScheduledSourceNode>();
   private thrusterSource: AudioBufferSourceNode | null = null;
   private thrusterGain: GainNode | null = null;
   private thrusterFilter: BiquadFilterNode | null = null;
   private musicTimer: number | null = null;
   private musicStep = 0;
 
-  private ensureContext(): AudioContext | null {
+  private ensureGraph(): { ctx: AudioContext; out: GainNode } | null {
     if (typeof window === 'undefined') return null;
     if (!this.ctx) {
       const AudioCtx =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
-        this.ctx = new AudioCtx();
+        try {
+          this.ctx = new AudioCtx();
+        } catch {
+          return null;
+        }
       }
     }
-    if (this.ctx && this.ctx.state === 'suspended') {
+    if (!this.ctx) return null;
+    if (this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
-    if (this.ctx && !this.noiseBuffer) {
+    if (!this.compressor) {
+      const comp = this.ctx.createDynamicsCompressor();
+      comp.threshold.setValueAtTime(-16, this.ctx.currentTime);
+      comp.knee.setValueAtTime(18, this.ctx.currentTime);
+      comp.ratio.setValueAtTime(4, this.ctx.currentTime);
+      comp.connect(this.ctx.destination);
+      this.compressor = comp;
+    }
+    if (!this.masterGain) {
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+      gain.connect(this.compressor);
+      this.masterGain = gain;
+    }
+    if (!this.noiseBuffer) {
       const sr = this.ctx.sampleRate;
       const buf = this.ctx.createBuffer(1, sr * 2.0, sr);
       const data = buf.getChannelData(0);
@@ -150,20 +172,60 @@ class SpaceRocketAudioEngine {
       }
       this.noiseBuffer = buf;
     }
-    return this.ctx;
+    return { ctx: this.ctx, out: this.masterGain };
+  }
+
+  private trackNode<T extends AudioScheduledSourceNode>(node: T): T {
+    this.activeNodes.add(node);
+    node.onended = () => {
+      this.activeNodes.delete(node);
+    };
+    return node;
   }
 
   public unlockAndWarmup() {
-    this.ensureContext();
+    this.ensureGraph();
+  }
+
+  public stopAll() {
+    this.stopThrusterLoop();
+    this.stopSpaceMusicLoop();
+    this.activeNodes.forEach((node) => {
+      try {
+        node.onended = null;
+        node.stop(0);
+      } catch {
+        // Ignore already stopped
+      }
+      try {
+        node.disconnect();
+      } catch {
+        // Ignore
+      }
+    });
+    this.activeNodes.clear();
+    if (this.masterGain) {
+      try {
+        if (this.ctx) {
+          this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
+          this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+        }
+        this.masterGain.disconnect();
+      } catch {
+        // Ignore
+      }
+      this.masterGain = null;
+    }
   }
 
   public startThrusterLoop(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx || !this.noiseBuffer) return;
     this.stopThrusterLoop();
+    if (muted) return;
+    const g = this.ensureGraph();
+    if (!g || !this.noiseBuffer) return;
     try {
-      const src = ctx.createBufferSource();
+      const { ctx, out } = g;
+      const src = this.trackNode(ctx.createBufferSource());
       src.buffer = this.noiseBuffer;
       src.loop = true;
 
@@ -173,11 +235,11 @@ class SpaceRocketAudioEngine {
 
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(0.001, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.055, ctx.currentTime + 0.35);
+      gain.gain.linearRampToValueAtTime(0.052, ctx.currentTime + 0.35);
 
       src.connect(filter);
       filter.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(out);
       src.start(ctx.currentTime);
 
       this.thrusterSource = src;
@@ -193,7 +255,7 @@ class SpaceRocketAudioEngine {
     try {
       const now = this.ctx.currentTime;
       const cutoff = 180 + u * 520;
-      const vol = 0.045 + Math.sin(u * Math.PI) * 0.035;
+      const vol = 0.042 + Math.sin(u * Math.PI) * 0.032;
       this.thrusterFilter.frequency.setTargetAtTime(cutoff, now, 0.08);
       this.thrusterGain.gain.setTargetAtTime(vol, now, 0.08);
     } catch {
@@ -204,17 +266,19 @@ class SpaceRocketAudioEngine {
   public stopThrusterLoop() {
     if (this.thrusterGain && this.ctx) {
       try {
-        this.thrusterGain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.08);
+        this.thrusterGain.gain.cancelScheduledValues(this.ctx.currentTime);
+        this.thrusterGain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.04);
       } catch {
         // Ignore
       }
     }
     if (this.thrusterSource) {
       try {
-        this.thrusterSource.stop(this.ctx ? this.ctx.currentTime + 0.14 : 0);
+        this.thrusterSource.stop(this.ctx ? this.ctx.currentTime + 0.08 : 0);
       } catch {
         // Ignore
       }
+      this.activeNodes.delete(this.thrusterSource);
       this.thrusterSource = null;
     }
     this.thrusterFilter = null;
@@ -224,34 +288,35 @@ class SpaceRocketAudioEngine {
   public startSpaceMusicLoop(mode: 'AMBIENT' | 'TENSE' | 'OFF', muted: boolean) {
     this.stopSpaceMusicLoop();
     if (muted || mode === 'OFF') return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
+    if (!this.ensureGraph()) return;
 
     const scaleAmbient = [261.63, 329.63, 392.0, 493.88, 523.25, 392.0];
     const scaleTense = [220.0, 261.63, 329.63, 392.0, 440.0, 523.25];
     const intervalMs = mode === 'TENSE' ? 420 : 880;
 
     const triggerNote = () => {
-      if (!this.ctx || this.ctx.state !== 'running') return;
+      const g = this.ensureGraph();
+      if (!g || g.ctx.state !== 'running') return;
       try {
-        const now = this.ctx.currentTime;
+        const { ctx, out } = g;
+        const now = ctx.currentTime;
         const seq = mode === 'TENSE' ? scaleTense : scaleAmbient;
         const freq = seq[this.musicStep % seq.length];
         this.musicStep++;
 
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+        const osc = this.trackNode(ctx.createOscillator());
+        const gain = ctx.createGain();
         osc.type = mode === 'TENSE' ? 'triangle' : 'sine';
         osc.frequency.setValueAtTime(freq, now);
 
-        const peak = mode === 'TENSE' ? 0.035 : 0.025;
+        const peak = mode === 'TENSE' ? 0.032 : 0.022;
         const dur = mode === 'TENSE' ? 0.36 : 0.82;
         gain.gain.setValueAtTime(0.0005, now);
         gain.gain.linearRampToValueAtTime(peak, now + 0.06);
         gain.gain.exponentialRampToValueAtTime(0.0005, now + dur);
 
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(out);
         osc.start(now);
         osc.stop(now + dur + 0.04);
       } catch {
@@ -272,20 +337,21 @@ class SpaceRocketAudioEngine {
 
   public playCountdownBeep(step: 3 | 2 | 1, muted: boolean) {
     if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
+    const g = this.ensureGraph();
+    if (!g) return;
     try {
+      const { ctx, out } = g;
       const now = ctx.currentTime;
       const freq = step === 3 ? 440 : step === 2 ? 554.37 : 659.25;
-      const osc = ctx.createOscillator();
+      const osc = this.trackNode(ctx.createOscillator());
       const gain = ctx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, now);
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.12, now + 0.02);
+      gain.gain.linearRampToValueAtTime(0.11, now + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(out);
       osc.start(now);
       osc.stop(now + 0.25);
     } catch {
@@ -295,23 +361,23 @@ class SpaceRocketAudioEngine {
 
   public playLaunchHornAndIgnition(muted: boolean) {
     if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
+    const g = this.ensureGraph();
+    if (!g) return;
     try {
+      const { ctx, out } = g;
       const now = ctx.currentTime;
-      // Launch command klaxon + ignition pulse
       [587.33, 880.0].forEach((freq, i) => {
-        const osc = ctx.createOscillator();
+        const osc = this.trackNode(ctx.createOscillator());
         const gain = ctx.createGain();
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, now);
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(i === 0 ? 0.14 : 0.08, now + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        gain.gain.linearRampToValueAtTime(i === 0 ? 0.12 : 0.075, now + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.52);
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(out);
         osc.start(now);
-        osc.stop(now + 0.58);
+        osc.stop(now + 0.55);
       });
     } catch {
       // Ignore
@@ -320,11 +386,12 @@ class SpaceRocketAudioEngine {
 
   public playWarpBoostWhoosh(muted: boolean) {
     if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx || !this.noiseBuffer) return;
+    const g = this.ensureGraph();
+    if (!g || !this.noiseBuffer) return;
     try {
+      const { ctx, out } = g;
       const now = ctx.currentTime;
-      const src = ctx.createBufferSource();
+      const src = this.trackNode(ctx.createBufferSource());
       src.buffer = this.noiseBuffer;
 
       const filter = ctx.createBiquadFilter();
@@ -335,39 +402,42 @@ class SpaceRocketAudioEngine {
 
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.075, now + 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+      gain.gain.linearRampToValueAtTime(0.07, now + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.62);
 
       src.connect(filter);
       filter.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(out);
       src.start(now);
-      src.stop(now + 0.68);
+      src.stop(now + 0.65);
     } catch {
       // Ignore
     }
   }
 
   public playGateAndVictoryFanfare(muted: boolean) {
+    this.stopThrusterLoop();
+    this.stopSpaceMusicLoop();
     if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
+    const g = this.ensureGraph();
+    if (!g) return;
     try {
+      const { ctx, out } = g;
       const now = ctx.currentTime;
-      const fanfare = [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98];
+      const fanfare = [523.25, 659.25, 783.99, 1046.5, 1318.51];
       fanfare.forEach((freq, idx) => {
         const start = now + idx * 0.08;
-        const osc = ctx.createOscillator();
+        const osc = this.trackNode(ctx.createOscillator());
         const gain = ctx.createGain();
         osc.type = idx >= 3 ? 'triangle' : 'sine';
         osc.frequency.setValueAtTime(freq, start);
         gain.gain.setValueAtTime(0.001, start);
-        gain.gain.linearRampToValueAtTime(0.11, start + 0.025);
-        gain.gain.exponentialRampToValueAtTime(0.0008, start + (idx === 5 ? 0.8 : 0.34));
+        gain.gain.linearRampToValueAtTime(0.105, start + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0008, start + (idx === 4 ? 0.62 : 0.3));
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(out);
         osc.start(start);
-        osc.stop(start + 0.85);
+        osc.stop(start + 0.68);
       });
     } catch {
       // Ignore
@@ -375,8 +445,15 @@ class SpaceRocketAudioEngine {
   }
 
   public dispose() {
-    this.stopThrusterLoop();
-    this.stopSpaceMusicLoop();
+    this.stopAll();
+    if (this.compressor) {
+      try {
+        this.compressor.disconnect();
+      } catch {
+        // Ignore
+      }
+      this.compressor = null;
+    }
     if (this.ctx) {
       this.ctx.close().catch(() => {});
       this.ctx = null;
@@ -1229,8 +1306,7 @@ export const SpaceRocket3DGame: React.FC<SpaceRocket3DGameProps> = ({
   useEffect(() => {
     isMutedRef.current = isMuted;
     if (isMuted) {
-      audioEngineRef.current?.stopThrusterLoop();
-      audioEngineRef.current?.stopSpaceMusicLoop();
+      audioEngineRef.current?.stopAll();
       voiceManagerRef.current?.cancel();
     }
   }, [isMuted]);
@@ -1410,8 +1486,7 @@ export const SpaceRocket3DGame: React.FC<SpaceRocket3DGameProps> = ({
       countdownLastStepRef.current = -1;
       boostAnnouncedRef.current = false;
       warpSoundPlayedRef.current = false;
-      audioEngineRef.current?.stopThrusterLoop();
-      audioEngineRef.current?.stopSpaceMusicLoop();
+      audioEngineRef.current?.stopAll();
       voiceManagerRef.current?.cancel();
       setHeatIndex(0);
       setActiveWinnerEntry(null);
@@ -1539,7 +1614,9 @@ export const SpaceRocket3DGame: React.FC<SpaceRocket3DGameProps> = ({
       setNoteSaveFeedback(null);
       setCloudSyncStatus('saving');
 
-      speakClassroomLine(`Chúc mừng bạn ${winnerEntry.safeName}!`);
+      const winnerLine = `Chúc mừng bạn ${winnerEntry.safeName}!`;
+      setVoiceCaption(winnerLine);
+      voiceManagerRef.current?.speakVietnameseOnce(plan.sessionId, winnerLine, isMutedRef.current);
 
       onPick(winnerEntry.student, {
         bonusPoints: 0,
@@ -2776,6 +2853,10 @@ export const SpaceRocket3DGame: React.FC<SpaceRocket3DGameProps> = ({
             countdownLastStepRef.current = 0;
             setCountdownLabel('PHÓNG!');
             audioEngineRef.current?.playLaunchHornAndIgnition(muted);
+            audioEngineRef.current?.startThrusterLoop(muted);
+            if (musicEnabledRef.current && !muted) {
+              audioEngineRef.current?.startSpaceMusicLoop('TENSE', muted);
+            }
           } else if (cdMs >= COUNTDOWN_TOTAL_MS) {
             countdownLastStepRef.current = -1;
             setCountdownLabel('');
@@ -2791,6 +2872,7 @@ export const SpaceRocket3DGame: React.FC<SpaceRocket3DGameProps> = ({
           elapsed = nowPerf - flightStartPerfRef.current;
           evalRes = evaluateSpaceRocketFrame(plan, elapsed, framesScratchRef.current);
           framesScratchRef.current = evalRes.frames;
+          audioEngineRef.current?.updateThrusterIntensity(evalRes.u, muted);
           setElapsedDisplaySec(Math.min(plan.durationSec, elapsed / 1000));
           if (st === 'LAUNCHING' && evalRes.u >= 0.16) {
             flightStateRef.current = 'FLYING';
@@ -2855,6 +2937,8 @@ export const SpaceRocket3DGame: React.FC<SpaceRocket3DGameProps> = ({
     // Synchronous ref lock prevents concurrent session creation
     flightStateRef.current = 'COUNTDOWN';
     audioEngineRef.current?.unlockAndWarmup();
+    audioEngineRef.current?.stopAll();
+    voiceManagerRef.current?.cancel();
 
     const plan = createFairSpaceRocketTurnPlan({
       eligibleStudents,
@@ -2902,8 +2986,7 @@ export const SpaceRocket3DGame: React.FC<SpaceRocket3DGameProps> = ({
     countdownLastStepRef.current = -1;
     boostAnnouncedRef.current = false;
     warpSoundPlayedRef.current = false;
-    audioEngineRef.current?.stopThrusterLoop();
-    audioEngineRef.current?.stopSpaceMusicLoop();
+    audioEngineRef.current?.stopAll();
     voiceManagerRef.current?.cancel();
     setCountdownLabel('');
     setElapsedDisplaySec(0);

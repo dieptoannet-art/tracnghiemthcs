@@ -1,5 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { UserProfile, UserRole } from '../types/index.ts';
+import { isKhktDemoRuntime } from '../utils/khktDemoSandbox';
 
 // Default project credentials configured for THCS Tây Đô
 export const DEFAULT_SUPABASE_URL = 'https://hhtwbmzqjpbbhqoqpsse.supabase.co';
@@ -17,7 +18,7 @@ export const normalizeSupabaseUrl = (url: string): string => {
 
 // Read from localStorage (if user updated in guide modal), or Vite env, or fallback to default
 const getStoredConfig = () => {
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (typeof window !== 'undefined' && window.localStorage && !isKhktDemoRuntime()) {
     try {
       const saved = localStorage.getItem('taydo_supabase_config');
       if (saved) {
@@ -61,23 +62,106 @@ export const isSupabaseConfigured = Boolean(
   !SUPABASE_ANON_KEY.includes('...')
 );
 
-// Create Supabase client instance
-export let supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
+function createDemoIsolatedQueryBuilder() {
+  const result = { data: null, error: null, count: 0 };
+  const promise = Promise.resolve(result);
+  const builder: any = new Proxy(
+    {},
+    {
+      get(_target, prop) {
+        if (prop === 'then') return promise.then.bind(promise);
+        if (prop === 'catch') return promise.catch.bind(promise);
+        if (prop === 'finally') return promise.finally.bind(promise);
+        return () => builder;
+      },
+    }
+  );
+  return builder;
+}
+
+function createDemoIsolatedChannel() {
+  const channel: any = {
+    on: () => channel,
+    subscribe: () => channel,
+    send: () => Promise.resolve('ok'),
+    track: () => Promise.resolve('ok'),
+    untrack: () => Promise.resolve('ok'),
+    unsubscribe: () => Promise.resolve('ok'),
+  };
+  return channel;
+}
+
+const demoIsolatedSupabaseStub: any = {
+  auth: {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    getUser: async () => ({ data: { user: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    signInWithPassword: async () => ({
+      data: { user: null, session: null },
+      error: { message: 'Đang ở Bản demo KHKT. Vui lòng bấm "Đăng nhập tài khoản thật".' },
+    }),
+    signUp: async () => ({
+      data: { user: null, session: null },
+      error: { message: 'Đang ở Bản demo KHKT. Vui lòng bấm "Đăng nhập tài khoản thật".' },
+    }),
+    signOut: async () => ({ error: null }),
+    setSession: async () => ({ data: { user: null, session: null }, error: null }),
+    resetPasswordForEmail: async () => ({ data: null, error: null }),
+    updateUser: async () => ({ data: { user: null }, error: null }),
+  },
+  from: () => createDemoIsolatedQueryBuilder(),
+  rpc: async () => ({ data: null, error: { message: 'Demo KHKT không gọi Supabase RPC.' } }),
+  storage: {
+    from: () => ({
+      createSignedUrl: async () => ({ data: null, error: { message: 'Demo KHKT không truy cập Supabase Storage.' } }),
+      upload: async () => ({ data: null, error: { message: 'Demo KHKT không tải tệp lên Supabase Storage.' } }),
+      remove: async () => ({ data: null, error: null }),
+      getPublicUrl: () => ({ data: { publicUrl: '' } }),
+    }),
+  },
+  channel: () => createDemoIsolatedChannel(),
+  removeChannel: async () => 'ok',
+  removeAllChannels: async () => [],
+};
+
+let realSupabaseClient: SupabaseClient | null = null;
+
+function getOrCreateRealSupabaseClient(): SupabaseClient {
+  if (!realSupabaseClient) {
+    realSupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    });
   }
-);
+  return realSupabaseClient;
+}
+
+function createSafeSupabaseProxy(): SupabaseClient {
+  return new Proxy({} as SupabaseClient, {
+    get(_target, prop, receiver) {
+      if (isKhktDemoRuntime()) {
+        return Reflect.get(demoIsolatedSupabaseStub, prop, demoIsolatedSupabaseStub);
+      }
+      const client = getOrCreateRealSupabaseClient();
+      const value = Reflect.get(client, prop, receiver);
+      return typeof value === 'function' ? value.bind(client) : value;
+    },
+  });
+}
+
+// Create Supabase client instance (lazy & strictly isolated when on /demo)
+export let supabase: SupabaseClient = createSafeSupabaseProxy();
 
 /**
  * Cập nhật cấu hình Supabase URL & Key ngay lập tức tại runtime
  */
 export function updateSupabaseCredentials(newUrl: string, newKey: string) {
+  if (isKhktDemoRuntime()) {
+    return supabase;
+  }
   const cleanUrl = normalizeSupabaseUrl(newUrl);
   const cleanKey = newKey.trim();
 
@@ -91,7 +175,7 @@ export function updateSupabaseCredentials(newUrl: string, newKey: string) {
     );
   }
 
-  supabase = createClient(cleanUrl, cleanKey, {
+  realSupabaseClient = createClient(cleanUrl, cleanKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -106,12 +190,15 @@ export function updateSupabaseCredentials(newUrl: string, newKey: string) {
  * Đặt lại cấu hình Supabase về mặc định
  */
 export function resetSupabaseCredentials() {
+  if (isKhktDemoRuntime()) {
+    return supabase;
+  }
   if (typeof window !== 'undefined' && window.localStorage) {
     localStorage.removeItem('taydo_supabase_config');
   }
   SUPABASE_URL = DEFAULT_SUPABASE_URL;
   SUPABASE_ANON_KEY = DEFAULT_SUPABASE_ANON_KEY;
-  supabase = createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY, {
+  realSupabaseClient = createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -134,6 +221,16 @@ export async function testSupabaseConnection(customUrl?: string, customKey?: str
   isPausedOrDnsError?: boolean;
   helpGuidance?: string;
 }> {
+  if (isKhktDemoRuntime()) {
+    return {
+      success: false,
+      message: 'Bản demo KHKT chạy hoàn toàn trên dữ liệu mẫu cục bộ, không kết nối máy chủ Supabase thật.',
+      authServiceAvailable: false,
+      authVerified: false,
+      dbVerified: false,
+    };
+  }
+
   const targetUrl = normalizeSupabaseUrl(customUrl || SUPABASE_URL);
   const targetKey = (customKey || SUPABASE_ANON_KEY).trim();
 
@@ -291,6 +388,12 @@ export interface DetailedProfileResult {
  * Fetch profile from public.profiles table by user ID with explicit error state.
  */
 export async function fetchUserProfileDetailed(userId: string): Promise<DetailedProfileResult> {
+  if (isKhktDemoRuntime()) {
+    return {
+      status: 'not_found',
+      profile: null,
+    };
+  }
   if (!isSupabaseConfigured || !userId) {
     return {
       status: 'error',

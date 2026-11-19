@@ -5,6 +5,12 @@ import { StudentCandidate } from '../studentCallRules';
 import { ClassRoom } from '../../../types';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import {
+  EduGameSoundBank,
+  EduGameVoiceController,
+  loadEduGameVoiceEnabled,
+  saveEduGameVoiceEnabled,
+} from '../../../utils/eduGameAudioController';
+import {
   HorseRace3DState,
   HorseRaceDurationSec,
   HorseRaceCameraMode,
@@ -96,186 +102,7 @@ const _tmpEuler = new THREE.Euler();
 const _tmpQuat = new THREE.Quaternion();
 const _tmpScale = new THREE.Vector3();
 
-// ============================================================================
-// WEB AUDIO SYNTHESIZER (Classroom-balanced, lazy init on user click)
-// 6 effects: Countdown, Start Bell, Hoofbeats, Wind, Crowd Cheer, Finish/Victory
-// ============================================================================
-class HorseRaceSoundEngine {
-  private ctx: AudioContext | null = null;
-  private noiseBuffer: AudioBuffer | null = null;
-
-  private ensureContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
-      }
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-    if (this.ctx && !this.noiseBuffer) {
-      const sr = this.ctx.sampleRate;
-      const buf = this.ctx.createBuffer(1, sr * 1.2, sr);
-      const ch = buf.getChannelData(0);
-      for (let i = 0; i < ch.length; i++) {
-        ch[i] = Math.random() * 2 - 1;
-      }
-      this.noiseBuffer = buf;
-    }
-    return this.ctx;
-  }
-
-  public playCountdownBeep(step: 3 | 2 | 1, muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const now = ctx.currentTime;
-      const freq = step === 3 ? 440 : step === 2 ? 523.25 : 659.25;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now);
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.13, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.24);
-    } catch {
-      // Ignore audio errors
-    }
-  }
-
-  public playStartBell(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const now = ctx.currentTime;
-      // Metallic racetrack starting bell partials
-      const partials = [920, 1385, 1840, 2410];
-      partials.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
-        osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(idx === 0 ? 0.16 : 0.06, now + 0.008);
-        gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.55);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.58);
-      });
-    } catch {
-      // Ignore
-    }
-  }
-
-  public playHoofbeat(muted: boolean, intensity = 1) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx || !this.noiseBuffer) return;
-    try {
-      const now = ctx.currentTime;
-      // Double-thump gallop hoofbeat (clop-clop)
-      [0, 0.085].forEach((offset, idx) => {
-        const src = ctx.createBufferSource();
-        src.buffer = this.noiseBuffer;
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(idx === 0 ? 220 : 290, now + offset);
-        filter.Q.setValueAtTime(2.6, now + offset);
-
-        const gain = ctx.createGain();
-        const peak = Math.min(0.08, 0.045 * intensity);
-        gain.gain.setValueAtTime(0.001, now + offset);
-        gain.gain.linearRampToValueAtTime(peak, now + offset + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.075);
-
-        src.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-        src.start(now + offset);
-        src.stop(now + offset + 0.09);
-      });
-    } catch {
-      // Ignore
-    }
-  }
-
-  public playWindAndCrowdSwell(muted: boolean, isFinishBurst = false) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx || !this.noiseBuffer) return;
-    try {
-      const now = ctx.currentTime;
-      const src = ctx.createBufferSource();
-      src.buffer = this.noiseBuffer;
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(isFinishBurst ? 680 : 480, now);
-      filter.frequency.linearRampToValueAtTime(isFinishBurst ? 1150 : 620, now + 0.65);
-      filter.Q.setValueAtTime(1.1, now);
-
-      const gain = ctx.createGain();
-      const vol = isFinishBurst ? 0.055 : 0.028;
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(vol, now + 0.18);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.95);
-
-      src.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      src.start(now);
-      src.stop(now + 1.0);
-    } catch {
-      // Ignore
-    }
-  }
-
-  public playFinishChimeAndVictory(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const now = ctx.currentTime;
-      // Photo-finish chime + celebratory brass chord arpeggio
-      const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
-      notes.forEach((freq, idx) => {
-        const start = now + idx * 0.085;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = idx >= 3 ? 'triangle' : 'sine';
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.001, start);
-        gain.gain.linearRampToValueAtTime(0.13, start + 0.025);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + (idx === 4 ? 0.65 : 0.28));
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.7);
-      });
-    } catch {
-      // Ignore
-    }
-  }
-
-  public dispose() {
-    if (this.ctx) {
-      this.ctx.close().catch(() => {});
-      this.ctx = null;
-    }
-    this.noiseBuffer = null;
-  }
-}
+// Audio & strict Vietnamese voice synthesis are managed via shared EduGameSoundBank & EduGameVoiceController.
 
 // ============================================================================
 // PROCEDURAL TEXTURE BUILDERS (High-DPI CanvasTextures, SRGBColorSpace)
@@ -1208,7 +1035,7 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
   const [cloudSyncStatus, setCloudSyncStatus] = useState<'idle' | 'saving' | 'saved' | 'local_only' | 'error'>('idle');
   const [showRecordsDrawer, setShowRecordsDrawer] = useState<boolean>(false);
   const [rendererFallback2D, setRendererFallback2D] = useState<boolean>(false);
-  const [speechEnabled, setSpeechEnabled] = useState<boolean>(false);
+  const [speechEnabled, setSpeechEnabled] = useState<boolean>(() => loadEduGameVoiceEnabled(true));
 
   const recordsStorageKey = `${LOCAL_RECORDS_PREFIX}_${teacherId}_${selectedSourceKey || 'default'}`;
   const [turnRecords, setTurnRecords] = useState<HorseRaceTurnRecord[]>(() => {
@@ -1268,7 +1095,8 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
   // Refs for deterministic animation loop (prevent React re-render jitter & stale closures)
   const stageMountRef = useRef<HTMLDivElement | null>(null);
   const fallbackCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const soundEngineRef = useRef<HorseRaceSoundEngine | null>(null);
+  const soundEngineRef = useRef<EduGameSoundBank | null>(null);
+  const voiceControllerRef = useRef<EduGameVoiceController | null>(null);
   const deduplicatorRef = useRef<HorseRaceTurnDeduplicator>(new HorseRaceTurnDeduplicator());
 
   const raceStateRef = useRef<HorseRace3DState>(raceState);
@@ -1280,8 +1108,6 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
   const raceAccumulatedMsRef = useRef<number>(0);
   const finishingStartPerfRef = useRef<number>(0);
   const lastHudUpdatePerfRef = useRef<number>(0);
-  const lastHoofSoundPerfRef = useRef<number>(0);
-  const lastCrowdSoundPerfRef = useRef<number>(0);
   const framesScratchRef = useRef<HorseFrameState[]>([]);
   const horseStrideAccumRef = useRef<number[]>([0, 0, 0, 0, 0, 0]);
   const horsePrevXRef = useRef<number[]>([
@@ -1297,6 +1123,7 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
   const cameraModeRef = useRef<HorseRaceCameraMode>(cameraMode);
   const autoCameraRef = useRef<boolean>(autoCamera);
   const isMutedRef = useRef<boolean>(isMuted);
+  const speechEnabledRef = useRef<boolean>(speechEnabled);
   const qualityPresetRef = useRef<HorseRaceQualityPreset>(qualityPreset);
   const reducedMotionRef = useRef<boolean>(reducedMotion);
   const previewLineupRef = useRef<HorseRacerEntry[]>(previewData.lineup);
@@ -1314,7 +1141,18 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
   }, [autoCamera]);
   useEffect(() => {
     isMutedRef.current = isMuted;
+    if (isMuted) {
+      soundEngineRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
+    }
   }, [isMuted]);
+  useEffect(() => {
+    speechEnabledRef.current = speechEnabled;
+    saveEduGameVoiceEnabled(speechEnabled);
+    if (!speechEnabled) {
+      voiceControllerRef.current?.stop();
+    }
+  }, [speechEnabled]);
   useEffect(() => {
     qualityPresetRef.current = qualityPreset;
   }, [qualityPreset]);
@@ -1455,6 +1293,9 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
       activePlanRef.current = null;
       raceAccumulatedMsRef.current = 0;
       countdownLastBeepRef.current = -1;
+      soundEngineRef.current?.setActiveTurnToken(null);
+      soundEngineRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
       setHeatIndex(0);
       setActiveWinnerEntry(null);
       setActiveSessionId(null);
@@ -1577,24 +1418,17 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
       setNoteSaveFeedback(null);
       setCloudSyncStatus('saving');
 
-      if (
-        speechEnabled &&
-        !isMutedRef.current &&
-        typeof window !== 'undefined' &&
-        'speechSynthesis' in window
-      ) {
-        try {
-          window.speechSynthesis.cancel();
-          const utter = new SpeechSynthesisUtterance(
-            `Xin chúc mừng bạn ${winnerEntry.safeName} đã giành chiến thắng đường đua ngựa!`
-          );
-          utter.lang = 'vi-VN';
-          utter.rate = 1.02;
-          window.speechSynthesis.speak(utter);
-        } catch {
-          // Ignore speech synthesis errors
-        }
-      }
+      // Strict Vietnamese voice announcement (at most once per sessionId, never falls back to English)
+      void voiceControllerRef.current?.announceStudentOnce({
+        turnId: plan.sessionId,
+        studentName: winnerEntry.safeName,
+        customText: `Xin chúc mừng bạn ${winnerEntry.safeName} đã giành chiến thắng đường đua ngựa!`,
+        isMuted: isMutedRef.current,
+        voiceEnabled: speechEnabledRef.current,
+        onBeforeSpeak: () => {
+          soundEngineRef.current?.stopLoops();
+        },
+      });
 
       onPick(winnerEntry.student, {
         bonusPoints: 0,
@@ -1657,7 +1491,6 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
       recordsStorageKey,
       resolvedClassName,
       selectedSourceKey,
-      speechEnabled,
       syncTurnToSupabase,
       turnRecords,
     ]
@@ -1673,7 +1506,8 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
   // ============================================================================
   useEffect(() => {
     isMountedRef.current = true;
-    soundEngineRef.current = new HorseRaceSoundEngine();
+    soundEngineRef.current = new EduGameSoundBank();
+    voiceControllerRef.current = new EduGameVoiceController();
 
     const mountEl = stageMountRef.current;
     if (!mountEl) return;
@@ -2320,26 +2154,25 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
             if (countdownLastBeepRef.current !== 3) {
               countdownLastBeepRef.current = 3;
               setCountdownLabel('3');
-              soundEngineRef.current?.playCountdownBeep(3, isMutedRef.current);
+              soundEngineRef.current?.playCountdownBeep(3, isMutedRef.current, plan.sessionId);
             }
           } else if (cdMs < 1800) {
             if (countdownLastBeepRef.current !== 2) {
               countdownLastBeepRef.current = 2;
               setCountdownLabel('2');
-              soundEngineRef.current?.playCountdownBeep(2, isMutedRef.current);
+              soundEngineRef.current?.playCountdownBeep(2, isMutedRef.current, plan.sessionId);
             }
           } else if (cdMs < 2600) {
             if (countdownLastBeepRef.current !== 1) {
               countdownLastBeepRef.current = 1;
               setCountdownLabel('1');
-              soundEngineRef.current?.playCountdownBeep(1, isMutedRef.current);
+              soundEngineRef.current?.playCountdownBeep(1, isMutedRef.current, plan.sessionId);
             }
           } else if (cdMs < COUNTDOWN_TOTAL_MS) {
             if (countdownLastBeepRef.current !== 0) {
               countdownLastBeepRef.current = 0;
               setCountdownLabel('XUẤT PHÁT!');
-              soundEngineRef.current?.playStartBell(isMutedRef.current);
-              soundEngineRef.current?.playWindAndCrowdSwell(isMutedRef.current, false);
+              soundEngineRef.current?.playHorseStartBell(isMutedRef.current, plan.sessionId);
             }
           } else {
             countdownLastBeepRef.current = -1;
@@ -2348,6 +2181,7 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
             racePhaseStartPerfRef.current = nowPerf;
             raceStateRef.current = 'RACING';
             setRaceState('RACING');
+            soundEngineRef.current?.startHoofbeatLoop(() => isMutedRef.current, plan.sessionId);
           }
         }
 
@@ -2361,22 +2195,15 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
           evalRes = evaluateHorseRaceFrame(plan, currentRaceElapsedMs, framesScratchRef.current);
           framesScratchRef.current = evalRes.frames;
 
-          // Rhythmic hoofbeats & stadium crowd bursts
-          if (nowPerf - lastHoofSoundPerfRef.current > 240) {
-            lastHoofSoundPerfRef.current = nowPerf;
-            soundEngineRef.current?.playHoofbeat(isMutedRef.current, 0.85 + evalRes.u * 0.45);
-          }
-          if (evalRes.u > 0.68 && nowPerf - lastCrowdSoundPerfRef.current > 2400) {
-            lastCrowdSoundPerfRef.current = nowPerf;
-            soundEngineRef.current?.playWindAndCrowdSwell(isMutedRef.current, true);
-          }
+          // Update single shared hoofbeat rhythm cadence
+          soundEngineRef.current?.updateHoofbeatProgress(evalRes.u);
 
           if (evalRes.isRaceCompleted) {
             raceAccumulatedMsRef.current = plan.durationMs;
             finishingStartPerfRef.current = nowPerf;
             raceStateRef.current = 'FINISHING';
             setRaceState('FINISHING');
-            soundEngineRef.current?.playFinishChimeAndVictory(isMutedRef.current);
+            soundEngineRef.current?.playHorseFinishFanfare(isMutedRef.current, plan.sessionId);
           }
         } else if (st === 'PAUSED' && plan) {
           evalRes = evaluateHorseRaceFrame(
@@ -2783,14 +2610,9 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
       if (noteTimeoutRef.current) clearTimeout(noteTimeoutRef.current);
       if (resizeObserver) resizeObserver.disconnect();
       soundEngineRef.current?.dispose();
-
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        try {
-          window.speechSynthesis.cancel();
-        } catch {
-          // Ignore
-        }
-      }
+      soundEngineRef.current = null;
+      voiceControllerRef.current?.dispose();
+      voiceControllerRef.current = null;
 
       if (threeRefs.current.sharedHorseGeos) {
         Object.values(threeRefs.current.sharedHorseGeos).forEach((g) => g.dispose());
@@ -2854,19 +2676,19 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
           if (cdMs < 900 && countdownLastBeepRef.current !== 3) {
             countdownLastBeepRef.current = 3;
             setCountdownLabel('3');
-            soundEngineRef.current?.playCountdownBeep(3, isMutedRef.current);
+            soundEngineRef.current?.playCountdownBeep(3, isMutedRef.current, plan.sessionId);
           } else if (cdMs >= 900 && cdMs < 1800 && countdownLastBeepRef.current !== 2) {
             countdownLastBeepRef.current = 2;
             setCountdownLabel('2');
-            soundEngineRef.current?.playCountdownBeep(2, isMutedRef.current);
+            soundEngineRef.current?.playCountdownBeep(2, isMutedRef.current, plan.sessionId);
           } else if (cdMs >= 1800 && cdMs < 2600 && countdownLastBeepRef.current !== 1) {
             countdownLastBeepRef.current = 1;
             setCountdownLabel('1');
-            soundEngineRef.current?.playCountdownBeep(1, isMutedRef.current);
+            soundEngineRef.current?.playCountdownBeep(1, isMutedRef.current, plan.sessionId);
           } else if (cdMs >= 2600 && cdMs < COUNTDOWN_TOTAL_MS && countdownLastBeepRef.current !== 0) {
             countdownLastBeepRef.current = 0;
             setCountdownLabel('XUẤT PHÁT!');
-            soundEngineRef.current?.playStartBell(isMutedRef.current);
+            soundEngineRef.current?.playHorseStartBell(isMutedRef.current, plan.sessionId);
           } else if (cdMs >= COUNTDOWN_TOTAL_MS) {
             countdownLastBeepRef.current = -1;
             setCountdownLabel('');
@@ -2874,6 +2696,7 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
             racePhaseStartPerfRef.current = nowPerf;
             raceStateRef.current = 'RACING';
             setRaceState('RACING');
+            soundEngineRef.current?.startHoofbeatLoop(() => isMutedRef.current, plan.sessionId);
           }
         }
 
@@ -2883,13 +2706,14 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
           elapsed = raceAccumulatedMsRef.current + (nowPerf - racePhaseStartPerfRef.current);
           evalRes = evaluateHorseRaceFrame(plan, elapsed, framesScratchRef.current);
           framesScratchRef.current = evalRes.frames;
+          soundEngineRef.current?.updateHoofbeatProgress(evalRes.u);
           setElapsedDisplaySec(Math.min(plan.durationSec, elapsed / 1000));
           if (evalRes.isRaceCompleted) {
             raceAccumulatedMsRef.current = plan.durationMs;
             finishingStartPerfRef.current = nowPerf;
             raceStateRef.current = 'FINISHING';
             setRaceState('FINISHING');
-            soundEngineRef.current?.playFinishChimeAndVictory(isMutedRef.current);
+            soundEngineRef.current?.playHorseFinishFanfare(isMutedRef.current, plan.sessionId);
           }
         } else if (st === 'PAUSED' && plan) {
           evalRes = evaluateHorseRaceFrame(plan, raceAccumulatedMsRef.current, framesScratchRef.current);
@@ -2942,6 +2766,11 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
     const st = raceStateRef.current;
     if (st === 'COUNTDOWN' || st === 'RACING' || st === 'FINISHING' || st === 'PAUSED') return;
 
+    // Unlock Web Audio synchronously inside user gesture & clear any leftover sound/voice
+    soundEngineRef.current?.unlock();
+    soundEngineRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
+
     // Immediate synchronous ref lock prevents rapid double-click race condition
     raceStateRef.current = 'COUNTDOWN';
 
@@ -2953,6 +2782,7 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
       heatIndex: safeHeatIndex,
     });
 
+    soundEngineRef.current?.setActiveTurnToken(plan.sessionId);
     activeSessionIdRef.current = plan.sessionId;
     activePlanRef.current = plan;
     framesScratchRef.current = [];
@@ -2984,18 +2814,27 @@ export const HorseRace3DGame: React.FC<HorseRace3DGameProps> = ({
   const pauseRace = useCallback(() => {
     if (raceStateRef.current !== 'RACING') return;
     raceAccumulatedMsRef.current += performance.now() - racePhaseStartPerfRef.current;
+    soundEngineRef.current?.stopLoops();
     raceStateRef.current = 'PAUSED';
     setRaceState('PAUSED');
   }, []);
 
   const resumeRace = useCallback(() => {
     if (raceStateRef.current !== 'PAUSED') return;
+    soundEngineRef.current?.unlock();
     racePhaseStartPerfRef.current = performance.now();
     raceStateRef.current = 'RACING';
     setRaceState('RACING');
+    soundEngineRef.current?.startHoofbeatLoop(
+      () => isMutedRef.current,
+      activeSessionIdRef.current ?? undefined
+    );
   }, []);
 
   const resetRace = useCallback(() => {
+    soundEngineRef.current?.setActiveTurnToken(null);
+    soundEngineRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     activeSessionIdRef.current = null;
     activePlanRef.current = null;
     raceAccumulatedMsRef.current = 0;

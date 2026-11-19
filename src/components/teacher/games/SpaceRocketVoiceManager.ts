@@ -32,7 +32,18 @@ export interface RocketSpeakOutcome {
   captionText: string;
 }
 
+import {
+  KHKT_DEMO_STORAGE_PREFIX,
+  isKhktDemoRuntime,
+} from '../../../utils/khktDemoSandbox';
+
 const VOICE_PREFS_STORAGE_KEY = 'taydo_a07_voice_prefs_v1';
+
+function getVoicePrefsStorageKey(): string {
+  return isKhktDemoRuntime()
+    ? `${KHKT_DEMO_STORAGE_PREFIX}${VOICE_PREFS_STORAGE_KEY}`
+    : VOICE_PREFS_STORAGE_KEY;
+}
 
 export const DEFAULT_ROCKET_VOICE_PREFS: RocketVoicePreferences = {
   enabled: true,
@@ -43,7 +54,7 @@ export const DEFAULT_ROCKET_VOICE_PREFS: RocketVoicePreferences = {
 export function loadRocketVoicePreferences(): RocketVoicePreferences {
   if (typeof window === 'undefined') return DEFAULT_ROCKET_VOICE_PREFS;
   try {
-    const raw = window.localStorage.getItem(VOICE_PREFS_STORAGE_KEY);
+    const raw = window.localStorage.getItem(getVoicePrefsStorageKey());
     if (!raw) return DEFAULT_ROCKET_VOICE_PREFS;
     const parsed = JSON.parse(raw) as Partial<RocketVoicePreferences>;
     return {
@@ -68,7 +79,7 @@ export function loadRocketVoicePreferences(): RocketVoicePreferences {
 export function saveRocketVoicePreferences(prefs: RocketVoicePreferences): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(VOICE_PREFS_STORAGE_KEY, JSON.stringify(prefs));
+    window.localStorage.setItem(getVoicePrefsStorageKey(), JSON.stringify(prefs));
   } catch {
     // Ignore storage quota errors
   }
@@ -76,12 +87,15 @@ export function saveRocketVoicePreferences(prefs: RocketVoicePreferences): void 
 
 /**
  * Strictly verify that a SpeechSynthesisVoice is genuinely Vietnamese.
- * Never allows en-US / en-GB or non-Vietnamese voices through.
+ * Never allows en-US / en-GB or non-Vietnamese voices through, even if their name mentions Vietnam.
  */
 export function isStrictlyVietnameseVoice(voice: SpeechSynthesisVoice): boolean {
   const lang = (voice.lang || '').trim().toLowerCase().replace('_', '-');
   if (lang === 'vi' || lang.startsWith('vi-')) {
     return true;
+  }
+  if (lang.length > 0) {
+    return false;
   }
   const name = (voice.name || '').trim().toLowerCase();
   return (
@@ -186,6 +200,7 @@ export class SpaceRocketVoiceManager {
   private voices: SpeechSynthesisVoice[] = [];
   private listeners = new Set<(availability: RocketVoiceAvailability) => void>();
   private currentPrefs: RocketVoicePreferences = DEFAULT_ROCKET_VOICE_PREFS;
+  private spokenTurnIds = new Set<string>();
   private isBound = false;
 
   constructor(initialPrefs?: RocketVoicePreferences) {
@@ -320,8 +335,25 @@ export class SpaceRocketVoiceManager {
     }
   }
 
+  public speakVietnameseOnce(
+    turnId: string,
+    text: string,
+    isMuted: boolean
+  ): RocketSpeakOutcome {
+    const cleanText = text.trim();
+    if (!cleanText || isMuted || !this.currentPrefs.enabled) {
+      return { spoken: false, reason: 'muted_or_disabled', captionText: cleanText };
+    }
+    if (this.spokenTurnIds.has(turnId)) {
+      return { spoken: false, reason: 'muted_or_disabled', captionText: cleanText };
+    }
+    this.spokenTurnIds.add(turnId);
+    return this.speakVietnamese(cleanText, isMuted);
+  }
+
   public dispose(): void {
     this.cancel();
+    this.spokenTurnIds.clear();
     this.listeners.clear();
     if (this.isBound && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {

@@ -3,6 +3,12 @@ import { StudentCandidate } from '../studentCallRules';
 import { ClassRoom } from '../../../types';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import {
+  EduGameSoundBank,
+  EduGameVoiceController,
+  loadEduGameVoiceEnabled,
+  saveEduGameVoiceEnabled,
+} from '../../../utils/eduGameAudioController';
+import {
   Dices,
   Play,
   Pause,
@@ -175,108 +181,7 @@ function getBaseAnglesForFace(faceValue: number): { rx: number; ry: number; rz: 
   }
 }
 
-/**
- * Web Audio Sound Engine for 3D Dice clatter, table bounce, settle click, and fanfare
- */
-class DiceSoundEngine {
-  private ctx: AudioContext | null = null;
-
-  private ensureContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) this.ctx = new AudioCtx();
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-    return this.ctx;
-  }
-
-  playDiceShake(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(380 + Math.random() * 240, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(720, ctx.currentTime + 0.035);
-      gain.gain.setValueAtTime(0.06, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.04);
-    } catch {}
-  }
-
-  playTableBounce(muted: boolean, intensity = 1) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      // Crisp wooden/felt table impact click + low thud
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(220 * intensity + 80, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(58, ctx.currentTime + 0.085);
-      gain.gain.setValueAtTime(0.22 * intensity, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.09);
-    } catch {}
-  }
-
-  playRevealFanfare(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const notes = [523.25, 659.25, 783.99, 1046.5];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        const start = ctx.currentTime + i * 0.085;
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.42);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.44);
-      });
-    } catch {}
-  }
-
-  playTimerBell(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      gain.gain.setValueAtTime(0.24, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.85);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.85);
-    } catch {}
-  }
-}
-
-const diceSound = new DiceSoundEngine();
+// Audio & strict Vietnamese voice synthesis are managed via shared EduGameSoundBank & EduGameVoiceController.
 
 /**
  * Standard 3x3 Pip Layout for a 6-sided Die Face (values 1 to 6).
@@ -593,10 +498,18 @@ export const DiceGame: React.FC<DiceGameProps> = ({
   const [supabaseSyncState, setSupabaseSyncState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [supabaseErrorMsg, setSupabaseErrorMsg] = useState<string | null>(null);
 
+  // Voice reading preference (persisted cleanly across games & demo-isolated)
+  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(() => loadEduGameVoiceEnabled(true));
+
   // Animation RAF & Pause/Resume Tracking Refs
   const rafRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  const soundBankRef = useRef<EduGameSoundBank | null>(null);
+  const voiceControllerRef = useRef<EduGameVoiceController | null>(null);
+  const isMutedRef = useRef<boolean>(isMuted);
+  const voiceEnabledRef = useRef<boolean>(voiceEnabled);
   const animSpecRef = useRef<{
+    turnToken: string;
     startTime: number;
     elapsedBeforePause: number;
     totalDurationMs: number;
@@ -622,6 +535,33 @@ export const DiceGame: React.FC<DiceGameProps> = ({
   const savedTurnIdsRef = useRef<Set<string>>(new Set());
   const currentTurnIdRef = useRef<string | null>(null);
 
+  useEffect(() => {
+    soundBankRef.current = new EduGameSoundBank();
+    voiceControllerRef.current = new EduGameVoiceController();
+    return () => {
+      soundBankRef.current?.dispose();
+      soundBankRef.current = null;
+      voiceControllerRef.current?.dispose();
+      voiceControllerRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+    if (isMuted) {
+      soundBankRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
+    }
+  }, [isMuted]);
+
+  useEffect(() => {
+    voiceEnabledRef.current = voiceEnabled;
+    saveEduGameVoiceEnabled(voiceEnabled);
+    if (!voiceEnabled) {
+      voiceControllerRef.current?.stop();
+    }
+  }, [voiceEnabled]);
+
   const stopAnimations = useCallback(() => {
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
@@ -636,6 +576,8 @@ export const DiceGame: React.FC<DiceGameProps> = ({
   useEffect(() => {
     return () => {
       stopAnimations();
+      soundBankRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
     };
   }, [stopAnimations]);
 
@@ -666,6 +608,9 @@ export const DiceGame: React.FC<DiceGameProps> = ({
   // Reset stage when class changes
   useEffect(() => {
     stopAnimations();
+    soundBankRef.current?.setActiveTurnToken(null);
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     setPhase('IDLE');
     setIsPaused(false);
     setRevealedStudent(null);
@@ -684,14 +629,14 @@ export const DiceGame: React.FC<DiceGameProps> = ({
         if (prev <= 1) {
           window.clearInterval(interval);
           setTimerRunning(false);
-          diceSound.playTimerBell(isMuted);
+          soundBankRef.current?.playTimerBell(isMutedRef.current);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => window.clearInterval(interval);
-  }, [timerRunning, isMuted]);
+  }, [timerRunning]);
 
   // Sync turn result to Supabase public.audit_logs (with duplicate guard & safe retry)
   const syncTurnToSupabase = useCallback(
@@ -826,23 +771,23 @@ export const DiceGame: React.FC<DiceGameProps> = ({
         }
       }
 
-      // Sound effects triggered at physical milestones
+      // Sound effects triggered at physical milestones (reads live isMutedRef to avoid stale closures)
       const soundTickIndex = Math.floor(rawProgress * 12);
       if (soundTickIndex > spec.lastSoundStep && rawProgress < 0.54) {
         spec.lastSoundStep = soundTickIndex;
-        diceSound.playDiceShake(isMuted);
+        soundBankRef.current?.playDiceRollTick(isMutedRef.current, spec.turnToken);
       }
       if (rawProgress >= 0.56 && !spec.bouncePlayed[0]) {
         spec.bouncePlayed[0] = true;
-        diceSound.playTableBounce(isMuted, 1.0);
+        soundBankRef.current?.playDiceTableBounce(isMutedRef.current, 1.0, spec.turnToken);
       }
       if (rawProgress >= 0.69 && !spec.bouncePlayed[1]) {
         spec.bouncePlayed[1] = true;
-        diceSound.playTableBounce(isMuted, 0.65);
+        soundBankRef.current?.playDiceTableBounce(isMutedRef.current, 0.65, spec.turnToken);
       }
       if (rawProgress >= 0.82 && !spec.bouncePlayed[2]) {
         spec.bouncePlayed[2] = true;
-        diceSound.playTableBounce(isMuted, 0.35);
+        soundBankRef.current?.playDiceTableBounce(isMutedRef.current, 0.35, spec.turnToken);
       }
 
       // Interpolate 3D Rotations toward exact target face angles
@@ -898,7 +843,13 @@ export const DiceGame: React.FC<DiceGameProps> = ({
         setRoundNote('');
         setTimerRunning(false);
         setTimerRemaining(timerPreset);
-        diceSound.playRevealFanfare(isMuted);
+        soundBankRef.current?.playRevealChime(isMutedRef.current, spec.turnToken);
+        void voiceControllerRef.current?.announceStudentOnce({
+          turnId: spec.turnToken,
+          studentName: spec.chosenStudent.fullName,
+          isMuted: isMutedRef.current,
+          voiceEnabled: voiceEnabledRef.current,
+        });
 
         timeoutRef.current = window.setTimeout(() => {
           setPhase('COMPLETED');
@@ -941,7 +892,7 @@ export const DiceGame: React.FC<DiceGameProps> = ({
     };
 
     rafRef.current = requestAnimationFrame(stepFrame);
-  }, [challengeCategory, isMuted, onPick, reduceMotion, sessionId, syncTurnToSupabase, timerPreset]);
+  }, [challengeCategory, onPick, reduceMotion, sessionId, syncTurnToSupabase, timerPreset]);
 
   // Start Rolling the 3D Dice
   const startRollDice = () => {
@@ -955,6 +906,9 @@ export const DiceGame: React.FC<DiceGameProps> = ({
       return;
     }
 
+    soundBankRef.current?.unlock();
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     stopAnimations();
     setIsPaused(false);
     setShowWinnerBanner(false);
@@ -1023,7 +977,11 @@ export const DiceGame: React.FC<DiceGameProps> = ({
     const targetTensAngle = baseTensNorm - 360 * turns - tens * 36;
     const targetUnitsAngle = baseUnitsNorm - 360 * (turns + 1) - units * 36;
 
+    const turnToken = `a09_${Date.now()}_${chosenItem.student.id}`;
+    soundBankRef.current?.setActiveTurnToken(turnToken);
+
     animSpecRef.current = {
+      turnToken,
       startTime: performance.now(),
       elapsedBeforePause: 0,
       totalDurationMs: (reduceMotion ? 1.2 : rollDurationSec) * 1000,
@@ -1060,19 +1018,22 @@ export const DiceGame: React.FC<DiceGameProps> = ({
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
       }
+      soundBankRef.current?.stopAll();
       spec.elapsedBeforePause += performance.now() - spec.startTime;
       setIsPaused(true);
     } else {
+      soundBankRef.current?.unlock();
       spec.startTime = performance.now();
       setIsPaused(false);
       runAnimationLoop();
     }
   };
 
-  // Safe Emergency Recovery if animation ever needs manual completion
+  // Safe Emergency Recovery / Skip Animation
   const handleSafeRecover = () => {
     const spec = animSpecRef.current;
     stopAnimations();
+    soundBankRef.current?.stopAll();
     setIsPaused(false);
     if (spec) {
       setDie1Pose({ ...spec.targetPose1, liftY: 0, offsetX: 0 });
@@ -1084,6 +1045,13 @@ export const DiceGame: React.FC<DiceGameProps> = ({
       setRevealedOrderNumber(spec.chosenOrderNumber);
       setShowWinnerBanner(true);
       setPhase('COMPLETED');
+      soundBankRef.current?.playRevealChime(isMutedRef.current, spec.turnToken);
+      void voiceControllerRef.current?.announceStudentOnce({
+        turnId: spec.turnToken,
+        studentName: spec.chosenStudent.fullName,
+        isMuted: isMutedRef.current,
+        voiceEnabled: voiceEnabledRef.current,
+      });
     } else {
       setPhase('IDLE');
     }
@@ -1092,6 +1060,9 @@ export const DiceGame: React.FC<DiceGameProps> = ({
   // Reset Full Session
   const handleRefreshSession = () => {
     stopAnimations();
+    soundBankRef.current?.setActiveTurnToken(null);
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     savedTurnIdsRef.current.clear();
     currentTurnIdRef.current = null;
     animSpecRef.current = null;
@@ -1671,12 +1642,12 @@ export const DiceGame: React.FC<DiceGameProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center gap-2 pt-0.5">
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
               {onToggleMute && (
                 <button
                   type="button"
                   onClick={onToggleMute}
-                  className="flex-1 py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5"
+                  className="flex-1 py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {isMuted ? (
                     <>
@@ -1692,11 +1663,24 @@ export const DiceGame: React.FC<DiceGameProps> = ({
                 </button>
               )}
 
+              <button
+                type="button"
+                onClick={() => setVoiceEnabled((v) => !v)}
+                className={`py-1.5 px-2.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                  voiceEnabled && !isMuted
+                    ? 'bg-amber-50 border-amber-300 text-amber-800'
+                    : 'bg-slate-100 border-slate-200 text-slate-600'
+                }`}
+                title="Đọc tên học sinh bằng giọng tiếng Việt (không đọc giọng tiếng Anh)"
+              >
+                {voiceEnabled ? 'Đọc tên: BẬT' : 'Đọc tên: TẮT'}
+              </button>
+
               {onToggleFullscreen && (
                 <button
                   type="button"
                   onClick={onToggleFullscreen}
-                  className="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1"
+                  className="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1 cursor-pointer"
                 >
                   {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                   <span>{isFullscreen ? 'Thu nhỏ' : 'Full màn hình'}</span>

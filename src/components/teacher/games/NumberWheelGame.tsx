@@ -25,7 +25,15 @@ import {
   X,
   Disc,
   Filter,
+  Mic,
+  MicOff,
 } from 'lucide-react';
+import {
+  EduGameSoundBank,
+  EduGameVoiceController,
+  loadEduGameVoiceEnabled,
+  saveEduGameVoiceEnabled,
+} from '../../../utils/eduGameAudioController';
 
 export type WheelGamePhase =
   | 'IDLE'
@@ -159,90 +167,7 @@ export function computeTargetWheelRotation(
   return currentRotationDeg + extraSpins * 360 + deltaMod;
 }
 
-/**
- * Web Audio Synthesizer for Lucky Number Wheel peg ticks & victory fanfare
- */
-class WheelSoundEngine {
-  private ctx: AudioContext | null = null;
-
-  private ensureContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
-      }
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-    return this.ctx;
-  }
-
-  playPegTick(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(640, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1120, ctx.currentTime + 0.032);
-      gain.gain.setValueAtTime(0.085, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.036);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.038);
-    } catch {}
-  }
-
-  playWinFanfare(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        const start = ctx.currentTime + i * 0.085;
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.44);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.46);
-      });
-    } catch {}
-  }
-
-  playTimerBell(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      gain.gain.setValueAtTime(0.24, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.85);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.85);
-    } catch {}
-  }
-}
-
-const wheelSound = new WheelSoundEngine();
+// Web Audio & strict Vietnamese TTS are handled via shared EduGameSoundBank & EduGameVoiceController.
 
 /**
  * High-Precision Vector SVG Lucky Number Wheel
@@ -627,6 +552,13 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
   );
   const [supabaseErrorMsg, setSupabaseErrorMsg] = useState<string | null>(null);
 
+  // Audio & Strict Vietnamese Voice State / Refs
+  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(() => loadEduGameVoiceEnabled(true));
+  const soundBankRef = useRef<EduGameSoundBank | null>(null);
+  const voiceControllerRef = useRef<EduGameVoiceController | null>(null);
+  const isMutedRef = useRef<boolean>(isMuted);
+  const voiceEnabledRef = useRef<boolean>(voiceEnabled);
+
   // Animation & Idempotency Refs
   const rafRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -635,6 +567,7 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
   const currentTurnIdRef = useRef<string | null>(null);
 
   const spinSpecRef = useRef<{
+    turnToken: string;
     startTime: number;
     elapsedBeforePause: number;
     totalDurationMs: number;
@@ -662,10 +595,35 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
   }, []);
 
   useEffect(() => {
+    const bank = new EduGameSoundBank();
+    const voice = new EduGameVoiceController();
+    soundBankRef.current = bank;
+    voiceControllerRef.current = voice;
+
     return () => {
       stopAllTimers();
+      bank.dispose();
+      voice.dispose();
+      if (soundBankRef.current === bank) soundBankRef.current = null;
+      if (voiceControllerRef.current === voice) voiceControllerRef.current = null;
     };
   }, [stopAllTimers]);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+    if (isMuted) {
+      soundBankRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
+    }
+  }, [isMuted]);
+
+  useEffect(() => {
+    voiceEnabledRef.current = voiceEnabled;
+    saveEduGameVoiceEnabled(voiceEnabled);
+    if (!voiceEnabled) {
+      voiceControllerRef.current?.stop();
+    }
+  }, [voiceEnabled]);
 
   // Build stable 01..N Student Number Mapping for the selected class
   const numberedStudents = useMemo<NumberedStudentItem[]>(() => {
@@ -701,6 +659,10 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
   // Reset state when switching classes
   useEffect(() => {
     stopAllTimers();
+    spinSpecRef.current = null;
+    soundBankRef.current?.setActiveTurnToken(null);
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     setPhase('IDLE');
     setIsPaused(false);
     setFrozenSpinSlices(null);
@@ -728,14 +690,14 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
         if (prev <= 1) {
           window.clearInterval(interval);
           setTimerRunning(false);
-          wheelSound.playTimerBell(isMuted);
+          soundBankRef.current?.playTimerBell(isMutedRef.current);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => window.clearInterval(interval);
-  }, [timerRunning, isMuted]);
+  }, [timerRunning]);
 
   // Persist turn result to Supabase public.audit_logs (with duplicate guard & retry)
   const syncTurnToSupabase = useCallback(
@@ -848,7 +810,8 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
       const sliceIdxNow = getSliceIndexAtTopPointer(currentDeg, spec.slicesSnapshot.length);
       if (sliceIdxNow !== spec.lastTickSliceIndex) {
         spec.lastTickSliceIndex = sliceIdxNow;
-        wheelSound.playPegTick(isMuted);
+        const velocityFactor = Math.max(0.18, 1 - rawT * 0.8);
+        soundBankRef.current?.playWheelPegTick(isMutedRef.current, velocityFactor, spec.turnToken);
         if (!reduceMotion) {
           setPointerKick(true);
           if (kickTimeoutRef.current !== null) window.clearTimeout(kickTimeoutRef.current);
@@ -870,11 +833,20 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
         setRoundNote('');
         setTimerRunning(false);
         setTimerRemaining(timerPreset);
-        wheelSound.playWinFanfare(isMuted);
+
+        const turnId = `turn_${sessionId}_${spec.turnToken}_${spec.chosenItem.student.id}`;
+        soundBankRef.current?.playRevealChime(isMutedRef.current, spec.turnToken);
+        void voiceControllerRef.current?.announceStudentOnce({
+          turnId,
+          studentName: spec.chosenItem.student.fullName,
+          customText: `Số ${spec.chosenItem.formattedNumber}, xin chúc mừng bạn ${spec.chosenItem.student.fullName}!`,
+          isMuted: isMutedRef.current,
+          voiceEnabled: voiceEnabledRef.current,
+        });
 
         timeoutRef.current = window.setTimeout(() => {
+          if (!soundBankRef.current?.isTurnValid(spec.turnToken)) return;
           setPhase('COMPLETED');
-          const turnId = `turn_${sessionId}_${Date.now()}_${spec.chosenItem.student.id}`;
           currentTurnIdRef.current = turnId;
           if (!savedTurnIdsRef.current.has(turnId)) {
             savedTurnIdsRef.current.add(turnId);
@@ -891,7 +863,7 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
     };
 
     rafRef.current = requestAnimationFrame(stepFrame);
-  }, [isMuted, onPick, reduceMotion, sessionId, syncTurnToSupabase, timerPreset]);
+  }, [onPick, reduceMotion, sessionId, syncTurnToSupabase, timerPreset]);
 
   // Start Spinning the Lucky Number Wheel
   const handleStartSpin = () => {
@@ -904,6 +876,11 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
       return;
     }
     if (eligibleNumberedStudents.length === 0) return;
+
+    // Unlock Web Audio synchronously inside user gesture & cancel any prior sounds/speech
+    soundBankRef.current?.unlock();
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
 
     stopAllTimers();
     setIsPaused(false);
@@ -950,7 +927,11 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
       extraSpins
     );
 
+    const turnToken = `a11_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    soundBankRef.current?.setActiveTurnToken(turnToken);
+
     spinSpecRef.current = {
+      turnToken,
       startTime: performance.now(),
       elapsedBeforePause: 0,
       totalDurationMs: (reduceMotion ? 1.5 : spinDurationSec) * 1000,
@@ -976,9 +957,12 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
       }
+      soundBankRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
       spec.elapsedBeforePause += performance.now() - spec.startTime;
       setIsPaused(true);
     } else {
+      soundBankRef.current?.unlock();
       spec.startTime = performance.now();
       setIsPaused(false);
       runWheelAnimationLoop();
@@ -989,7 +973,10 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
   const handleSafeCompleteNow = () => {
     const spec = spinSpecRef.current;
     stopAllTimers();
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     setIsPaused(false);
+    setPointerKick(false);
     if (!spec) {
       setPhase('IDLE');
       return;
@@ -998,8 +985,18 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
     setWinningItem(spec.chosenItem);
     setShowWinnerCelebration(true);
     setPhase('COMPLETED');
-    const turnId = `turn_${sessionId}_${Date.now()}_${spec.chosenItem.student.id}`;
+    const turnId = `turn_${sessionId}_${spec.turnToken}_${spec.chosenItem.student.id}`;
     currentTurnIdRef.current = turnId;
+
+    soundBankRef.current?.playRevealChime(isMutedRef.current, spec.turnToken);
+    void voiceControllerRef.current?.announceStudentOnce({
+      turnId,
+      studentName: spec.chosenItem.student.fullName,
+      customText: `Số ${spec.chosenItem.formattedNumber}, xin chúc mừng bạn ${spec.chosenItem.student.fullName}!`,
+      isMuted: isMutedRef.current,
+      voiceEnabled: voiceEnabledRef.current,
+    });
+
     if (!savedTurnIdsRef.current.has(turnId)) {
       savedTurnIdsRef.current.add(turnId);
       onPick(spec.chosenItem.student, {
@@ -1015,6 +1012,10 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
   // Refresh Session
   const handleRefreshSession = () => {
     stopAllTimers();
+    soundBankRef.current?.setActiveTurnToken(null);
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
+    voiceControllerRef.current?.resetTurnDedupe();
     savedTurnIdsRef.current.clear();
     currentTurnIdRef.current = null;
     spinSpecRef.current = null;
@@ -1473,7 +1474,7 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center gap-2 pt-0.5">
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
               {onToggleMute && (
                 <button
                   type="button"
@@ -1493,6 +1494,24 @@ export const NumberWheelGame: React.FC<NumberWheelGameProps> = ({
                   )}
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={() => setVoiceEnabled((v) => !v)}
+                className={`py-1.5 px-2.5 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1 border transition-all ${
+                  voiceEnabled && !isMuted
+                    ? 'bg-sky-50 border-sky-200 text-sky-800 hover:bg-sky-100'
+                    : 'bg-slate-100 border-slate-200 text-slate-500 hover:bg-slate-200'
+                }`}
+                title="Bật/Tắt đọc tên học sinh bằng giọng Tiếng Việt"
+              >
+                {voiceEnabled && !isMuted ? (
+                  <Mic className="w-3.5 h-3.5 text-sky-600" />
+                ) : (
+                  <MicOff className="w-3.5 h-3.5 text-slate-400" />
+                )}
+                <span>Đọc tên: {voiceEnabled && !isMuted ? 'BẬT' : 'TẮT'}</span>
+              </button>
 
               {onToggleFullscreen && (
                 <button

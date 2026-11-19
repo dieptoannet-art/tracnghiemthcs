@@ -23,6 +23,8 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMobileMenu }) => {
   const {
     currentRole,
+    isDemoSandbox,
+    exitDemoToRealLogin,
     user,
     userProfile,
     profileStatus,
@@ -47,6 +49,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
   ];
 
   const getRoleBadge = () => {
+    if (isDemoSandbox) {
+      return currentRole === 'student'
+        ? { label: 'Học sinh Demo', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+        : { label: 'Giáo viên Demo', bg: 'bg-amber-50 text-amber-800 border-amber-300' };
+    }
     const role = userProfile?.role || currentRole;
     switch (role) {
       case 'admin':
@@ -63,6 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
   const roleBadge = getRoleBadge();
 
   const getInitials = () => {
+    if (isDemoSandbox) return 'KH';
     if (userProfile?.fullName) {
       const parts = userProfile.fullName.trim().split(/\s+/);
       if (parts.length >= 2) {
@@ -119,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
               }`}
             >
               <Home className="w-3.5 h-3.5" />
-              <span>Trang chủ</span>
+              <span>{isDemoSandbox ? 'Trang chủ Demo' : 'Trang chủ'}</span>
             </button>
           </nav>
         </div>
@@ -140,28 +148,38 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
             <span>{reducedMotion ? 'Ít hiệu ứng' : 'Hiệu ứng'}</span>
           </button>
 
-          <button
-            onClick={onOpenSupabaseConfig}
-            className={`hidden xl:flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl border whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
-              supabaseStatus === 'unconfigured'
-                ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                : supabaseStatus === 'configured_unverified'
-                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                : supabaseStatus === 'verified_all'
-                ? 'bg-[#ECFDF5] text-[#0F766E] border-[#A7F3D0] hover:bg-emerald-100'
-                : supabaseStatus === 'verified_auth_only'
-                ? 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA] hover:bg-blue-100'
-                : supabaseStatus === 'verified_db_only'
-                ? 'bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100'
-                : 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA] hover:bg-red-100'
-            }`}
-            title="Nhấp để cấu hình Supabase hoặc kiểm tra trạng thái kết nối thực tế"
-          >
-            <Database className="w-3.5 h-3.5" />
-            <span className="font-semibold">{supabaseStatusLabel}</span>
-          </button>
+          {isDemoSandbox ? (
+            <div
+              className="hidden xl:flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl border bg-amber-50 text-amber-900 border-amber-200 whitespace-nowrap shrink-0"
+              title="Đang chạy trên dữ liệu mẫu cục bộ tách biệt hoàn toàn với hệ thống chính thức"
+            >
+              <Database className="w-3.5 h-3.5 text-amber-600" />
+              <span className="font-semibold">Dữ liệu mẫu KHKT</span>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenSupabaseConfig}
+              className={`hidden xl:flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl border whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
+                supabaseStatus === 'unconfigured'
+                  ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                  : supabaseStatus === 'configured_unverified'
+                  ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                  : supabaseStatus === 'verified_all'
+                  ? 'bg-[#ECFDF5] text-[#0F766E] border-[#A7F3D0] hover:bg-emerald-100'
+                  : supabaseStatus === 'verified_auth_only'
+                  ? 'bg-[#EAF3FF] text-[#102C54] border-[#C7DCFA] hover:bg-blue-100'
+                  : supabaseStatus === 'verified_db_only'
+                  ? 'bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100'
+                  : 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA] hover:bg-red-100'
+              }`}
+              title="Nhấp để cấu hình Supabase hoặc kiểm tra trạng thái kết nối thực tế"
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span className="font-semibold">{supabaseStatusLabel}</span>
+            </button>
+          )}
 
-          {user && profileStatus === 'error' && (
+          {!isDemoSandbox && user && profileStatus === 'error' && (
             <button
               type="button"
               onClick={retryLoadProfile}
@@ -178,7 +196,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
               <User className="w-3.5 h-3.5" />
             </div>
             <span className="font-bold text-xs text-[#102C54] truncate max-w-[110px] sm:max-w-[170px]">
-              {userProfile
+              {isDemoSandbox
+                ? 'Khách KHKT'
+                : userProfile
                 ? userProfile.fullName
                 : user
                 ? profileStatus === 'loading'
@@ -192,7 +212,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
           </div>
 
           {/* Auth Controls */}
-          {user || userProfile ? (
+          {isDemoSandbox ? (
+            <button
+              type="button"
+              onClick={exitDemoToRealLogin}
+              className="flex items-center space-x-1.5 text-xs bg-[#1769F4] hover:bg-[#0F56D3] text-white px-3 py-1.5 rounded-xl font-bold shadow-xs whitespace-nowrap transition-colors cursor-pointer shrink-0"
+              title="Thoát bản demo để đăng nhập tài khoản thật"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Đăng nhập tài khoản thật</span>
+              <span className="sm:hidden">Đăng nhập</span>
+            </button>
+          ) : user || userProfile ? (
             <button
               onClick={signOut}
               className="flex items-center space-x-1 text-xs text-[#64748B] hover:text-[#EF4444] px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] hover:border-red-200 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
@@ -238,7 +269,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] py-2 z-50">
                 <div className="px-4 py-2 border-b border-[#E2E8F0] flex items-center justify-between">
-                  <span className="font-bold text-sm text-[#102C54]">Thông báo hệ thống (3)</span>
+                  <span className="font-bold text-sm text-[#102C54]">
+                    {isDemoSandbox ? 'Thông báo mẫu (3)' : 'Thông báo hệ thống (3)'}
+                  </span>
                   <button
                     onClick={() => setShowNotifications(false)}
                     className="text-slate-400 hover:text-slate-600 cursor-pointer"
@@ -265,12 +298,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSupabaseConfig, onToggleMo
           {/* Avatar with Initials */}
           <div
             onClick={() => {
-              if (!user) {
+              if (!isDemoSandbox && !user) {
                 setCurrentView('login_portal');
               }
             }}
             className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1769F4] to-[#102C54] text-white flex items-center justify-center font-bold text-xs tracking-wide shadow-xs cursor-pointer shrink-0"
-            title={userProfile?.fullName || 'Trường THCS Tây Đô'}
+            title={isDemoSandbox ? 'Khách trải nghiệm KHKT' : userProfile?.fullName || 'Trường THCS Tây Đô'}
           >
             {getInitials()}
           </div>

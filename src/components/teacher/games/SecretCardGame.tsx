@@ -3,6 +3,12 @@ import { StudentCandidate } from '../studentCallRules';
 import { ClassRoom, Question, SingleChoiceOption } from '../../../types';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import {
+  EduGameSoundBank,
+  EduGameVoiceController,
+  loadEduGameVoiceEnabled,
+  saveEduGameVoiceEnabled,
+} from '../../../utils/eduGameAudioController';
+import {
   Layers,
   Play,
   Pause,
@@ -113,91 +119,7 @@ function fisherYatesShuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-/**
-  * Web Audio Sound Synthesizer for B07 Secret Doors 3D
-  */
-class DoorSoundEngine {
-  private ctx: AudioContext | null = null;
-
-  private ensureContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
-      }
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-    return this.ctx;
-  }
-
-  playDoorCreak(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(140, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.4);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.45);
-    } catch {}
-  }
-
-  playChime(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const notes = [523.25, 659.25, 783.99, 1046.5];
-      notes.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        const start = ctx.currentTime + idx * 0.08;
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(0.15, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.38);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.4);
-      });
-    } catch {}
-  }
-
-  playError(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(180, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.3);
-    } catch {}
-  }
-}
-
-const doorSound = new DoorSoundEngine();
+// Audio & strict Vietnamese voice synthesis are managed via shared EduGameSoundBank & EduGameVoiceController.
 
 // Sample questions fallback with "Dữ liệu mẫu" tag
 const SAMPLE_QUESTIONS: Question[] = [
@@ -521,8 +443,41 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
   const [scoringMode, setScoringMode] = useState<ScoringMode>('secret');
   const [doorCount, setDoorCount] = useState<number>(9); // 6, 9, or 12
   const [timeLimit, setTimeLimit] = useState<number>(30); // 0, 15, 30, 60
-  const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
+  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(() => loadEduGameVoiceEnabled(true));
   const [reduceMotion, setReduceMotion] = useState<boolean>(false);
+
+  const soundBankRef = useRef<EduGameSoundBank | null>(null);
+  const voiceControllerRef = useRef<EduGameVoiceController | null>(null);
+  const isMutedRef = useRef<boolean>(isMuted);
+  const voiceEnabledRef = useRef<boolean>(voiceEnabled);
+  const studentTurnSeqRef = useRef<number>(0);
+
+  useEffect(() => {
+    soundBankRef.current = new EduGameSoundBank();
+    voiceControllerRef.current = new EduGameVoiceController();
+    return () => {
+      soundBankRef.current?.dispose();
+      soundBankRef.current = null;
+      voiceControllerRef.current?.dispose();
+      voiceControllerRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+    if (isMuted) {
+      soundBankRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
+    }
+  }, [isMuted]);
+
+  useEffect(() => {
+    voiceEnabledRef.current = voiceEnabled;
+    saveEduGameVoiceEnabled(voiceEnabled);
+    if (!voiceEnabled) {
+      voiceControllerRef.current?.stop();
+    }
+  }, [voiceEnabled]);
 
   // Teams configuration
   const [teams, setTeams] = useState<TeamScore[]>([
@@ -574,6 +529,10 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
 
   // Initialize Session & Doors
   const handleStartGame = () => {
+    soundBankRef.current?.unlock();
+    soundBankRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
+
     const shuffledQuestions = fisherYatesShuffle(activeQuestionPool);
     const rewardTypes: ('star' | 'trophy' | 'crystal' | 'book')[] = ['star', 'trophy', 'crystal', 'book'];
     const pointValues = [10, 20, 30];
@@ -601,8 +560,19 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
     setShowQuestionModal(false);
     setShowRewardModal(false);
 
+    soundBankRef.current?.playCardShuffle(isMutedRef.current);
+
     if (gameMode === 'individual' && presentStudents.length > 0) {
-      setActiveStudent(presentStudents[secureRandomInt(presentStudents.length)]);
+      const picked = presentStudents[secureRandomInt(presentStudents.length)];
+      setActiveStudent(picked);
+      studentTurnSeqRef.current += 1;
+      void voiceControllerRef.current?.announceStudentOnce({
+        turnId: `a10_${sessionId}_${studentTurnSeqRef.current}_${picked.id}`,
+        studentName: picked.fullName,
+        customText: `Mời bạn ${picked.fullName} chọn thẻ bài bí mật!`,
+        isMuted: isMutedRef.current,
+        voiceEnabled: voiceEnabledRef.current,
+      });
     }
   };
 
@@ -625,11 +595,12 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
     return () => window.clearInterval(interval);
   }, [timerRunning, timeLimit, isAnswerSubmitted]);
 
-  // Click a door
+  // Click a door / secret card
   const handleDoorClick = (door: DoorItem) => {
     if (door.isOpen || showQuestionModal || showRewardModal || isConfiguring) return;
 
-    doorSound.playDoorCreak(isMuted || !audioEnabled);
+    soundBankRef.current?.unlock();
+    soundBankRef.current?.playCardFlip(isMutedRef.current);
 
     setSelectedDoor(door);
     setSelectedOptionId(null);
@@ -663,9 +634,9 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
     setIsCorrectAnswer(correct);
 
     if (correct) {
-      doorSound.playChime(isMuted || !audioEnabled);
+      soundBankRef.current?.playRevealChime(isMutedRef.current);
     } else {
-      doorSound.playError(isMuted || !audioEnabled);
+      soundBankRef.current?.playSoftError(isMutedRef.current);
     }
   };
 
@@ -675,9 +646,9 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
     setIsAnswerSubmitted(true);
     setIsCorrectAnswer(correct);
     if (correct) {
-      doorSound.playChime(isMuted || !audioEnabled);
+      soundBankRef.current?.playRevealChime(isMutedRef.current);
     } else {
-      doorSound.playError(isMuted || !audioEnabled);
+      soundBankRef.current?.playSoftError(isMutedRef.current);
     }
   };
 
@@ -712,7 +683,16 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
     if (gameMode === 'teams') {
       setActiveTeamIndex((prev) => (prev + 1) % teams.length);
     } else if (gameMode === 'individual' && presentStudents.length > 0) {
-      setActiveStudent(presentStudents[secureRandomInt(presentStudents.length)]);
+      const nextStudent = presentStudents[secureRandomInt(presentStudents.length)];
+      setActiveStudent(nextStudent);
+      studentTurnSeqRef.current += 1;
+      void voiceControllerRef.current?.announceStudentOnce({
+        turnId: `a10_${sessionId}_${studentTurnSeqRef.current}_${nextStudent.id}`,
+        studentName: nextStudent.fullName,
+        customText: `Lượt tiếp theo, mời bạn ${nextStudent.fullName}!`,
+        isMuted: isMutedRef.current,
+        voiceEnabled: voiceEnabledRef.current,
+      });
     }
   };
 
@@ -868,7 +848,12 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setIsConfiguring(true)}
+                onClick={() => {
+                  soundBankRef.current?.stopAll();
+                  voiceControllerRef.current?.stop();
+                  setTimerRunning(false);
+                  setIsConfiguring(true);
+                }}
                 className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -884,8 +869,8 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
               </div>
             </div>
 
-            {/* Team or Student Turn info */}
-            <div className="flex items-center gap-3">
+            {/* Team or Student Turn info + Audio Controls */}
+            <div className="flex flex-wrap items-center gap-2.5">
               {gameMode === 'teams' ? (
                 <div className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-amber-400/30 text-xs font-bold">
                   <span>Lượt chơi:</span>
@@ -903,6 +888,40 @@ export const SecretCardGame: React.FC<SecretCardGameProps> = ({
               <div className="text-xs font-bold text-slate-300 tabular-nums">
                 Đã mở: <strong className="text-amber-400">{doors.filter((d) => d.isOpen).length}</strong> / {doors.length}
               </div>
+
+              {onToggleMute && (
+                <button
+                  type="button"
+                  onClick={onToggleMute}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+                >
+                  {isMuted ? (
+                    <>
+                      <VolumeX className="w-3.5 h-3.5 text-rose-400" />
+                      <span className="text-rose-200">Tắt âm</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Âm thanh</span>
+                    </>
+                  )}
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setVoiceEnabled((v) => !v)}
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border cursor-pointer ${
+                  voiceEnabled && !isMuted
+                    ? 'bg-amber-400/20 border-amber-400/50 text-amber-200'
+                    : 'bg-slate-800 border-slate-700 text-slate-300'
+                }`}
+                title="Đọc tên học sinh bằng giọng tiếng Việt (không đọc giọng tiếng Anh)"
+              >
+                {voiceEnabled ? 'Đọc tên: BẬT' : 'Đọc tên: TẮT'}
+              </button>
             </div>
           </div>
 

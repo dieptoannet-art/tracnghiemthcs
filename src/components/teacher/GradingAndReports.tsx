@@ -34,6 +34,7 @@ export const GradingAndReports: React.FC = () => {
     user,
     userProfile,
     currentRole,
+    isDemoSandbox,
     isUsingDemoAssignmentsData
   } = useApp();
 
@@ -53,7 +54,7 @@ export const GradingAndReports: React.FC = () => {
 
   // Scope submissions strictly to active (class_id, subject) teaching assignments for teachers
   const scopedSubmissions = useMemo(() => {
-    if (isUsingDemoAssignmentsData || currentRole === 'admin') {
+    if (isDemoSandbox || isUsingDemoAssignmentsData || currentRole === 'admin') {
       return submissions;
     }
     if (!user?.id) return [];
@@ -172,7 +173,7 @@ export const GradingAndReports: React.FC = () => {
       return;
     }
 
-    if (isSupabaseConfigured && user && !isUsingDemoAssignmentsData && isValidUuid(submissionId)) {
+    if (!isDemoSandbox && isSupabaseConfigured && user && !isUsingDemoAssignmentsData && isValidUuid(submissionId)) {
       setSavingGrade(true);
       try {
         const { data: sessionData } = await supabase.auth.getSession();

@@ -5,6 +5,12 @@ import { StudentCandidate } from '../studentCallRules';
 import { ClassRoom } from '../../../types';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import {
+  EduGameSoundBank,
+  EduGameVoiceController,
+  loadEduGameVoiceEnabled,
+  saveEduGameVoiceEnabled,
+} from '../../../utils/eduGameAudioController';
+import {
   DuckRace3DState,
   DuckRaceDurationSec,
   DuckRaceCameraMode,
@@ -114,131 +120,7 @@ const _tmpEuler = new THREE.Euler();
 const _tmpQuat = new THREE.Quaternion();
 const _tmpScale = new THREE.Vector3();
 
-// ============================================================================
-// WEB AUDIO SYNTHESIZER (Safe lazy init on user click, zero external assets)
-// ============================================================================
-class DuckRaceSoundEngine {
-  private ctx: AudioContext | null = null;
-
-  private ensureContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
-      }
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-    return this.ctx;
-  }
-
-  public playCountdownBeep(step: 3 | 2 | 1, muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const now = ctx.currentTime;
-      const freq = step === 3 ? 440 : step === 2 ? 523.25 : 659.25;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now);
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.16, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.26);
-    } catch {
-      // Ignore audio errors
-    }
-  }
-
-  public playStartHorn(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const now = ctx.currentTime;
-      [523.25, 783.99, 1046.5].forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = idx === 0 ? 'sawtooth' : 'triangle';
-        osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.11, now + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.45);
-      });
-    } catch {
-      // Ignore audio errors
-    }
-  }
-
-  public playSplashTick(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(280, now);
-      osc.frequency.exponentialRampToValueAtTime(490, now + 0.09);
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.045, now + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.12);
-    } catch {
-      // Ignore
-    }
-  }
-
-  public playVictoryFanfare(muted: boolean) {
-    if (muted) return;
-    const ctx = this.ensureContext();
-    if (!ctx) return;
-    try {
-      const now = ctx.currentTime;
-      const notes = [523.25, 659.25, 783.99, 1046.5];
-      notes.forEach((freq, idx) => {
-        const start = now + idx * 0.095;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.001, start);
-        gain.gain.linearRampToValueAtTime(0.15, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + (idx === 3 ? 0.55 : 0.25));
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + 0.6);
-      });
-    } catch {
-      // Ignore
-    }
-  }
-
-  public dispose() {
-    if (this.ctx) {
-      this.ctx.close().catch(() => {});
-      this.ctx = null;
-    }
-  }
-}
+// Audio & strict Vietnamese voice synthesis are managed via shared EduGameSoundBank & EduGameVoiceController.
 
 // ============================================================================
 // HIGH-DPI CANVAS TEXTURE BUILDERS (Vietnamese Labels & Banners)
@@ -844,7 +726,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
   const [cloudSyncStatus, setCloudSyncStatus] = useState<'idle' | 'saving' | 'saved' | 'local_only' | 'error'>('idle');
   const [showRecordsDrawer, setShowRecordsDrawer] = useState<boolean>(false);
   const [rendererFallback2D, setRendererFallback2D] = useState<boolean>(false);
-  const [speechEnabled, setSpeechEnabled] = useState<boolean>(false);
+  const [speechEnabled, setSpeechEnabled] = useState<boolean>(() => loadEduGameVoiceEnabled(true));
 
   // Local Turn Records (per teacher + class)
   const recordsStorageKey = `${LOCAL_RECORDS_PREFIX}_${teacherId}_${selectedSourceKey || 'default'}`;
@@ -907,7 +789,8 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
   // Mutable Refs for deterministic animation loop (never cause re-render jitter)
   const stageMountRef = useRef<HTMLDivElement | null>(null);
   const fallbackCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const soundEngineRef = useRef<DuckRaceSoundEngine | null>(null);
+  const soundEngineRef = useRef<EduGameSoundBank | null>(null);
+  const voiceControllerRef = useRef<EduGameVoiceController | null>(null);
   const deduplicatorRef = useRef<DuckRaceTurnDeduplicator>(new DuckRaceTurnDeduplicator());
 
   const raceStateRef = useRef<DuckRace3DState>(raceState);
@@ -919,11 +802,11 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
   const raceAccumulatedMsRef = useRef<number>(0);
   const finishingStartPerfRef = useRef<number>(0);
   const lastHudUpdatePerfRef = useRef<number>(0);
-  const lastSplashSoundPerfRef = useRef<number>(0);
   const framesScratchRef = useRef<DuckFrameState[]>([]);
 
   const cameraModeRef = useRef<DuckRaceCameraMode>(cameraMode);
   const isMutedRef = useRef<boolean>(isMuted);
+  const speechEnabledRef = useRef<boolean>(speechEnabled);
   const qualityPresetRef = useRef<DuckRaceQualityPreset>(qualityPreset);
   const previewLineupRef = useRef<DuckRacerEntry[]>(previewData.lineup);
   const isMountedRef = useRef<boolean>(true);
@@ -936,7 +819,18 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
   }, [cameraMode]);
   useEffect(() => {
     isMutedRef.current = isMuted;
+    if (isMuted) {
+      soundEngineRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
+    }
   }, [isMuted]);
+  useEffect(() => {
+    speechEnabledRef.current = speechEnabled;
+    saveEduGameVoiceEnabled(speechEnabled);
+    if (!speechEnabled) {
+      voiceControllerRef.current?.stop();
+    }
+  }, [speechEnabled]);
   useEffect(() => {
     qualityPresetRef.current = qualityPreset;
   }, [qualityPreset]);
@@ -1056,6 +950,9 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
       activeTurnIdRef.current = null;
       activePlanRef.current = null;
       raceAccumulatedMsRef.current = 0;
+      soundEngineRef.current?.setActiveTurnToken(null);
+      soundEngineRef.current?.stopAll();
+      voiceControllerRef.current?.stop();
       setHeatIndex(0);
       setActiveWinnerEntry(null);
       setActiveTurnId(null);
@@ -1181,25 +1078,17 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
       setNoteSaveFeedback(null);
       setCloudSyncStatus('saving');
 
-      // Speech announcement if enabled
-      if (
-        speechEnabled &&
-        !isMutedRef.current &&
-        typeof window !== 'undefined' &&
-        'speechSynthesis' in window
-      ) {
-        try {
-          window.speechSynthesis.cancel();
-          const utter = new SpeechSynthesisUtterance(
-            `Xin chúc mừng bạn ${winnerEntry.safeName} đã về nhất!`
-          );
-          utter.lang = 'vi-VN';
-          utter.rate = 1.02;
-          window.speechSynthesis.speak(utter);
-        } catch {
-          // Ignore speech synthesis errors
-        }
-      }
+      // Strict Vietnamese voice announcement (at most once per turnId, never falls back to English)
+      void voiceControllerRef.current?.announceStudentOnce({
+        turnId: plan.turnId,
+        studentName: winnerEntry.safeName,
+        customText: `Xin chúc mừng bạn ${winnerEntry.safeName} đã về nhất!`,
+        isMuted: isMutedRef.current,
+        voiceEnabled: speechEnabledRef.current,
+        onBeforeSpeak: () => {
+          soundEngineRef.current?.stopLoops();
+        },
+      });
 
       // Trigger EDUGameCenter existing call pipeline
       onPick(winnerEntry.student, {
@@ -1261,18 +1150,23 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
       recordsStorageKey,
       resolvedClassName,
       selectedSourceKey,
-      speechEnabled,
       syncTurnToSupabase,
       turnRecords,
     ]
   );
+
+  const commitRaceWinnerRef = useRef(commitRaceWinner);
+  useEffect(() => {
+    commitRaceWinnerRef.current = commitRaceWinner;
+  }, [commitRaceWinner]);
 
   // ============================================================================
   // THREE.JS INITIALIZATION & MONOTONIC ANIMATION LOOP
   // ============================================================================
   useEffect(() => {
     isMountedRef.current = true;
-    soundEngineRef.current = new DuckRaceSoundEngine();
+    soundEngineRef.current = new EduGameSoundBank();
+    voiceControllerRef.current = new EduGameVoiceController();
 
     const mountEl = stageMountRef.current;
     if (!mountEl) return;
@@ -1756,25 +1650,25 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
             if (countdownLastBeepRef.current !== 3) {
               countdownLastBeepRef.current = 3;
               setCountdownLabel('3');
-              soundEngineRef.current?.playCountdownBeep(3, isMutedRef.current);
+              soundEngineRef.current?.playCountdownBeep(3, isMutedRef.current, plan.turnId);
             }
           } else if (cdMs < 1800) {
             if (countdownLastBeepRef.current !== 2) {
               countdownLastBeepRef.current = 2;
               setCountdownLabel('2');
-              soundEngineRef.current?.playCountdownBeep(2, isMutedRef.current);
+              soundEngineRef.current?.playCountdownBeep(2, isMutedRef.current, plan.turnId);
             }
           } else if (cdMs < 2600) {
             if (countdownLastBeepRef.current !== 1) {
               countdownLastBeepRef.current = 1;
               setCountdownLabel('1');
-              soundEngineRef.current?.playCountdownBeep(1, isMutedRef.current);
+              soundEngineRef.current?.playCountdownBeep(1, isMutedRef.current, plan.turnId);
             }
           } else if (cdMs < COUNTDOWN_TOTAL_MS) {
             if (countdownLastBeepRef.current !== 0) {
               countdownLastBeepRef.current = 0;
               setCountdownLabel('XUẤT PHÁT!');
-              soundEngineRef.current?.playStartHorn(isMutedRef.current);
+              soundEngineRef.current?.playDuckStartSignal(isMutedRef.current, plan.turnId);
             }
           } else {
             // Transition cleanly to RACING
@@ -1784,6 +1678,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
             racePhaseStartPerfRef.current = nowPerf;
             raceStateRef.current = 'RACING';
             setRaceState('RACING');
+            soundEngineRef.current?.startWaterSwimLoop(isMutedRef.current, plan.turnId);
           }
         }
 
@@ -1797,17 +1692,12 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
           evalRes = evaluateDuckRaceFrame(plan, currentRaceElapsedMs, framesScratchRef.current);
           framesScratchRef.current = evalRes.frames;
 
-          if (nowPerf - lastSplashSoundPerfRef.current > 1800) {
-            lastSplashSoundPerfRef.current = nowPerf;
-            soundEngineRef.current?.playSplashTick(isMutedRef.current);
-          }
-
           if (evalRes.isRaceCompleted) {
             raceAccumulatedMsRef.current = plan.durationMs;
             finishingStartPerfRef.current = nowPerf;
             raceStateRef.current = 'FINISHING';
             setRaceState('FINISHING');
-            soundEngineRef.current?.playVictoryFanfare(isMutedRef.current);
+            soundEngineRef.current?.playDuckFinishFanfare(isMutedRef.current, plan.turnId);
           }
         } else if (st === 'PAUSED' && plan) {
           evalRes = evaluateDuckRaceFrame(
@@ -1823,7 +1713,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
           if (st === 'FINISHING' && nowPerf - finishingStartPerfRef.current >= FINISHING_SLOWMO_MS) {
             raceStateRef.current = 'RESULT';
             setRaceState('RESULT');
-            commitRaceWinner(plan);
+            commitRaceWinnerRef.current(plan);
           }
         }
 
@@ -2037,14 +1927,9 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
       cancelAnimationFrame(animFrameId);
       if (resizeObserver) resizeObserver.disconnect();
       soundEngineRef.current?.dispose();
-
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        try {
-          window.speechSynthesis.cancel();
-        } catch {
-          // Ignore
-        }
-      }
+      soundEngineRef.current = null;
+      voiceControllerRef.current?.dispose();
+      voiceControllerRef.current = null;
 
       if (threeRefs.current.sharedDuckGeos) {
         Object.values(threeRefs.current.sharedDuckGeos).forEach((g) => g.dispose());
@@ -2067,7 +1952,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
       threeRefs.current.camera = null;
       threeRefs.current.duckRigs = [];
     };
-  }, [commitRaceWinner, rebuild3DDucksForLineup]);
+  }, [rebuild3DDucksForLineup]);
 
   // Apply dynamic quality preset changes to live WebGLRenderer
   useEffect(() => {
@@ -2108,19 +1993,19 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
           if (cdMs < 900 && countdownLastBeepRef.current !== 3) {
             countdownLastBeepRef.current = 3;
             setCountdownLabel('3');
-            soundEngineRef.current?.playCountdownBeep(3, isMutedRef.current);
+            soundEngineRef.current?.playCountdownBeep(3, isMutedRef.current, plan.turnId);
           } else if (cdMs >= 900 && cdMs < 1800 && countdownLastBeepRef.current !== 2) {
             countdownLastBeepRef.current = 2;
             setCountdownLabel('2');
-            soundEngineRef.current?.playCountdownBeep(2, isMutedRef.current);
+            soundEngineRef.current?.playCountdownBeep(2, isMutedRef.current, plan.turnId);
           } else if (cdMs >= 1800 && cdMs < 2600 && countdownLastBeepRef.current !== 1) {
             countdownLastBeepRef.current = 1;
             setCountdownLabel('1');
-            soundEngineRef.current?.playCountdownBeep(1, isMutedRef.current);
+            soundEngineRef.current?.playCountdownBeep(1, isMutedRef.current, plan.turnId);
           } else if (cdMs >= 2600 && cdMs < COUNTDOWN_TOTAL_MS && countdownLastBeepRef.current !== 0) {
             countdownLastBeepRef.current = 0;
             setCountdownLabel('XUẤT PHÁT!');
-            soundEngineRef.current?.playStartHorn(isMutedRef.current);
+            soundEngineRef.current?.playDuckStartSignal(isMutedRef.current, plan.turnId);
           } else if (cdMs >= COUNTDOWN_TOTAL_MS) {
             countdownLastBeepRef.current = -1;
             setCountdownLabel('');
@@ -2128,6 +2013,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
             racePhaseStartPerfRef.current = nowPerf;
             raceStateRef.current = 'RACING';
             setRaceState('RACING');
+            soundEngineRef.current?.startWaterSwimLoop(isMutedRef.current, plan.turnId);
           }
         }
 
@@ -2143,7 +2029,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
             finishingStartPerfRef.current = nowPerf;
             raceStateRef.current = 'FINISHING';
             setRaceState('FINISHING');
-            soundEngineRef.current?.playVictoryFanfare(isMutedRef.current);
+            soundEngineRef.current?.playDuckFinishFanfare(isMutedRef.current, plan.turnId);
           }
         } else if (st === 'PAUSED' && plan) {
           evalRes = evaluateDuckRaceFrame(plan, raceAccumulatedMsRef.current, framesScratchRef.current);
@@ -2152,7 +2038,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
           if (st === 'FINISHING' && nowPerf - finishingStartPerfRef.current >= FINISHING_SLOWMO_MS) {
             raceStateRef.current = 'RESULT';
             setRaceState('RESULT');
-            commitRaceWinner(plan);
+            commitRaceWinnerRef.current(plan);
           }
         }
 
@@ -2186,7 +2072,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
       active = false;
       cancelAnimationFrame(raf);
     };
-  }, [commitRaceWinner, durationSec, rendererFallback2D]);
+  }, [durationSec, rendererFallback2D]);
 
   // ============================================================================
   // RACE CONTROLS (Start, Pause, Resume, Reset, Note/Bonus Save)
@@ -2196,6 +2082,11 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
     const st = raceStateRef.current;
     if (st === 'COUNTDOWN' || st === 'RACING' || st === 'FINISHING' || st === 'PAUSED') return;
 
+    // Unlock Web Audio synchronously inside user gesture & clear any leftover sound/voice
+    soundEngineRef.current?.unlock();
+    soundEngineRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
+
     const plan = createFairDuckRaceTurnPlan({
       eligibleStudents,
       fullRoster,
@@ -2204,6 +2095,7 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
       heatIndex: safeHeatIndex,
     });
 
+    soundEngineRef.current?.setActiveTurnToken(plan.turnId);
     activeTurnIdRef.current = plan.turnId;
     activePlanRef.current = plan;
     framesScratchRef.current = [];
@@ -2237,18 +2129,27 @@ export const DuckRace3DGame: React.FC<DuckRace3DGameProps> = ({
   const pauseRace = useCallback(() => {
     if (raceStateRef.current !== 'RACING') return;
     raceAccumulatedMsRef.current += performance.now() - racePhaseStartPerfRef.current;
+    soundEngineRef.current?.stopLoops();
     raceStateRef.current = 'PAUSED';
     setRaceState('PAUSED');
   }, []);
 
   const resumeRace = useCallback(() => {
     if (raceStateRef.current !== 'PAUSED') return;
+    soundEngineRef.current?.unlock();
     racePhaseStartPerfRef.current = performance.now();
     raceStateRef.current = 'RACING';
     setRaceState('RACING');
+    soundEngineRef.current?.startWaterSwimLoop(
+      isMutedRef.current,
+      activeTurnIdRef.current ?? undefined
+    );
   }, []);
 
   const resetRace = useCallback(() => {
+    soundEngineRef.current?.setActiveTurnToken(null);
+    soundEngineRef.current?.stopAll();
+    voiceControllerRef.current?.stop();
     activeTurnIdRef.current = null;
     activePlanRef.current = null;
     raceAccumulatedMsRef.current = 0;
