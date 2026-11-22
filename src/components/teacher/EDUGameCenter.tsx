@@ -82,6 +82,30 @@ const DuckRace3DGame = React.lazy(() => import('./games/DuckRace3DGame'));
 const HorseRace3DGame = React.lazy(() => import('./games/HorseRace3DGame'));
 const SpaceRocket3DGame = React.lazy(() => import('./games/SpaceRocket3DGame'));
 const MountainClimb3DGame = React.lazy(() => import('./games/MountainClimb3DGame'));
+const CleanOcean3DGame = React.lazy(() => import('./games/CleanOcean3DGame'));
+const Duel1v13DGame = React.lazy(() => import('./games/Duel1v13DGame'));
+const BoatRace3DGame = React.lazy(() => import('./games/BoatRace3DGame'));
+const TugOfWar3DGame = React.lazy(() => import('./games/TugOfWar3DGame'));
+const CarRacing3DGame = React.lazy(() => import('./games/CarRacing3DGame'));
+const RelayTeam3DGame = React.lazy(() => import('./games/RelayTeam3DGame'));
+const KingOfScore3DGame = React.lazy(() => import('./games/KingOfScore3DGame'));
+const GroupChallenge3DGame = React.lazy(() => import('./games/GroupChallenge3DGame'));
+const FourTeamsArena3DGame = React.lazy(() => import('./games/FourTeamsArena3DGame'));
+const JumpCommand3DGame = React.lazy(() => import('./games/JumpCommand3DGame'));
+const CatchBall3DGame = React.lazy(() => import('./games/CatchBall3DGame'));
+const QuickReflex3DGame = React.lazy(() => import('./games/QuickReflex3DGame'));
+const SimonSays3DGame = React.lazy(() => import('./games/SimonSays3DGame'));
+const StarHunt3DGame = React.lazy(() => import('./games/StarHunt3DGame'));
+const Sudoku3DGame = React.lazy(() => import('./games/Sudoku3DGame'));
+const Tangram3DGame = React.lazy(() => import('./games/Tangram3DGame'));
+const HanoiTower3DGame = React.lazy(() => import('./games/HanoiTower3DGame'));
+const Maze3DGame = React.lazy(() => import('./games/Maze3DGame'));
+const Cipher3DGame = React.lazy(() => import('./games/Cipher3DGame'));
+const LightningQuiz3DGame = React.lazy(() => import('./games/LightningQuiz3DGame'));
+const TreasureHunt3DGame = React.lazy(() => import('./games/TreasureHunt3DGame'));
+const RescuePrincess3DGame = React.lazy(() => import('./games/RescuePrincess3DGame'));
+const BingoKnowledge3DGame = React.lazy(() => import('./games/BingoKnowledge3DGame'));
+const KnowledgeArena3DGame = React.lazy(() => import('./games/KnowledgeArena3DGame'));
 import {
   CATEGORY_META,
   BannerGamepadSVG,
@@ -207,7 +231,17 @@ const SLICE_COLORS = [
 const PLUSH_ICONS = ['🧸', '🐰', '🐱', '🐶', '🦊', '🐼', '🐸', '🐥', '🦁', '🐯'];
 
 export const EDUGameCenter: React.FC = () => {
-  const { classes, questions, user, userProfile, currentRole, isDemoSandbox, openAuthModal } = useApp();
+  const {
+    classes,
+    questions,
+    user,
+    userProfile,
+    currentRole,
+    isDemoSandbox,
+    openAuthModal,
+    pendingGameLaunch,
+    clearPendingGameLaunch,
+  } = useApp();
   const isLoggedInTeacher = isDemoSandbox || Boolean(user && currentRole !== 'student');
   const systemTeacherId = isDemoSandbox ? 'demo_khkt_teacher' : (user?.id || 'gv_taydo');
 
@@ -289,6 +323,23 @@ export const EDUGameCenter: React.FC = () => {
 
   // Class and Student Source (Teacher mode)
   const [selectedSourceKey, setSelectedSourceKey] = useState<string>(() => classes[0]?.id || 'manual');
+
+  useEffect(() => {
+    if (!pendingGameLaunch) return;
+    const targetGame = EDU_GAMES_CATALOG.find((g) => g.id === pendingGameLaunch.gameId);
+    if (targetGame) {
+      if (
+        pendingGameLaunch.classId &&
+        classes.some((c) => c.id === pendingGameLaunch.classId)
+      ) {
+        setRosterMode('teacher');
+        saveRosterModePreference('teacher');
+        setSelectedSourceKey(pendingGameLaunch.classId);
+      }
+      setActiveGame(targetGame);
+    }
+    clearPendingGameLaunch();
+  }, [pendingGameLaunch, classes, clearPendingGameLaunch]);
   const [manualStudents] = useState<StudentCandidate[]>(() => loadCustomManualStudents(systemTeacherId));
 
   // Game Settings & States (Teacher mode)
@@ -430,10 +481,34 @@ export const EDUGameCenter: React.FC = () => {
       game.modeKey === 'secret_doors' ||
       game.modeKey === 'match_pairs' ||
       game.modeKey === 'word_search' ||
+      game.modeKey === 'lightning_quiz' ||
       game.modeKey === 'millionaire' ||
       game.modeKey === 'golden_bell' ||
       game.modeKey === 'crossword_pro' ||
-      game.modeKey === 'mountain_climb'
+      game.modeKey === 'mountain_climb' ||
+      game.modeKey === 'clean_ocean' ||
+      game.modeKey === 'duel_1v1' ||
+      game.modeKey === 'boat_race' ||
+      game.modeKey === 'tug_of_war' ||
+      game.modeKey === 'car_racing' ||
+      game.modeKey === 'relay_team' ||
+      game.modeKey === 'king_of_score' ||
+      game.modeKey === 'group_challenge' ||
+      game.modeKey === 'four_teams_arena' ||
+      game.modeKey === 'jump_command' ||
+      game.modeKey === 'catch_ball' ||
+      game.modeKey === 'quick_reflex' ||
+      game.modeKey === 'simon_says' ||
+      game.modeKey === 'star_hunt' ||
+      game.modeKey === 'sudoku_game' ||
+      game.modeKey === 'tangram_game' ||
+      game.modeKey === 'hanoi_tower' ||
+      game.modeKey === 'maze_game' ||
+      game.modeKey === 'cipher_puzzle' ||
+      game.modeKey === 'treasure_hunt' ||
+      game.modeKey === 'rescue_princess' ||
+      game.modeKey === 'bingo' ||
+      game.modeKey === 'arena'
     ) {
       setActiveGame(game);
       return;
@@ -1676,7 +1751,31 @@ export const EDUGameCenter: React.FC = () => {
               activeGame.modeKey === 'duck_race' ||
               activeGame.modeKey === 'horse_race' ||
               activeGame.modeKey === 'rocket' ||
-              activeGame.modeKey === 'mountain_climb')
+              activeGame.modeKey === 'mountain_climb' ||
+              activeGame.modeKey === 'clean_ocean' ||
+              activeGame.modeKey === 'duel_1v1' ||
+              activeGame.modeKey === 'boat_race' ||
+              activeGame.modeKey === 'tug_of_war' ||
+              activeGame.modeKey === 'car_racing' ||
+              activeGame.modeKey === 'relay_team' ||
+              activeGame.modeKey === 'king_of_score' ||
+              activeGame.modeKey === 'group_challenge' ||
+              activeGame.modeKey === 'four_teams_arena' ||
+              activeGame.modeKey === 'jump_command' ||
+              activeGame.modeKey === 'catch_ball' ||
+              activeGame.modeKey === 'quick_reflex' ||
+              activeGame.modeKey === 'simon_says' ||
+              activeGame.modeKey === 'star_hunt' ||
+              activeGame.modeKey === 'sudoku_game' ||
+              activeGame.modeKey === 'tangram_game' ||
+              activeGame.modeKey === 'hanoi_tower' ||
+              activeGame.modeKey === 'maze_game' ||
+              activeGame.modeKey === 'cipher_puzzle' ||
+              activeGame.modeKey === 'lightning_quiz' ||
+              activeGame.modeKey === 'treasure_hunt' ||
+              activeGame.modeKey === 'rescue_princess' ||
+              activeGame.modeKey === 'bingo' ||
+              activeGame.modeKey === 'arena')
               ? 'fixed inset-0 z-50 w-screen h-dvh bg-[#050C1C] p-0 m-0 border-0 rounded-none overflow-hidden flex flex-col'
               : 'bg-white rounded-2xl border border-slate-200 shadow-md p-3 sm:p-4 space-y-3'
           }
@@ -1690,7 +1789,31 @@ export const EDUGameCenter: React.FC = () => {
               activeGame.modeKey === 'duck_race' ||
               activeGame.modeKey === 'horse_race' ||
               activeGame.modeKey === 'rocket' ||
-              activeGame.modeKey === 'mountain_climb')
+              activeGame.modeKey === 'mountain_climb' ||
+              activeGame.modeKey === 'clean_ocean' ||
+              activeGame.modeKey === 'duel_1v1' ||
+              activeGame.modeKey === 'boat_race' ||
+              activeGame.modeKey === 'tug_of_war' ||
+              activeGame.modeKey === 'car_racing' ||
+              activeGame.modeKey === 'relay_team' ||
+              activeGame.modeKey === 'king_of_score' ||
+              activeGame.modeKey === 'group_challenge' ||
+              activeGame.modeKey === 'four_teams_arena' ||
+              activeGame.modeKey === 'jump_command' ||
+              activeGame.modeKey === 'catch_ball' ||
+              activeGame.modeKey === 'quick_reflex' ||
+              activeGame.modeKey === 'simon_says' ||
+              activeGame.modeKey === 'star_hunt' ||
+              activeGame.modeKey === 'sudoku_game' ||
+              activeGame.modeKey === 'tangram_game' ||
+              activeGame.modeKey === 'hanoi_tower' ||
+              activeGame.modeKey === 'maze_game' ||
+              activeGame.modeKey === 'cipher_puzzle' ||
+              activeGame.modeKey === 'lightning_quiz' ||
+              activeGame.modeKey === 'treasure_hunt' ||
+              activeGame.modeKey === 'rescue_princess' ||
+              activeGame.modeKey === 'bingo' ||
+              activeGame.modeKey === 'arena')
           ) && (
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
               <div className="flex items-center gap-2.5">
@@ -2520,6 +2643,171 @@ export const EDUGameCenter: React.FC = () => {
                 setActiveGame(null);
               }}
             />
+          ) : activeGame.modeKey === 'lightning_quiz' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061128] border border-cyan-500/35 flex flex-col items-center justify-center text-cyan-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Bảng tăng tốc Câu hỏi chớp nhoáng 3D (B10)...</p>
+                </div>
+              }
+            >
+              <LightningQuiz3DGame
+                classes={effectiveClasses}
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'treasure_hunt' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061128] border border-amber-500/35 flex flex-col items-center justify-center text-amber-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Bản đồ Đảo Kho Báu 3D (C06)...</p>
+                </div>
+              }
+            >
+              <TreasureHunt3DGame
+                classes={effectiveClasses}
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'rescue_princess' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061128] border border-amber-500/35 flex flex-col items-center justify-center text-amber-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Lâu đài Giải cứu Công chúa 3D (C07)...</p>
+                </div>
+              }
+            >
+              <RescuePrincess3DGame
+                classes={effectiveClasses}
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'bingo' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061128] border border-amber-500/35 flex flex-col items-center justify-center text-amber-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Bảng Bingo Kiến thức 3D (C09)...</p>
+                </div>
+              }
+            >
+              <BingoKnowledge3DGame
+                classes={effectiveClasses}
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'arena' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#050C1C] border border-amber-500/35 flex flex-col items-center justify-center text-amber-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Đấu trường Kiến thức 3D (C03)...</p>
+                </div>
+              }
+            >
+              <KnowledgeArena3DGame
+                classes={effectiveClasses}
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
           ) : activeGame.modeKey === 'secret_doors' ? (
             <MysteryDoors3DGame
               availableCandidates={availableCandidates}
@@ -2712,6 +3000,631 @@ export const EDUGameCenter: React.FC = () => {
                 onOpenHistoryModal={() => setShowHistoryModal(true)}
                 onPick={handleGamePickStudent}
                 onCloseGame={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'clean_ocean' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#041d30] border border-cyan-500/35 flex flex-col items-center justify-center text-cyan-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Hải trình xanh — Giải cứu đại dương 3D (C10)...</p>
+                </div>
+              }
+            >
+              <CleanOcean3DGame
+                classes={effectiveClasses}
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'duel_1v1' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061022] border border-cyan-500/30 flex flex-col items-center justify-center text-cyan-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Sân khấu Song đấu tri thức 3D (D01)...</p>
+                </div>
+              }
+            >
+              <Duel1v13DGame
+                classes={effectiveClasses}
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'boat_race' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061826] border border-cyan-900/60 flex flex-col items-center justify-center text-cyan-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Đường đua tri thức — Đua thuyền 3D (D02)...</p>
+                </div>
+              }
+            >
+              <BoatRace3DGame
+                classes={effectiveClasses}
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'tug_of_war' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#091224] border border-slate-800 flex flex-col items-center justify-center text-sky-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-sky-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Đấu trường Kéo co kiến thức 3D (D03)...</p>
+                </div>
+              }
+            >
+              <TugOfWar3DGame
+                questions={questions}
+                classes={effectiveClasses}
+                selectedSourceKey={effectiveSourceKey}
+                resolvedClassName={resolvedClassName}
+                teacherId={teacherId}
+                teacherName={userProfile?.fullName || 'Giáo viên'}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(!isMuted)}
+                onCloseGame={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'relay_team' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#091224] border border-slate-800 flex flex-col items-center justify-center text-sky-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-sky-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Sân Tiếp sức đồng đội 3D (D05)...</p>
+                </div>
+              }
+            >
+              <RelayTeam3DGame
+                allCandidates={currentCandidates.map((c) => ({
+                  id: c.id,
+                  name: c.fullName,
+                  className: resolvedClassName,
+                }))}
+                classes={effectiveClasses}
+                questions={questions}
+                selectedSourceKey={effectiveSourceKey}
+                onSelectSourceKey={handleSelectEffectiveSourceKey}
+                resolvedClassName={resolvedClassName}
+                teacherId={teacherId}
+                teacherName={userProfile?.fullName || 'Giáo viên'}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(!isMuted)}
+                onCloseGame={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'car_racing' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#071126] border border-slate-800 flex flex-col items-center justify-center text-sky-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Trường đua Đua xe tốc độ 3D (D04)...</p>
+                </div>
+              }
+            >
+              <CarRacing3DGame
+                questions={questions}
+                resolvedClassName={resolvedClassName}
+                teacherId={teacherId}
+                teacherName={userProfile?.fullName || 'Giáo viên'}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                isMuted={isMuted}
+                onToggleMute={() => setIsMuted(!isMuted)}
+                onCloseGame={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'king_of_score' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#071226] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Sân khấu Vua ghi điểm 3D (D06)...</p>
+                </div>
+              }
+            >
+              <KingOfScore3DGame
+                bankQuestions={questions}
+                userRole={currentRole}
+                currentUserId={systemTeacherId}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'group_challenge' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#071226] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Sân đấu Thách đấu nhóm 3D (D07)...</p>
+                </div>
+              }
+            >
+              <GroupChallenge3DGame
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'four_teams_arena' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#071226] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Đấu trường 4 đội 3D (D08)...</p>
+                </div>
+              }
+            >
+              <FourTeamsArena3DGame
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'jump_command' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#071226] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Sân vận động Nhảy theo lệnh 3D (E01)...</p>
+                </div>
+              }
+            >
+              <JumpCommand3DGame
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'catch_ball' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#071226] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Nhà thi đấu Bắt bóng kiến thức 3D (E02)...</p>
+                </div>
+              }
+            >
+              <CatchBall3DGame
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'simon_says' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#071226] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Sân khấu Simon Says (Simon bảo) 3D (E04)...</p>
+                </div>
+              }
+            >
+              <SimonSays3DGame
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'star_hunt' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061024] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Bản đồ Săn sao kiến thức 3D (E05)...</p>
+                </div>
+              }
+            >
+              <StarHunt3DGame
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'sudoku_game' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061024] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo bảng Sudoku 3D (F01)...</p>
+                </div>
+              }
+            >
+              <Sudoku3DGame
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'tangram_game' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061024] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo bàn ghép hình Tangram 3D (F02)...</p>
+                </div>
+              }
+            >
+              <Tangram3DGame
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'quick_reflex' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061024] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo Bảng tín hiệu Phản xạ nhanh 3D (E03)...</p>
+                </div>
+              }
+            >
+              <QuickReflex3DGame
+                bankQuestions={questions}
+                userRole={currentRole}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'hanoi_tower' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061024] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo bàn Tháp Hà Nội 3D (F03)...</p>
+                </div>
+              }
+            >
+              <HanoiTower3DGame
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'maze_game' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#061024] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo sa bàn Mê cung trí tuệ 3D (F04)...</p>
+                </div>
+              }
+            >
+              <Maze3DGame
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
+                  if (isFullscreen) {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                  setActiveGame(null);
+                }}
+              />
+            </React.Suspense>
+          ) : activeGame.modeKey === 'cipher_puzzle' ? (
+            <React.Suspense
+              fallback={
+                <div className="w-full h-[540px] rounded-2xl bg-[#050C1C] border border-teal-500/30 flex flex-col items-center justify-center text-teal-200 gap-3">
+                  <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold">Đang khởi tạo phòng Giải mật mã 3D (F05)...</p>
+                </div>
+              }
+            >
+              <Cipher3DGame
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => {
+                  if (!stageContainerRef.current) return;
+                  if (!isFullscreen) {
+                    stageContainerRef.current.requestFullscreen?.().catch(() => {});
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen?.().catch(() => {});
+                    setIsFullscreen(false);
+                  }
+                }}
+                onBackToLibrary={() => {
                   if (isFullscreen) {
                     document.exitFullscreen?.().catch(() => {});
                     setIsFullscreen(false);

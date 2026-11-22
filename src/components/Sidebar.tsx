@@ -25,7 +25,8 @@ import {
   Award,
   LayoutDashboard,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Wrench
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { SidebarFooterBooks3D } from './student/coreKnowledgeThumbnails';
@@ -297,6 +298,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
               >
                 <Dices className="w-4 h-4 shrink-0 text-amber-300" />
                 {!isCompact && <span className="truncate">Trò chơi giáo dục</span>}
+              </button>
+
+              <button
+                onClick={() => handleNav('teacher_tools')}
+                title="Công cụ dạy học"
+                className={navItemClass('teacher_tools')}
+              >
+                <Wrench className="w-4 h-4 shrink-0 text-sky-300" />
+                {!isCompact && <span className="truncate">Công cụ dạy học</span>}
               </button>
 
               <button

@@ -1,0 +1,57 @@
+MASTER PROMPT — B10: CÂU HỎI CHỚP NHOÁNG 3D
+TÂY ĐÔ SMART EDU | PREMIUM EDTECH 2027
+
+Nâng cấp B10 – Câu hỏi chớp nhoáng trong thư viện 50 trò chơi Tây Đô Smart EDU. Tạo trải nghiệm khởi động nhanh, có câu chơi mẫu và phản hồi để giáo viên dùng ngay đầu tiết.
+
+Thực hiện trong một lượt làm việc trên dự án Google AI Studio đang mở. Rà soát mã nguồn, triển khai, chơi thử, sửa lỗi và báo cáo. Nếu môi trường chưa hỗ trợ một bước, hoàn thành phần có thể làm và ghi rõ phần chưa xác minh.
+
+1. TÍCH HỢP VÀO SMART EDU
+
+- Tìm đúng mục B10 từ thẻ trò chơi đến màn chơi, lớp dữ liệu và điều hướng. Giữ mã, tên “Câu hỏi chớp nhoáng”, đường dẫn, vị trí trong thư viện và các chế độ hiện có. Nếu thể lệ mẫu khác luật đang dùng, triển khai như chế độ riêng.
+- Tái sử dụng bộ hiển thị Toán, điều khiển âm thanh, chế độ toàn màn hình và lưu phiên sẵn có. Chỉ thay đổi B10 và điểm tích hợp thật sự cần thiết. Giữ khả năng mở dữ liệu cũ bằng luồng hiện có.
+- Bảo toàn các game khác, tài khoản, quyền truy cập, ngân hàng câu hỏi và dữ liệu Supabase. Không chạy SQL, sửa dữ liệu thật, đẩy mã lên GitHub hoặc triển khai lên Vercel.
+- Cho mở gói mẫu mà không cần email hoặc danh sách thật. Nếu đã có chế độ demo, chỉ dùng dữ liệu mẫu tách biệt trong chế độ đó.
+
+2. BẢNG TĂNG TỐC 3D
+
+Dựng bảng số câu rõ và đồng hồ dễ đọc. Thanh thời gian có số giây và mốc hết giờ bằng chữ. Câu hỏi và lựa chọn nằm ở vùng cố định để đọc và bấm nhanh mà không mất trọng tâm.
+
+- Dùng bố cục desktop 16:9 tại 1366×768 và 1920×1080. Trên điện thoại, xếp sân khấu, thông tin và nút điều khiển theo chiều dọc. Vào hoặc thoát toàn màn hình giữ nguyên ván. Đặt đề, công thức, điểm và nút ở vùng giao diện rõ nét, tách khỏi camera 3D.
+- Có điều khiển chuột, cảm ứng và bàn phím, chỉ báo vùng đang nhận bàn phím, chế độ giảm chuyển động và bản 2D giữ đủ chức năng khi WebGL không khả dụng. Cho “Bỏ qua hoạt ảnh” tại đoạn công bố, giữ nguyên trạng thái đã chốt.
+- Tạo thumbnail 16:9 riêng cho B10 từ cảnh đã dựng. Dùng hình ảnh và âm thanh nguyên bản hoặc tài nguyên đã có quyền sử dụng. Ảnh bìa không chứa dữ liệu học sinh hoặc đáp án.
+
+3. THỬ THÁCH THEO CÂU VÀ THEO VÁN
+
+Mặc định 10 câu. Chế độ từng câu có 20 giây mỗi câu. Chế độ toàn lượt có 60, 90 hoặc 120 giây. Dựa trên mốc thời gian để xác định hạn. Đúng 10 điểm, thống kê sai, đã bỏ câu, hết giờ và chưa thấy câu. Chỉ mở lời giải sau câu hoặc cuối ván theo cấu hình đã chọn.
+
+- Màn chuẩn bị hiển thị lựa chọn phù hợp luật đang dùng và cho xem hướng dẫn trước khi bắt đầu.
+- Ở màn chơi, mỗi thao tác quan trọng có trạng thái bằng chữ. Chốt kết quả ở thời điểm quy định rồi chuyển sang công bố. Khóa thao tác trùng trong khi xử lý, ưu tiên thẻ kết quả có thể đọc ngay cả khi bỏ qua hoạt ảnh.
+
+4. THAO TÁC, CHẤM VÀ KHỞI ĐỘNG LỚP
+
+- Bắt đầu đếm khi đề đã sẵn sàng. Quy tắc tạm dừng phải rõ, lưu mốc thay vì trừ mỗi khung hình. Phân xử một kết quả ở thời điểm sát hạn và không để tab quay lại tự cho thêm thời gian. Khi hết ngân sách cả lượt, dừng luôn chuyển câu.
+- Cho giáo viên mở gói chơi mẫu, đọc hướng dẫn thể lệ và xem trước đề. Chơi nhanh trên một thiết bị với một người hoặc cả lớp. Khi dùng đội hoặc trả lời miệng, giáo viên có thể ghi nhận lượt theo đội và cho lớp dùng bảng con.
+- Mỗi lượt có bước mở đề, tiếp nhận thao tác, chốt và công bố. Giữ “chưa trả lời”, “đã bỏ qua” và “đã chốt” theo luật trò. Nếu là trắc nghiệm, khóa theo ID đáp án ổn định, kể cả khi đảo thứ tự. Tổng kết có câu đã làm, kết quả và nút xem lời giải.
+
+5. VÍ DỤ KHỞI ĐỘNG, GỢI Ý VÀ CÔNG THỨC TOÁN
+
+Ví dụ \(3x=12\), đáp án \(x=4\). Xem lại thêm một câu \(\sqrt{81}=9\) để kiểm căn thức và trình bày đáp án đã bị đảo.
+
+- Gắn nhãn “Dữ liệu mẫu” và lưu riêng với ngân hàng thật. Mỗi câu mẫu có nội dung, đáp án và giải thích ngắn. Nếu trò có gợi ý, chỉ hiện khi người chơi hoặc giáo viên yêu cầu và áp dụng đúng quy tắc điểm đang chơi.
+- Dùng bộ hiển thị Toán chung cho câu hỏi, phương án, gợi ý, lời giải và bảng tổng kết có công thức. Hỗ trợ `\( ... \)` trong dòng, `\[ ... \]` tách dòng và định dạng cũ của dự án. Giữ phân số, số âm, ký hiệu độ, căn thức và lũy thừa. Nếu công thức lỗi cú pháp, hiện nguyên văn đoạn lỗi và giữ mọi nút hoạt động.
+- Cung cấp cách quay lại nội dung hướng dẫn hoặc kết quả đã công bố. Với đoạn dài, xuống dòng hoặc cuộn trong khung và kiểm màn hẹp, tránh cắt mất công thức.
+
+6. ÂM THANH VÀ LƯU PHIÊN
+
+Âm bắt đầu, báo gần hết giờ ngắn nếu bật và âm khóa lượt. Tắt kênh báo giờ khi chuyển câu hoặc mở tổng kết.
+
+- Dùng nút loa và thiết lập tương thích với A01/A02. Chỉ bắt đầu nghe sau thao tác người dùng. Tắt loa dừng ngay hiệu ứng và giọng đọc. Đổi câu, chơi lại hoặc thoát phải hủy âm thanh và tác vụ còn chờ.
+- Nếu dùng đọc tiếng Việt, chỉ chọn giọng phù hợp. Máy thiếu giọng Việt thì dùng tín hiệu ngắn và hiển thị nội dung bằng chữ. Lỗi âm thanh không ngăn thao tác, chấm hoặc công bố.
+- Nếu có cơ chế lưu phiên, giữ câu/ô hiện tại, lựa chọn đã chốt, điểm, gợi ý và trạng thái lượt khi đổi trình chiếu hoặc quay lại. Khôi phục từ bản ghi kết quả đã chốt, giữ đúng số lượt và không phát lại âm cũ.
+
+7. KIỂM THỬ VÀ BÁO CÁO
+
+- Thử lần nhấn đúng mốc, lúc tab bị ẩn, bỏ qua, tạm dừng, câu thứ 10 và đối chiếu tổng điểm 100 khi đúng hết.
+- Chạy một ván mẫu từ xem luật đến tổng kết. Kiểm lớp 50 học sinh với giáo viên trình chiếu và một người tự luyện, đáp án trống hoặc bỏ qua, nhấn lặp và mở lời giải sau khi chốt.
+- Mở B10 từ thư viện, chơi đến tổng kết, xem lại nếu có rồi quay về thư viện. Kiểm 1366×768, 1920×1080, điện thoại, toàn màn hình, tắt loa, thao tác bằng phím, phương án 2D và công thức Toán ở các chỗ xuất hiện.
+- Chạy build và kiểm tra hiện có. Nếu có môi trường trình duyệt, chơi thử bằng dữ liệu mẫu. Báo cáo tệp đã sửa, cách mở B10, các ca thực sự đã chạy, phần chưa xác minh và cách hoàn tác riêng thay đổi B10.

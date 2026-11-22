@@ -27,6 +27,7 @@ import { GeminiAssistantView } from './components/teacher/GeminiAssistantView';
 import { QuestionImportModal } from './components/teacher/QuestionImportModal';
 import { StudentCallGames } from './components/teacher/StudentCallGames';
 import { TeacherLectures } from './components/teacher/TeacherLectures';
+import { TeachingToolsHub } from './components/teacher/teachingTools/TeachingToolsHub';
 import { SmartMathLabView } from './components/math-lab/SmartMathLabView';
 
 // Admin views
@@ -253,6 +254,8 @@ const AppContent: React.FC = () => {
         return <TeacherLectures />;
       case 'teacher_classes':
         return <ClassManagement />;
+      case 'teacher_tools':
+        return <TeachingToolsHub />;
       case 'teacher_student_call':
         return <StudentCallGames />;
       case 'teacher_question_bank':

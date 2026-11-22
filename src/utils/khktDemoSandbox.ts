@@ -115,6 +115,7 @@ export function isKhktDemoRuntime(): boolean {
 export const PROTECTED_TEACHER_VIEWS = new Set<string>([
   'teacher_lectures',
   'teacher_classes',
+  'teacher_tools',
   'teacher_question_bank',
   'teacher_create_exam',
   'teacher_matrix',
@@ -156,6 +157,7 @@ export function resolveRouteLocation(
       if (subPath === 'bai-giang' || subPath === 'lectures') rawView = 'teacher_lectures';
       else if (subPath === 'kien-thuc' || subPath === 'core-knowledge') rawView = 'student_core_knowledge';
       else if (subPath === 'tro-choi' || subPath === 'games') rawView = 'teacher_student_call';
+      else if (subPath === 'cong-cu-day-hoc' || subPath === 'teaching-tools') rawView = 'teacher_tools';
       else if (subPath === 'kiem-tra' || subPath === 'exam') rawView = 'student_assignments';
       else if (subPath === 'math-lab') rawView = 'math_lab';
       else rawView = 'dashboard';

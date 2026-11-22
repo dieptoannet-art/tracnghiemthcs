@@ -13,6 +13,30 @@ import imgA01 from '../../assets/images/game_a01_wheel_1794745096494.jpg';
 import imgA02 from '../../assets/images/game_a02_claw_1794745099106.jpg';
 import imgA03 from '../../assets/images/game_a03_gift_1794745101949.jpg';
 import imgA04 from '../../assets/images/game_a04_lottery_1794745103059.jpg';
+import imgB10 from '../../assets/images/game_b10_lightning_quiz_3d_1795314870960.jpg';
+import imgC03 from '../../assets/images/game_c03_knowledge_arena_3d_1795347421617.jpg';
+import imgC06 from '../../assets/images/game_c06_treasure_hunt_3d_1795320312684.jpg';
+import imgC07 from '../../assets/images/game_c07_rescue_princess_3d_1795334575679.jpg';
+import imgC09 from '../../assets/images/game_c09_bingo_3d_1795346186759.jpg';
+import imgC10 from '../../assets/images/game_c10_clean_ocean_3d_1795310755840.jpg';
+import imgD01 from '../../assets/images/game_d01_duel_1v1_3d_1795278577211.jpg';
+import imgD02 from '../../assets/images/game_d02_boat_race_3d_1795335071244.jpg';
+import imgD03 from '../../assets/images/game_d03_tug_of_war_1795110193621.jpg';
+import imgD04 from '../../assets/images/game_d04_car_racing_1795222717877.jpg';
+import imgD05 from '../../assets/images/game_d05_relay_team_1795221655952.jpg';
+import imgD06 from '../../assets/images/game_d06_king_of_score_3d_1795269070527.jpg';
+import imgD07 from '../../assets/images/game_d07_group_challenge_1795224112496.jpg';
+import imgD08 from '../../assets/images/game_d08_four_teams_arena_3d_1795277846855.jpg';
+import imgE01 from '../../assets/images/game_e01_jump_command_1795225561295.jpg';
+import imgE02 from '../../assets/images/game_e02_catch_ball_1795232427591.jpg';
+import imgE03 from '../../assets/images/game_e03_quick_reflex_3d_1795261432746.jpg';
+import imgE04 from '../../assets/images/game_e04_simon_says_1795235126752.jpg';
+import imgE05 from '../../assets/images/game_e05_star_hunt_1795242018969.jpg';
+import imgF01 from '../../assets/images/game_f01_sudoku_3d_1795243072127.jpg';
+import imgF02 from '../../assets/images/game_f02_tangram_3d_1795252906050.jpg';
+import imgF03 from '../../assets/images/game_f03_hanoi_tower_3d_1795266266877.jpg';
+import imgF04 from '../../assets/images/game_f04_maze_3d_1795276578581.jpg';
+import imgF05 from '../../assets/images/game_f05_cipher_puzzle_3d_1795277307698.jpg';
 import imgBannerGamepad from '../../assets/images/banner_gamepad_3d_1794745104946.jpg';
 
 export const CATEGORY_META: Record<
@@ -304,9 +328,9 @@ export const GAME_THUMBNAIL_MANIFEST: Record<string, GameThumbnailManifestItem> 
     gameId: 'b10',
     code: 'B10',
     gameName: 'Câu hỏi chớp nhoáng',
-    thumbnailAsset: '/game-thumbnails/b10.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Đồng hồ bấm giờ 3D bằng vàng kết hợp tia sét năng lượng xanh',
+    thumbnailAsset: imgB10,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Đồng hồ bấm giờ 3D bằng vàng kết hợp tia sét năng lượng xanh và 10 khối câu hỏi phát sáng',
     prompt3D: `3D golden chronograph stopwatch surrounded by dynamic electric cyan energy rings and a sculpted 3D lightning bolt. ${STUDIO_PROMPT_SUFFIX}`,
   },
   C01: {
@@ -331,10 +355,11 @@ export const GAME_THUMBNAIL_MANIFEST: Record<string, GameThumbnailManifestItem> 
     gameId: 'c03',
     code: 'C03',
     gameName: 'Đấu trường kiến thức',
-    thumbnailAsset: '/game-thumbnails/c03.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Khiên hiệp sĩ 3D mạ vàng và xanh navy đặt trên đấu trường đá cẩm thạch',
-    prompt3D: `3D royal blue and gold heraldic shield with a book crest standing in the center of a miniature marble colosseum arena. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgC03,
+    bundledFallbackAsset: imgC03,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Đấu trường Ba Vòng 3D đá xám ánh vàng với ba vòm cổng phát sáng 10–20–30đ và các cột điểm đội nhiều màu',
+    prompt3D: `Tiered dark slate marble and brushed gold 3D knowledge colosseum arena with three glowing center round arches and four colored team crystal score columns. ${STUDIO_PROMPT_SUFFIX}`,
   },
   C04: {
     gameId: 'c04',
@@ -358,19 +383,21 @@ export const GAME_THUMBNAIL_MANIFEST: Record<string, GameThumbnailManifestItem> 
     gameId: 'c06',
     code: 'C06',
     gameName: 'Truy tìm kho báu',
-    thumbnailAsset: '/game-thumbnails/c06.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Bản đồ đảo kho báu 3D nổi khối kèm la bàn vàng và rương châu báu',
-    prompt3D: `3D diorama of a tropical treasure island with a glowing dotted trail, a brass compass, and an open chest overflowing with gold coins. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgC06,
+    bundledFallbackAsset: imgC06,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Bản đồ đảo kho báu 3D trên bàn navy với 6 địa điểm phát sáng, đường nối vàng, 6 mảnh ghép lam vàng, la bàn đồng và rương châu báu trung tâm',
+    prompt3D: `3D diorama of a treasure expedition island map with 6 glowing landmarks, golden dotted trail, 6 sapphire-gold puzzle shards, brass compass, and glowing central chest. ${STUDIO_PROMPT_SUFFIX}`,
   },
   C07: {
     gameId: 'c07',
     code: 'C07',
     gameName: 'Giải cứu công chúa',
-    thumbnailAsset: '/game-thumbnails/c07.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Lâu đài cổ tích 3D với cây cầu đá nối liền từng nhịp qua hào nước',
-    prompt3D: `3D fairy-tale stone castle tower with a glowing golden bridge of stepping stones spanning across a crystal moat. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgC07,
+    bundledFallbackAsset: imgC07,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Lâu đài cổ tích 3D ba tháp canh với cầu đá phát sáng, 3 chìa khóa vàng nổi, cột tiến độ và cổng hoàng gia',
+    prompt3D: `3D fairytale stone castle with three glowing towers, arched bridge with golden stepping stones, three floating golden keys, and royal arched gate. ${STUDIO_PROMPT_SUFFIX}`,
   },
   C08: {
     gameId: 'c08',
@@ -385,181 +412,201 @@ export const GAME_THUMBNAIL_MANIFEST: Record<string, GameThumbnailManifestItem> 
     gameId: 'c09',
     code: 'C09',
     gameName: 'Bingo kiến thức',
-    thumbnailAsset: '/game-thumbnails/c09.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Bảng Bingo 5x5 3D với5 viên ngọc vàng thẳng hàng phát sáng và lồng quay',
+    thumbnailAsset: imgC09,
+    bundledFallbackAsset: imgC09,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Bảng Bingo 5x5 3D với 5 viên tinh thể vàng thẳng hàng phát sáng và lồng quay đồng cổ điển',
     prompt3D: `3D 5x5 Bingo board with a glowing diagonal line of five golden spheres next to a brass wire lottery cage. ${STUDIO_PROMPT_SUFFIX}`,
   },
   C10: {
     gameId: 'c10',
     code: 'C10',
     gameName: 'Giải cứu đại dương',
-    thumbnailAsset: '/game-thumbnails/c10.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Tàu ngầm mini 3D màu vàng khám phá rạn san hô xanh và vỏ sò ngọc trai',
-    prompt3D: `Cute 3D yellow research submarine illuminating a vibrant coral reef and a glowing pearl clam shell underwater. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgC10,
+    bundledFallbackAsset: imgC10,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Hải trình xanh 3D qua Vịnh xanh, Thảm cỏ biển, Rạn san hô có rùa biển và cá nhiệt đới, thiết bị thu gom rác thải và Trạm nghiên cứu đại dương',
+    prompt3D: `Elevated sunlit 3D underwater turquoise-to-navy ocean diorama featuring an autonomous white-and-amber ROV collecting floating plastic debris into a basket, swaying seagrass meadow, vibrant coral reef with sea turtles and tropical fish, and a white-and-navy marine research station buoy. ${STUDIO_PROMPT_SUFFIX}`,
   },
   D01: {
     gameId: 'd01',
     code: 'D01',
     gameName: 'Đấu trường 1 đấu 1',
-    thumbnailAsset: '/game-thumbnails/d01.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Hai bục thi đấu đối kháng 3D Xanh dương và Đỏ cam với tia chớp giao nhau ở giữa',
-    prompt3D: `Symmetrical 3D duel stage with a sapphire blue podium on the left and a fiery crimson podium on the right, connected by a golden clash spark. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgD01,
+    bundledFallbackAsset: imgD01,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Sân khấu tròn Song đấu tri thức 3D đối xứng hai bục Xanh dương – Cam vàng, cột tinh thể điểm, bảng trung tâm và cúp tri thức ánh vàng',
+    prompt3D: `Symmetrical 3D circular quiz studio stage in midnight navy and brushed gold with left sapphire-blue podium, right amber-orange podium, crystal score columns, central glass knowledge board, and sculpted golden trophy cup. ${STUDIO_PROMPT_SUFFIX}`,
   },
   D02: {
     gameId: 'd02',
     code: 'D02',
     gameName: 'Đua thuyền',
-    thumbnailAsset: '/game-thumbnails/d02.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Hai chiếc thuyền đua 3D căng buồm lướt sóng về phía phao đích vàng',
-    prompt3D: `Two colorful 3D racing sailboats with billowing sails cutting through stylized turquoise waves toward a golden buoy. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgD02,
+    bundledFallbackAsset: imgD02,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Đường đua sông 3D xanh ngọc với các làn phao song song bằng nhau, thuyền đua đa sắc mang cờ đội tiến về cổng đích trắng – xanh navy',
+    prompt3D: `Elevated angled 3D daylight river racecourse with turquoise-emerald water, manicured green banks, parallel equal-length lanes marked by white floating buoys, colorful multi-part racing boats with team flags, and a sculpted white and deep-navy finish arch. ${STUDIO_PROMPT_SUFFIX}`,
   },
   D03: {
     gameId: 'd03',
     code: 'D03',
     gameName: 'Kéo co kiến thức',
-    thumbnailAsset: '/game-thumbnails/d03.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Sợi dây thừng 3D căng ngang với dải ruy băng đỏ ở vạch tâm vàng kim',
+    thumbnailAsset: imgD03,
+    bundledFallbackAsset: imgD03,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Sân kéo co 3D hai đội Xanh dương – Cam đối xứng kéo dây thừng với dải ruy băng đỏ ở vạch tâm vàng kim',
     prompt3D: `3D braided hemp tug-of-war rope stretched taut across a glowing golden center line marker with a red satin ribbon tied in the middle. ${STUDIO_PROMPT_SUFFIX}`,
   },
   D04: {
     gameId: 'd04',
     code: 'D04',
     gameName: 'Đua xe tốc độ',
-    thumbnailAsset: '/game-thumbnails/d04.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Xe đua 3D khí động học màu xanh-vàng lướt trên đường đua có cờ caro',
-    prompt3D: `Sleek 3D futuristic formula race car in royal blue and gold livery speeding down a glossy track beneath a checkered flag arch. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgD04,
+    bundledFallbackAsset: imgD04,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Trường đua 3D với đường nhựa nhiều làn, vạch ca-rô đích, khán đài, đèn xuất phát xanh và dàn xe đua tăng tốc Turbo',
+    prompt3D: `Closed 3D motorsport racing stadium at twilight with dark asphalt track, checkered finish arch, grandstands, glowing green start lights, and sleek 3D racing cars speeding side by side with golden-blue turbo trail. ${STUDIO_PROMPT_SUFFIX}`,
   },
   D05: {
     gameId: 'd05',
     code: 'D05',
     gameName: 'Tiếp sức đồng đội',
-    thumbnailAsset: '/game-thumbnails/d05.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Gậy tiếp sức 3D mạ vàng phát sáng trên đường chạy điền kinh',
-    prompt3D: `Gleaming 3D metallic gold relay baton with glowing cyan rings hovering above a red athletics running track. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgD05,
+    bundledFallbackAsset: imgD05,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Sân chạy tiếp sức 3D với đường chạy đỏ gạch, vạch trắng song song, vùng trao gậy vàng kim và hai vận động viên trao gậy tiếp sức',
+    prompt3D: `3D school athletics relay stadium with brick-red running track, crisp white parallel lanes, glowing golden baton exchange zone, and two runners passing a gleaming golden baton. ${STUDIO_PROMPT_SUFFIX}`,
   },
   D06: {
     gameId: 'd06',
     code: 'D06',
     gameName: 'Vua ghi điểm',
-    thumbnailAsset: '/game-thumbnails/d06.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Vương miện vàng 3D đính đá quý đặt trên gối nhung đỏ',
-    prompt3D: `Royal 3D golden crown encrusted with sapphires and rubies resting on a plush red velvet cushion with studio rim lighting. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgD06,
+    bundledFallbackAsset: imgD06,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Sân khấu Vua ghi điểm 3D tông navy, xanh ngọc, trắng và vàng kim với bảng 9 ô điểm nổi khối, cột điểm đội và cúp vô địch',
+    prompt3D: `3D educational game show stage in deep midnight navy, emerald teal, white, and metallic gold featuring an illuminated 3x3 point-tile board, flanking team score pillars, and a sculpted golden trophy cup. ${STUDIO_PROMPT_SUFFIX}`,
   },
   D07: {
     gameId: 'd07',
     code: 'D07',
     gameName: 'Thách đấu nhóm',
-    thumbnailAsset: '/game-thumbnails/d07.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Hai lá cờ đội 3D bắt chéo sau chiếc cúp khiên danh dự bằng vàng',
-    prompt3D: `Crossed 3D blue and gold team pennants behind a polished golden championship shield emblem. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgD07,
+    bundledFallbackAsset: imgD07,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Sân đấu giải vòng tròn 3D tông xanh navy, xanh ngọc, trắng và vàng kim với bục trao cúp vô địch',
+    prompt3D: `3D educational tournament arena stage in deep navy, emerald teal, crisp white, and brushed metallic gold with flanking matchup stations and a 3-step golden trophy podium. ${STUDIO_PROMPT_SUFFIX}`,
   },
   D08: {
     gameId: 'd08',
     code: 'D08',
     gameName: 'Đấu trường 4 đội',
-    thumbnailAsset: '/game-thumbnails/d08.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Bốn trụ pha lê 3D Đỏ, Xanh dương, Vàng, Xanh lá hội tụ quanh ngôi sao trung tâm',
-    prompt3D: `Four glowing 3D crystal pillars in red, blue, gold, and emerald arranged around a central levitating golden star trophy. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgD08,
+    bundledFallbackAsset: imgD08,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Đấu trường 4 bục đội 3D đối xứng (Đỏ, Xanh dương, Vàng, Xanh lá) có cột điểm nổi khối quanh bảng câu hỏi trung tâm',
+    prompt3D: `Symmetrical 3D classroom quiz arena stage in deep midnight navy and metallic gold with four identical color-coded podiums (crimson red, sapphire blue, amber gold, emerald green), vertical 3D score pillars, and a central illuminated widescreen board. ${STUDIO_PROMPT_SUFFIX}`,
   },
   E01: {
     gameId: 'e01',
     code: 'E01',
     gameName: 'Nhảy theo lệnh',
-    thumbnailAsset: '/game-thumbnails/e01.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Sàn nhảy tương tác 3D với các ô mũi tên phát sáng đa sắc',
-    prompt3D: `3D interactive arcade dance floor pad with glowing directional arrow tiles in cyan, yellow, pink, and green. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgE01,
+    bundledFallbackAsset: imgE01,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Sân vận động học đường 3D sàn gỗ sáng với nhân vật hướng dẫn chính diện giơ hai tay vui khỏe',
+    prompt3D: `Modern bright school sports stage with warm maple hardwood floor, navy and emerald teal court lines, and friendly 3D athletic instructor facing forward raising both hands. ${STUDIO_PROMPT_SUFFIX}`,
   },
   E02: {
     gameId: 'e02',
     code: 'E02',
     gameName: 'Bắt bóng kiến thức',
-    thumbnailAsset: '/game-thumbnails/e02.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Vợt bắt bóng 3D và những quả cầu ánh sáng nhiều màu đang bay tới',
-    prompt3D: `3D golden hoop net catching vibrant glowing spheres in mid-air with dynamic motion trails. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgE02,
+    bundledFallbackAsset: imgE02,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Nhà thi đấu học đường 3D sàn gỗ với bốn quả bóng kiến thức và giỏ đón bóng ánh vàng',
+    prompt3D: `Modern bright school indoor sports hall with maple hardwood court, navy and teal lines, four 3D athletic balls hovering toward a brushed-gold catching hoop basket. ${STUDIO_PROMPT_SUFFIX}`,
   },
   E03: {
     gameId: 'e03',
     code: 'E03',
     gameName: 'Phản xạ nhanh',
-    thumbnailAsset: '/game-thumbnails/e03.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Đèn tín hiệu 3D Đỏ-Vàng-Xanh chuyển sang Xanh ngọc cùng nút bấm tốc độ',
-    prompt3D: `3D reflex light tower glowing bright emerald green beside a high-speed chrome push button with ripple rings. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgE03,
+    bundledFallbackAsset: imgE03,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Bảng tín hiệu 3D chính diện khung kim loại, mặt đèn xanh ngọc có chiều sâu và nút phản hồi lớn nền navy',
+    prompt3D: `Front-facing 3D metallic signal console board with deep turquoise lamp panel and large white-and-gold response button on deep navy stage. ${STUDIO_PROMPT_SUFFIX}`,
   },
   E04: {
     gameId: 'e04',
     code: 'E04',
     gameName: 'Simon Says',
-    thumbnailAsset: '/game-thumbnails/e04.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Bàn xoay 4 phím màu 3D (Đỏ, Xanh lá, Vàng, Xanh dương) phát sáng theo nhịp',
-    prompt3D: `Classic 3D circular electronic memory game console with four glowing translucent color quadrants (red, green, yellow, blue). ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgE04,
+    bundledFallbackAsset: imgE04,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Sân khấu hội trường học đường 3D với nhân vật hướng dẫn giơ một tay trước nền xanh navy, xanh ngọc và vàng ấm',
+    prompt3D: `Modern bright school auditorium stage with warm maple wood floor, deep navy backdrop with emerald teal, golden yellow and white accents, friendly front-facing 3D school instructor character raising one hand cleanly in frame. ${STUDIO_PROMPT_SUFFIX}`,
   },
   E05: {
     gameId: 'e05',
     code: 'E05',
     gameName: 'Săn sao kiến thức',
-    thumbnailAsset: '/game-thumbnails/e05.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Kính thiên văn 3D bằng đồng vàng hướng lên bầu trời đầy sao băng lấp lánh',
-    prompt3D: `Polished 3D brass telescope on a wooden tripod aimed at a cluster of glowing 3D golden shooting stars. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgE05,
+    bundledFallbackAsset: imgE05,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Bản đồ bầu trời 3D nền xanh navy với ba cụm chòm sao ánh vàng và vòng quỹ đạo xanh ngọc',
+    prompt3D: `Modern 3D educational astronomical observatory star map scene on deep midnight navy cosmos with three constellation clusters of sculpted 3D golden stars and emerald teal rings. ${STUDIO_PROMPT_SUFFIX}`,
   },
   F01: {
     gameId: 'f01',
     code: 'F01',
     gameName: 'Sudoku',
-    thumbnailAsset: '/game-thumbnails/f01.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Khay gỗ 3D chia ô lưới Sudoku với các viên gạch khắc chữ số vàng kim',
-    prompt3D: `Crafted 3D wooden Sudoku board filled with glossy navy and metallic gold 3D number tiles. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgF01,
+    bundledFallbackAsset: imgF01,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Bảng Sudoku gốm nổi 3D nền xanh navy với chữ số trắng sắc nét và viền chia vùng xanh ngọc',
+    prompt3D: `High-contrast architectural 3D ceramic Sudoku board resting on deep midnight navy surface with crisp sculpted white numerals and elevated emerald-teal region dividers. ${STUDIO_PROMPT_SUFFIX}`,
   },
   F02: {
     gameId: 'f02',
     code: 'F02',
     gameName: 'Tangram',
-    thumbnailAsset: '/game-thumbnails/f02.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Bảy mảnh ghép hình học Tangram 3D nhiều màu sắc ghép thành hình chim thiên nga',
-    prompt3D: `Seven colorful 3D beveled acrylic Tangram geometric blocks arranged on a warm wooden board. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgF02,
+    bundledFallbackAsset: imgF02,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Bàn ghép hình Tangram 3D nền navy với 7 mảnh hình học vát cạnh sắc nét bên khung hình đích phát sáng',
+    prompt3D: `High-contrast architectural 3D studio photography of seven beveled satin-ceramic Tangram geometric pieces beside a glowing recessed square silhouette on deep midnight navy desk. ${STUDIO_PROMPT_SUFFIX}`,
   },
   F03: {
     gameId: 'f03',
     code: 'F03',
     gameName: 'Tháp Hà Nội',
-    thumbnailAsset: '/game-thumbnails/f03.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Bộ trò chơi Tháp Hà Nội 3D với 3 cột gỗ và các đĩa tròn kim loại nhiều màu',
-    prompt3D: `3D Tower of Hanoi puzzle with three polished wooden rods and stacked anodized metallic rings in rainbow colors. ${STUDIO_PROMPT_SUFFIX}`,
+    thumbnailAsset: imgF03,
+    bundledFallbackAsset: imgF03,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Bàn gỗ Tháp Hà Nội 3D nền navy với ba cọc đồng bằng nhau và các đĩa tròn nhiều màu xếp giảm dần',
+    prompt3D: `Photorealistic 3D wooden Tower of Hanoi puzzle board on midnight navy backdrop with three equal brass pegs and descending colored discs. ${STUDIO_PROMPT_SUFFIX}`,
   },
   F04: {
     gameId: 'f04',
     code: 'F04',
     gameName: 'Mê cung trí tuệ',
     thumbnailAsset: '/game-thumbnails/f04.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Mê cung 3D góc nhìn isometric với viên bi vàng tìm đường tới tâm phát sáng',
-    prompt3D: `Isometric 3D marble labyrinth maze with royal blue walls, a glowing golden path, and a polished gold sphere reaching the center goal. ${STUDIO_PROMPT_SUFFIX}`,
+    bundledFallbackAsset: imgF04,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Sa bàn mê cung gốm sáng 3D trên nền xanh navy viền ngọc và vàng kim, robot ở ô xuất phát và cổng đích phát sáng',
+    prompt3D: `Elevated angled top-down 3D tabletop miniature labyrinth diorama with ivory ceramic stone walls, bright walkable slate pathways, friendly white-and-teal robot at START pad, and glowing golden arched EXIT portal on deep navy backdrop with emerald teal trim and gold accents. ${STUDIO_PROMPT_SUFFIX}`,
   },
   F05: {
     gameId: 'f05',
     code: 'F05',
     gameName: 'Giải mật mã',
     thumbnailAsset: '/game-thumbnails/f05.webp',
-    hasPhotorealisticAsset: false,
-    subject3D: 'Ống khóa mật mã Cryptex 3D bằng đồng vàng với các vòng xoay ký tự',
-    prompt3D: `Intricate 3D Da Vinci brass cryptex cylinder lock with rotating engraved rings and a glowing cyan core. ${STUDIO_PROMPT_SUFFIX}`,
+    bundledFallbackAsset: imgF05,
+    hasPhotorealisticAsset: true,
+    subject3D: 'Phòng giải mã 3D với két cơ khí có tay nắm đồng, bánh khóa, bản lề thép và bảng manh mối phát sáng xanh ngọc',
+    prompt3D: `Photorealistic 3D mechanical steel vault safe with brass spoked handle, combination dial, heavy hinges and warm golden seam glow beside a dark-navy illuminated clue board with emerald-teal border and blank keypad tiles, no numbers or answer codes. ${STUDIO_PROMPT_SUFFIX}`,
   },
 };
 
@@ -1218,9 +1265,15 @@ const renderUnique3DSubject = (code: string): React.ReactNode => {
     case 'D03': // Kéo co kiến thức 3D
       return (
         <g filter={sh}>
-          <rect x="24" y="82" width="272" height="16" rx="8" fill="#D97706" stroke="#FDE047" strokeWidth="2.5" />
-          <polygon points="160,44 178,136 142,136" fill="#EF4444" stroke="#FFF" strokeWidth="2.5" />
-          <circle cx="160" cy="90" r="14" fill={gold} />
+          <rect x="20" y="102" width="280" height="58" rx="10" fill="#0D6B56" />
+          <line x1="160" y1="102" x2="160" y2="160" stroke="#FBBF24" strokeWidth="4" />
+          <line x1="68" y1="102" x2="68" y2="160" stroke="#60A5FA" strokeWidth="3" />
+          <line x1="252" y1="102" x2="252" y2="160" stroke="#FB923C" strokeWidth="3" />
+          <rect x="24" y="84" width="272" height="14" rx="7" fill="#C89B62" stroke="#FDE047" strokeWidth="2" />
+          <circle cx="88" cy="78" r="14" fill="#2563EB" stroke="#93C5FD" strokeWidth="2.5" />
+          <circle cx="232" cy="78" r="14" fill="#EA580C" stroke="#FDBA74" strokeWidth="2.5" />
+          <polygon points="160,64 174,124 146,124" fill="#DC2626" stroke="#FDE047" strokeWidth="2" />
+          <circle cx="160" cy="91" r="11" fill={gold} />
         </g>
       );
 

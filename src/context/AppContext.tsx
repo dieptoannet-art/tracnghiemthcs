@@ -111,6 +111,9 @@ interface AppContextType {
   coreKnowledgeTargetLessonId: string | null;
   openCoreKnowledgeLesson: (lessonId: string) => void;
   clearCoreKnowledgeTargetLesson: () => void;
+  pendingGameLaunch: { gameId: string; classId?: string; nonce: number } | null;
+  openGameCenterTool: (gameId: string, classId?: string) => void;
+  clearPendingGameLaunch: () => void;
 
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
@@ -427,6 +430,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [reducedMotion, accessMode]);
 
   const [coreKnowledgeTargetLessonId, setCoreKnowledgeTargetLessonId] = useState<string | null>(null);
+  const [pendingGameLaunch, setPendingGameLaunch] = useState<{
+    gameId: string;
+    classId?: string;
+    nonce: number;
+  } | null>(null);
   const [preferredDemoAssignmentId, setPreferredDemoAssignmentId] = useState<string | null>(null);
   const [khktPresentationStep, setKhktPresentationStepState] = useState<number>(() => {
     if (typeof window === 'undefined') return 1;
@@ -473,6 +481,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const clearCoreKnowledgeTargetLesson = useCallback(() => {
     setCoreKnowledgeTargetLessonId(null);
+  }, []);
+
+  const openGameCenterTool = useCallback(
+    (gameId: string, classId?: string) => {
+      setPendingGameLaunch({ gameId, classId, nonce: Date.now() });
+      setCurrentView('teacher_student_call');
+    },
+    [setCurrentView]
+  );
+
+  const clearPendingGameLaunch = useCallback(() => {
+    setPendingGameLaunch(null);
   }, []);
 
   const enterKhktDemo = useCallback((targetView: string = 'dashboard') => {
@@ -2718,6 +2738,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         coreKnowledgeTargetLessonId,
         openCoreKnowledgeLesson,
         clearCoreKnowledgeTargetLesson,
+        pendingGameLaunch,
+        openGameCenterTool,
+        clearPendingGameLaunch,
         preferredDemoAssignmentId,
         setPreferredDemoAssignmentId,
         khktPresentationStep,

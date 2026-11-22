@@ -1,0 +1,57 @@
+MASTER PROMPT — C03: ĐẤU TRƯỜNG KIẾN THỨC 3D
+TÂY ĐÔ SMART EDU | PREMIUM EDTECH 2027
+
+Nâng cấp C03 – Đấu trường kiến thức trong thư viện 50 trò chơi Tây Đô Smart EDU. Dựng một vòng chơi củng cố có mục tiêu, kết quả và lời giải để học sinh xem lại kiến thức.
+
+Thực hiện trong một lượt làm việc trên dự án Google AI Studio đang mở. Rà soát mã nguồn, triển khai, chơi thử, sửa lỗi và báo cáo. Nếu môi trường chưa hỗ trợ một bước, hoàn thành phần có thể làm và ghi rõ phần chưa xác minh.
+
+1. TÍCH HỢP VÀO SMART EDU
+
+- Tìm đúng mục C03 từ thẻ trò chơi đến màn chơi, lớp dữ liệu và điều hướng. Giữ mã, tên “Đấu trường kiến thức”, đường dẫn, vị trí trong thư viện và các chế độ hiện có. Nếu thể lệ mẫu khác luật đang dùng, triển khai như chế độ riêng.
+- Tái sử dụng bộ hiển thị Toán, điều khiển âm thanh, chế độ toàn màn hình và lưu phiên sẵn có. Chỉ thay đổi C03 và điểm tích hợp thật sự cần thiết. Giữ khả năng mở dữ liệu cũ bằng luồng hiện có.
+- Bảo toàn các game khác, tài khoản, quyền truy cập, ngân hàng câu hỏi và dữ liệu Supabase. Không chạy SQL, sửa dữ liệu thật, đẩy mã lên GitHub hoặc triển khai lên Vercel.
+- Cho mở gói mẫu mà không cần email hoặc danh sách thật. Nếu đã có chế độ demo, chỉ dùng dữ liệu mẫu tách biệt trong chế độ đó.
+
+2. ĐẤU TRƯỜNG BA VÒNG 3D
+
+Dựng bảng trung tâm gồm ba vòng và dải điểm đội. Dùng màu và tên đội, hiển thị tiến trình 1–4 trong mỗi vòng. Giữ bảng giải thích trên vùng tĩnh, hiệu ứng khi đổi vòng không che đề mới.
+
+- Dùng bố cục desktop 16:9 tại 1366×768 và 1920×1080. Trên điện thoại, xếp sân khấu, thông tin và nút điều khiển theo chiều dọc. Vào hoặc thoát toàn màn hình giữ nguyên ván. Đặt đề, công thức, điểm và nút ở vùng giao diện rõ nét, tách khỏi camera 3D.
+- Có điều khiển chuột, cảm ứng và bàn phím, chỉ báo vùng đang nhận bàn phím, chế độ giảm chuyển động và bản 2D giữ đủ chức năng khi WebGL không khả dụng. Cho “Bỏ qua hoạt ảnh” tại đoạn công bố, giữ nguyên trạng thái đã chốt.
+- Tạo thumbnail 16:9 riêng cho C03 từ cảnh đã dựng. Dùng hình ảnh và âm thanh nguyên bản hoặc tài nguyên đã có quyền sử dụng. Ảnh bìa không chứa dữ liệu học sinh hoặc đáp án.
+
+3. THI ĐẤU BA VÒNG KIẾN THỨC
+
+Mỗi vòng có bốn câu. Mỗi câu đúng của vòng 1, 2, 3 lần lượt là 10, 20 và 30 điểm. Dùng gói câu độ khó tăng dần, các đội cùng đề. Chỉ sang câu sau khi các đội đã chấm hoặc được giáo viên xác nhận bỏ qua. Có thể dùng câu phụ ghi riêng nếu thể lệ hiện hành cho phép.
+
+- Màn chuẩn bị hiển thị lựa chọn phù hợp luật đang dùng và cho xem hướng dẫn trước khi bắt đầu.
+- Ở màn chơi, mỗi thao tác quan trọng có trạng thái bằng chữ. Chốt kết quả ở thời điểm quy định rồi chuyển sang công bố. Khóa thao tác trùng trong khi xử lý, ưu tiên thẻ kết quả có thể đọc ngay cả khi bỏ qua hoạt ảnh.
+
+4. THAO TÁC, CHẤM VÀ CỦNG CỐ KIẾN THỨC
+
+- Mỗi cặp đội–câu chỉ có một lần cộng điểm. Hết vòng hiển thị số đúng và tổng vòng, hết trận hiện tổng ba vòng. Nếu hòa và không bật câu phụ, giữ cùng hạng. Cấu hình đội theo lớp hoặc đội mẫu.
+- Cho giáo viên chọn chủ đề, gói câu và cách tổ chức cá nhân/cả lớp/đội phù hợp với luật trò. Hỗ trợ điều phối từ một máy, học sinh có thể dùng giấy hoặc bảng con. Dùng trạng thái đọc được trên máy chiếu để phân biệt chưa làm, đã nộp và đã công bố.
+- Kết quả đúng, sai, bỏ qua và đúng sau hỗ trợ được ghi riêng khi luật áp dụng. Chấm bằng ID câu và ID đáp án hoặc xác nhận giáo viên theo loại câu. Tóm tắt kết quả theo vòng/chặng và cho xem lại lời giải, kèm mốc điểm hoặc điều kiện hoàn thành.
+
+5. LỜI GIẢI, DỮ LIỆU MẪU VÀ CÔNG THỨC TOÁN
+
+Ví dụ đội X đúng cả ba vòng được \(4\times10+4\times20+4\times30=240\). Đội Y đúng đúng hai câu vòng 2 được 40 điểm ở vòng đó. Thử công thức câu mẫu \(2(3x-1)=10\), nghiệm \(x=2\).
+
+- Đề mẫu tách riêng dữ liệu thật. Dùng lời giải có phép tính, phản ví dụ hoặc mô tả mối liên hệ, tùy dạng câu. Nếu cho xem lời giải để tiến tiếp, hiển thị đúng tình trạng hỗ trợ và giữ điểm gốc theo thể lệ.
+- Dùng bộ hiển thị Toán chung cho câu hỏi, phương án, gợi ý, lời giải và bảng tổng kết có công thức. Hỗ trợ `\( ... \)` trong dòng, `\[ ... \]` tách dòng và định dạng cũ của dự án. Giữ phân số, số âm, ký hiệu độ, căn thức và lũy thừa. Nếu công thức lỗi cú pháp, hiện nguyên văn đoạn lỗi và giữ mọi nút hoạt động.
+- Cung cấp cách quay lại nội dung hướng dẫn hoặc kết quả đã công bố. Với đoạn dài, xuống dòng hoặc cuộn trong khung và kiểm màn hẹp, tránh cắt mất công thức.
+
+6. ÂM THANH VÀ LƯU PHIÊN
+
+Âm báo mở đề, chốt câu và chuyển vòng. Không để âm chúc mừng che thời điểm đọc câu sau.
+
+- Dùng nút loa và thiết lập tương thích với A01/A02. Chỉ bắt đầu nghe sau thao tác người dùng. Tắt loa dừng ngay hiệu ứng và giọng đọc. Đổi câu, chơi lại hoặc thoát phải hủy âm thanh và tác vụ còn chờ.
+- Nếu dùng đọc tiếng Việt, chỉ chọn giọng phù hợp. Máy thiếu giọng Việt thì dùng tín hiệu ngắn và hiển thị nội dung bằng chữ. Lỗi âm thanh không ngăn thao tác, chấm hoặc công bố.
+- Nếu có lưu phiên, khôi phục câu, gợi ý, điểm, mốc đã mở và trạng thái đã chốt. Giữ quyền chấm sau khi đổi toàn màn hình. Hủy tác vụ còn chờ khi đổi phiên để điểm hoặc âm của phiên cũ không xuất hiện ở phiên mới.
+
+7. KIỂM THỬ VÀ BÁO CÁO
+
+- Thử 240 tối đa, chấm đội cuối, đồng hạng, một đội bỏ qua, 12 câu khác nhau và vòng 3 không cộng theo hệ số vòng 2.
+- Chạy đầy đủ từ mở gói mẫu, chơi thất bại/chơi đạt, xem lại rồi về thư viện. Thử một người và giáo viên tổ chức lớp 50, sau đó đối chiếu điểm theo từng câu với tổng kết.
+- Mở C03 từ thư viện, chơi đến tổng kết, xem lại nếu có rồi quay về thư viện. Kiểm 1366×768, 1920×1080, điện thoại, toàn màn hình, tắt loa, thao tác bằng phím, phương án 2D và công thức Toán ở các chỗ xuất hiện.
+- Chạy build và kiểm tra hiện có. Nếu có môi trường trình duyệt, chơi thử bằng dữ liệu mẫu. Báo cáo tệp đã sửa, cách mở C03, các ca thực sự đã chạy, phần chưa xác minh và cách hoàn tác riêng thay đổi C03.
