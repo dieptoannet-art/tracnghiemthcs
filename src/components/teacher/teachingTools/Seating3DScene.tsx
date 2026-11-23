@@ -8,6 +8,7 @@ import {
   SeatingProState,
   buildOrientedAislesView,
   formatStudentDisplayName,
+  getAislePaletteByIndex,
 } from './seatingProEngine';
 
 export interface Seating3DSceneProps {
@@ -49,15 +50,6 @@ function hasWebGLSupport(): boolean {
   }
 }
 
-const AISLE_ACCENT_HEX = [
-  '#1D4ED8',
-  '#047857',
-  '#B45309',
-  '#6D28D9',
-  '#0E7490',
-  '#BE123C',
-];
-
 function drawSignTexture(
   title: string,
   subtitle: string,
@@ -96,6 +88,7 @@ function drawSeatPlaqueTexture(params: {
   primaryText: string;
   secondaryText: string | null;
   seatLabel: string;
+  hasStudent: boolean;
   isLocked: boolean;
   isPinned: boolean;
   isSelected: boolean;
@@ -104,11 +97,13 @@ function drawSeatPlaqueTexture(params: {
   isAirborne: boolean;
   isBW: boolean;
   accentHex: string;
+  borderHex: string;
 }): THREE.CanvasTexture {
   const {
     primaryText,
     secondaryText,
     seatLabel,
+    hasStudent,
     isLocked,
     isPinned,
     isSelected,
@@ -117,6 +112,7 @@ function drawSeatPlaqueTexture(params: {
     isAirborne,
     isBW,
     accentHex,
+    borderHex,
   } = params;
 
   const canvas = document.createElement('canvas');
@@ -124,34 +120,56 @@ function drawSeatPlaqueTexture(params: {
   canvas.height = 176;
   const ctx = canvas.getContext('2d');
   if (ctx) {
-    // Card background
-    let bg = '#FFFFFF';
+    const isOccupiedOrFlying = (hasStudent || isAirborne) && !isLocked;
+
+    let bg = '#F8FAFC';
     let border = '#CBD5E1';
-    let textColor = '#082B52';
-    let subColor = '#475569';
+    let textColor = '#64748B';
+    let subColor = '#64748B';
+    let codeColor = '#94A3B8';
+    let useDashedBorder = false;
 
     if (isLocked) {
       bg = isBW ? '#E5E5E5' : '#F1F5F9';
       border = isBW ? '#111111' : '#94A3B8';
-      textColor = '#475569';
-    } else if (isSelected) {
-      bg = isBW ? '#F5F5F5' : '#FEF3C7';
-      border = isBW ? '#000000' : '#D97706';
-      textColor = '#082B52';
-    } else if (isAirborne) {
-      bg = '#EFF6FF';
-      border = '#1769F4';
-      textColor = '#082B52';
-    } else if (isRecentlyLanded) {
-      bg = '#ECFDF5';
-      border = '#10B981';
-      textColor = '#065F46';
-    } else if (isWaitingTarget) {
-      bg = '#ECFDF5';
-      border = '#34D399';
-    } else if (isPinned) {
-      bg = isBW ? '#FFFFFF' : '#EFF6FF';
-      border = isBW ? '#000000' : '#1769F4';
+      textColor = isBW ? '#111111' : '#475569';
+      codeColor = isBW ? '#222222' : '#64748B';
+      useDashedBorder = true;
+    } else if (isOccupiedOrFlying) {
+      // Occupied seat or airborne card: full edge-to-edge aisle fill in color mode, solid border in BW
+      bg = isBW ? '#FFFFFF' : accentHex;
+      border = isBW
+        ? '#000000'
+        : isSelected
+          ? '#FBBF24'
+          : isRecentlyLanded
+            ? '#FDE047'
+            : isPinned
+              ? '#FDE68A'
+              : borderHex;
+      textColor = isBW ? '#000000' : '#FFFFFF';
+      subColor = isBW ? '#333333' : 'rgba(255, 255, 255, 0.88)';
+      codeColor = isBW ? '#222222' : 'rgba(255, 255, 255, 0.86)';
+      useDashedBorder = false;
+    } else {
+      // Empty seat: #F8FAFC background + dashed #CBD5E1 border
+      bg = isBW
+        ? '#FFFFFF'
+        : isSelected
+          ? '#FFFBEB'
+          : isWaitingTarget
+            ? '#ECFDF5'
+            : '#F8FAFC';
+      border = isBW
+        ? '#000000'
+        : isSelected
+          ? '#F59E0B'
+          : isWaitingTarget
+            ? '#10B981'
+            : '#CBD5E1';
+      textColor = isBW ? '#444444' : isSelected ? '#082B52' : '#64748B';
+      codeColor = isBW ? '#555555' : '#94A3B8';
+      useDashedBorder = true;
     }
 
     ctx.fillStyle = bg;
@@ -160,39 +178,33 @@ function drawSeatPlaqueTexture(params: {
     ctx.fill();
 
     ctx.strokeStyle = border;
-    ctx.lineWidth = isSelected || isRecentlyLanded || isAirborne || isPinned ? 7 : 4;
-    if (isLocked) ctx.setLineDash([12, 8]);
+    ctx.lineWidth = isSelected || isRecentlyLanded || isAirborne || isPinned ? 8 : 5;
+    if (useDashedBorder) ctx.setLineDash([12, 8]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Top color bar
-    ctx.fillStyle = isLocked ? '#94A3B8' : isBW ? '#111111' : accentHex;
-    ctx.beginPath();
-    ctx.roundRect(14, 12, 292, 28, 8);
-    ctx.fill();
-
-    // Seat index label inside bar
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '800 17px "Be Vietnam Pro", system-ui, sans-serif';
+    // Top-left seat code C1, C2...
+    ctx.fillStyle = codeColor;
+    ctx.font = '800 18px "JetBrains Mono", monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(seatLabel, 24, 26);
+    ctx.fillText(seatLabel, 20, 26);
 
     if (isPinned && !isLocked) {
-      ctx.fillStyle = '#FCD34D';
+      ctx.fillStyle = isBW ? '#000000' : '#FDE68A';
       ctx.textAlign = 'right';
       ctx.font = '800 16px "Be Vietnam Pro", system-ui, sans-serif';
-      ctx.fillText('GHIM', 296, 26);
+      ctx.fillText('GHIM', 300, 26);
     } else if (isLocked) {
-      ctx.fillStyle = '#FFFFFF';
+      ctx.fillStyle = isBW ? '#000000' : '#64748B';
       ctx.textAlign = 'right';
       ctx.font = '800 16px "Be Vietnam Pro", system-ui, sans-serif';
-      ctx.fillText('KHÓA', 296, 26);
-    } else if (isRecentlyLanded) {
-      ctx.fillStyle = '#6EE7B7';
+      ctx.fillText('KHÓA', 300, 26);
+    } else if (isSelected) {
+      ctx.fillStyle = isBW ? '#000000' : '#FDE047';
       ctx.textAlign = 'right';
       ctx.font = '800 15px "Be Vietnam Pro", system-ui, sans-serif';
-      ctx.fillText('ĐÃ XẾP', 296, 26);
+      ctx.fillText('ĐANG CHỌN', 300, 26);
     }
 
     // Center student primary name
@@ -201,7 +213,6 @@ function drawSeatPlaqueTexture(params: {
     ctx.fillStyle = textColor;
 
     if (isLocked) {
-      // Subtle diagonal X lines for locked desk seat
       ctx.strokeStyle = '#94A3B8';
       ctx.lineWidth = 4;
       ctx.beginPath();
@@ -211,21 +222,46 @@ function drawSeatPlaqueTexture(params: {
       ctx.lineTo(46, 154);
       ctx.stroke();
 
-      ctx.fillStyle = '#334155';
+      ctx.fillStyle = isBW ? '#000000' : '#475569';
       ctx.font = '800 24px "Be Vietnam Pro", system-ui, sans-serif';
-      ctx.fillText('Ghế khóa', 160, 108);
-    } else {
-      const len = primaryText.length;
-      const fontSize = len > 18 ? 22 : len > 13 ? 25 : 29;
-      ctx.font = `800 ${fontSize}px "Be Vietnam Pro", system-ui, sans-serif`;
-      const yMain = secondaryText ? 92 : 106;
-      ctx.fillText(primaryText, 160, yMain, 284);
+      ctx.fillText('Khóa', 160, 104);
+    } else if (isOccupiedOrFlying) {
+      const words = primaryText.trim().split(/\s+/);
+      const maxLineW = 282;
+      ctx.font = '800 26px "Be Vietnam Pro", system-ui, sans-serif';
+      const lines: string[] = [];
+      let cur = '';
+      for (const w of words) {
+        const test = cur ? `${cur} ${w}` : w;
+        if (ctx.measureText(test).width <= maxLineW || !cur) {
+          cur = test;
+        } else {
+          lines.push(cur);
+          cur = w;
+        }
+      }
+      if (cur) lines.push(cur);
+
+      if (lines.length === 1) {
+        const yMain = secondaryText ? 90 : 100;
+        ctx.fillText(lines[0], 160, yMain, maxLineW);
+      } else {
+        ctx.font = '800 23px "Be Vietnam Pro", system-ui, sans-serif';
+        const line1 = lines.slice(0, Math.ceil(lines.length / 2)).join(' ');
+        const line2 = lines.slice(Math.ceil(lines.length / 2)).join(' ');
+        const yTop = secondaryText ? 76 : 86;
+        ctx.fillText(line1, 160, yTop, maxLineW);
+        ctx.fillText(line2, 160, yTop + 28, maxLineW);
+      }
 
       if (secondaryText) {
         ctx.fillStyle = subColor;
-        ctx.font = '700 18px "JetBrains Mono", monospace';
-        ctx.fillText(secondaryText, 160, 136, 280);
+        ctx.font = '700 17px "JetBrains Mono", monospace';
+        ctx.fillText(secondaryText, 160, 142, 280);
       }
+    } else {
+      ctx.font = '700 24px "Be Vietnam Pro", system-ui, sans-serif';
+      ctx.fillText('Trống', 160, 102);
     }
   }
 
@@ -337,7 +373,6 @@ export const Seating3DScene: React.FC<Seating3DSceneProps> = ({
 
     const scene = new THREE.Scene();
     const isBW = state.colorTheme === 'bw';
-    const isMulti = !isBW && state.colorTheme === 'multicolor';
     scene.background = new THREE.Color(isBW ? '#F4F4F5' : '#EAF2FF');
 
     const pmrem = new THREE.PMREMGenerator(renderer);
@@ -551,11 +586,8 @@ export const Seating3DScene: React.FC<Seating3DSceneProps> = ({
 
     orientedAisles.forEach((aView, viewIdx) => {
       const aisleX = startAisleX + viewIdx * (aisleW + aisleGap);
-      const accentHex = isBW
-        ? '#111111'
-        : isMulti
-          ? AISLE_ACCENT_HEX[aView.aisleIndex % AISLE_ACCENT_HEX.length]
-          : '#0F2D52';
+      const palette = getAislePaletteByIndex(aView.aisleIndex);
+      const accentHex = isBW ? '#111111' : palette.fillHex;
 
       // Aisle floor runner strip + label header
       const stripMat = trackMat(
@@ -823,27 +855,28 @@ export const Seating3DScene: React.FC<Seating3DSceneProps> = ({
     if (!rt) return;
 
     const isBW = state.colorTheme === 'bw';
-    const isMulti = !isBW && state.colorTheme === 'multicolor';
     const lockedSet = new Set(state.lockedSeatIds);
     const pinnedSet = new Set(state.pinnedSeatIds);
     const activeAssignments = flightFrame ? flightFrame.stationaryAssignments : state.assignments;
     const recentLanded = flightFrame?.recentlyLandedSeatIds;
 
+    const seatAisleMap = new Map<string, { fillHex: string; borderHex: string }>();
+
     orientedAisles.forEach((aView) => {
-      const accentHex = isBW
-        ? '#111111'
-        : isMulti
-          ? AISLE_ACCENT_HEX[aView.aisleIndex % AISLE_ACCENT_HEX.length]
-          : '#0F2D52';
+      const palette = getAislePaletteByIndex(aView.aisleIndex);
+      const accentHex = isBW ? '#111111' : palette.fillHex;
+      const borderHex = isBW ? '#000000' : palette.borderHex;
 
       aView.desks.forEach((dView) => {
         dView.seatIds.forEach((seatId, sIdx) => {
+          seatAisleMap.set(seatId, { fillHex: accentHex, borderHex });
           const mesh = rt.seatPlaqueMeshes.get(seatId);
           if (!mesh) return;
           const isLocked = lockedSet.has(seatId);
           const isPinned = pinnedSet.has(seatId);
           const stuId = activeAssignments[seatId] || null;
           const stuInfo = stuId ? studentIdxMap.get(stuId) : undefined;
+          const hasStudent = Boolean(stuInfo) && !isLocked;
           const formatted = stuInfo
             ? formatStudentDisplayName({
                 student: stuInfo.stu,
@@ -856,14 +889,15 @@ export const Seating3DScene: React.FC<Seating3DSceneProps> = ({
           const isRecentlyLanded = Boolean(recentLanded?.has(seatId));
           const isWaitingTarget =
             Boolean(selectedWaitingStudentId) && !isLocked && !(isPinned && stuId);
-          const seatLabel = `B${dView.deskDisplayNumber}-C${sIdx + 1}`;
+          const seatLabel = `C${sIdx + 1}`;
           const primaryText = formatted ? formatted.primary : isLocked ? 'Khóa' : 'Trống';
-          const secondaryText = formatted?.secondaryCode || (stuInfo ? `Mã ${stuInfo.stu.code}` : null);
+          const secondaryText = formatted?.secondaryCode || null;
 
           const cacheKey = [
             seatLabel,
             primaryText,
             secondaryText || '',
+            hasStudent ? 'H' : 'E',
             isLocked ? 'L' : '',
             isPinned ? 'P' : '',
             isSelected ? 'S' : '',
@@ -878,6 +912,7 @@ export const Seating3DScene: React.FC<Seating3DSceneProps> = ({
               primaryText,
               secondaryText,
               seatLabel,
+              hasStudent,
               isLocked,
               isPinned,
               isSelected,
@@ -886,6 +921,7 @@ export const Seating3DScene: React.FC<Seating3DSceneProps> = ({
               isAirborne: false,
               isBW,
               accentHex,
+              borderHex,
             });
             rt.textureCache.set(cacheKey, tex);
           }
@@ -938,14 +974,19 @@ export const Seating3DScene: React.FC<Seating3DSceneProps> = ({
           })
         : null;
       const airText = formatted ? formatted.primary : active.move.studentId;
-      const airSub = formatted?.secondaryCode || (stuInfo ? `Mã ${stuInfo.stu.code}` : null);
-      const cacheKey = `AIR|${airText}|${airSub || ''}|${isBW ? 'BW' : 'C'}`;
+      const airSub = formatted?.secondaryCode || null;
+      const targetAisleColor = seatAisleMap.get(active.move.toSeatId) || {
+        fillHex: '#0369A1',
+        borderHex: '#075985',
+      };
+      const cacheKey = `AIR|${airText}|${airSub || ''}|${isBW ? 'BW' : targetAisleColor.fillHex}`;
       let tex = rt.textureCache.get(cacheKey);
       if (!tex) {
         tex = drawSeatPlaqueTexture({
           primaryText: airText,
           secondaryText: airSub,
           seatLabel: active.move.isSwap ? 'ĐỔI CHỖ' : 'XẾP CHỖ',
+          hasStudent: true,
           isLocked: false,
           isPinned: false,
           isSelected: false,
@@ -953,7 +994,8 @@ export const Seating3DScene: React.FC<Seating3DSceneProps> = ({
           isWaitingTarget: false,
           isAirborne: true,
           isBW,
-          accentHex: '#1769F4',
+          accentHex: targetAisleColor.fillHex,
+          borderHex: targetAisleColor.borderHex,
         });
         rt.textureCache.set(cacheKey, tex);
       }

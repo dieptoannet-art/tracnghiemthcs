@@ -18,6 +18,7 @@ import {
   evaluateSeatingFlightFrame,
   extractSeatingXlsxMatrix,
   formatStudentDisplayName,
+  getAislePaletteByIndex,
   getRoomCapacitySummary,
   getUnassignedStudents,
   indexRoomSeats,
@@ -450,3 +451,56 @@ test('Flight wave choreography guarantees 0 duplicate names at every timestamp, 
     assert.equal(endFrame.stationaryAssignments[sId] ?? null, reveal.committedAssignments[sId] ?? null);
   }
 });
+
+test('14. Aisle color palette (#047857, #0369A1, #4F46E5), 4+ aisle cycling, 180° orientation stability & cross-aisle move', () => {
+  // Exact colors per aisle: Dãy 1 -> #047857, Dãy 2 -> #0369A1, Dãy 3 -> #4F46E5, Dãy 4+ -> repeat
+  assert.equal(getAislePaletteByIndex(0).fillHex, '#047857');
+  assert.equal(getAislePaletteByIndex(1).fillHex, '#0369A1');
+  assert.equal(getAislePaletteByIndex(2).fillHex, '#4F46E5');
+  assert.equal(getAislePaletteByIndex(3).fillHex, '#047857');
+  assert.equal(getAislePaletteByIndex(4).fillHex, '#0369A1');
+  assert.equal(getAislePaletteByIndex(5).fillHex, '#4F46E5');
+
+  const st = createInitialSeatingProState({
+    classId: 'color_test',
+    className: '10A1',
+    teacherName: 'GV',
+    sourceType: 'sample_editable',
+    students: createSeatingSampleStudents('sample_25'),
+  });
+
+  // Flipping orientation 180° preserves logical aisleIndex on every aisle
+  const frontView = buildOrientedAislesView(st.room, 'front_board');
+  const backView = buildOrientedAislesView(st.room, 'back_of_class');
+  assert.equal(frontView[0].aisle.name, 'Dãy 1');
+  assert.equal(getAislePaletteByIndex(frontView[0].aisleIndex).fillHex, '#047857');
+  assert.equal(backView[2].aisle.name, 'Dãy 1');
+  assert.equal(getAislePaletteByIndex(backView[2].aisleIndex).fillHex, '#047857');
+  assert.equal(backView[1].aisle.name, 'Dãy 2');
+  assert.equal(getAislePaletteByIndex(backView[1].aisleIndex).fillHex, '#0369A1');
+  assert.equal(backView[0].aisle.name, 'Dãy 3');
+  assert.equal(getAislePaletteByIndex(backView[0].aisleIndex).fillHex, '#4F46E5');
+
+  // Solve initial seating, then move a student from Dãy 1 to an empty seat in Dãy 3
+  const solved = runSeatingAssignmentSolver({ state: st, skipAnimation: true }).nextState;
+  const { locationsById } = indexRoomSeats(solved.room);
+  const day1OccupiedSeat = solved.room.aisles[0].desks
+    .flatMap((d) => d.seatIds)
+    .find((sId) => Boolean(solved.assignments[sId]))!;
+  const day3EmptySeat = solved.room.aisles[2].desks
+    .flatMap((d) => d.seatIds)
+    .find((sId) => !solved.assignments[sId])!;
+
+  const movedStudentId = solved.assignments[day1OccupiedSeat]!;
+  const afterMove = swapOrMoveSeatAction(solved, day1OccupiedSeat, day3EmptySeat);
+
+  assert.equal(afterMove.ok, true);
+  assert.equal(afterMove.nextState.assignments[day1OccupiedSeat] ?? null, null, 'Old seat in Dãy 1 becomes empty');
+  assert.equal(afterMove.nextState.assignments[day3EmptySeat], movedStudentId, 'Target seat in Dãy 3 receives student');
+  assert.equal(
+    getAislePaletteByIndex(locationsById.get(day3EmptySeat)!.aisleIndex).fillHex,
+    '#4F46E5',
+    'Student at new seat in Dãy 3 takes Dãy 3 color #4F46E5'
+  );
+});
+

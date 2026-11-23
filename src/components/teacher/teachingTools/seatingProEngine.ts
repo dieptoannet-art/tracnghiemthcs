@@ -156,6 +156,59 @@ export interface SeatingStatsSummary {
   spread: number;
 }
 
+export interface SeatingAisleColorSpec {
+  fillHex: string;
+  borderHex: string;
+  lightTintHex: string;
+  lightBorderHex: string;
+  seatFillCls: string;
+  aisleHeaderCls: string;
+  aisleContainerCls: string;
+}
+
+/**
+ * Bảng màu nền ô học sinh theo dãy (gắn cố định với mã dãy logic 0-based):
+ * - Dãy 1 (index 0): xanh ngọc đậm #047857
+ * - Dãy 2 (index 1): xanh lam đậm #0369A1
+ * - Dãy 3 (index 2): tím chàm #4F46E5
+ * - Từ dãy 4 trở đi: lặp theo đúng thứ tự dãy (index % 3)
+ */
+export const SEATING_AISLE_PALETTE: readonly SeatingAisleColorSpec[] = [
+  {
+    fillHex: '#047857',
+    borderHex: '#065F46',
+    lightTintHex: '#ECFDF5',
+    lightBorderHex: '#A7F3D0',
+    seatFillCls: 'bg-[#047857] border-[#065F46] text-white hover:bg-[#065F46]',
+    aisleHeaderCls: 'bg-[#047857] text-white',
+    aisleContainerCls: 'border-emerald-200 bg-emerald-50/45',
+  },
+  {
+    fillHex: '#0369A1',
+    borderHex: '#075985',
+    lightTintHex: '#F0F9FF',
+    lightBorderHex: '#BAE6FD',
+    seatFillCls: 'bg-[#0369A1] border-[#075985] text-white hover:bg-[#075985]',
+    aisleHeaderCls: 'bg-[#0369A1] text-white',
+    aisleContainerCls: 'border-sky-200 bg-sky-50/45',
+  },
+  {
+    fillHex: '#4F46E5',
+    borderHex: '#3730A3',
+    lightTintHex: '#EEF2FF',
+    lightBorderHex: '#C7D2FE',
+    seatFillCls: 'bg-[#4F46E5] border-[#3730A3] text-white hover:bg-[#4338CA]',
+    aisleHeaderCls: 'bg-[#4F46E5] text-white',
+    aisleContainerCls: 'border-indigo-200 bg-indigo-50/45',
+  },
+] as const;
+
+export function getAislePaletteByIndex(aisleIndex: number): SeatingAisleColorSpec {
+  const len = SEATING_AISLE_PALETTE.length;
+  const normalized = ((Math.trunc(aisleIndex) % len) + len) % len;
+  return SEATING_AISLE_PALETTE[normalized];
+}
+
 // ============================================================================
 // ID & DATE HELPERS
 // ============================================================================
@@ -2489,8 +2542,6 @@ export function exportSeatingChartPngDataUrl(state: SeatingProState): string | n
   ctx.scale(scale, scale);
 
   const isBW = state.colorTheme === 'bw';
-  const isMulti = state.colorTheme === 'multicolor';
-  const multiPalette = ['#1D4ED8', '#047857', '#B45309', '#6D28D9', '#0E7490', '#BE123C'];
 
   // Background
   ctx.fillStyle = isBW ? '#FFFFFF' : '#F8FBFF';
@@ -2576,7 +2627,8 @@ export function exportSeatingChartPngDataUrl(state: SeatingProState): string | n
 
   orientedAisles.forEach((aView, viewIdx) => {
     const ax = startX + viewIdx * (aisleWidth + aisleGap);
-    const accent = isBW ? '#000000' : isMulti ? multiPalette[aView.aisleIndex % multiPalette.length] : '#0F2D52';
+    const palette = getAislePaletteByIndex(aView.aisleIndex);
+    const accent = isBW ? '#000000' : palette.fillHex;
 
     // Aisle label
     ctx.fillStyle = accent;
@@ -2587,8 +2639,8 @@ export function exportSeatingChartPngDataUrl(state: SeatingProState): string | n
     aView.desks.forEach((dView, dScreenIdx) => {
       const dy = aislesTopY + 28 + dScreenIdx * (deskH + deskGap);
       // Desk wrapper
-      ctx.fillStyle = isBW ? '#FFFFFF' : '#FFFFFF';
-      ctx.strokeStyle = isBW ? '#000000' : '#CBD5E1';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = isBW ? '#000000' : palette.lightBorderHex;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.roundRect(ax, dy, aisleWidth, deskH, 10);
@@ -2596,7 +2648,7 @@ export function exportSeatingChartPngDataUrl(state: SeatingProState): string | n
       ctx.stroke();
 
       // Desk label bar
-      ctx.fillStyle = isBW ? '#F3F4F6' : isMulti ? `${accent}18` : '#F1F5F9';
+      ctx.fillStyle = isBW ? '#F3F4F6' : palette.lightTintHex;
       ctx.beginPath();
       ctx.roundRect(ax + 1, dy + 1, aisleWidth - 2, 22, [9, 9, 0, 0]);
       ctx.fill();
@@ -2623,38 +2675,65 @@ export function exportSeatingChartPngDataUrl(state: SeatingProState): string | n
         const isPinned = pinnedSet.has(seatId);
         const stuId = state.assignments[seatId];
         const info = stuId ? studentIdxMap.get(stuId) : undefined;
+        const hasOccupiedStudent = Boolean(info) && !isLocked;
 
-        ctx.fillStyle = isLocked
-          ? isBW
-            ? '#E5E7EB'
-            : '#F1F5F9'
-          : isPinned
-            ? isBW
-              ? '#FFFFFF'
-              : '#EFF6FF'
-            : '#FFFFFF';
-        ctx.strokeStyle = isLocked
-          ? isBW
-            ? '#444444'
-            : '#94A3B8'
-          : isPinned
-            ? isBW
-              ? '#000000'
-              : '#1769F4'
-            : isBW
-              ? '#000000'
-              : '#E2E8F0';
-        ctx.lineWidth = isPinned ? 2 : 1;
+        if (isLocked) {
+          ctx.fillStyle = isBW ? '#E5E7EB' : '#F1F5F9';
+          ctx.strokeStyle = isBW ? '#444444' : '#94A3B8';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 4]);
+        } else if (hasOccupiedStudent) {
+          ctx.fillStyle = isBW ? '#FFFFFF' : palette.fillHex;
+          ctx.strokeStyle = isBW
+            ? '#000000'
+            : isPinned
+              ? '#FBBF24'
+              : palette.borderHex;
+          ctx.lineWidth = isPinned ? 2.5 : isBW ? 1.8 : 1.5;
+          ctx.setLineDash([]);
+        } else {
+          // Empty seat: #F8FAFC + dashed border #CBD5E1 (or dashed black in BW)
+          ctx.fillStyle = isBW ? '#FFFFFF' : '#F8FAFC';
+          ctx.strokeStyle = isBW ? '#000000' : '#CBD5E1';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 4]);
+        }
+
         ctx.beginPath();
         ctx.roundRect(sx, seatY, seatW, seatH, 6);
         ctx.fill();
         ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Top-left seat code C1, C2...
+        const seatCodeLabel = `C${sScreenIdx + 1}`;
+        ctx.textAlign = 'left';
+        ctx.font = '700 8.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = isLocked
+          ? isBW
+            ? '#333333'
+            : '#64748B'
+          : hasOccupiedStudent
+            ? isBW
+              ? '#222222'
+              : 'rgba(255, 255, 255, 0.86)'
+            : isBW
+              ? '#555555'
+              : '#94A3B8';
+        ctx.fillText(seatCodeLabel, sx + 5, seatY + 11);
+
+        if (isPinned && hasOccupiedStudent) {
+          ctx.textAlign = 'right';
+          ctx.font = '800 8px "Be Vietnam Pro", system-ui, sans-serif';
+          ctx.fillStyle = isBW ? '#000000' : '#FDE68A';
+          ctx.fillText('GHIM', sx + seatW - 5, seatY + 11);
+        }
 
         ctx.textAlign = 'center';
         if (isLocked) {
           ctx.fillStyle = isBW ? '#000000' : '#64748B';
           ctx.font = '700 10px "Be Vietnam Pro", system-ui, sans-serif';
-          ctx.fillText('KHÓA', sx + seatW / 2, seatY + seatH / 2 + 4);
+          ctx.fillText('Khóa', sx + seatW / 2, seatY + seatH / 2 + 6);
         } else if (info) {
           const formatted = formatStudentDisplayName({
             student: info.stu,
@@ -2662,20 +2741,45 @@ export function exportSeatingChartPngDataUrl(state: SeatingProState): string | n
             mode: state.nameDisplayMode,
             allStudents: state.students,
           });
-          ctx.fillStyle = isBW ? '#000000' : '#0F2D52';
-          ctx.font = '700 11px "Be Vietnam Pro", system-ui, sans-serif';
-          // Fit text safely within seat width
-          const label = isPinned ? `★ ${formatted.primary}` : formatted.primary;
-          ctx.fillText(label, sx + seatW / 2, seatY + (formatted.secondaryCode ? 20 : 28), seatW - 8);
+          ctx.fillStyle = isBW ? '#000000' : '#FFFFFF';
+          ctx.font = '800 10.5px "Be Vietnam Pro", system-ui, sans-serif';
+
+          // Wrap long student name onto up to 2 lines so full names are never cut off
+          const words = formatted.primary.trim().split(/\s+/);
+          const maxLineW = seatW - 10;
+          const lines: string[] = [];
+          let currentLine = '';
+          for (const w of words) {
+            const testLine = currentLine ? `${currentLine} ${w}` : w;
+            if (ctx.measureText(testLine).width <= maxLineW || !currentLine) {
+              currentLine = testLine;
+            } else {
+              lines.push(currentLine);
+              currentLine = w;
+            }
+          }
+          if (currentLine) lines.push(currentLine);
+
+          if (lines.length === 1) {
+            const yText = formatted.secondaryCode ? seatY + 25 : seatY + 29;
+            ctx.fillText(lines[0], sx + seatW / 2, yText, maxLineW);
+          } else {
+            const line1 = lines.slice(0, Math.ceil(lines.length / 2)).join(' ');
+            const line2 = lines.slice(Math.ceil(lines.length / 2)).join(' ');
+            const yBase = formatted.secondaryCode ? seatY + 21 : seatY + 24;
+            ctx.fillText(line1, sx + seatW / 2, yBase, maxLineW);
+            ctx.fillText(line2, sx + seatW / 2, yBase + 11.5, maxLineW);
+          }
+
           if (formatted.secondaryCode) {
-            ctx.fillStyle = isBW ? '#333333' : '#64748B';
-            ctx.font = '600 9px "JetBrains Mono", monospace';
-            ctx.fillText(formatted.secondaryCode, sx + seatW / 2, seatY + 37, seatW - 8);
+            ctx.fillStyle = isBW ? '#333333' : 'rgba(255, 255, 255, 0.88)';
+            ctx.font = '600 8.5px "JetBrains Mono", monospace';
+            ctx.fillText(formatted.secondaryCode, sx + seatW / 2, seatY + seatH - 4, maxLineW);
           }
         } else {
-          ctx.fillStyle = isBW ? '#555555' : '#94A3B8';
-          ctx.font = '500 10px "Be Vietnam Pro", system-ui, sans-serif';
-          ctx.fillText('Trống', sx + seatW / 2, seatY + seatH / 2 + 4);
+          ctx.fillStyle = isBW ? '#555555' : '#64748B';
+          ctx.font = '600 10px "Be Vietnam Pro", system-ui, sans-serif';
+          ctx.fillText('Trống', sx + seatW / 2, seatY + seatH / 2 + 6);
         }
       });
     });

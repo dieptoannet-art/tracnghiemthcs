@@ -18,6 +18,7 @@ import {
   computeSeatingStats,
   formatIsoDateVi,
   formatStudentDisplayName,
+  getAislePaletteByIndex,
   getRoomCapacitySummary,
 } from './seatingProEngine';
 
@@ -38,15 +39,6 @@ export interface ClassroomMapViewProps {
   onDirectPinToggle?: (seatId: string) => void;
 }
 
-const MULTI_AISLE_STYLES = [
-  { header: 'bg-blue-700 text-white', border: 'border-blue-200', tint: 'bg-blue-50/70' },
-  { header: 'bg-emerald-700 text-white', border: 'border-emerald-200', tint: 'bg-emerald-50/70' },
-  { header: 'bg-amber-700 text-white', border: 'border-amber-200', tint: 'bg-amber-50/70' },
-  { header: 'bg-violet-700 text-white', border: 'border-violet-200', tint: 'bg-violet-50/70' },
-  { header: 'bg-cyan-700 text-white', border: 'border-cyan-200', tint: 'bg-cyan-50/70' },
-  { header: 'bg-rose-700 text-white', border: 'border-rose-200', tint: 'bg-rose-50/70' },
-];
-
 export const ClassroomMapView: React.FC<ClassroomMapViewProps> = ({
   state,
   interactive,
@@ -64,7 +56,6 @@ export const ClassroomMapView: React.FC<ClassroomMapViewProps> = ({
   onDirectPinToggle,
 }) => {
   const isBW = forceBW || state.colorTheme === 'bw';
-  const isMulti = !isBW && state.colorTheme === 'multicolor';
   const isRotated180 = state.orientation === 'back_of_class';
 
   const orientedAisles = useMemo(
@@ -175,19 +166,21 @@ export const ClassroomMapView: React.FC<ClassroomMapViewProps> = ({
         }}
       >
         {orientedAisles.map((aView) => {
-          const aisleStyle = isBW
-            ? { header: 'bg-black text-white', border: 'border-black', tint: 'bg-white' }
-            : isMulti
-              ? MULTI_AISLE_STYLES[aView.aisleIndex % MULTI_AISLE_STYLES.length]
-              : { header: 'bg-[#0F2D52] text-white', border: 'border-[#DCE8F7]', tint: 'bg-[#F8FBFF]' };
+          const palette = getAislePaletteByIndex(aView.aisleIndex);
+          const aisleHeaderCls = isBW ? 'bg-black text-white' : palette.aisleHeaderCls;
+          const aisleContainerCls = isBW
+            ? 'border-black bg-white'
+            : palette.aisleContainerCls;
 
           return (
             <div
               key={aView.aisle.id}
-              className={`rounded-xl border ${aisleStyle.border} ${aisleStyle.tint} p-2.5 flex flex-col gap-2.5`}
+              data-aisle-id={aView.aisle.id}
+              data-aisle-index={aView.aisleIndex}
+              className={`rounded-xl border ${aisleContainerCls} p-2.5 flex flex-col gap-2.5`}
             >
               <div
-                className={`px-3 py-1.5 rounded-lg text-center text-xs font-extrabold tracking-wide ${aisleStyle.header}`}
+                className={`px-3 py-1.5 rounded-lg text-center text-xs font-extrabold tracking-wide ${aisleHeaderCls}`}
               >
                 {aView.aisle.name}
               </div>
@@ -223,7 +216,7 @@ export const ClassroomMapView: React.FC<ClassroomMapViewProps> = ({
                           gridTemplateColumns: `repeat(${Math.max(1, dView.seatIds.length)}, minmax(0, 1fr))`,
                         }}
                       >
-                        {dView.seatIds.map((seatId) => {
+                        {dView.seatIds.map((seatId, seatPosIdx) => {
                           const isLocked = lockedSet.has(seatId);
                           const isPinned = pinnedSet.has(seatId);
                           const rawStuId = seatAssignmentsOverride
@@ -236,6 +229,7 @@ export const ClassroomMapView: React.FC<ClassroomMapViewProps> = ({
                             revealedSeatSet.has(seatId);
                           const stuId = isVisibleInAnim ? rawStuId : null;
                           const stuInfo = stuId ? studentIdxMap.get(stuId) : undefined;
+                          const hasOccupiedStudent = Boolean(stuInfo) && !isLocked;
                           const isSelected = selectedSeatId === seatId;
                           const isRecentlyLanded = Boolean(recentlyLandedSeatIds?.has(seatId));
                           const formatted = stuInfo
@@ -250,48 +244,77 @@ export const ClassroomMapView: React.FC<ClassroomMapViewProps> = ({
                           const waitingTargetReady =
                             Boolean(selectedWaitingStudentId) && !isLocked && !(isPinned && rawStuId);
 
-                          const seatCls = isLocked
+                          // Base seat surface style:
+                          // 1) Locked seat -> light gray + dashed border + lock/ban icon + "Khóa"
+                          // 2) Occupied seat -> full edge-to-edge aisle fill (#047857 / #0369A1 / #4F46E5) + white bold text (or solid black border in BW)
+                          // 3) Empty seat -> #F8FAFC background + dashed #CBD5E1 border + "Trống" (or dashed black border in BW)
+                          let baseSurfaceCls = '';
+                          if (isLocked) {
+                            baseSurfaceCls = isBW
+                              ? 'bg-neutral-200 border border-dashed border-black text-black'
+                              : 'bg-slate-100 border border-dashed border-slate-300 text-slate-500';
+                          } else if (hasOccupiedStudent) {
+                            baseSurfaceCls = isBW
+                              ? 'bg-white border-2 border-solid border-black text-black'
+                              : `border ${palette.seatFillCls} shadow-xs`;
+                          } else {
+                            baseSurfaceCls = isBW
+                              ? 'bg-white border border-dashed border-black text-neutral-600'
+                              : waitingTargetReady
+                                ? 'bg-emerald-50/80 border border-dashed border-emerald-500 hover:border-emerald-600 text-emerald-900'
+                                : 'bg-[#F8FAFC] border border-dashed border-[#CBD5E1] hover:border-slate-400 text-slate-500';
+                          }
+
+                          // Overlay rings for Selected, Pinned, Recently Landed, or Waiting Target on occupied seat
+                          let overlayRingCls = '';
+                          if (isSelected) {
+                            overlayRingCls = isBW
+                              ? 'ring-3 ring-black border-2 border-black'
+                              : hasOccupiedStudent
+                                ? 'ring-3 ring-amber-400 border-amber-300 shadow-md'
+                                : 'bg-amber-50/70 border-2 border-dashed border-amber-500 ring-3 ring-amber-300 text-[#082B52]';
+                          } else if (isRecentlyLanded && hasOccupiedStudent) {
+                            overlayRingCls = isBW
+                              ? 'ring-2 ring-black'
+                              : 'ring-3 ring-amber-300 shadow-md';
+                          } else if (isPinned && hasOccupiedStudent) {
+                            overlayRingCls = isBW
+                              ? 'border-2 border-black'
+                              : 'ring-2 ring-white/55';
+                          } else if (waitingTargetReady && hasOccupiedStudent && !isBW) {
+                            overlayRingCls = 'ring-2 ring-emerald-300';
+                          }
+
+                          const seatCodeColorCls = isLocked
                             ? isBW
-                              ? 'bg-neutral-200 border-dashed border-black text-black'
-                              : 'bg-slate-100 border-dashed border-slate-300 text-slate-500'
-                            : isSelected
+                              ? 'text-black/75'
+                              : 'text-slate-500'
+                            : hasOccupiedStudent
                               ? isBW
-                                ? 'bg-neutral-100 border-2 border-black ring-2 ring-black'
-                                : 'bg-amber-50 border-amber-500 ring-2 ring-amber-400 text-[#0F2D52]'
-                              : isRecentlyLanded
-                                ? isBW
-                                  ? 'bg-neutral-100 border-2 border-black ring-2 ring-black'
-                                  : 'bg-emerald-50/85 border-emerald-400 ring-2 ring-emerald-300 text-[#065F46]'
-                                : waitingTargetReady
-                                  ? 'bg-emerald-50/70 border-emerald-400 hover:border-emerald-600 text-[#0F2D52]'
-                                  : stuInfo
-                                    ? isPinned
-                                      ? isBW
-                                        ? 'bg-white border-2 border-black text-black'
-                                        : 'bg-blue-50 border-[#1769F4] text-[#082B52]'
-                                      : isBW
-                                        ? 'bg-white border-black text-black'
-                                        : 'bg-white border-slate-200 hover:border-[#1769F4] text-[#0F2D52]'
-                                    : isBW
-                                      ? 'bg-white border-dotted border-black text-neutral-500'
-                                      : 'bg-slate-50/80 border-slate-200 hover:border-slate-400 text-slate-400';
+                                ? 'text-black/80'
+                                : 'text-white/85'
+                              : isBW
+                                ? 'text-black/70'
+                                : 'text-slate-400';
 
                           const Tag = interactive ? 'button' : 'div';
                           return (
                             <Tag
                               key={seatId}
                               data-seat-id={seatId}
+                              data-seat-occupied={hasOccupiedStudent ? 'true' : 'false'}
+                              data-seat-aisle-hex={!isBW && hasOccupiedStudent ? palette.fillHex : undefined}
                               type={interactive ? 'button' : undefined}
                               onClick={interactive ? () => onSeatClick?.(seatId) : undefined}
-                              className={`relative rounded-md border px-1.5 py-2 min-h-[60px] flex flex-col justify-between text-center transition-colors ${
+                              className={`relative rounded-lg px-2 py-2 min-h-[66px] flex flex-col justify-between text-center transition-all ${
                                 interactive ? 'cursor-pointer touch-manipulation' : ''
-                              } ${seatCls} ${
-                                editToolMode === 'lock' && interactive ? 'hover:ring-1 hover:ring-rose-400' : ''
+                              } ${baseSurfaceCls} ${overlayRingCls} ${
+                                editToolMode === 'lock' && interactive ? 'hover:ring-2 hover:ring-rose-400' : ''
                               }`}
                             >
-                              <div className="flex items-center justify-between gap-1 text-[10px]">
-                                <span className="font-mono-num opacity-75">
-                                  C{dView.seatIds.indexOf(seatId) + 1}
+                              <div className="flex items-center justify-between gap-1 text-[10px] w-full">
+                                <span className={`font-mono-num font-bold leading-none ${seatCodeColorCls}`}>
+                                  C{seatPosIdx + 1}
                                 </span>
                                 {isPinned && (
                                   interactive && onDirectPinToggle ? (
@@ -310,18 +333,36 @@ export const ClassroomMapView: React.FC<ClassroomMapViewProps> = ({
                                         }
                                       }}
                                       title="Bỏ ghim vị trí"
-                                      className={`inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-bold ${
-                                        isBW ? 'bg-black text-white' : 'bg-[#1769F4] text-white'
+                                      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold leading-none ${
+                                        isBW
+                                          ? 'bg-black text-white'
+                                          : hasOccupiedStudent
+                                            ? 'bg-white/25 text-white border border-white/50 hover:bg-white/35'
+                                            : 'bg-[#1769F4] text-white'
                                       }`}
                                     >
                                       <Pin className="w-2.5 h-2.5" />
                                     </span>
                                   ) : (
-                                    <Pin className={`w-3 h-3 ${isBW ? 'text-black' : 'text-[#1769F4]'}`} />
+                                    <span
+                                      className={`inline-flex items-center justify-center p-0.5 rounded ${
+                                        isBW
+                                          ? 'text-black'
+                                          : hasOccupiedStudent
+                                            ? 'bg-white/20 text-white'
+                                            : 'text-[#1769F4]'
+                                      }`}
+                                    >
+                                      <Pin className="w-3 h-3" />
+                                    </span>
                                   )
                                 )}
-                                {!isPinned && interactive && stuInfo && editToolMode === 'pin' && (
-                                  <PinOff className="w-3 h-3 text-slate-400" />
+                                {!isPinned && interactive && hasOccupiedStudent && editToolMode === 'pin' && (
+                                  <PinOff
+                                    className={`w-3 h-3 ${
+                                      isBW ? 'text-black/60' : 'text-white/75'
+                                    }`}
+                                  />
                                 )}
                               </div>
 
@@ -331,22 +372,28 @@ export const ClassroomMapView: React.FC<ClassroomMapViewProps> = ({
                                   <span>Khóa</span>
                                 </div>
                               ) : formatted ? (
-                                <div className="my-auto space-y-0.5">
+                                <div className="my-auto w-full px-0.5 space-y-0.5">
                                   <div
-                                    className={`font-bold leading-tight break-words ${
-                                      isProjector ? 'text-sm' : 'text-[11px] sm:text-xs'
+                                    className={`font-extrabold leading-snug break-words whitespace-normal text-center ${
+                                      isBW ? 'text-black' : 'text-white'
+                                    } ${
+                                      isProjector ? 'text-sm sm:text-base' : 'text-xs sm:text-[13px]'
                                     }`}
                                   >
                                     {formatted.primary}
                                   </div>
                                   {formatted.secondaryCode && (
-                                    <div className="text-[9px] font-mono-num opacity-75">
+                                    <div
+                                      className={`text-[9px] font-mono-num font-semibold ${
+                                        isBW ? 'text-black/75' : 'text-white/85'
+                                      }`}
+                                    >
                                       {formatted.secondaryCode}
                                     </div>
                                   )}
                                 </div>
                               ) : (
-                                <div className="my-auto text-[10px] font-semibold">
+                                <div className="my-auto text-[11px] font-semibold">
                                   {rawStuId && !isVisibleInAnim ? 'Đang xếp...' : 'Trống'}
                                 </div>
                               )}

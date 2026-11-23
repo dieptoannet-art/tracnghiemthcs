@@ -65,6 +65,7 @@ import {
   finalizeSeatingReveal,
   formatIsoDateVi,
   formatStudentDisplayName,
+  getAislePaletteByIndex,
   getEligibleSeatingStudents,
   getRoomCapacitySummary,
   getTodayIsoDate,
@@ -131,6 +132,55 @@ function downloadDataUrl(dataUrl: string, filename: string) {
   } catch {
     // Ignore cleanly
   }
+}
+
+/**
+ * Đảm bảo ngay khi mở công cụ Sơ đồ chỗ ngồi lần đầu (chưa có ghế nào được xếp và chưa có lịch sử thao tác),
+ * sơ đồ tự động xếp sẵn học sinh vào các dãy để hiển thị ngay màu nền ô học sinh theo dãy (#047857, #0369A1, #4F46E5).
+ */
+function ensureInitialSeatedState(raw: SeatingProState): SeatingProState {
+  const hasAnyAssigned = Object.values(raw.assignments).some((stuId) => Boolean(stuId));
+  if (hasAnyAssigned || raw.undoStack.length > 0 || raw.pinnedSeatIds.length > 0) {
+    return raw;
+  }
+  const eligible = getEligibleSeatingStudents(raw);
+  if (eligible.length === 0) {
+    return raw;
+  }
+
+  const solved = runSeatingAssignmentSolver({
+    state: raw,
+    skipAnimation: true,
+  });
+  if (solved.ok) {
+    return {
+      ...solved.nextState,
+      activeReveal: null,
+      undoStack: [],
+    };
+  }
+
+  // Trường hợp lớp mẫu 50 HS trên phòng mặc định 36 ghế: xếp trước các ghế khả dụng theo từng bàn/dãy
+  const { orderedSeatIds } = indexRoomSeats(raw.room);
+  const lockedSet = new Set(raw.lockedSeatIds);
+  const availSeats = orderedSeatIds.filter((sId) => !lockedSet.has(sId));
+  if (availSeats.length === 0) return raw;
+
+  const nextAssignments: Record<string, string | null> = {};
+  orderedSeatIds.forEach((sId) => {
+    nextAssignments[sId] = null;
+  });
+  availSeats.forEach((sId, idx) => {
+    if (idx < eligible.length) {
+      nextAssignments[sId] = eligible[idx].id;
+    }
+  });
+
+  return {
+    ...raw,
+    assignments: nextAssignments,
+    activeReveal: null,
+  };
 }
 
 export const SeatingChartTool: React.FC<SeatingChartToolProps> = ({
@@ -250,48 +300,56 @@ export const SeatingChartTool: React.FC<SeatingChartToolProps> = ({
   const [state, setState] = useState<SeatingProState>(() => {
     const saved = loadSeatingProState(activeSourceMeta.id, accountScopeId);
     if (saved) {
-      return syncSeatingWithUpstreamStudents(
-        saved,
-        activeSourceMeta.students.map((s) => ({
-          id: s.id,
-          code: s.code,
-          fullName: s.fullName,
-        }))
+      return ensureInitialSeatedState(
+        syncSeatingWithUpstreamStudents(
+          saved,
+          activeSourceMeta.students.map((s) => ({
+            id: s.id,
+            code: s.code,
+            fullName: s.fullName,
+          }))
+        )
       );
     }
-    return createInitialSeatingProState({
-      classId: activeSourceMeta.id,
-      className: activeSourceMeta.name,
-      teacherName: activeSourceMeta.teacherName,
-      sourceType: activeSourceMeta.sourceType,
-      students: activeSourceMeta.students,
-      legacySeating: activeSourceMeta.id === classId ? seatingState : null,
-    });
-  });
-
-  // Reload state whenever active source class or account scope changes
-  useEffect(() => {
-    const saved = loadSeatingProState(activeSourceMeta.id, accountScopeId);
-    if (saved) {
-      const synced = syncSeatingWithUpstreamStudents(
-        saved,
-        activeSourceMeta.students.map((s) => ({
-          id: s.id,
-          code: s.code,
-          fullName: s.fullName,
-        }))
-      );
-      setState(synced);
-      saveSeatingProState(synced, accountScopeId);
-    } else {
-      const fresh = createInitialSeatingProState({
+    return ensureInitialSeatedState(
+      createInitialSeatingProState({
         classId: activeSourceMeta.id,
         className: activeSourceMeta.name,
         teacherName: activeSourceMeta.teacherName,
         sourceType: activeSourceMeta.sourceType,
         students: activeSourceMeta.students,
         legacySeating: activeSourceMeta.id === classId ? seatingState : null,
-      });
+      })
+    );
+  });
+
+  // Reload state whenever active source class or account scope changes
+  useEffect(() => {
+    const saved = loadSeatingProState(activeSourceMeta.id, accountScopeId);
+    if (saved) {
+      const synced = ensureInitialSeatedState(
+        syncSeatingWithUpstreamStudents(
+          saved,
+          activeSourceMeta.students.map((s) => ({
+            id: s.id,
+            code: s.code,
+            fullName: s.fullName,
+          }))
+        )
+      );
+      setState(synced);
+      saveSeatingProState(synced, accountScopeId);
+    } else {
+      const fresh = ensureInitialSeatedState(
+        createInitialSeatingProState({
+          classId: activeSourceMeta.id,
+          className: activeSourceMeta.name,
+          teacherName: activeSourceMeta.teacherName,
+          sourceType: activeSourceMeta.sourceType,
+          students: activeSourceMeta.students,
+          legacySeating: activeSourceMeta.id === classId ? seatingState : null,
+        })
+      );
       setState(fresh);
       saveSeatingProState(fresh, accountScopeId);
     }
@@ -529,6 +587,7 @@ export const SeatingChartTool: React.FC<SeatingChartToolProps> = ({
   const isAnimating = Boolean(state.activeReveal && state.activeReveal.status === 'animating');
 
   const capacitySummary = useMemo(() => getRoomCapacitySummary(state), [state]);
+  const roomSeatIndex = useMemo(() => indexRoomSeats(state.room), [state.room]);
   const eligibleStudents = useMemo(() => getEligibleSeatingStudents(state), [state]);
   const waitingStudents = useMemo(() => getUnassignedStudents(state), [state]);
   const statsSummary = useMemo(
@@ -1959,24 +2018,40 @@ export const SeatingChartTool: React.FC<SeatingChartToolProps> = ({
                           })
                         : { primary: move.studentId, secondaryCode: null };
 
+                      const targetLoc = roomSeatIndex.locationsById.get(move.toSeatId);
+                      const targetPalette = getAislePaletteByIndex(targetLoc?.aisleIndex ?? 0);
+                      const isBW = state.colorTheme === 'bw';
+
                       return (
                         <div
                           key={move.moveId}
                           style={{
                             width: `${Math.max(82, toRect.w)}px`,
-                            minHeight: `${Math.max(54, toRect.h)}px`,
+                            minHeight: `${Math.max(58, toRect.h)}px`,
                             transform: `translate3d(${curX.toFixed(1)}px, ${curY.toFixed(1)}px, 0) scale(1.06)`,
                           }}
-                          className="absolute top-0 left-0 rounded-lg border-2 border-[#1769F4] bg-white text-[#082B52] shadow-xl px-1.5 py-1.5 flex flex-col items-center justify-center text-center will-change-transform"
+                          className={`absolute top-0 left-0 rounded-lg border-2 shadow-xl px-2 py-1.5 flex flex-col items-center justify-center text-center will-change-transform ${
+                            isBW
+                              ? 'border-black bg-white text-black'
+                              : `${targetPalette.seatFillCls} border-amber-300 ring-2 ring-amber-300/80 text-white`
+                          }`}
                         >
-                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#1769F4]">
+                          <span
+                            className={`text-[9px] font-extrabold uppercase tracking-wider ${
+                              isBW ? 'text-black/75' : 'text-amber-200'
+                            }`}
+                          >
                             {move.isSwap ? 'Đổi chỗ' : 'Xếp vào bàn'}
                           </span>
-                          <span className="text-[11px] sm:text-xs font-extrabold leading-tight break-words w-full">
+                          <span className="text-xs font-extrabold leading-snug break-words whitespace-normal w-full">
                             {labelInfo.primary}
                           </span>
                           {labelInfo.secondaryCode && (
-                            <span className="text-[9px] font-mono-num text-slate-500">
+                            <span
+                              className={`text-[9px] font-mono-num ${
+                                isBW ? 'text-black/75' : 'text-white/85'
+                              }`}
+                            >
                               {labelInfo.secondaryCode}
                             </span>
                           )}
