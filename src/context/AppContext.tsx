@@ -114,6 +114,9 @@ interface AppContextType {
   pendingGameLaunch: { gameId: string; classId?: string; nonce: number } | null;
   openGameCenterTool: (gameId: string, classId?: string) => void;
   clearPendingGameLaunch: () => void;
+  pendingTeachingTool: { toolId: string; nonce: number } | null;
+  openTeachingTool: (toolId: string) => void;
+  clearPendingTeachingTool: () => void;
 
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
@@ -435,6 +438,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     classId?: string;
     nonce: number;
   } | null>(null);
+  const [pendingTeachingTool, setPendingTeachingTool] = useState<{
+    toolId: string;
+    nonce: number;
+  } | null>(null);
   const [preferredDemoAssignmentId, setPreferredDemoAssignmentId] = useState<string | null>(null);
   const [khktPresentationStep, setKhktPresentationStepState] = useState<number>(() => {
     if (typeof window === 'undefined') return 1;
@@ -493,6 +500,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const clearPendingGameLaunch = useCallback(() => {
     setPendingGameLaunch(null);
+  }, []);
+
+  const openTeachingTool = useCallback(
+    (toolId: string) => {
+      setPendingTeachingTool({ toolId, nonce: Date.now() });
+      setCurrentView('teacher_tools');
+    },
+    [setCurrentView]
+  );
+
+  const clearPendingTeachingTool = useCallback(() => {
+    setPendingTeachingTool(null);
   }, []);
 
   const enterKhktDemo = useCallback((targetView: string = 'dashboard') => {
@@ -2741,6 +2760,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         pendingGameLaunch,
         openGameCenterTool,
         clearPendingGameLaunch,
+        pendingTeachingTool,
+        openTeachingTool,
+        clearPendingTeachingTool,
         preferredDemoAssignmentId,
         setPreferredDemoAssignmentId,
         khktPresentationStep,

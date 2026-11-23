@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   Package,
   RefreshCw,
+  Search,
   Sparkles,
   Square,
   Timer,
@@ -33,6 +34,7 @@ import imgLessonPackage from '../../../assets/images/tool_lesson_package_3d_1795
 import imgQuestionBank from '../../../assets/images/tool_question_bank_3d_1795355621615.jpg';
 import imgReviewGames from '../../../assets/images/tool_review_games_3d_1795355621558.jpg';
 import imgQuickActivities from '../../../assets/images/tool_quick_activities_3d_1795355621312.jpg';
+import imgNamePicker from '../../../assets/images/tool_name_picker_3d_1795357938053.jpg';
 import {
   ACTIVITY_MODE_META,
   ClassTeachingSessionState,
@@ -40,6 +42,8 @@ import {
   TeachingToolId,
   ToolStudentItem,
   applyPackageForNewLesson,
+  buildPackageFromSession,
+  createDefaultActivityState,
   createFreshClassTeachingSession,
   formatTimerClock,
   getAvailableSeatKeys,
@@ -50,6 +54,13 @@ import {
   saveLessonPackagesList,
   tickTimerSnapshot,
 } from './teachingToolsEngine';
+import {
+  ActivityProPackageTemplate,
+  extractActivityProTemplate,
+  hydrateActivityProFromTemplate,
+  loadActivityProSession,
+  saveActivityProSession,
+} from './activityProEngine';
 import {
   ToolQuestionSet,
   loadToolQuestionSets,
@@ -71,10 +82,12 @@ import { LessonPackageTool } from './LessonPackageTool';
 import { ToolQuestionBankPanel } from './ToolQuestionBankPanel';
 import { ReviewGamesStudio } from './ReviewGamesStudio';
 import { QuickActivitiesTool } from './QuickActivitiesTool';
+import { NamePickerTool } from './NamePickerTool';
 
 interface ToolCardMeta {
   id: TeachingToolId;
   code: string;
+  category?: string;
   title: string;
   subtitle: string;
   image: string;
@@ -95,8 +108,9 @@ const TOOL_CARDS: ToolCardMeta[] = [
   {
     id: 'seating',
     code: 'B',
+    category: 'Quản lý lớp học',
     title: 'Sơ đồ chỗ ngồi',
-    subtitle: 'Thiết lập hàng × cột, ghế trống, ghim chỗ cố định, đổi chỗ và bản in lớp học.',
+    subtitle: 'Dãy × bàn × chỗ, tùy chỉnh từng bàn, ghim/khóa, không ngồi cùng bàn, xuất PNG/XLSX & in A4.',
     image: imgSeatingChart,
     icon: LayoutGrid,
     accentBg: 'from-[#0E4A6B] to-[#0284C7]',
@@ -104,8 +118,9 @@ const TOOL_CARDS: ToolCardMeta[] = [
   {
     id: 'activity',
     code: 'C',
-    title: 'Điều phối hoạt động nhóm',
-    subtitle: 'Luân chuyển trạm, Mảnh ghép, Khăn trải bàn, Phòng tranh kèm lịch vòng và đồng hồ.',
+    category: 'Quản lý lớp học',
+    title: 'Hoạt động nhóm',
+    subtitle: 'Dạy học theo trạm, Mảnh ghép, Khăn trải bàn, Phòng tranh kèm lịch vòng, trình chiếu & in A4.',
     image: imgActivityCoordinator,
     icon: RefreshCw,
     accentBg: 'from-[#0B5345] to-[#047857]',
@@ -163,6 +178,16 @@ const TOOL_CARDS: ToolCardMeta[] = [
     image: imgQuickActivities,
     icon: Sparkles,
     accentBg: 'from-[#0B5345] to-[#0D9488]',
+  },
+  {
+    id: 'name_picker',
+    code: 'J',
+    category: 'Quản lý lớp học',
+    title: 'Gọi tên & Bốc thăm',
+    subtitle: 'Quản lý lớp học: 5 chế độ gọi tên chống trùng lặp, điểm danh, điểm hoạt động, xúc xắc, đồng xu & bốc số.',
+    image: imgNamePicker,
+    icon: Dices,
+    accentBg: 'from-[#082B52] to-[#1769F4]',
   },
 ];
 
@@ -258,6 +283,7 @@ export const TeachingToolsHub: React.FC = () => {
     classes,
     questions,
     user,
+    userProfile,
     currentRole,
     isDemoSandbox,
     isUsingDemoAssignmentsData,
@@ -265,6 +291,9 @@ export const TeachingToolsHub: React.FC = () => {
     classRoles,
     teachingSchemaWarning,
     openGameCenterTool,
+    reducedMotion,
+    pendingTeachingTool,
+    clearPendingTeachingTool,
   } = useApp();
 
   const accountScopeId = isDemoSandbox ? 'demo_khkt' : (user?.id || 'guest_teacher');
@@ -333,15 +362,41 @@ export const TeachingToolsHub: React.FC = () => {
     loadToolQuestionSets(accountScopeId)
   );
   const [activeTool, setActiveTool] = useState<TeachingToolId | null>(null);
+  const [toolCategoryFilter, setToolCategoryFilter] = useState<'all' | 'classroom_mgmt' | 'teaching_eval'>('all');
+  const [toolSearchQuery, setToolSearchQuery] = useState<string>('');
   const [showAttendancePanel, setShowAttendancePanel] = useState<boolean>(false);
   const [isMutedGlobal, setIsMutedGlobal] = useState<boolean>(() => loadEduGameMuted(false));
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
   const [bannerNote, setBannerNote] = useState<string>('');
+  const [activityPackageHydrationSeq, setActivityPackageHydrationSeq] = useState<number>(0);
+
+  const filteredToolCards = useMemo(() => {
+    const q = toolSearchQuery.trim().toLowerCase();
+    return TOOL_CARDS.filter((card) => {
+      const isMgmt = card.category === 'Quản lý lớp học';
+      if (toolCategoryFilter === 'classroom_mgmt' && !isMgmt) return false;
+      if (toolCategoryFilter === 'teaching_eval' && isMgmt) return false;
+      if (!q) return true;
+      return (
+        card.title.toLowerCase().includes(q) ||
+        card.subtitle.toLowerCase().includes(q) ||
+        (card.category || '').toLowerCase().includes(q)
+      );
+    });
+  }, [toolCategoryFilter, toolSearchQuery]);
 
   useEffect(() => {
     setSavedPackages(loadLessonPackagesList(accountScopeId));
     setQuestionSets(loadToolQuestionSets(accountScopeId));
   }, [accountScopeId]);
+
+  useEffect(() => {
+    if (!pendingTeachingTool) return;
+    if (TOOL_CARDS.some((c) => c.id === pendingTeachingTool.toolId)) {
+      setActiveTool(pendingTeachingTool.toolId as TeachingToolId);
+    }
+    clearPendingTeachingTool();
+  }, [pendingTeachingTool, clearPendingTeachingTool]);
 
   useEffect(() => {
     if (!activeClass) {
@@ -494,6 +549,22 @@ export const TeachingToolsHub: React.FC = () => {
     return res;
   };
 
+  const handleSaveActivityProToPackage = (
+    template: ActivityProPackageTemplate,
+    suggestedTitle: string
+  ) => {
+    if (!session) return;
+    const newPkg = buildPackageFromSession({
+      name: suggestedTitle,
+      description: 'Lưu trực tiếp từ công cụ Hoạt động nhóm (4 kỹ thuật, không kèm danh sách HS).',
+      session,
+      activityProTemplate: template,
+    });
+    const nextList = [newPkg, ...savedPackages];
+    handleSavePackagesList(nextList);
+    setBannerNote(`Đã lưu "${newPkg.name}" vào danh sách Gói tiết dạy.`);
+  };
+
   const handleApplyPackageFresh = (pkg: LessonPackageItem) => {
     if (!activeClass || !session) return;
     if (pkg.config.embeddedQuestionSet) {
@@ -515,11 +586,22 @@ export const TeachingToolsHub: React.FC = () => {
         students: presentList,
       },
     });
+    if (pkg.config.activityProTemplate) {
+      const hydratedPro = hydrateActivityProFromTemplate({
+        template: pkg.config.activityProTemplate,
+        targetClassId: activeClass.id,
+        targetClassName: activeClass.name,
+        dividerGroups: freshFromPkg.groupsState.groups,
+        presentStudents: presentList,
+      });
+      saveActivityProSession(hydratedPro, accountScopeId);
+      setActivityPackageHydrationSeq((v) => v + 1);
+    }
     commitSession({
       ...freshFromPkg,
       absentStudentIds: session.absentStudentIds,
     });
-    setBannerNote(`Đã áp dụng gói "${pkg.name}" cho tiết mới của ${activeClass.name} (đã đặt lại điểm về 0).`);
+    setBannerNote(`Đã áp dụng gói "${pkg.name}" cho tiết mới của ${activeClass.name} (đã đặt lại điểm và đưa hoạt động về Pha 1).`);
   };
 
   const handleResumeSavedClassSession = () => {
@@ -589,6 +671,8 @@ export const TeachingToolsHub: React.FC = () => {
         return `${session.quickActivityState?.latestPairs?.pairs?.length || 0} cặp · ${
           (session.quickActivityState?.challenges || []).length || 6
         } thử thách`;
+      case 'name_picker':
+        return `Quản lý lớp học · 5 chế độ + 3 tiện ích`;
     }
   };
 
@@ -606,8 +690,8 @@ export const TeachingToolsHub: React.FC = () => {
             </h1>
             <p className="text-xs sm:text-sm text-slate-600">
               {activeClass
-                ? `${activeClass.name} · Có mặt ${presentStudents.length}/${activeStudents.length} học sinh · Dữ liệu đồng bộ 9 công cụ`
-                : 'Chọn lớp một lần để dùng xuyên suốt 9 công cụ giảng dạy.'}
+                ? `${activeClass.name} · Có mặt ${presentStudents.length}/${activeStudents.length} học sinh · Dữ liệu đồng bộ 10 công cụ`
+                : 'Chọn lớp một lần để dùng xuyên suốt 10 công cụ giảng dạy.'}
             </p>
           </div>
 
@@ -645,7 +729,7 @@ export const TeachingToolsHub: React.FC = () => {
                 htmlFor="teaching-tools-class-select"
                 className="block text-xs font-bold text-slate-700"
               >
-                Lớp đang giảng dạy (chọn một lần cho cả 9 công cụ)
+                Lớp đang giảng dạy (chọn một lần cho cả 10 công cụ)
               </label>
               <select
                 id="teaching-tools-class-select"
@@ -691,7 +775,7 @@ export const TeachingToolsHub: React.FC = () => {
               className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold cursor-pointer shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Tổng quan 9 công cụ</span>
+              <span>Tổng quan 10 công cụ</span>
             </button>
           )}
         </div>
@@ -763,23 +847,149 @@ export const TeachingToolsHub: React.FC = () => {
         )}
       </section>
 
-      {/* No Assigned Class Guard for Real Teachers */}
-      {availableClasses.length === 0 && (
-        <section className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center space-y-3">
+      {/* No Assigned Class Guard for Real Teachers (still allows standalone Name Picker, Seating, Activity via sample/manual) */}
+      {availableClasses.length === 0 &&
+        activeTool !== 'name_picker' &&
+        activeTool !== 'seating' &&
+        activeTool !== 'activity' && (
+        <section className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center space-y-4">
           <FolderOpen className="w-10 h-10 text-slate-400 mx-auto" />
           <h2 className="text-base font-extrabold text-[#082B52]">
             Bạn chưa được phân công lớp học nào
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
-            Tài khoản giáo viên chỉ hiển thị các lớp thuộc quyền phụ trách. Hãy liên hệ quản trị viên để gắn phân công lớp hoặc mở A01 – Vòng quay may mắn để chọn danh sách tự do.
+            Tài khoản giáo viên chỉ hiển thị các lớp thuộc quyền phụ trách. Bạn vẫn có thể mở ngay các công cụ Quản lý lớp học với lớp mẫu, dán danh sách hoặc nhập tên nhóm.
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setActiveTool('seating')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#082B52] hover:bg-[#0F2D52] text-white text-xs sm:text-sm font-extrabold cursor-pointer transition-colors"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span>Mở Quản lý lớp học · Sơ đồ chỗ ngồi</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTool('activity')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#047857] hover:bg-[#065F46] text-white text-xs sm:text-sm font-extrabold cursor-pointer transition-colors"
+            >
+              <Users className="w-4 h-4" />
+              <span>Mở Quản lý lớp học · Hoạt động nhóm</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTool('name_picker')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1769F4] hover:bg-[#0F56D3] text-white text-xs sm:text-sm font-extrabold cursor-pointer transition-colors"
+            >
+              <Dices className="w-4 h-4" />
+              <span>Mở Quản lý lớp học · Gọi tên &amp; Bốc thăm</span>
+            </button>
+          </div>
         </section>
       )}
 
-      {/* Hub Grid of 6 Tools */}
+      {availableClasses.length === 0 && activeTool === 'activity' && (
+        <ActivityCoordinatorTool
+          classId="standalone_activity"
+          classNameLabel="Hoạt động nhóm độc lập"
+          groups={[]}
+          presentStudents={[]}
+          activityState={createDefaultActivityState('station_rotation')}
+          accountScopeId={accountScopeId}
+          isMutedGlobal={isMutedGlobal}
+          reducedMotionGlobal={reducedMotion}
+          onChangeActivityState={() => {}}
+          packageHydrationVersion={activityPackageHydrationSeq}
+        />
+      )}
+
+      {availableClasses.length === 0 && activeTool === 'seating' && (
+        <SeatingChartTool
+          classId="standalone_seating"
+          classNameLabel="Lớp mẫu 36 HS"
+          teacherNameLabel={userProfile?.fullName || 'Giáo viên phụ trách'}
+          presentStudents={[]}
+          allClassStudents={[]}
+          seatingState={{
+            rows: 6,
+            cols: 6,
+            blockedSeatKeys: [],
+            pinnedSeatKeys: [],
+            assignments: {},
+            orientation: 'front_board',
+            lastError: '',
+          }}
+          permittedRealClasses={permittedClasses}
+          accountScopeId={accountScopeId}
+          isDemoSandbox={isDemoSandbox}
+          isMutedGlobal={isMutedGlobal}
+          reducedMotionGlobal={reducedMotion}
+          onToggleMuteGlobal={handleToggleMuteGlobal}
+          onChangeSeatingState={() => {}}
+        />
+      )}
+
+      {availableClasses.length === 0 && activeTool === 'name_picker' && (
+        <NamePickerTool
+          permittedRealClasses={permittedClasses}
+          initialClassId={undefined}
+          accountScopeId={accountScopeId}
+          isDemoSandbox={isDemoSandbox}
+          isMutedGlobal={isMutedGlobal}
+          onToggleMuteGlobal={handleToggleMuteGlobal}
+          reducedMotionGlobal={reducedMotion}
+          onOpenClassicA01={handleLaunchCallStudentA01}
+        />
+      )}
+
+      {/* Hub Grid of 10 Tools + Filter & Search */}
       {availableClasses.length > 0 && activeTool === null && (
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {TOOL_CARDS.map((card) => {
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl border border-[#DCE8F7] p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(
+                [
+                  { id: 'all', label: `Tất cả (${TOOL_CARDS.length})` },
+                  { id: 'classroom_mgmt', label: 'Quản lý lớp học (3)' },
+                  { id: 'teaching_eval', label: 'Tổ chức & Đánh giá (7)' },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setToolCategoryFilter(tab.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer transition-colors ${
+                    toolCategoryFilter === tab.id
+                      ? 'bg-[#082B52] text-white'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="search"
+                value={toolSearchQuery}
+                onChange={(e) => setToolSearchQuery(e.target.value)}
+                placeholder="Tìm công cụ dạy học..."
+                aria-label="Tìm công cụ dạy học"
+                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#1769F4] focus:outline-hidden text-xs font-semibold text-[#082B52]"
+              />
+            </div>
+          </div>
+
+          {filteredToolCards.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-[#DCE8F7] p-8 text-center text-xs font-bold text-slate-500">
+              Không tìm thấy công cụ phù hợp với &quot;{toolSearchQuery}&quot;.
+            </div>
+          ) : (
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredToolCards.map((card) => {
             const Icon = card.icon;
             const imgFailed = Boolean(brokenImages[card.id]);
             return (
@@ -806,7 +1016,7 @@ export const TeachingToolsHub: React.FC = () => {
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#081A33]/75 to-transparent pointer-events-none" />
                   <div className="absolute bottom-2.5 left-3.5 right-3.5 flex items-center justify-between text-white">
                     <span className="text-xs font-extrabold tracking-wide">
-                      Công cụ {card.code}
+                      Công cụ {card.code}{card.category ? ` · ${card.category}` : ''}
                     </span>
                     <Icon className="w-4 h-4 text-white/90" />
                   </div>
@@ -836,9 +1046,11 @@ export const TeachingToolsHub: React.FC = () => {
                   </div>
                 </div>
               </article>
-            );
-          })}
-        </section>
+              );
+              })}
+            </section>
+          )}
+        </div>
       )}
 
       {/* Active Tool Workspace */}
@@ -884,9 +1096,18 @@ export const TeachingToolsHub: React.FC = () => {
 
           {activeTool === 'seating' && (
             <SeatingChartTool
+              classId={activeClass.id}
               classNameLabel={activeClass.name}
+              teacherNameLabel={activeClass.teacherName || userProfile?.fullName || 'Giáo viên phụ trách'}
               presentStudents={presentStudents}
+              allClassStudents={activeStudents}
               seatingState={session.seatingState}
+              permittedRealClasses={availableClasses}
+              accountScopeId={accountScopeId}
+              isDemoSandbox={isDemoSandbox}
+              isMutedGlobal={isMutedGlobal}
+              reducedMotionGlobal={reducedMotion}
+              onToggleMuteGlobal={handleToggleMuteGlobal}
               onChangeSeatingState={(nextSeating) =>
                 commitSession({ ...session, seatingState: nextSeating })
               }
@@ -895,13 +1116,20 @@ export const TeachingToolsHub: React.FC = () => {
 
           {activeTool === 'activity' && (
             <ActivityCoordinatorTool
+              classId={activeClass.id}
+              classNameLabel={activeClass.name}
               groups={session.groupsState.groups}
+              presentStudents={presentStudents}
               activityState={session.activityState}
+              accountScopeId={accountScopeId}
               isMutedGlobal={isMutedGlobal}
+              reducedMotionGlobal={reducedMotion}
               onChangeActivityState={(nextActivity) =>
                 commitSession({ ...session, activityState: nextActivity })
               }
               onGoToGroups={() => setActiveTool('groups')}
+              onSaveToLessonPackage={handleSaveActivityProToPackage}
+              packageHydrationVersion={activityPackageHydrationSeq}
             />
           )}
 
@@ -933,6 +1161,10 @@ export const TeachingToolsHub: React.FC = () => {
               savedPackages={savedPackages}
               questionSets={questionSets}
               hasSavedSessionForClass={hasSavedSessionForClass}
+              activityProTemplate={(() => {
+                const savedPro = loadActivityProSession(activeClass.id, accountScopeId);
+                return savedPro ? extractActivityProTemplate(savedPro) : null;
+              })()}
               onSavePackagesList={handleSavePackagesList}
               onApplyPackageFresh={handleApplyPackageFresh}
               onResumeSavedClassSession={handleResumeSavedClassSession}
@@ -976,6 +1208,19 @@ export const TeachingToolsHub: React.FC = () => {
                 commitSession({ ...session, quickActivityState: nextQuick })
               }
               onOpenClassroomTimer={() => setActiveTool('timer')}
+            />
+          )}
+
+          {activeTool === 'name_picker' && (
+            <NamePickerTool
+              permittedRealClasses={availableClasses}
+              initialClassId={activeClass.id}
+              accountScopeId={accountScopeId}
+              isDemoSandbox={isDemoSandbox}
+              isMutedGlobal={isMutedGlobal}
+              onToggleMuteGlobal={handleToggleMuteGlobal}
+              reducedMotionGlobal={reducedMotion}
+              onOpenClassicA01={handleLaunchCallStudentA01}
             />
           )}
         </div>

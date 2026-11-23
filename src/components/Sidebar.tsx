@@ -48,6 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
     currentRole,
     isDemoSandbox,
     authenticatedProdRole,
+    openTeachingTool,
   } = useApp();
 
   const sidebarStorageKey = isDemoSandbox ? DEMO_SIDEBAR_COLLAPSED_KEY : SIDEBAR_COLLAPSED_KEY;
@@ -308,6 +309,53 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onR
                 <Wrench className="w-4 h-4 shrink-0 text-sky-300" />
                 {!isCompact && <span className="truncate">Công cụ dạy học</span>}
               </button>
+
+              {!isCompact && (
+                <div className="pl-5 pr-1 pt-0.5 pb-1 space-y-1">
+                  <div className="px-2.5 pt-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    Quản lý lớp học
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAction(() => openTeachingTool('seating'))}
+                    title="Công cụ dạy học → Quản lý lớp học → Sơ đồ chỗ ngồi"
+                    className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                      currentView === 'teacher_tools'
+                        ? 'bg-white/10 text-sky-200 hover:bg-white/15'
+                        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5 shrink-0 text-sky-300" />
+                    <span className="truncate">Sơ đồ chỗ ngồi</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAction(() => openTeachingTool('activity'))}
+                    title="Công cụ dạy học → Quản lý lớp học → Hoạt động nhóm"
+                    className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                      currentView === 'teacher_tools'
+                        ? 'bg-white/10 text-sky-200 hover:bg-white/15'
+                        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5 shrink-0 text-emerald-300" />
+                    <span className="truncate">Hoạt động nhóm</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAction(() => openTeachingTool('name_picker'))}
+                    title="Công cụ dạy học → Quản lý lớp học → Gọi tên & Bốc thăm"
+                    className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                      currentView === 'teacher_tools'
+                        ? 'bg-white/10 text-sky-200 hover:bg-white/15'
+                        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 shrink-0 text-sky-300" />
+                    <span className="truncate">Gọi tên &amp; Bốc thăm</span>
+                  </button>
+                </div>
+              )}
 
               <button
                 onClick={() => handleNav('teacher_question_bank')}

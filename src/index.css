@@ -67,8 +67,12 @@
   background: #94a3b8;
 }
 
-/* Print formatting for Word / Matrix export preview */
+/* Print formatting for Word / Matrix export & A4 Landscape Seating Map */
 @media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
   .no-print {
     display: none !important;
   }
@@ -76,6 +80,11 @@
     margin: 0;
     padding: 1.5cm;
     font-family: "Times New Roman", Times, serif;
+  }
+  .seating-a4-print-root {
+    width: 100%;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 }
 

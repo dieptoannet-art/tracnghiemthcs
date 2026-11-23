@@ -22,6 +22,7 @@ import {
 } from './teachingToolsEngine';
 
 import type { ToolQuestionSet } from './questionBankEngine';
+import type { ActivityProPackageTemplate } from './activityProEngine';
 
 interface LessonPackageToolProps {
   currentClassName: string;
@@ -29,6 +30,7 @@ interface LessonPackageToolProps {
   savedPackages: LessonPackageItem[];
   questionSets?: ToolQuestionSet[];
   hasSavedSessionForClass: boolean;
+  activityProTemplate?: ActivityProPackageTemplate | null;
   onSavePackagesList: (nextPackages: LessonPackageItem[]) => void;
   onApplyPackageFresh: (pkg: LessonPackageItem) => void;
   onResumeSavedClassSession: () => void;
@@ -40,6 +42,7 @@ export const LessonPackageTool: React.FC<LessonPackageToolProps> = ({
   savedPackages,
   questionSets = [],
   hasSavedSessionForClass,
+  activityProTemplate = null,
   onSavePackagesList,
   onApplyPackageFresh,
   onResumeSavedClassSession,
@@ -82,6 +85,7 @@ export const LessonPackageTool: React.FC<LessonPackageToolProps> = ({
             turnRule: currentSession.pendingReviewGamePrefill?.turnRule || 'rotate_every_question',
           }
         : null,
+      activityProTemplate,
     });
     onSavePackagesList([newPkg, ...savedPackages]);
     setPackageName('');

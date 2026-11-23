@@ -8,6 +8,7 @@ import { KHKT_DEMO_STORAGE_PREFIX, isKhktDemoRuntime } from '../../../utils/khkt
 
 import type { QuickActivitySessionState } from './quickActivitiesEngine';
 import type { ToolQuestionSet } from './questionBankEngine';
+import type { ActivityProPackageTemplate } from './activityProEngine';
 
 export type TeachingToolId =
   | 'groups'
@@ -18,7 +19,8 @@ export type TeachingToolId =
   | 'packages'
   | 'question_bank'
   | 'review_games'
-  | 'quick_activities';
+  | 'quick_activities'
+  | 'name_picker';
 
 export interface ToolStudentItem {
   id: string; // Stable unique identifier (disambiguates identical names!)
@@ -202,6 +204,7 @@ export interface LessonPackageConfigPayload {
   reviewRoundSeconds?: number;
   reviewPointsPerCorrect?: number;
   reviewTurnRule?: 'rotate_every_question' | 'keep_on_correct';
+  activityProTemplate?: ActivityProPackageTemplate | null;
 }
 
 export interface LessonPackageItem {
@@ -1296,6 +1299,7 @@ export function buildPackageFromSession(params: {
     pointsPerCorrect?: number;
     turnRule?: 'rotate_every_question' | 'keep_on_correct';
   } | null;
+  activityProTemplate?: ActivityProPackageTemplate | null;
   nowIso?: string;
 }): LessonPackageItem {
   const nowIso = params.nowIso || new Date().toISOString();
@@ -1316,7 +1320,7 @@ export function buildPackageFromSession(params: {
       seatingRows: s.seatingState.rows,
       seatingCols: s.seatingState.cols,
       blockedSeatKeys: s.seatingState.blockedSeatKeys.slice(),
-      activityMode: s.activityState.mode,
+      activityMode: params.activityProTemplate?.mode || s.activityState.mode,
       activityStations: s.activityState.stations.map((st) => ({ ...st })),
       activityRoundDurationSeconds: s.activityState.roundDurationSeconds,
       activitySplitMultiTurn: s.activityState.splitMultiTurn,
@@ -1341,6 +1345,7 @@ export function buildPackageFromSession(params: {
       reviewPointsPerCorrect:
         params.reviewConfig?.pointsPerCorrect ?? s.pendingReviewGamePrefill?.pointsPerCorrect,
       reviewTurnRule: params.reviewConfig?.turnRule || s.pendingReviewGamePrefill?.turnRule,
+      activityProTemplate: params.activityProTemplate ?? null,
     },
   };
 }
@@ -1384,6 +1389,7 @@ export function serializePackageForShare(pkg: LessonPackageItem): string {
       reviewRoundSeconds: pkg.config.reviewRoundSeconds,
       reviewPointsPerCorrect: pkg.config.reviewPointsPerCorrect,
       reviewTurnRule: pkg.config.reviewTurnRule,
+      activityProTemplate: pkg.config.activityProTemplate ?? null,
     },
   };
   return JSON.stringify(sanitized, null, 2);
@@ -1497,6 +1503,10 @@ export function validateAndImportPackageJson(
         c.reviewTurnRule === 'rotate_every_question' || c.reviewTurnRule === 'keep_on_correct'
           ? c.reviewTurnRule
           : undefined,
+      activityProTemplate:
+        c.activityProTemplate && typeof c.activityProTemplate === 'object'
+          ? (c.activityProTemplate as ActivityProPackageTemplate)
+          : null,
     },
   };
 
